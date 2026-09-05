@@ -780,6 +780,13 @@
       .catch(function () { return null; });
   }
 
+  /* قسم من إعداد الحزمة (tiles، list_columns، form، views، papers، bot)؛
+     null يعني: هذه الحزمة لا تعلن شيئا، فابق على ما في الشيفرة اليوم. */
+  function packCfg(section) {
+    return app.pack && app.pack[section] ? app.pack[section] : null;
+  }
+
+  app.packCfg = packCfg;
   app.listPacks = listPacks;
   app.setOrgPack = setOrgPack;
   app.packLabel = packLabel;

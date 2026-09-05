@@ -84,7 +84,83 @@
         });
       }
 
+      /* ــ مربعات اللوحة بحسب الحزمة ــ
+         المقياس يختار من مفردات مغلقة في الشيفرة؛ أي معرف خارجها يتجاهل ويبقى المربع كما هو.
+         الحزمة تسمي المربع وتختار أيقونته، والشيفرة وحدها تعرف كيف يحسب الرقم. */
+      var TILE_ICONS = {
+        list: "M3 4h18v3H3V4zm0 6.5h18v3H3v-3zM3 17h18v3H3v-3z",
+        calendar: "M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h5v5H7z",
+        bell: "M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z",
+        check: "M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z",
+        folder: "M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z",
+        money: "M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"
+      };
+      var TILE_VALUE_IDS = ["statOpenVal", "statDue7Val", "statOverdueVal", "statDoneVal"];
+      var lastTiles = null;
+
+      function packTiles() {
+        var cfg = app.packCfg ? app.packCfg("tiles") : null;
+        var list = cfg && (cfg[state.viewType || "default"] || cfg.default);
+        return Array.isArray(list) && list.length ? list.slice(0, 4) : null;
+      }
+
+      /* الأرقام تكتب مرة واحدة بعد اكتمالها كلها: لا صفر ثم قيمة */
+      function paintTiles(values) {
+        var tiles = packTiles();
+        if (!tiles) return;
+        if (values) lastTiles = values;
+        var nums = lastTiles || [];
+        var cards = document.querySelectorAll(".stats-section .platform-stat-card");
+        tiles.forEach(function (tile, i) {
+          var card = cards[i]; if (!card) return;
+          var label = card.querySelector(".platform-stat-label");
+          var word = tile.label && (tile.label[l] || tile.label.ar);
+          if (label && word && label.textContent !== word) { label.textContent = word; label.removeAttribute("data-i18n"); }
+          var path = card.querySelector(".platform-stat-icon path");
+          var d = TILE_ICONS[tile.icon];
+          if (path && d && path.getAttribute("d") !== d) path.setAttribute("d", d);
+          var val = $(TILE_VALUE_IDS[i]);
+          var text = nums[i] == null ? "" : String(nums[i]);
+          if (val && val.textContent !== text) val.textContent = text;
+        });
+      }
+
+      /* مقاييس المربعات: نداءات مجمعة لا نداء لكل مربع */
+      function tileValues(tiles) {
+        var now = new Date(), nowIso = now.toISOString();
+        var in7 = new Date(now.getTime() + 7 * 86400000).toISOString();
+        var needPapers = tiles.some(function (t) { return String(t.metric || "").indexOf("papers") !== -1; });
+        var papers = needPapers && app.orgDocumentsStatus ? app.orgDocumentsStatus().catch(function () { return null; }) : Promise.resolve(null);
+        var counts = {
+          "count.open": function () { return app.countItems({ status: "open" }); },
+          "count.done": function () { return app.countItems({ status: "done" }); },
+          "count.total": function () { return app.countItems({}); },
+          "count.due7": function () { return countWhere(function (q) { return q.eq("status", "open").gte("due_at", nowIso).lte("due_at", in7); }); },
+          "count.overdue": function () { return countWhere(function (q) { return q.eq("status", "open").lt("due_at", nowIso); }); }
+        };
+        return papers.then(function (docs) {
+          var rows = (docs && docs.papers) || [];
+          var paperCount = function (states) {
+            return rows.filter(function (p) { return states.indexOf(p.state) !== -1; }).length;
+          };
+          return Promise.all(tiles.map(function (t) {
+            var m = String(t.metric || "");
+            if (m === "count.papers_expiring") return paperCount(["expiring", "expired"]);
+            if (m === "count.papers_missing") return paperCount(["missing"]);
+            if (m === "count.papers_valid") return paperCount(["valid", "stored"]);
+            return counts[m] ? counts[m]() : 0;
+          }));
+        });
+      }
+
       function loadStats() {
+        var tiles = packTiles();
+        if (tiles) {
+          return tileValues(tiles).then(function (values) {
+            paintTiles(values);
+            statsReady();
+          }).catch(function (err) { statsReady(); fail(err); });
+        }
         if (state.viewType) return loadViewStats();
         var now = new Date();
         var nowIso = now.toISOString();
@@ -749,6 +825,66 @@
         box.innerHTML = html;
       }
 
+      /* ــ جدول القائمة بحسب الحزمة ــ
+         الخلايا من مفردات مغلقة في الشيفرة، والحزمة تختار أيها يظهر وبأي عنوان.
+         بلا إعلان يعود الجدول إلى أعمدته الستة كما هي اليوم. */
+      function packColumns() {
+        var cfg = app.packCfg ? app.packCfg("list_columns") : null;
+        var list = cfg && (cfg[state.viewType || "default"] || cfg.default);
+        return Array.isArray(list) && list.length ? list : null;
+      }
+
+      function cellHtml(cell, item) {
+        var sk = statusKeyOf(item);
+        switch (cell) {
+          case "title+category":
+            return '<td><span class="item-title" data-tr>' + esc(item.title) + "</span>" +
+                   (item.category ? '<span class="item-cat">' + esc(item.category) + "</span>" : "") + "</td>";
+          case "title": return '<td><span class="item-title" data-tr>' + esc(item.title) + "</span></td>";
+          case "tracker": return "<td>" + esc(trackerName(item)) + "</td>";
+          case "due": return '<td class="col-due">' + (item.due_at ? esc(app.fmtDate(item.due_at, { withTime: true })) : esc(T("noDue"))) + "</td>";
+          case "due+left":
+            return '<td class="col-due">' + (item.due_at
+              ? '<div class="cell-stack"><span>' + esc(app.fmtDate(item.due_at, { withTime: true })) + '</span><span class="item-cat due-left" data-due="' + esc(item.due_at) + '"></span></div>'
+              : esc(T("noDue"))) + "</td>";
+          case "assignee": return "<td>" + esc(assigneeName(item.assignee_id)) + "</td>";
+          case "status": return '<td><span class="status-' + sk + '">' + esc(T(STATUS_KEYS[sk])) + "</span></td>";
+          case "amount": return '<td class="cell-num">' + (item.amount == null ? "-" : money(item.amount)) + "</td>";
+          case "client": return "<td>" + esc(item.client_name || "-") + "</td>";
+          case "case_number": return '<td dir="ltr">' + esc(item.case_number || "-") + "</td>";
+          case "category": return "<td>" + esc(item.category || "-") + "</td>";
+          case "actions":
+            return '<td><div class="chat-options row-actions">' +
+              (item.status === "done" ? actionBtn(item, "reopen", "actionReopen") : actionBtn(item, "done", "actionDone")) +
+              actionBtn(item, "edit", "actionEdit") +
+              actionBtn(item, "delete", "actionDelete", "is-danger") + "</div></td>";
+          default: return "<td>-</td>";
+        }
+      }
+
+      var lastHeadSig = "";
+      function renderPackTable() {
+        var cols = packColumns();
+        if (!cols) return false;
+        var head = $("itemsHead"), body = $("itemsBody");
+        if (!head || !body) return false;
+        var sig = cols.map(function (c) { return c.cell + ":" + ((c.label && (c.label[l] || c.label.ar)) || ""); }).join("|") + "|" + l;
+        if (sig !== lastHeadSig) {
+          lastHeadSig = sig;
+          head.innerHTML = "<tr>" + cols.map(function (c) {
+            return "<th>" + esc((c.label && (c.label[l] || c.label.ar)) || "") + "</th>";
+          }).join("") + "</tr>";
+        }
+        var items = state.items;
+        $("emptyList").hidden = items.length > 0;
+        $("tableWrap").hidden = items.length === 0;
+        body.innerHTML = items.map(function (item) {
+          return "<tr>" + cols.map(function (c) { return cellHtml(c.cell, item); }).join("") + "</tr>";
+        }).join("");
+        translateView();
+        return true;
+      }
+
       function renderList() {
         renderCategorySuggest();
         renderWeek();
@@ -775,6 +911,7 @@
         $("expensesWrap").hidden = true;
         $("violationsBar").hidden = true;
         $("violationsWrap").hidden = true;
+        if (renderPackTable()) return;
         var body = $("itemsBody");
         body.innerHTML = "";
         var items = state.items;

@@ -42,8 +42,27 @@ function stub(url) {
   if (p.includes("/rest/v1/rpc/my_pack_config")) {
     const k = process.env.PACK || "legal";
     const row = PACK_ROWS.filter((r) => r[0] === k)[0] || PACK_ROWS.filter((r) => r[0] === "legal")[0];
+    const screens = {
+      individual: {
+        tiles: { default: [
+          { metric: "count.open", icon: "list", accent: "users", label: { ar: "مهامي المفتوحة", en: "My open tasks", fr: "Mes taches ouvertes", ur: "میرے کھلے کام" } },
+          { metric: "count.due7", icon: "calendar", accent: "spots", label: { ar: "خلال 7 ايام", en: "Within 7 days", fr: "Sous 7 jours", ur: "سات دن میں" } },
+          { metric: "count.papers_expiring", icon: "bell", accent: "overdue", label: { ar: "اوراق تنتهي قريبا", en: "Papers expiring soon", fr: "Papiers expirant bientot", ur: "جلد ختم ہونے والے کاغذات" } },
+          { metric: "count.done", icon: "check", accent: "cars", label: { ar: "انجزت", en: "Done", fr: "Terminees", ur: "مکمل" } }
+        ] },
+        list_columns: { default: [
+          { cell: "title+category", label: { ar: "العنصر", en: "Item", fr: "Element", ur: "آئٹم" } },
+          { cell: "due+left", label: { ar: "الموعد", en: "Due", fr: "Echeance", ur: "آخری تاریخ" } },
+          { cell: "status", label: { ar: "الحالة", en: "Status", fr: "Statut", ur: "حالت" } },
+          { cell: "actions", label: { ar: "الإجراءات", en: "Actions", fr: "Actions", ur: "اقدامات" } }
+        ] },
+        form: { hide: ["assignee", "client_en", "case_number"] }
+      }
+    }[row[0]] || {};
     return { pack: row[0], names: { ar: row[1], en: row[0], fr: row[0], ur: row[1] }, labels: {}, is_default: row[0] === "legal",
-             services: row[4].map(([service, label], i) => ({ service, sort: i + 1, label: label ? { ar: label, en: label, fr: label, ur: label } : null })) };
+             services: row[4].map(([service, label], i) => ({ service, sort: i + 1, label: label ? { ar: label, en: label, fr: label, ur: label } : null })),
+             views: screens.views || null, tiles: screens.tiles || null, list_columns: screens.list_columns || null,
+             form: screens.form || null, papers: null, bot: null };
   }
   if (p.includes("/rest/v1/rpc/list_ui_packs")) return PACK_ROWS.map((r) => ({
     key: r[0], names: { ar: r[1], en: r[0], fr: r[0], ur: r[1] }, hints: { ar: r[2], en: r[2], fr: r[2], ur: r[2] },

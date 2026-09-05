@@ -677,6 +677,16 @@
         };
       }
 
+      /* حقول النموذج التي لا تعني هذه الواجهة تخفى ولا تحذف من العلامة */
+      function applyPackForm() {
+        var cfg = app.packCfg ? app.packCfg("form") : null;
+        var hide = cfg && Array.isArray(cfg.hide) ? cfg.hide : [];
+        document.querySelectorAll("[data-field]").forEach(function (el) {
+          var on = hide.indexOf(el.getAttribute("data-field")) !== -1;
+          if (el.hidden !== on) el.hidden = on;
+        });
+      }
+
       function statsReady() {
         var sec = document.querySelector(".stats-section");
         if (sec) sec.hidden = false;
@@ -811,6 +821,7 @@
           state.month = startOfMonth(new Date());
           state.viewType = currentViewType();
           applyViewTitle();
+        applyPackForm();
           renderSelects();
           restoreTab();
           show("dashboard");

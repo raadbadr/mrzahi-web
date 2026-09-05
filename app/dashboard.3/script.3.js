@@ -276,6 +276,7 @@
         renderList();
         renderCalendar();
         renderTimeline(tlState.rows, tlState.stats);   /* الخط الزمني بلغة الواجهة الجديدة، بلا تحميل */
+        paintTiles();                                  /* أسماء المربعات بلغة الواجهة الجديدة من أرقامها المحفوظة */
       };
 
       /* Deferred scripts (supabase-js, app.js, common.js) run before DOMContentLoaded. */
