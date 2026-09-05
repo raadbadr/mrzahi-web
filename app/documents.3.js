@@ -15,10 +15,17 @@
       function kindLabel(k) { return t("kind_" + (KINDS.indexOf(k) !== -1 ? k : "other")); }
 
       /* ---------- قراءة الملف ---------- */
+      /* بصمة الملف تُتحقق قبل تنفيذه: نسخة مختلفة من الشبكة لا تعمل أصلا */
+      var PDF_SRI = "sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e";
+
       function loadScript(src) {
         return new Promise(function (resolve, reject) {
           if (window.pdfjsLib) { resolve(); return; }
-          var s = document.createElement("script"); s.src = src; s.onload = resolve; s.onerror = reject; document.head.appendChild(s);
+          var s = document.createElement("script");
+          s.src = src;
+          if (src === PDF_SRC) { s.integrity = PDF_SRI; s.crossOrigin = "anonymous"; s.referrerPolicy = "no-referrer"; }
+          s.onload = resolve; s.onerror = reject;
+          document.head.appendChild(s);
         });
       }
       /* الصور تصغر إلى 1800px كحد أقصى قبل الإرسال: صور الجوال الكبيرة كانت تفشل القراءة */
