@@ -103,17 +103,37 @@ async function handleStats(env) {
   return json(data && typeof data === "object" ? data : {});
 }
 
+/* نموذج «تواصل معنا» مفتوح للعموم: حد بالعنوان وسقف طول لكل حقل كي لا يغرق الجدول */
+const contactBuckets = new Map();
+const CONTACT_MAX = { subject: 200, name: 120, email: 200, message: 4000 };
+function contactRateLimited(ip) {
+  if (!ip) return false;
+  const now = Date.now();
+  let b = contactBuckets.get(ip);
+  if (!b || now - b.start >= 600_000) { b = { start: now, count: 0 }; contactBuckets.set(ip, b); }
+  b.count += 1;
+  if (contactBuckets.size > 5000) contactBuckets.clear();
+  return b.count > 5;
+}
 async function handleContact(request, env) {
+  const ip = request.headers.get("cf-connecting-ip") || "";
+  if (contactRateLimited(ip)) return json({ error: "too many messages, try again later" }, 429);
   let body;
   try { body = await request.json(); } catch { return json({ error: "invalid body" }, 400); }
-  const { subject, name, email, message } = body || {};
-  if (!name || !email || !message) return json({ error: "missing fields" }, 400);
+  const clean = {};
+  for (const k of ["subject", "name", "email", "message"]) {
+    const v = String((body && body[k]) || "").trim();
+    if (v.length > CONTACT_MAX[k]) return json({ error: "field too long: " + k }, 400);
+    clean[k] = v;
+  }
+  if (!clean.name || !clean.email || !clean.message) return json({ error: "missing fields" }, 400);
+  if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(clean.email)) return json({ error: "invalid email" }, 400);
   if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return json({ error: "not configured" }, 503);
 
   const res = await fetch(`${env.SUPABASE_URL}/rest/v1/contact_messages`, {
     method: "POST",
     headers: { ...supaHeaders(env), "Content-Type": "application/json", Prefer: "return=minimal" },
-    body: JSON.stringify({ subject, name, email, message }),
+    body: JSON.stringify(clean),
   });
   return json({ ok: res.ok }, res.status);
 }
@@ -848,9 +868,12 @@ export default {
 
     // CORS preflight
     if (request.method === "OPTIONS") {
+      /* مسارات الموقع للموقع وحده؛ واجهة المفاتيح (/api/v1 و/mcp) تبقى مفتوحة لأنها موثقة بمفتاح لا بجلسة */
+      const openToAll = path.startsWith("/api/v1/") || path.startsWith("/mcp");
       return new Response(null, {
         headers: {
-          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Origin": openToAll ? "*" : "https://appmails.net",
+          Vary: "Origin",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Authorization",
           "Access-Control-Max-Age": "86400",
