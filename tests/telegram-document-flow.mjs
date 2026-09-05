@@ -253,6 +253,15 @@ try {
     const prose = await agentReply(envOf([{ response: "أحمد هو المسؤول عن هذه القضية" }]), { chatId: "t4", userId: "u1", text: "من يتابع الموضوع", lang: "ar" });
     check("end to end: one invented name in plain prose, no digits, is still blocked", !!prose && prose.text.startsWith("لا أملك هذه المعلومة"), prose && prose.text);
     check("end to end: the tool really was called against the database", rpcCalls.includes("telegram_items_by_kind"), String(rpcCalls));
+    /* أداة نوديت وفشلت: لا بيانات في اليد، فلا يتكلم النموذج (نافذة أشار إليها 1e) */
+    const brokenFetch = globalThis.fetch;
+    globalThis.fetch = async (url) => String(url).includes("telegram_history") ? new Response("[]", { status: 200, headers: { "content-type": "application/json" } }) : new Response("boom", { status: 500 });
+    const failed = await agentReply(envOf([
+      { tool_calls: [{ function: { name: "tracker_items", arguments: JSON.stringify({ kind: "case" }) } }] },
+      { response: "لديك قضيتان مفتوحتان" },
+    ]), { chatId: "t7", userId: "u1", text: "ايش وضع القضايا عندي", lang: "ar" });
+    check("end to end: a failed tool call is not a licence to talk", !!failed && failed.text.startsWith("لا أملك هذه المعلومة"), failed && failed.text);
+    globalThis.fetch = brokenFetch;
   } finally { globalThis.fetch = realFetch; }
 }
 

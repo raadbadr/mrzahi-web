@@ -171,8 +171,9 @@ export async function agentReply(env, ctx) {
         const clean = text.replace(/[\u064B-\u0652\u0670]/g, "");
         /* بلا أداة وبلا ملف أمامنا لا يجيب النموذج عن سؤال بيانات إطلاقا، ولو أعاد كلمات السائل نفسها
            («نعم أحمد منتهي من المهمة» صدى مجامل لا معرفة) */
-        if (!toolsUsed.length && !ctx.attachment) { console.log("agent: no tool, no file — refusing to answer from the model", clean.slice(0, 120)); return { text: NO_DATA[ctx.lang] || NO_DATA.ar, tools: [] }; }
-        if (ungrounded(clean, evidence, toolsUsed.length > 0)) { console.log("agent: ungrounded reply blocked", clean.slice(0, 120)); return { text: NO_DATA[ctx.lang] || NO_DATA.ar, tools: toolsUsed }; }
+        /* العبرة ببيانات عادت فعلا لا بمحاولة نداء: أداة نوديت وفشلت = لا بيانات = لا جواب من النموذج */
+        if (!answers.length && !ctx.attachment) { console.log("agent: no data in hand — refusing to answer from the model", toolsUsed.join(","), clean.slice(0, 120)); return { text: NO_DATA[ctx.lang] || NO_DATA.ar, tools: toolsUsed }; }
+        if (ungrounded(clean, evidence, answers.length > 0)) { console.log("agent: ungrounded reply blocked", clean.slice(0, 120)); return { text: NO_DATA[ctx.lang] || NO_DATA.ar, tools: toolsUsed }; }
         return { text: clean, tools: toolsUsed };
       }
       if (round < 2) { messages.push({ role: "user", content: "أجب الآن نصا مباشرا من نتائج الأدوات أعلاه، باختصار." }); continue; }
