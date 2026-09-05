@@ -194,12 +194,31 @@
 
       function matchesView(item) { return isOfType(item, state.viewType); }
 
+      /* عنوان الصفحة يتبع تسمية الواجهة: من يفتح «المراجعون والمواعيد» من الشريط
+         لا تستقبله صفحة اسمها «القضايا». الحزمة الافتراضية بلا تسميات، فالعنوان كما هو. */
+      function viewTitleText(type) {
+        var view = VIEW_TYPES[type];
+        if (!view) return "";
+        var services = app && app.pack && Array.isArray(app.pack.services) ? app.pack.services : null;
+        if (services) {
+          for (var i = 0; i < services.length; i++) {
+            if (services[i].service !== type || !services[i].label) continue;
+            var row = services[i].label;
+            var word = row[app.lang()] || row.ar;
+            if (word) return word;
+          }
+        }
+        return T(view.titleKey);
+      }
+
       function applyViewTitle() {
         var view = VIEW_TYPES[state.viewType];
         if (!view) return;
+        var text = viewTitleText(state.viewType);
         var h1 = document.querySelector('h1[data-i18n="title"]');
-        if (h1) { h1.textContent = T(view.titleKey); h1.removeAttribute("data-i18n"); }
-        document.title = T(view.titleKey) + " | TheTracker";
+        if (h1 && h1.textContent !== text) { h1.textContent = text; h1.removeAttribute("data-i18n"); }
+        var docTitle = text + " | TheTracker";
+        if (document.title !== docTitle) document.title = docTitle;
       }
 
       /* ---------- مؤشر المخالفات ---------- */
