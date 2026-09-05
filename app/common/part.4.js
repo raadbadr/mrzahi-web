@@ -160,6 +160,7 @@
   app.storageUsed = storageUsed;
   app.renameOrg = renameOrg;
   app.deleteOrg = deleteOrg;
+  app.requestAccountDeletion = requestAccountDeletion;
   app.findProfileForInvite = findProfileForInvite;
   app.requestPlan = requestPlan;
   app.planRequests = planRequests;

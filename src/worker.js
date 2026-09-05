@@ -12,7 +12,7 @@ import { handleV1, mcpAuthenticate, importRowsWithKey } from "./api-v1.js";
 import { agentReply, quickAnswer, VERBS, ungrounded, NO_DATA } from "./telegram-agent.js";
 import { handleCalendar } from "./calendar.js";
 import { handleDocumentAnalyze } from "./documents.js";
-import { runNotificationCron, linkChannelByCode, notifyTarget, sendTelegram, sendWhatsapp, sendSms, sendEmail, rpc, t as channelText, westernDigits,
+import { runNotificationCron, purgeExpiredAccountDeletions, linkChannelByCode, notifyTarget, sendTelegram, sendWhatsapp, sendSms, sendEmail, rpc, t as channelText, westernDigits,
          bot as botText, menuKeyboard, menuAction, urlButton, formatItems, telegramItems, linkChannelDirect, linkChannelByPhone, contactKeyboard,
          sendChatAction, fetchTelegramFile, bytesToBase64, TELEGRAM_FILE_MAX, answerCallback, clearInlineButtons, confirmButtons, actionButtons } from "./notify.js";
 import { ALLOWED_EXT, fileExt, parseWorkbook, draftPayload, commitImport } from "./telegram-import.js";
@@ -926,5 +926,7 @@ export default {
     ctx.waitUntil(runNotificationCron(env).then((r) => console.log("[cron]", JSON.stringify(r))).catch((e) => console.error("[cron]", String(e))));
     // الإيجاز الصباحي (07:00 بتوقيت كل مستخدم) وتجهيز جلسات الغد (18:00)
     ctx.waitUntil(runTelegramDigests(env).then((r) => console.log("[digest]", JSON.stringify(r))).catch((e) => console.error("[digest]", String(e))));
+    // حذف الحسابات التي انتهت فترة سماحها (30 يوما بلا دخول)
+    ctx.waitUntil(purgeExpiredAccountDeletions(env).then((r) => console.log("[account-purge]", JSON.stringify(r))).catch((e) => console.error("[account-purge]", String(e))));
   },
 };

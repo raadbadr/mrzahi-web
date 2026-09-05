@@ -478,3 +478,13 @@ export async function runNotificationCron(env) {
   }
   return { pending: pending.length, sent, failed };
 }
+
+// ---------- Cron: حذف الحسابات التي انتهت فترة سماحها (30 يوما) ----------
+export async function purgeExpiredAccountDeletions(env) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY || !env.WORKER_SECRET) return { skipped: "not configured" };
+  try {
+    return await rpc(env, "purge_expired_account_deletions", { p_secret: env.WORKER_SECRET });
+  } catch (e) {
+    return { error: String((e && e.message) || e).slice(0, 200) };
+  }
+}

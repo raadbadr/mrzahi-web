@@ -610,6 +610,20 @@
     });
   }
 
+  /* حذف الحساب الشخصي: طلب يدخل فترة سماح 30 يوما (تلغى تلقائيا بالدخول مجددا)، بمعيار باركينزي نفسه.
+     يرفض إن كان صاحب الحساب مالكا لشركة فيها أعضاء نشطون آخرون (err.code = "OWNER_HAS_TEAM"، err.blockingOrgs = أسماؤها). */
+  function requestAccountDeletion() {
+    return run(function (client) {
+      return client.rpc("request_account_deletion").then(unwrap);
+    }).catch(function (err) {
+      if (err && err.message === "owner_has_team") {
+        err.code = "OWNER_HAS_TEAM";
+        try { err.blockingOrgs = JSON.parse(err.sbDetails || "[]"); } catch (e) { err.blockingOrgs = []; }
+      }
+      throw err;
+    });
+  }
+
   /* بحث عن مستخدم مسجل لدعوته (مطابقة تامة للبريد أو الجوال أو رقمه القياسي). */
   function findProfileForInvite(query) {
     return run(function (client) {

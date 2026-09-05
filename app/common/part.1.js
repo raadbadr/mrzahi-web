@@ -49,7 +49,8 @@
       planLimitMembers: "وصلت إلى الحد الأقصى لعدد الأعضاء في باقتك الحالية، رق باقتك لإضافة المزيد.",
       genericError: "حدث خطأ، حاول مرة أخرى.",
       saved: "تم الحفظ.",
-      deleted: "تم الحذف."
+      deleted: "تم الحذف.",
+      accountDeletionCancelled: "سجلت الدخول، فألغينا طلب حذف حسابك."
     },
     en: {
       serviceUnavailableTitle: "Service is being prepared",
@@ -59,7 +60,8 @@
       planLimitMembers: "You have reached the member limit of your current plan. Upgrade to add more.",
       genericError: "Something went wrong. Please try again.",
       saved: "Saved.",
-      deleted: "Deleted."
+      deleted: "Deleted.",
+      accountDeletionCancelled: "You signed in, so we cancelled your account deletion request."
     },
     fr: {
       serviceUnavailableTitle: "Service en cours de préparation",
@@ -69,7 +71,8 @@
       planLimitMembers: "Vous avez atteint la limite de membres de votre forfait actuel. Passez à un forfait supérieur pour en ajouter.",
       genericError: "Une erreur est survenue. Veuillez réessayer.",
       saved: "Enregistré.",
-      deleted: "Supprimé."
+      deleted: "Supprimé.",
+      accountDeletionCancelled: "Vous vous êtes connecté, la demande de suppression de votre compte a donc été annulée."
     },
     ur: {
       serviceUnavailableTitle: "سروس تیار کی جا رہی ہے",
@@ -79,7 +82,8 @@
       planLimitMembers: "آپ اپنے موجودہ پلان میں اراکین کی حد تک پہنچ چکے ہیں، مزید شامل کرنے کے لیے پلان اپ گریڈ کریں۔",
       genericError: "کچھ غلط ہو گیا، براہ کرم دوبارہ کوشش کریں۔",
       saved: "محفوظ ہو گیا۔",
-      deleted: "حذف ہو گیا۔"
+      deleted: "حذف ہو گیا۔",
+      accountDeletionCancelled: "آپ سائن ان ہوئے، اس لیے ہم نے آپ کے اکاؤنٹ حذف کرنے کی درخواست منسوخ کر دی۔"
     }
   };
 
@@ -335,6 +339,7 @@
     var message = (error && error.message) ? String(error.message) : String(error || "unknown error");
     var err = new Error(message);
     if (error && error.code) err.sbCode = error.code;
+    if (error && error.details) err.sbDetails = error.details;
     if (message.indexOf("PLAN_LIMIT") !== -1) {
       err.code = "PLAN_LIMIT";
       err.limit = message.indexOf("PLAN_LIMIT_MEMBERS") !== -1 ? "members" : "items";
@@ -512,6 +517,13 @@
               if (typeof window.setLang === "function") window.setLang(wanted);
             }
           } catch (e) { /* ignore */ }
+          /* الدخول خلال فترة السماح يلغي طلب حذف الحساب تلقائيا (معيار باركينزي بالضبط) */
+          if (profile && profile.delete_requested_at) {
+            app.client.rpc("cancel_own_account_deletion").then(function () {
+              profile.delete_requested_at = null;
+              toast(t("accountDeletionCancelled"), "success");
+            }).catch(function () { /* ignore */ });
+          }
           initStep = "invitations";
           return acceptInvitations(app.client);
         }).then(function (joined) {
