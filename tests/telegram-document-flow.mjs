@@ -245,6 +245,11 @@ try {
       { response: "لديك قضية واحدة: جلسة الاستئناف رقم 4471 لشركة أبراج." },
     ]), { chatId: "t3", userId: "u1", text: "ايش وضع القضايا عندي", lang: "ar" });
     check("end to end: the real row reaches the user, composed from the data", !!truth && truth.text.includes("4471") && truth.text.includes("جلسة الاستئناف") && !truth.text.startsWith("لا أملك"), truth && truth.text);
+    /* صدى التأكيد: النموذج يعيد كلمات السائل نفسها مؤكدا، بلا أداة وبلا ملف */
+    const echo = await agentReply(envOf([{ response: "نعم خالد سلم الملف." }]), { chatId: "t5", userId: "u1", text: "هل خالد سلم الملف؟", lang: "ar", name: "المهندس رعد", orgName: "PARKINZI Company" });
+    check("end to end: a yes/no echo of the user's own words is refused, not confirmed", !!echo && echo.text.startsWith("لا أملك هذه المعلومة") && !/نعم/.test(echo.text), echo && echo.text);
+    const echoDomain = await agentReply(envOf([{ response: "نعم أحمد منتهي من المهمة." }]), { chatId: "t6", userId: "u1", text: "هل أحمد منتهي من المهمة؟", lang: "ar" });
+    check("end to end: a yes/no question about real data is answered from the data, never with «نعم»", !!echoDomain && !/^نعم/.test(echoDomain.text) && !/أحمد/.test(echoDomain.text), echoDomain && echoDomain.text);
     const prose = await agentReply(envOf([{ response: "أحمد هو المسؤول عن هذه القضية" }]), { chatId: "t4", userId: "u1", text: "من يتابع الموضوع", lang: "ar" });
     check("end to end: one invented name in plain prose, no digits, is still blocked", !!prose && prose.text.startsWith("لا أملك هذه المعلومة"), prose && prose.text);
     check("end to end: the tool really was called against the database", rpcCalls.includes("telegram_items_by_kind"), String(rpcCalls));

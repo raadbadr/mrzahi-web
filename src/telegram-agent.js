@@ -70,7 +70,7 @@ function limited(key, limit) {
 }
 
 const EMPTY = { ar: "لا يوجد.", en: "Nothing.", fr: "Rien.", ur: "کچھ نہیں۔" };
-const NO_DATA = {
+export const NO_DATA = {
   ar: "لا أملك هذه المعلومة في بياناتك، ولن أخمنها. اكتب: قضايا، مخالفات، مهام، مستندات، مواعيد، متأخر، مصاريف، الشركة، الفريق.",
   en: "I do not have that in your data, and I will not guess. Try: cases, violations, tasks, documents, upcoming, overdue, expenses, company, team.",
   fr: "Je n'ai pas cette information dans vos données et je ne vais pas la deviner. Essayez : affaires, infractions, tâches, documents, échéances, retards, dépenses, société, équipe.",
@@ -156,7 +156,8 @@ export async function agentReply(env, ctx) {
   let toolsUsed = [];
   const answers = []; /* نصوص الأدوات: هي وحدها ما يراه المستخدم */
   /* كل ما أعادته الأدوات: هو وحده مصدر الأرقام والأسماء في الرد */
-  let evidence = String(ctx.text || "") + "\n" + String(ctx.name || "") + "\n" + String(ctx.orgName || "");
+  /* البينة: كلام المستخدم واسمه وشركته، ومحتوى الملف المرسل إن وجد (وثيقة أمامنا = بيانات) */
+  let evidence = String(ctx.text || "") + "\n" + String(ctx.name || "") + "\n" + String(ctx.orgName || "") + "\n" + String((ctx.attachment && ctx.attachment.content) || "");
   const seen = new Set();
   for (let round = 0; round < 3; round++) {
     /* بعد تنفيذ الأدوات يطلب جواب نصي صريح (بلا أدوات) كي لا يعيد النموذج النداء نفسه بلا نهاية */
@@ -168,6 +169,9 @@ export async function agentReply(env, ctx) {
       const text = extractText(res).trim();
       if (text) {
         const clean = text.replace(/[\u064B-\u0652\u0670]/g, "");
+        /* بلا أداة وبلا ملف أمامنا لا يجيب النموذج عن سؤال بيانات إطلاقا، ولو أعاد كلمات السائل نفسها
+           («نعم أحمد منتهي من المهمة» صدى مجامل لا معرفة) */
+        if (!toolsUsed.length && !ctx.attachment) { console.log("agent: no tool, no file — refusing to answer from the model", clean.slice(0, 120)); return { text: NO_DATA[ctx.lang] || NO_DATA.ar, tools: [] }; }
         if (ungrounded(clean, evidence, toolsUsed.length > 0)) { console.log("agent: ungrounded reply blocked", clean.slice(0, 120)); return { text: NO_DATA[ctx.lang] || NO_DATA.ar, tools: toolsUsed }; }
         return { text: clean, tools: toolsUsed };
       }

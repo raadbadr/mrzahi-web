@@ -76,6 +76,10 @@ is("المنجز", { tool: "tracker_items", kind: "all", status: "done" });
 is("خلصنا", { tool: "tracker_items", status: "done" });
 /* تحية وشكر: رد قصير بلا نموذج */
 is("السلام عليكم", { reply: "greeting" });
+is("كيف حالك", { reply: "about" });
+is("من انت", { reply: "about" });
+is("ايش تقدر تسوي", { reply: "about" });
+is("what can you do", { reply: "about" });
 is("هلا", { reply: "greeting" });
 is("شكرا", { reply: "thanks" });
 is("أحسنت", { reply: "thanks" });
