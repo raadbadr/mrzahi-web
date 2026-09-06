@@ -169,7 +169,7 @@
         cases: { titleKey: "viewCases", defaultCategory: "قضية",
                  words: ["قضية", "قضايا", "case", "cases", "affaire", "مقدمہ"] },
         violations: { titleKey: "viewViolations", defaultCategory: "مخالفة",
-                      words: ["مخالفة", "مخالفات", "violation", "violations", "infraction", "خلاف"] },
+                      words: ["مخالفة", "مخالفات", "violation", "violations", "infraction", "خلاف ورزی"] },
         expenses: { titleKey: "viewExpenses", defaultCategory: "مصروف",
                     words: ["مصروف", "مصاريف", "expense", "expenses", "dépense", "اخراجات"] }
       };
@@ -181,11 +181,42 @@
         } catch (e) { return ""; }
       }
 
+      /* التصنيف بالتصنيف المختار لا بالبحث في النص:
+         «بخلاف» ليست مخالفة، و«showcase» ليست قضية، و«مهمة برمجية عن صفحة القضايا»
+         مهمة لأن تصنيفها مهمة. النص لا يُستشار إلا حين لا تصنيف للعنصر أصلا،
+         وحينها تُشترط كلمة كاملة: قبلها فراغ أو أداة تعريف، وبعدها فراغ. */
+      var LETTER = /[A-Za-z0-9\u0600-\u06FF]/;
+      var AR_PREFIX = ["ال", "وال", "فال", "بال", "كال", "لل"];
+
+      function hasWord(text, word) {
+        var hay = String(text || "").toLowerCase();
+        var needle = String(word || "").toLowerCase();
+        if (!hay || !needle) return false;
+        var from = 0;
+        while (true) {
+          var at = hay.indexOf(needle, from);
+          if (at === -1) return false;
+          var after = hay.charAt(at + needle.length);
+          var okAfter = !after || !LETTER.test(after);
+          var okBefore = at === 0 || !LETTER.test(hay.charAt(at - 1));
+          if (!okBefore) {
+            for (var i = 0; i < AR_PREFIX.length; i++) {
+              var pre = AR_PREFIX[i];
+              if (at >= pre.length && hay.slice(at - pre.length, at) === pre &&
+                  (at - pre.length === 0 || !LETTER.test(hay.charAt(at - pre.length - 1)))) { okBefore = true; break; }
+            }
+          }
+          if (okBefore && okAfter) return true;
+          from = at + 1;
+        }
+      }
+
       function isOfType(item, type) {
         var view = VIEW_TYPES[type];
         if (!view) return true;
-        var hay = ((item.category || "") + " " + (item.title || "")).toLowerCase();
-        for (var i = 0; i < view.words.length; i++) if (hay.indexOf(view.words[i].toLowerCase()) !== -1) return true;
+        var category = String((item && item.category) || "").trim();
+        var text = category || String((item && item.title) || "");
+        for (var i = 0; i < view.words.length; i++) if (hasWord(text, view.words[i])) return true;
         return false;
       }
 
