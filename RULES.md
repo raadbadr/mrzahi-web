@@ -94,3 +94,27 @@ These rules apply to every AI agent, developer, and automated tool working on th
   from Eng. Raad or from its own agents, never invented here.
 - No agent starts the remaining migration steps, buys, binds or changes any DNS/Worker route
   without a direct instruction from him naming the step.
+
+### Zahi device — facts received from its firmware session (2026-09-06, information only)
+
+Recorded so no agent invents them. **Nothing here is built without a direct instruction from
+Eng. Raad**; the three decisions below are his.
+
+- Zahi is a desk robot on an ESP32-S3 with a 480×480 touch screen, firmware `Zahi-Touch.ino` in
+  `/Users/Raad/Documents/Arduino/ZahiRobot`. One of its seven screens shows appointments.
+- It **receives** appointments, it cannot fetch them: `POST /cal` on the device's own address, or
+  a `CAL:` line over USB, body `epoch|title;epoch|title`. Clock is set with a `T:` line.
+- Hard limits: **4 appointments**, **83 bytes** per title, **local epoch (not UTC)**, and an entry
+  drops 30 minutes after it passes.
+- Arabic must arrive **already shaped and visually ordered** — the device's fonts do not join
+  letters or handle direction. Today that is done on the Mac with arabic_reshaper and bidi.
+- The firmware has **no TLS client, no HTTPClient and no NTP**: it cannot pull from mrzahi.com at
+  all. Pulling would require new firmware.
+- Its text rules match ours: no diacritics, western digits; and its screen carries no English.
+
+Consequence worth stating plainly: a Worker in Cloudflare cannot reach a device on a home
+network by itself. Push from the platform therefore needs either a bridge process on the Mac
+holding the account token, or a tunnel giving the device a public address.
+
+Open for Eng. Raad alone: push or pull; whether a "device" channel joins the notification
+channels; and who owns the bridge that holds the token.
