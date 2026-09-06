@@ -165,3 +165,16 @@ The rule for any agent touching a domain, a host or a provider from now on:
    page, and it only acts when the URL actually carries an auth return (access_token or code).
 3. **Verify by using the thing, not by reading it.** A 301 that answers correctly to curl says
    nothing about whether Google will accept the origin.
+
+## No Generalising, No Inferring — a procedure, not a slogan (2026-09-06)
+
+- **The scope is exactly what he named**: that screen, that element, that file. Anything outside
+  the name is forbidden, however related it looks.
+- **The shared function is the trap.** `loadItems` on the dashboard serves the dashboard, cases,
+  violations and expenses; one line there applies a one-screen instruction to all four. If the
+  instruction names one screen, gate the change on that screen (`state.viewType === "..."`) —
+  never put it in the shared function. If it cannot be gated, ask one short question first.
+- **Ask before every deploy**: who is affected by this line besides the thing he named? If the
+  answer is "someone else", the change is wrong and goes back.
+- Origin: "take them off the dashboard", said about document items, was applied to four screens;
+  a user's data vanished from his lists and he thought the domain move had lost it.
