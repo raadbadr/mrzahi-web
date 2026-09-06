@@ -507,10 +507,27 @@
     }).catch(function () { /* never block the page */ });
   }
 
+  /* عودة من مزود الدخول إلى صفحة عامة تنتهي عند لوحة التحكم لا عند الصفحة الرئيسية.
+     يحدث هذا حين يعيد سوبابيس المستخدم إلى Site URL بدل الرابط المطلوب — مثل ما وقع
+     بعد نقل النطاق. التوجيه مشروط بأثر العودة (access_token أو code) فلا يمس زائرا يتصفح. */
+  function landAfterAuth() {
+    var here = String(window.location.pathname || "");
+    if (/^\/app\//.test(here)) return;
+    var h = String(window.location.hash || ""), q = String(window.location.search || "");
+    if (h.indexOf("access_token") === -1 && q.indexOf("code=") === -1) return;
+    auth.ready.then(function () {
+      if (auth.unavailable || !auth.client) return null;
+      return auth.getSession().then(function (session) {
+        if (session) window.location.replace(DASHBOARD_PATH);
+      });
+    }).catch(function () { /* لا يعطل الصفحة */ });
+  }
+
   /* ---------- boot ---------- */
 
   auth.ready = init().then(function () {
     refreshLoginMenu();
+    landAfterAuth();
   });
 
   function boot() {

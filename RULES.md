@@ -143,3 +143,25 @@ and western digits are identical rules on both sides.
 
 Open for Eng. Raad alone: push or pull; whether a "device" channel joins the notification
 channels; who owns the bridge that holds the token; and the title-length conflict above.
+
+### Why these "small" faults keep appearing after a domain move (2026-09-06)
+
+Every one of today's faults had the same shape: **something outside the repository still points
+at the old host**. The code was right; the environment was stale. Sign-in stopped landing on the
+dashboard because Supabase's Site URL and Redirect URLs still name appmails.net, so Supabase
+sent the user to the home page instead of the path the app asked for. Nothing in the diff could
+have shown that.
+
+The rule for any agent touching a domain, a host or a provider from now on:
+
+1. **List the external settings before declaring a move done.** For this platform they are:
+   Google OAuth authorised JavaScript origins and redirect URIs; the Google consent screen's
+   home, privacy and terms links and its authorised domain; Google Search Console verification;
+   Supabase Auth Site URL and Redirect URLs; the Telegram webhook; and the MCP endpoint given to
+   clients. Each is owned by Eng. Raad's account, so name them for him one by one — do not
+   assume any of them followed the code.
+2. **Make the app survive the stale setting** where it can be done without hiding the fault: the
+   sign-in return now lands on the dashboard even when the provider drops the user on the home
+   page, and it only acts when the URL actually carries an auth return (access_token or code).
+3. **Verify by using the thing, not by reading it.** A 301 that answers correctly to curl says
+   nothing about whether Google will accept the origin.
