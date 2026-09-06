@@ -1,6 +1,6 @@
-# 🅃 TheTracker Website
+# 🅃 MrZahi Website
 
-موقع ويب احترافي لمنصة TheTracker - تتبّع أعمالك ومواعيدك في مكان واحد
+موقع ويب احترافي لمنصة MrZahi - تتبّع أعمالك ومواعيدك في مكان واحد
 
 ## 🎨 المميزات
 
@@ -25,7 +25,7 @@
 ## 📂 الملفات
 
 ```
-06-TheTracker/
+06-MrZahi/
 ├── index.html                          # الصفحة الرئيسية: hero + أرقام المنصة (/api/stats) + المميزات + كتل CTA + مساعد المحادثة
 ├── pricing.html                        # الخطط: تجربة 14 يوماً / شهري 49 ريال / سنوي 490 ريال
 ├── login.html                          # الدخول: Google، Apple، رابط سحري بالبريد، رمز OTP بالهاتف (Supabase Auth)
@@ -36,7 +36,7 @@
 ├── 404.html                            # صفحة غير موجود
 ├── header.css                          # هيدر موحد (لغة + مظهر)
 ├── footer.css                          # فوتر موحد
-├── brand-logo.js                       # يستبدل كلمة "TheTracker" الحرفية بصورة tracker-logo-dark.png
+├── brand-logo.js                       # يستبدل كلمة "MrZahi" الحرفية بصورة mrzahi-logo-dark.png
 ├── src/worker.js                       # الـ Worker: GET /api/config، GET /api/stats، POST /api/assistant، POST /api/contact
 ├── src/assistant.js                    # المساعد: Claude إن وُجد ANTHROPIC_API_KEY وإلا Workers AI (مجاني)
 ├── supabase/migrations/0001_init.sql   # المخطط + RLS + حدود الخطط + platform_stats() + generate_due_notifications()
@@ -134,7 +134,7 @@
 
 ## 📄 الترخيص
 
-© 2026 TheTracker. جميع الحقوق محفوظة.
+© 2026 MrZahi. جميع الحقوق محفوظة.
 الدعم: `support@appmails.net`
 
 ## ⚠️ تعليمات ثابتة — لا تُعدّل

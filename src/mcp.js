@@ -7,7 +7,7 @@ import { rpc, dmy, writeGate, describePending } from "./notify.js";
 const PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"];
 const SERVER_INFO = { name: "thetracker", version: "1.0.0" };
 const INSTRUCTIONS =
-  "TheTracker: cases, violations and tasks for one company. Numbers/identifiers are never translated. " +
+  "MrZahi: cases, violations and tasks for one company. Numbers/identifiers are never translated. " +
   "On Telegram ALWAYS pass telegram_user_id (the numeric id of the person you are talking to) to every tool so you act as that member with their permissions. " +
   "If a tool answers status=unlinked, ask the person for the 8-character link code shown in Settings → Telegram on the site and call tracker_link_telegram with it; there is no other way to link. status=not_member means they belong to another company: do not act for them. " +
   "Writing tools (tracker_add, tracker_complete, tracker_assign, tracker_remind) need user_message = the person's exact words; they are refused when those words do not explicitly ask for the action (praise or thanks is not a request). They first answer needs_confirmation with a preview — show it, and only after the person confirms call again with confirm=true. " +
@@ -39,7 +39,7 @@ const rpcError = (id, code, message, data) => ({ jsonrpc: "2.0", id, error: { co
 export const TOOLS = [
   { name: "tracker_whoami", description: "Who the current person is (by telegram_user_id if linked, else the key owner), the company, and headline counts.",
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string", description: "Numeric Telegram user id of the person talking" } }, additionalProperties: false } },
-  { name: "tracker_link_telegram", description: "Link a Telegram user to their TheTracker account with the 8-character link code they read from Settings → Telegram on the site. The code is the only proof accepted; never link by phone number or without a code.",
+  { name: "tracker_link_telegram", description: "Link a Telegram user to their MrZahi account with the 8-character link code they read from Settings → Telegram on the site. The code is the only proof accepted; never link by phone number or without a code.",
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string" }, code: { type: "string", description: "8-character link code from Settings → Telegram" } }, required: ["telegram_user_id", "code"], additionalProperties: false } },
   { name: "tracker_search", description: "Search cases, violations and tasks by title, client, case number or violation number. Returns id, title, status, due_at, client, amount, roles.",
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string", description: "Telegram user id of the person talking (Telegram only)" }, query: { type: "string", description: "Free text or a number" }, limit: { type: "integer", minimum: 1, maximum: 20, default: 8 } }, required: ["query"], additionalProperties: false } },
@@ -131,7 +131,7 @@ export async function callTool(name, args, ctx) {
     } catch (e) { return fail("Link failed: " + String(e && e.message || e).slice(0, 200)); }
   }
   if (actor.tg && !actor.user && actor.notMember) return result({ status: "not_member", telegram_user_id: actor.tg }, "not_member: this Telegram user belongs to another company. Do not act for them.");
-  if (actor.tg && !actor.user) return result({ status: "unlinked", telegram_user_id: actor.tg }, "unlinked: this Telegram user is not linked to a TheTracker account yet. Ask them for the 8-character link code from Settings → Telegram on the site and call tracker_link_telegram.");
+  if (actor.tg && !actor.user) return result({ status: "unlinked", telegram_user_id: actor.tg }, "unlinked: this Telegram user is not linked to a MrZahi account yet. Ask them for the 8-character link code from Settings → Telegram on the site and call tracker_link_telegram.");
   const user = actor.user;
   /* الكتابة من عميل MCP تخضع لنفس قاعدة البوت: كلمات المستخدم نفسها تطلبها صراحة، ثم تأكيد قبل التنفيذ.
      البوت الداخلي يمر من هنا موثوقا لأنه طبق البوابة وزر التأكيد قبل النداء. */

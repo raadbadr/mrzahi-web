@@ -1,6 +1,6 @@
-# معايير التصميم - موقع TheTracker
+# معايير التصميم - موقع MrZahi
 
-> الثيم موروث حرفياً من موقع Parkinzi (NeumorphicTheme) ولا يُعدَّل — خط أحمر للمالك. كل ما يخص TheTracker هنا هو الشعار فقط.
+> الثيم موروث حرفياً من موقع Parkinzi (NeumorphicTheme) ولا يُعدَّل — خط أحمر للمالك. كل ما يخص MrZahi هنا هو الشعار فقط.
 
 ## 🎨 نظام الألوان (من NeumorphicTheme)
 
@@ -121,7 +121,7 @@ transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 - ✅ نفس الحركات (cubic-bezier timing)
 - ✅ دعم Dark Mode كامل
 
-## 🏷️ شعار TheTracker - قواعد ثابتة لكل المشروع
+## 🏷️ شعار MrZahi - قواعد ثابتة لكل المشروع
 
 **الهيكل:** حرف T + نص RACKER
 
@@ -130,19 +130,19 @@ transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 |--------|-------|-----|
 | الحرف (T) | أبيض | `color: #ffffff` |
 | RACKER | أزرق العلامة | `rgb(0, 160, 210)` |
-| ملف الشعار الكامل | `tracker-logo-full-dark.png` | — |
-| العلامة الصغيرة | `tracker-logo-dark.png` | — |
+| ملف الشعار الكامل | `mrzahi-logo-full-dark.png` | — |
+| العلامة الصغيرة | `mrzahi-logo-dark.png` | — |
 
 ### الثيم الفاتح (Light)
 | العنصر | اللون | CSS |
 |--------|-------|-----|
 | الحرف (T) | أسود | `color: #000000` |
 | RACKER | أزرق العلامة | `rgb(0, 160, 210)` |
-| ملف الشعار الكامل | `tracker-logo-full-light.png` | — |
-| العلامة الصغيرة | `tracker-logo-light.png` | — |
+| ملف الشعار الكامل | `mrzahi-logo-full-light.png` | — |
+| العلامة الصغيرة | `mrzahi-logo-light.png` | — |
 
 **ملف التطبيق:** `footer.css` — مصدر واحد للفوتر في index, pricing, login, about, privacy, terms
-**الاستبدال التلقائي:** `brand-logo.js` يستبدل كلمة "TheTracker" الحرفية في النصوص بصورة `tracker-logo-dark.png`
+**الاستبدال التلقائي:** `brand-logo.js` يستبدل كلمة "MrZahi" الحرفية في النصوص بصورة `mrzahi-logo-dark.png`
 **ملاحظة:** الثيم (الألوان، المسافات، الزوايا، الزجاج، الظلال، الخطوط، الحركات) موروث حرفياً من Parkinzi ولا يتغير
 
 ---
@@ -181,4 +181,4 @@ backdrop-filter: blur(30px) saturate(180%)
 ---
 
 آخر تحديث: 2026-09-03
-النسخة: 1.2 (شعار TheTracker — الثيم موروث من Parkinzi)
+النسخة: 1.2 (شعار MrZahi — الثيم موروث من Parkinzi)

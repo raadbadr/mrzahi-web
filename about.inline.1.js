@@ -1,9 +1,9 @@
 const translations = {
       ar: {
         title: "من نحن",
-        intro: "منصة TheTracker منصة اشتراك للشركات، تحول جداول إكسل المتناثرة إلى عناصر سجلة لكل منها تاريخ استحقاق ومسؤول محدد: عقود، وتراخيص، وتجديدات، ومهام، ومستحقات. تظهر هذه العناصر في قائمة واضحة وتقويم شهري، وتصل تنبيهاتها قبل موعدها عبر تيليغرام.",
+        intro: "منصة MrZahi منصة اشتراك للشركات، تحول جداول إكسل المتناثرة إلى عناصر سجلة لكل منها تاريخ استحقاق ومسؤول محدد: عقود، وتراخيص، وتجديدات، ومهام، ومستحقات. تظهر هذه العناصر في قائمة واضحة وتقويم شهري، وتصل تنبيهاتها قبل موعدها عبر تيليغرام.",
         problemLabel: "المشكلة التي نحلها",
-        problem: "تجديدات تفوت لأن أحدا لم يتذكرها في وقتها، وتراخيص تنتهي صلاحيتها دون إنذار، ومستحقات تنسى حتى تتراكم غراماتها، وجداول متفرقة في ملفات إكسل يحتفظ كل موظف بنسخة مختلفة منها. تجمع منصة TheTracker كل ذلك في مكان واحد تراه الشركة كلها، وتنبه المسؤول قبل الموعد لا بعده.",
+        problem: "تجديدات تفوت لأن أحدا لم يتذكرها في وقتها، وتراخيص تنتهي صلاحيتها دون إنذار، ومستحقات تنسى حتى تتراكم غراماتها، وجداول متفرقة في ملفات إكسل يحتفظ كل موظف بنسخة مختلفة منها. تجمع منصة MrZahi كل ذلك في مكان واحد تراه الشركة كلها، وتنبه المسؤول قبل الموعد لا بعده.",
         howLabel: "كيف تعمل المنصة",
         step1: "1. سجل الدخول عبر حساب Google أو Apple أو رابط يرسل إلى بريدك الإلكتروني أو رمز تحقق يرسل إلى هاتفك، وأنشئ مساحة شركتك خلال دقيقة.",
         step2: "2. ارفع ملف إكسل، وحدد الأعمدة التي تمثل عنوان العنصر وتاريخ استحقاقه والمسؤول عنه، فتتحول الصفوف تلقائيا إلى عناصر سجلة.",
@@ -53,9 +53,9 @@ const translations = {
       },
       en: {
         title: "About Us",
-        intro: "TheTracker is a subscription platform for companies that turns scattered Excel sheets into tracked items, each with a due date and an assignee: contracts, licenses, renewals, tasks and dues. These items appear in a clear list and a monthly calendar, and their reminders arrive before the due date on Telegram.",
+        intro: "MrZahi is a subscription platform for companies that turns scattered Excel sheets into tracked items, each with a due date and an assignee: contracts, licenses, renewals, tasks and dues. These items appear in a clear list and a monthly calendar, and their reminders arrive before the due date on Telegram.",
         problemLabel: "The Problem We Solve",
-        problem: "Renewals missed because nobody remembered them in time, licenses that expire without warning, dues forgotten until the penalties pile up, and scattered Excel files where every employee keeps a different copy. TheTracker brings all of this into one place the whole company can see, and alerts the person responsible before the deadline, not after it.",
+        problem: "Renewals missed because nobody remembered them in time, licenses that expire without warning, dues forgotten until the penalties pile up, and scattered Excel files where every employee keeps a different copy. MrZahi brings all of this into one place the whole company can see, and alerts the person responsible before the deadline, not after it.",
         howLabel: "How It Works",
         step1: "1. Sign in with your Google or Apple account, a magic link sent to your email, or a one-time code sent to your phone, and create your company workspace in a minute.",
         step2: "2. Upload an Excel file and map the columns that hold the item title, its due date and its assignee; the rows become tracked items automatically.",
@@ -105,9 +105,9 @@ const translations = {
       },
       fr: {
         title: "À propos",
-        intro: "La plateforme TheTracker est une plateforme par abonnement destinée aux entreprises : elle transforme des feuilles Excel dispersées en éléments suivis, chacun avec une date d'échéance et un responsable : contrats, licences, renouvellements, tâches et sommes dues. Ces éléments apparaissent dans une liste claire et un calendrier mensuel, et leurs rappels arrivent avant l'échéance sur Telegram.",
+        intro: "La plateforme MrZahi est une plateforme par abonnement destinée aux entreprises : elle transforme des feuilles Excel dispersées en éléments suivis, chacun avec une date d'échéance et un responsable : contrats, licences, renouvellements, tâches et sommes dues. Ces éléments apparaissent dans une liste claire et un calendrier mensuel, et leurs rappels arrivent avant l'échéance sur Telegram.",
         problemLabel: "Le problème que nous résolvons",
-        problem: "Des renouvellements manqués parce que personne ne s'en est souvenu à temps, des licences qui expirent sans avertissement, des sommes dues oubliées jusqu'à ce que les pénalités s'accumulent, et des fichiers Excel dispersés dont chaque employé garde une copie différente. TheTracker rassemble tout cela en un seul endroit visible par toute l'entreprise et alerte le responsable avant l'échéance, pas après.",
+        problem: "Des renouvellements manqués parce que personne ne s'en est souvenu à temps, des licences qui expirent sans avertissement, des sommes dues oubliées jusqu'à ce que les pénalités s'accumulent, et des fichiers Excel dispersés dont chaque employé garde une copie différente. MrZahi rassemble tout cela en un seul endroit visible par toute l'entreprise et alerte le responsable avant l'échéance, pas après.",
         howLabel: "Comment ça marche",
         step1: "1. Connectez-vous avec votre compte Google ou Apple, un lien magique envoyé à votre e-mail ou un code à usage unique envoyé à votre téléphone, et créez l'espace de votre entreprise en une minute.",
         step2: "2. Importez un fichier Excel et associez les colonnes qui contiennent le titre de l'élément, sa date d'échéance et son responsable ; les lignes deviennent automatiquement des éléments suivis.",
@@ -157,9 +157,9 @@ const translations = {
       },
       ur: {
         title: "ہمارے بارے میں",
-        intro: "TheTracker پلیٹ فارم کمپنیوں کے لیے ایک سبسکرپشن پلیٹ فارم ہے جو بکھری ہوئی ایکسل شیٹس کو ایسے ٹریک شدہ آئٹمز میں بدل دیتا ہے جن میں سے ہر ایک کی مقررہ تاریخ اور ذمہ دار متعین ہوتا ہے: معاہدے، لائسنس، تجدیدات، کام اور واجبات۔ یہ آئٹمز ایک واضح فہرست اور ماہانہ کیلنڈر میں دکھائی دیتے ہیں، اور ان کی یاد دہانیاں مقررہ تاریخ سے پہلے ٹیلیگرام کے ذریعے پہنچتی ہیں۔",
+        intro: "MrZahi پلیٹ فارم کمپنیوں کے لیے ایک سبسکرپشن پلیٹ فارم ہے جو بکھری ہوئی ایکسل شیٹس کو ایسے ٹریک شدہ آئٹمز میں بدل دیتا ہے جن میں سے ہر ایک کی مقررہ تاریخ اور ذمہ دار متعین ہوتا ہے: معاہدے، لائسنس، تجدیدات، کام اور واجبات۔ یہ آئٹمز ایک واضح فہرست اور ماہانہ کیلنڈر میں دکھائی دیتے ہیں، اور ان کی یاد دہانیاں مقررہ تاریخ سے پہلے ٹیلیگرام کے ذریعے پہنچتی ہیں۔",
         problemLabel: "ہم کون سا مسئلہ حل کرتے ہیں",
-        problem: "تجدیدات جو اس لیے رہ جاتی ہیں کہ کسی کو وقت پر یاد نہیں رہا، لائسنس جو بغیر کسی انتباہ کے ختم ہو جاتے ہیں، واجبات جو اس وقت تک بھلا دیے جاتے ہیں جب تک جرمانے جمع نہ ہو جائیں، اور بکھری ہوئی ایکسل فائلیں جن کی ہر ملازم کے پاس الگ نقل ہوتی ہے۔ TheTracker یہ سب ایک ایسی جگہ جمع کرتا ہے جسے پوری کمپنی دیکھ سکتی ہے، اور ذمہ دار شخص کو مقررہ تاریخ کے بعد نہیں بلکہ پہلے خبردار کرتا ہے۔",
+        problem: "تجدیدات جو اس لیے رہ جاتی ہیں کہ کسی کو وقت پر یاد نہیں رہا، لائسنس جو بغیر کسی انتباہ کے ختم ہو جاتے ہیں، واجبات جو اس وقت تک بھلا دیے جاتے ہیں جب تک جرمانے جمع نہ ہو جائیں، اور بکھری ہوئی ایکسل فائلیں جن کی ہر ملازم کے پاس الگ نقل ہوتی ہے۔ MrZahi یہ سب ایک ایسی جگہ جمع کرتا ہے جسے پوری کمپنی دیکھ سکتی ہے، اور ذمہ دار شخص کو مقررہ تاریخ کے بعد نہیں بلکہ پہلے خبردار کرتا ہے۔",
         howLabel: "پلیٹ فارم کیسے کام کرتا ہے",
         step1: "1. اپنے Google یا Apple اکاؤنٹ، اپنے ای میل پر بھیجے گئے لنک، یا اپنے فون پر بھیجے گئے تصدیقی کوڈ کے ذریعے سائن ان کریں، اور ایک منٹ میں اپنی کمپنی کی ورک اسپیس بنائیں۔",
         step2: "2. ایکسل فائل اپ لوڈ کریں اور وہ کالم منتخب کریں جن میں آئٹم کا عنوان، اس کی مقررہ تاریخ اور ذمہ دار درج ہیں؛ قطاریں خود بخود ٹریک شدہ آئٹمز بن جاتی ہیں۔",
@@ -232,7 +232,7 @@ const translations = {
         const i18nKey = el.dataset.i18n;
         if (translations[code] && translations[code][i18nKey]) el.textContent = translations[code][i18nKey];
       });
-      document.title = (translations[code] && translations[code].title ? translations[code].title : "About Us") + " | TheTracker";
+      document.title = (translations[code] && translations[code].title ? translations[code].title : "About Us") + " | MrZahi";
     }
 
     function setTheme(th) {
@@ -241,7 +241,7 @@ const translations = {
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = th === "dark" ? "#1a2933" : "#0068b8";
       const logo = document.getElementById("footerLogo");
-      if (logo) logo.src = th === "dark" ? "tracker-logo-full-dark.png?v=2" : "tracker-logo-full-light.png?v=2";
+      if (logo) logo.src = th === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2";
       document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️";
       document.getElementById("currentThemeDisplay").textContent = translations[currentLanguageCode][th === "dark" ? "dark" : "light"];
       document.getElementById("check-light").style.display = th === "light" ? "inline" : "none";
@@ -283,7 +283,7 @@ const translations = {
       const el = document.getElementById("check-" + languageCode);
       if (el) el.style.display = currentLanguageCode === languageCode ? "inline" : "none";
     });
-    document.title = (translations[currentLanguageCode] && translations[currentLanguageCode].title ? translations[currentLanguageCode].title : "About Us") + " | TheTracker";
+    document.title = (translations[currentLanguageCode] && translations[currentLanguageCode].title ? translations[currentLanguageCode].title : "About Us") + " | MrZahi";
 
     (function() {
       const th = theme();
@@ -291,7 +291,7 @@ const translations = {
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = th === "dark" ? "#1a2933" : "#0068b8";
       const logo = document.getElementById("footerLogo");
-      if (logo) logo.src = th === "dark" ? "tracker-logo-full-dark.png?v=2" : "tracker-logo-full-light.png?v=2";
+      if (logo) logo.src = th === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2";
       document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️";
       document.getElementById("currentThemeDisplay").textContent = translations[currentLanguageCode][th === "dark" ? "dark" : "light"];
       document.getElementById("check-light").style.display = th === "light" ? "inline" : "none";

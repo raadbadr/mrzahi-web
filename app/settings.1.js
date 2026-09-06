@@ -111,8 +111,8 @@
         storageUsage: "المستخدم من تخزين المنصة",
         storageDrive: "حفظ ملفاتي في Google Drive الخاص بي",
         storageDriveFolder: "المجلد في درايفك:",
-        storageDriveHint: "عند التفعيل ينشئ TheTracker مجلدا باسم «TheTracker / اسم شركتك» داخل Google Drive الخاص بك، ويحفظ فيه كل ملف ترفعه (مرفقات القضايا والمخالفات، المستندات، ملفات الدردشة) كملف عادي تراه وتفتحه من درايفك، ويحتفظ الموقع برابطه فقط. يشارك المجلد للقراءة مع أعضاء شركتك، ولا يحتسب من حصة الباقة.",
-        storageDriveOn: "فعال: ملفاتك الجديدة تحفظ في مجلد TheTracker داخل درايفك.",
+        storageDriveHint: "عند التفعيل ينشئ MrZahi مجلدا باسم «MrZahi / اسم شركتك» داخل Google Drive الخاص بك، ويحفظ فيه كل ملف ترفعه (مرفقات القضايا والمخالفات، المستندات، ملفات الدردشة) كملف عادي تراه وتفتحه من درايفك، ويحتفظ الموقع برابطه فقط. يشارك المجلد للقراءة مع أعضاء شركتك، ولا يحتسب من حصة الباقة.",
+        storageDriveOn: "فعال: ملفاتك الجديدة تحفظ في مجلد MrZahi داخل درايفك.",
         storageDriveOff: "غير فعال: الملفات تحفظ في تخزين المنصة.",
         storageDriveUnavailable: "Google Drive غير متاح على المنصة حاليا.",
         storageDriveDenied: "لم يمنح الإذن، فبقي التخزين على المنصة.",
@@ -302,8 +302,8 @@
         storageUsage: "Platform storage used",
         storageDrive: "Save my files to my own Google Drive",
         storageDriveFolder: "Folder in your Drive:",
-        storageDriveHint: "When enabled, TheTracker creates a folder named \"TheTracker / your company\" in your own Google Drive and saves every file you upload there (case and violation attachments, documents, chat files) as a normal file you can open from Drive; the platform keeps only its link. The folder is shared read-only with your team and is not counted against the plan quota.",
-        storageDriveOn: "On: new files are saved in the TheTracker folder in your Drive.",
+        storageDriveHint: "When enabled, MrZahi creates a folder named \"MrZahi / your company\" in your own Google Drive and saves every file you upload there (case and violation attachments, documents, chat files) as a normal file you can open from Drive; the platform keeps only its link. The folder is shared read-only with your team and is not counted against the plan quota.",
+        storageDriveOn: "On: new files are saved in the MrZahi folder in your Drive.",
         storageDriveOff: "Off: files stay in platform storage.",
         storageDriveUnavailable: "Google Drive is not available on the platform yet.",
         storageDriveDenied: "Permission was not granted; storage stays on the platform.",
@@ -493,8 +493,8 @@
         storageUsage: "Stockage plateforme utilisé",
         storageDrive: "Enregistrer mes fichiers dans mon Google Drive",
         storageDriveFolder: "Dossier dans votre Drive :",
-        storageDriveHint: "Une fois activé, TheTracker crée un dossier « TheTracker / votre société » dans votre Google Drive et y enregistre chaque fichier téléversé (pièces des dossiers et infractions, documents, fichiers du chat) comme un fichier normal ; la plateforme n'en garde que le lien. Le dossier est partagé en lecture avec votre équipe et hors quota du forfait.",
-        storageDriveOn: "Activé : les nouveaux fichiers vont dans le dossier TheTracker de votre Drive.",
+        storageDriveHint: "Une fois activé, MrZahi crée un dossier « MrZahi / votre société » dans votre Google Drive et y enregistre chaque fichier téléversé (pièces des dossiers et infractions, documents, fichiers du chat) comme un fichier normal ; la plateforme n'en garde que le lien. Le dossier est partagé en lecture avec votre équipe et hors quota du forfait.",
+        storageDriveOn: "Activé : les nouveaux fichiers vont dans le dossier MrZahi de votre Drive.",
         storageDriveOff: "Désactivé : les fichiers restent sur la plateforme.",
         storageDriveUnavailable: "Google Drive n'est pas encore disponible sur la plateforme.",
         storageDriveDenied: "Autorisation refusée ; le stockage reste sur la plateforme.",
@@ -684,8 +684,8 @@
         storageUsage: "پلیٹ فارم اسٹوریج استعمال شدہ",
         storageDrive: "میری فائلیں میرے Google Drive میں محفوظ کریں",
         storageDriveFolder: "آپ کے Drive میں فولڈر:",
-        storageDriveHint: "فعال کرنے پر TheTracker آپ کے Google Drive میں «TheTracker / آپ کی کمپنی» نام کا فولڈر بناتا ہے اور ہر اپلوڈ فائل (مقدمات اور خلاف ورزیوں کے منسلکات، دستاویزات، چیٹ فائلیں) وہاں عام فائل کی طرح محفوظ کرتا ہے؛ پلیٹ فارم صرف لنک رکھتا ہے۔ فولڈر ٹیم کے ساتھ صرف پڑھنے کے لیے شیئر ہوتا ہے اور پیکج کوٹے میں شمار نہیں۔",
-        storageDriveOn: "فعال: نئی فائلیں آپ کے Drive کے TheTracker فولڈر میں محفوظ ہوتی ہیں۔",
+        storageDriveHint: "فعال کرنے پر MrZahi آپ کے Google Drive میں «MrZahi / آپ کی کمپنی» نام کا فولڈر بناتا ہے اور ہر اپلوڈ فائل (مقدمات اور خلاف ورزیوں کے منسلکات، دستاویزات، چیٹ فائلیں) وہاں عام فائل کی طرح محفوظ کرتا ہے؛ پلیٹ فارم صرف لنک رکھتا ہے۔ فولڈر ٹیم کے ساتھ صرف پڑھنے کے لیے شیئر ہوتا ہے اور پیکج کوٹے میں شمار نہیں۔",
+        storageDriveOn: "فعال: نئی فائلیں آپ کے Drive کے MrZahi فولڈر میں محفوظ ہوتی ہیں۔",
         storageDriveOff: "غیر فعال: فائلیں پلیٹ فارم اسٹوریج میں رہتی ہیں۔",
         storageDriveUnavailable: "Google Drive ابھی پلیٹ فارم پر دستیاب نہیں۔",
         storageDriveDenied: "اجازت نہیں ملی، اسٹوریج پلیٹ فارم پر رہا۔",
@@ -798,7 +798,7 @@
         if (translations[code] && translations[code][k]) el.innerHTML = translations[code][k];
       });
       applyPlaceholders(code);
-      document.title = (translations[code] && translations[code].title ? translations[code].title : "Settings") + " | TheTracker";
+      document.title = (translations[code] && translations[code].title ? translations[code].title : "Settings") + " | MrZahi";
       if (typeof window.__trackerAuthRefresh === "function") window.__trackerAuthRefresh();
       if (typeof window.__settingsRerender === "function") window.__settingsRerender();
     }
@@ -809,7 +809,7 @@
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = th === "dark" ? "#1a2933" : "#0068b8";
       const logo = document.getElementById("footerLogo");
-      if (logo) logo.src = th === "dark" ? "/tracker-logo-full-dark.png?v=2" : "/tracker-logo-full-light.png?v=2";
+      if (logo) logo.src = th === "dark" ? "/mrzahi-logo-full-dark.png?v=2" : "/mrzahi-logo-full-light.png?v=2";
       document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️";
       document.getElementById("currentThemeDisplay").textContent = translations[l][th === "dark" ? "dark" : "light"];
       document.getElementById("check-light").style.display = th === "light" ? "inline" : "none";
@@ -852,7 +852,7 @@
       const el = document.getElementById("check-" + c);
       if (el) el.style.display = l === c ? "inline" : "none";
     });
-    document.title = (translations[l] && translations[l].title ? translations[l].title : "Settings") + " | TheTracker";
+    document.title = (translations[l] && translations[l].title ? translations[l].title : "Settings") + " | MrZahi";
 
     (function() {
       const th = theme();
@@ -860,7 +860,7 @@
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = th === "dark" ? "#1a2933" : "#0068b8";
       const logo = document.getElementById("footerLogo");
-      if (logo) logo.src = th === "dark" ? "/tracker-logo-full-dark.png?v=2" : "/tracker-logo-full-light.png?v=2";
+      if (logo) logo.src = th === "dark" ? "/mrzahi-logo-full-dark.png?v=2" : "/mrzahi-logo-full-light.png?v=2";
       document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️";
       document.getElementById("currentThemeDisplay").textContent = translations[l][th === "dark" ? "dark" : "light"];
       document.getElementById("check-light").style.display = th === "light" ? "inline" : "none";

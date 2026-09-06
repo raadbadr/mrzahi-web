@@ -18,7 +18,7 @@ const t = {
         h10: "10. خصوصية القاصرين",
         h11: "11. التعديلات على هذه السياسة",
         h12: "12. التواصل",
-        p1: "تعنى هذه السياسة بمنصة TheTracker المتاحة عبر الموقع mrzahi.com (\"المنصة\" أو \"نحن\")، وهي منصة اشتراك تساعد الشركات على تتبع العقود والتراخيص والتجديدات والمهام والمستحقات. نلتزم بحماية خصوصية مستخدمينا وبياناتهم وفقا لنظام حماية البيانات الشخصية في المملكة العربية السعودية ولائحته التنفيذية. توضح هذه السياسة ما البيانات التي نجمعها، ولماذا نعالجها، ومن يعالجها نيابة عنا، ومدة الاحتفاظ بها، وحقوقك عليها. باستخدامك للمنصة فإنك تقر بأنك اطلعت على هذه السياسة.",
+        p1: "تعنى هذه السياسة بمنصة MrZahi المتاحة عبر الموقع mrzahi.com (\"المنصة\" أو \"نحن\")، وهي منصة اشتراك تساعد الشركات على تتبع العقود والتراخيص والتجديدات والمهام والمستحقات. نلتزم بحماية خصوصية مستخدمينا وبياناتهم وفقا لنظام حماية البيانات الشخصية في المملكة العربية السعودية ولائحته التنفيذية. توضح هذه السياسة ما البيانات التي نجمعها، ولماذا نعالجها، ومن يعالجها نيابة عنا، ومدة الاحتفاظ بها، وحقوقك عليها. باستخدامك للمنصة فإنك تقر بأنك اطلعت على هذه السياسة.",
         p2: "نجمع البيانات التالية بالقدر اللازم لتشغيل المنصة وتقديم خدماتها:",
         li2a: "الاسم، والبريد الإلكتروني، ورقم الهاتف الذي تسجل الدخول به (عبر Google أو Apple أو رابط البريد أو رمز التحقق الهاتفي)",
         li2b: "اسم الشركة (مساحة العمل) ودور كل عضو فيها",
@@ -113,7 +113,7 @@ const t = {
         h10: "10. Children's Privacy",
         h11: "11. Changes to This Policy",
         h12: "12. Contact",
-        p1: "This policy applies to TheTracker, available at mrzahi.com (\"the platform\", \"we\"), a subscription service that helps companies track contracts, licenses, renewals, tasks and dues. We are committed to protecting our users' privacy and data in accordance with the Personal Data Protection Law of the Kingdom of Saudi Arabia and its Implementing Regulations. This policy explains what data we collect, why we process it, who processes it on our behalf, how long we keep it, and your rights over it. By using the platform you acknowledge that you have read this policy.",
+        p1: "This policy applies to MrZahi, available at mrzahi.com (\"the platform\", \"we\"), a subscription service that helps companies track contracts, licenses, renewals, tasks and dues. We are committed to protecting our users' privacy and data in accordance with the Personal Data Protection Law of the Kingdom of Saudi Arabia and its Implementing Regulations. This policy explains what data we collect, why we process it, who processes it on our behalf, how long we keep it, and your rights over it. By using the platform you acknowledge that you have read this policy.",
         p2: "We collect the following data, to the extent needed to run the platform and deliver its services:",
         li2a: "Your name, email address and the phone number you sign in with (via Google, Apple, email magic link or phone OTP)",
         li2b: "Your company (workspace) name and each member's role in it",
@@ -208,7 +208,7 @@ const t = {
         h10: "10. Protection des mineurs",
         h11: "11. Modifications de cette politique",
         h12: "12. Contact",
-        p1: "La présente politique s'applique à la plateforme TheTracker, accessible sur mrzahi.com (« la plateforme », « nous »), un service par abonnement qui aide les entreprises à suivre leurs contrats, licences, renouvellements, tâches et échéances. Nous nous engageons à protéger la vie privée et les données de nos utilisateurs conformément à la loi sur la protection des données personnelles du Royaume d'Arabie saoudite et à son règlement d'application. Cette politique explique quelles données nous collectons, pourquoi nous les traitons, qui les traite pour notre compte, combien de temps nous les conservons et quels sont vos droits. En utilisant la plateforme, vous reconnaissez avoir pris connaissance de cette politique.",
+        p1: "La présente politique s'applique à la plateforme MrZahi, accessible sur mrzahi.com (« la plateforme », « nous »), un service par abonnement qui aide les entreprises à suivre leurs contrats, licences, renouvellements, tâches et échéances. Nous nous engageons à protéger la vie privée et les données de nos utilisateurs conformément à la loi sur la protection des données personnelles du Royaume d'Arabie saoudite et à son règlement d'application. Cette politique explique quelles données nous collectons, pourquoi nous les traitons, qui les traite pour notre compte, combien de temps nous les conservons et quels sont vos droits. En utilisant la plateforme, vous reconnaissez avoir pris connaissance de cette politique.",
         p2: "Nous collectons les données suivantes, dans la mesure nécessaire au fonctionnement de la plateforme et à la fourniture de ses services :",
         li2a: "Votre nom, votre adresse e-mail et le numéro de téléphone utilisé pour vous connecter (via Google, Apple, lien magique par e-mail ou code OTP par téléphone)",
         li2b: "Le nom de votre entreprise (espace de travail) et le rôle de chaque membre",
@@ -303,7 +303,7 @@ const t = {
         h10: "10. بچوں کی رازداری",
         h11: "11. اس پالیسی میں تبدیلیاں",
         h12: "12. رابطہ",
-        p1: "یہ پالیسی TheTracker پلیٹ فارم پر لاگو ہوتی ہے جو mrzahi.com پر دستیاب ہے (\"پلیٹ فارم\" یا \"ہم\")۔ یہ ایک سبسکرپشن سروس ہے جو کمپنیوں کو معاہدوں، لائسنسوں، تجدیدوں، ٹاسکس اور واجبات کو ٹریک کرنے میں مدد دیتی ہے۔ ہم سعودی عرب کے ذاتی ڈیٹا تحفظ قانون اور اس کے عمل درآمد ضوابط کے مطابق اپنے صارفین کی رازداری اور ڈیٹا کے تحفظ کے پابند ہیں۔ یہ پالیسی بتاتی ہے کہ ہم کون سا ڈیٹا جمع کرتے ہیں، کیوں پروسیس کرتے ہیں، ہماری جانب سے کون پروسیس کرتا ہے، کتنی مدت رکھتے ہیں اور آپ کے حقوق کیا ہیں۔ پلیٹ فارم استعمال کر کے آپ تصدیق کرتے ہیں کہ آپ نے یہ پالیسی پڑھ لی ہے۔",
+        p1: "یہ پالیسی MrZahi پلیٹ فارم پر لاگو ہوتی ہے جو mrzahi.com پر دستیاب ہے (\"پلیٹ فارم\" یا \"ہم\")۔ یہ ایک سبسکرپشن سروس ہے جو کمپنیوں کو معاہدوں، لائسنسوں، تجدیدوں، ٹاسکس اور واجبات کو ٹریک کرنے میں مدد دیتی ہے۔ ہم سعودی عرب کے ذاتی ڈیٹا تحفظ قانون اور اس کے عمل درآمد ضوابط کے مطابق اپنے صارفین کی رازداری اور ڈیٹا کے تحفظ کے پابند ہیں۔ یہ پالیسی بتاتی ہے کہ ہم کون سا ڈیٹا جمع کرتے ہیں، کیوں پروسیس کرتے ہیں، ہماری جانب سے کون پروسیس کرتا ہے، کتنی مدت رکھتے ہیں اور آپ کے حقوق کیا ہیں۔ پلیٹ فارم استعمال کر کے آپ تصدیق کرتے ہیں کہ آپ نے یہ پالیسی پڑھ لی ہے۔",
         p2: "ہم پلیٹ فارم چلانے اور خدمات فراہم کرنے کے لیے ضروری حد تک درج ذیل ڈیٹا جمع کرتے ہیں:",
         li2a: "آپ کا نام، ای میل اور وہ فون نمبر جس سے آپ سائن ان کرتے ہیں (Google، Apple، ای میل میجک لنک یا فون OTP کے ذریعے)",
         li2b: "آپ کی کمپنی (ورک اسپیس) کا نام اور اس میں ہر رکن کا کردار",
@@ -404,7 +404,7 @@ const t = {
         const k = el.dataset.i18n;
         if (t[code] && t[code][k]) el.textContent = t[code][k];
       });
-      document.title = (t[code] && t[code].title ? t[code].title : "Privacy Policy") + " | TheTracker";
+      document.title = (t[code] && t[code].title ? t[code].title : "Privacy Policy") + " | MrZahi";
     }
 
     function setTheme(th) {
@@ -413,7 +413,7 @@ const t = {
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = th === "dark" ? "#1a2933" : "#0068b8";
       const logo = document.getElementById("footerLogo");
-      if (logo) logo.src = th === "dark" ? "tracker-logo-full-dark.png?v=2" : "tracker-logo-full-light.png?v=2";
+      if (logo) logo.src = th === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2";
       document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️";
       document.getElementById("currentThemeDisplay").textContent = t[l][th === "dark" ? "dark" : "light"];
       document.getElementById("check-light").style.display = th === "light" ? "inline" : "none";
@@ -455,7 +455,7 @@ const t = {
       const el = document.getElementById("check-" + c);
       if (el) el.style.display = l === c ? "inline" : "none";
     });
-    document.title = (t[l] && t[l].title ? t[l].title : "Privacy Policy") + " | TheTracker";
+    document.title = (t[l] && t[l].title ? t[l].title : "Privacy Policy") + " | MrZahi";
 
     (function() {
       const th = theme();
@@ -463,7 +463,7 @@ const t = {
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = th === "dark" ? "#1a2933" : "#0068b8";
       const logo = document.getElementById("footerLogo");
-      if (logo) logo.src = th === "dark" ? "tracker-logo-full-dark.png?v=2" : "tracker-logo-full-light.png?v=2";
+      if (logo) logo.src = th === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2";
       document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️";
       document.getElementById("currentThemeDisplay").textContent = t[l][th === "dark" ? "dark" : "light"];
       document.getElementById("check-light").style.display = th === "light" ? "inline" : "none";

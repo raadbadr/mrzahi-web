@@ -1,7 +1,7 @@
 const t = {
       ar: {
         title: "شروط الاستخدام",
-        intro: "مرحبا بك في منصة TheTracker المتاحة عبر mrzahi.com. تمثل هذه الشروط اتفاقا ملزما بينك وبين منصة TheTracker. باستخدامك للمنصة أو الموقع الإلكتروني فإنك تقر بأنك قد قرأت هذه الشروط وفهمتها ووافقت على الالتزام بها. إذا لم توافق على أي من هذه الشروط، فيرجى عدم استخدام الخدمة.",
+        intro: "مرحبا بك في منصة MrZahi المتاحة عبر mrzahi.com. تمثل هذه الشروط اتفاقا ملزما بينك وبين منصة MrZahi. باستخدامك للمنصة أو الموقع الإلكتروني فإنك تقر بأنك قد قرأت هذه الشروط وفهمتها ووافقت على الالتزام بها. إذا لم توافق على أي من هذه الشروط، فيرجى عدم استخدام الخدمة.",
         lastUpdated: "تاريخ السريان: 2026-09-03",
         h1: "1. قبول الشروط",
         s1p1: "بالوصول إلى المنصة أو إنشاء حساب أو الانضمام إلى فريق شركة أو استخدام أي من خدماتها، فإنك توافق على هذه الشروط وعلى سياسة الخصوصية التي تشكل جزءا لا يتجزأ منها. وإذا كنت تستخدم المنصة نيابة عن شركة أو جهة، فإنك تقر بأنك مخول بإلزامها بهذه الشروط.",
@@ -11,7 +11,7 @@ const t = {
         s1li2: "الباقات والأسعار",
         s1li2desc: "تفاصيل كل باقة وحدودها وسعرها",
         h2: "2. الخدمة",
-        s2p1: "TheTracker منصة اشتراك تساعد الشركات على تتبع العقود والتراخيص والتجديدات والمهام والمستحقات، وتشمل الخدمة:",
+        s2p1: "MrZahi منصة اشتراك تساعد الشركات على تتبع العقود والتراخيص والتجديدات والمهام والمستحقات، وتشمل الخدمة:",
         s2li1: "استيراد العناصر من ملف إكسل (Excel) مع مطابقة الأعمدة (العنوان، تاريخ الاستحقاق، المسؤول)",
         s2li2: "عرض العناصر في قائمة وتقويم شهري، مع رابط تقويم (ICS) يعمل مع تقويم Apple وGoogle وOutlook",
         s2li3: "تذكيرات قبل مواعيد الاستحقاق عبر البريد الإلكتروني وتيليغرام وواتساب والرسائل النصية (SMS) وفق الباقة",
@@ -53,7 +53,7 @@ const t = {
         s7p1: "البيانات التي ترفعها شركتك إلى المنصة (ملفات إكسل والعناصر والمواعيد وبيانات الأعضاء) تبقى ملكا لها، ونحن نعالجها فقط بالقدر اللازم لتقديم الخدمة وفق سياسة الخصوصية. تعزل بيانات كل شركة عن غيرها على مستوى قاعدة البيانات، ولا يطلع عليها إلا أعضاء فريقك المخولون.",
         s7p2: "يمكنك تصدير بياناتك في أي وقت من داخل المنصة. وعند حذف الحساب أو انتهاء الاشتراك نحذف البيانات أو نجعلها مجهولة الهوية خلال مدة معقولة، ما لم يوجب النظام الاحتفاظ بها.",
         h8: "8. الملكية الفكرية",
-        s8p1: "جميع حقوق الملكية الفكرية المتعلقة بمنصة TheTracker محفوظة، وتشمل العلامة التجارية والشعار وتصميم الواجهات والشفرة البرمجية والمحتوى. تمنح لك رخصة محدودة وغير حصرية وغير قابلة للنقل لاستخدام المنصة وفق هذه الشروط، ولا يجوز نسخ أي جزء من المنصة أو إعادة إنتاجه أو توزيعه دون إذن كتابي مسبق.",
+        s8p1: "جميع حقوق الملكية الفكرية المتعلقة بمنصة MrZahi محفوظة، وتشمل العلامة التجارية والشعار وتصميم الواجهات والشفرة البرمجية والمحتوى. تمنح لك رخصة محدودة وغير حصرية وغير قابلة للنقل لاستخدام المنصة وفق هذه الشروط، ولا يجوز نسخ أي جزء من المنصة أو إعادة إنتاجه أو توزيعه دون إذن كتابي مسبق.",
         h9: "9. التوافر والتغييرات",
         s9p1: "نسعى إلى إبقاء المنصة متاحة على مدار الساعة، لكننا لا نضمن التشغيل دون انقطاع. قد تتوقف الخدمة مؤقتا بسبب الصيانة أو التحديثات أو أعطال لدى مزودي الاستضافة والبنية التحتية أو ظروف خارجة عن سيطرتنا. كما يجوز لنا تعديل المنصة أو مزاياها أو إيقاف أي منها، وسنخطرك مسبقا بقدر الإمكان عند التغييرات الجوهرية التي تؤثر في استخدامك.",
         h10: "10. الإنهاء",
@@ -94,7 +94,7 @@ const t = {
       },
       en: {
         title: "Terms of Use",
-        intro: "Welcome to TheTracker, available at mrzahi.com. These terms constitute a binding agreement between you and the TheTracker platform. By using the platform or the website, you acknowledge that you have read, understood, and agree to be bound by these terms. If you do not agree to any of these terms, please do not use the service.",
+        intro: "Welcome to MrZahi, available at mrzahi.com. These terms constitute a binding agreement between you and the MrZahi platform. By using the platform or the website, you acknowledge that you have read, understood, and agree to be bound by these terms. If you do not agree to any of these terms, please do not use the service.",
         lastUpdated: "Effective date: 2026-09-03",
         h1: "1. Acceptance of the Terms",
         s1p1: "By accessing the platform, creating an account, joining a company team, or using any of its services, you agree to these terms and to the Privacy Policy, which forms an integral part of them. If you use the platform on behalf of a company or organization, you confirm that you are authorized to bind it to these terms.",
@@ -104,7 +104,7 @@ const t = {
         s1li2: "Plans & Pricing",
         s1li2desc: "Details of each plan, its limits, and its price",
         h2: "2. The Service",
-        s2p1: "TheTracker is a subscription platform that helps companies track contracts, licenses, renewals, tasks, and dues. The service includes:",
+        s2p1: "MrZahi is a subscription platform that helps companies track contracts, licenses, renewals, tasks, and dues. The service includes:",
         s2li1: "Importing items from an Excel file, with column mapping (title, due date, assignee)",
         s2li2: "Displaying items in a list and a monthly calendar, with a calendar feed (ICS) that works with Apple, Google, and Outlook calendars",
         s2li3: "Reminders before due dates via email, Telegram, WhatsApp, and SMS, according to your plan",
@@ -146,7 +146,7 @@ const t = {
         s7p1: "The data your company uploads to the platform (Excel files, items, dates, and member details) remains its property. We process it only to the extent necessary to provide the service, in accordance with the Privacy Policy. Each company's data is isolated from others at the database level and is accessible only to your authorized team members.",
         s7p2: "You can export your data at any time from within the platform. When an account is deleted or a subscription ends, we delete or anonymize the data within a reasonable period, unless the law requires us to retain it.",
         h8: "8. Intellectual Property",
-        s8p1: "All intellectual property rights related to the TheTracker platform are reserved, including the trademark, logo, interface design, source code, and content. You are granted a limited, non-exclusive, non-transferable license to use the platform in accordance with these terms. No part of the platform may be copied, reproduced, or distributed without prior written permission.",
+        s8p1: "All intellectual property rights related to the MrZahi platform are reserved, including the trademark, logo, interface design, source code, and content. You are granted a limited, non-exclusive, non-transferable license to use the platform in accordance with these terms. No part of the platform may be copied, reproduced, or distributed without prior written permission.",
         h9: "9. Availability and Changes",
         s9p1: "We aim to keep the platform available around the clock, but we do not guarantee uninterrupted operation. The service may be temporarily unavailable due to maintenance, updates, outages at our hosting and infrastructure providers, or circumstances beyond our control. We may also modify the platform or its features, or discontinue any of them; where possible, we will notify you in advance of material changes that affect your use.",
         h10: "10. Termination",
@@ -187,7 +187,7 @@ const t = {
       },
       fr: {
         title: "Conditions d'utilisation",
-        intro: "Bienvenue sur la plateforme TheTracker, accessible sur mrzahi.com. Les présentes conditions constituent un accord contraignant entre vous et la plateforme TheTracker. En utilisant la plateforme ou le site web, vous reconnaissez avoir lu et compris ces conditions et acceptez de vous y conformer. Si vous n'acceptez pas l'une de ces conditions, veuillez ne pas utiliser le service.",
+        intro: "Bienvenue sur la plateforme MrZahi, accessible sur mrzahi.com. Les présentes conditions constituent un accord contraignant entre vous et la plateforme MrZahi. En utilisant la plateforme ou le site web, vous reconnaissez avoir lu et compris ces conditions et acceptez de vous y conformer. Si vous n'acceptez pas l'une de ces conditions, veuillez ne pas utiliser le service.",
         lastUpdated: "Date d'entrée en vigueur : 2026-09-03",
         h1: "1. Acceptation des conditions",
         s1p1: "En accédant à la plateforme, en créant un compte, en rejoignant l'équipe d'une entreprise ou en utilisant l'un de ses services, vous acceptez les présentes conditions ainsi que la politique de confidentialité, qui en fait partie intégrante. Si vous utilisez la plateforme au nom d'une entreprise ou d'une organisation, vous confirmez être habilité à l'engager par ces conditions.",
@@ -197,7 +197,7 @@ const t = {
         s1li2: "Forfaits et tarifs",
         s1li2desc: "Détails de chaque forfait, ses limites et son prix",
         h2: "2. Le service",
-        s2p1: "TheTracker est une plateforme par abonnement qui aide les entreprises à suivre leurs contrats, licences, renouvellements, tâches et échéances. Le service comprend :",
+        s2p1: "MrZahi est une plateforme par abonnement qui aide les entreprises à suivre leurs contrats, licences, renouvellements, tâches et échéances. Le service comprend :",
         s2li1: "L'importation d'éléments depuis un fichier Excel, avec correspondance des colonnes (titre, date d'échéance, responsable)",
         s2li2: "L'affichage des éléments dans une liste et un calendrier mensuel, avec un flux de calendrier (ICS) compatible avec les calendriers Apple, Google et Outlook",
         s2li3: "Des rappels avant les dates d'échéance par e-mail, Telegram, WhatsApp et SMS, selon votre forfait",
@@ -239,7 +239,7 @@ const t = {
         s7p1: "Les données que votre entreprise téléverse sur la plateforme (fichiers Excel, éléments, dates et informations sur les membres) restent sa propriété. Nous les traitons uniquement dans la mesure nécessaire à la fourniture du service, conformément à la politique de confidentialité. Les données de chaque entreprise sont isolées des autres au niveau de la base de données et ne sont accessibles qu'aux membres autorisés de votre équipe.",
         s7p2: "Vous pouvez exporter vos données à tout moment depuis la plateforme. Lors de la suppression d'un compte ou de la fin d'un abonnement, nous supprimons ou anonymisons les données dans un délai raisonnable, sauf si la loi nous impose de les conserver.",
         h8: "8. Propriété intellectuelle",
-        s8p1: "Tous les droits de propriété intellectuelle relatifs à la plateforme TheTracker sont réservés, y compris la marque, le logo, la conception des interfaces, le code source et le contenu. Une licence limitée, non exclusive et non transférable vous est accordée pour utiliser la plateforme conformément aux présentes conditions. Aucune partie de la plateforme ne peut être copiée, reproduite ou distribuée sans autorisation écrite préalable.",
+        s8p1: "Tous les droits de propriété intellectuelle relatifs à la plateforme MrZahi sont réservés, y compris la marque, le logo, la conception des interfaces, le code source et le contenu. Une licence limitée, non exclusive et non transférable vous est accordée pour utiliser la plateforme conformément aux présentes conditions. Aucune partie de la plateforme ne peut être copiée, reproduite ou distribuée sans autorisation écrite préalable.",
         h9: "9. Disponibilité et modifications",
         s9p1: "Nous nous efforçons de maintenir la plateforme disponible en permanence, sans toutefois garantir un fonctionnement ininterrompu. Le service peut être temporairement indisponible en raison d'opérations de maintenance, de mises à jour, de pannes chez nos fournisseurs d'hébergement et d'infrastructure ou de circonstances indépendantes de notre volonté. Nous pouvons également modifier la plateforme ou ses fonctionnalités, ou en retirer certaines ; dans la mesure du possible, nous vous informerons à l'avance des modifications importantes affectant votre utilisation.",
         h10: "10. Résiliation",
@@ -280,7 +280,7 @@ const t = {
       },
       ur: {
         title: "استعمال کی شرائط",
-        intro: "TheTracker پلیٹ فارم میں خوش آمدید، جو mrzahi.com پر دستیاب ہے۔ یہ شرائط آپ اور TheTracker پلیٹ فارم کے درمیان ایک پابند معاہدہ ہیں۔ پلیٹ فارم یا ویب سائٹ استعمال کرکے آپ تسلیم کرتے ہیں کہ آپ نے یہ شرائط پڑھ اور سمجھ لی ہیں اور ان کی پابندی پر متفق ہیں۔ اگر آپ ان میں سے کسی شرط سے متفق نہیں ہیں تو براہ کرم سروس استعمال نہ کریں۔",
+        intro: "MrZahi پلیٹ فارم میں خوش آمدید، جو mrzahi.com پر دستیاب ہے۔ یہ شرائط آپ اور MrZahi پلیٹ فارم کے درمیان ایک پابند معاہدہ ہیں۔ پلیٹ فارم یا ویب سائٹ استعمال کرکے آپ تسلیم کرتے ہیں کہ آپ نے یہ شرائط پڑھ اور سمجھ لی ہیں اور ان کی پابندی پر متفق ہیں۔ اگر آپ ان میں سے کسی شرط سے متفق نہیں ہیں تو براہ کرم سروس استعمال نہ کریں۔",
         lastUpdated: "نفاذ کی تاریخ: 2026-09-03",
         h1: "1. شرائط کی قبولیت",
         s1p1: "پلیٹ فارم تک رسائی، اکاؤنٹ بنانے، کسی کمپنی کی ٹیم میں شامل ہونے یا اس کی کوئی بھی سروس استعمال کرنے سے آپ ان شرائط اور رازداری کی پالیسی سے متفق ہوتے ہیں، جو ان شرائط کا لازمی حصہ ہے۔ اگر آپ کسی کمپنی یا ادارے کی جانب سے پلیٹ فارم استعمال کر رہے ہیں تو آپ تصدیق کرتے ہیں کہ آپ اسے ان شرائط کا پابند بنانے کے مجاز ہیں۔",
@@ -290,7 +290,7 @@ const t = {
         s1li2: "پلانز اور قیمتیں",
         s1li2desc: "ہر پلان کی تفصیلات، اس کی حدود اور قیمت",
         h2: "2. سروس",
-        s2p1: "TheTracker ایک سبسکرپشن پلیٹ فارم ہے جو کمپنیوں کو معاہدوں، لائسنسوں، تجدیدات، کاموں اور واجبات کی نگرانی میں مدد دیتا ہے۔ سروس میں شامل ہے:",
+        s2p1: "MrZahi ایک سبسکرپشن پلیٹ فارم ہے جو کمپنیوں کو معاہدوں، لائسنسوں، تجدیدات، کاموں اور واجبات کی نگرانی میں مدد دیتا ہے۔ سروس میں شامل ہے:",
         s2li1: "ایکسل فائل سے آئٹمز درآمد کرنا، کالمز کی مطابقت کے ساتھ (عنوان، آخری تاریخ، ذمہ دار)",
         s2li2: "آئٹمز کو فہرست اور ماہانہ کیلنڈر میں دکھانا، کیلنڈر فیڈ (ICS) کے ساتھ جو Apple، Google اور Outlook کیلنڈرز کے ساتھ کام کرتی ہے",
         s2li3: "آپ کے پلان کے مطابق آخری تاریخوں سے پہلے ای میل، ٹیلیگرام، واٹس ایپ اور SMS کے ذریعے یاد دہانیاں",
@@ -332,7 +332,7 @@ const t = {
         s7p1: "آپ کی کمپنی جو ڈیٹا پلیٹ فارم پر اپ لوڈ کرتی ہے (ایکسل فائلیں، آئٹمز، تاریخیں اور ارکان کی تفصیلات) اس کی ملکیت رہتا ہے۔ ہم اس پر صرف اتنی کارروائی کرتے ہیں جتنی سروس فراہم کرنے کے لیے ضروری ہو، رازداری کی پالیسی کے مطابق۔ ہر کمپنی کا ڈیٹا ڈیٹابیس کی سطح پر دوسروں سے الگ رکھا جاتا ہے اور صرف آپ کی ٹیم کے مجاز ارکان ہی اس تک رسائی رکھتے ہیں۔",
         s7p2: "آپ پلیٹ فارم کے اندر سے کسی بھی وقت اپنا ڈیٹا برآمد کر سکتے ہیں۔ اکاؤنٹ حذف ہونے یا سبسکرپشن ختم ہونے پر ہم معقول مدت کے اندر ڈیٹا حذف یا گمنام کر دیتے ہیں، سوائے اس کے کہ قانون ہمیں اسے محفوظ رکھنے کا پابند کرے۔",
         h8: "8. دانشورانہ ملکیت",
-        s8p1: "TheTracker پلیٹ فارم سے متعلق تمام دانشورانہ ملکیت کے حقوق محفوظ ہیں، بشمول ٹریڈ مارک، لوگو، انٹرفیس ڈیزائن، سورس کوڈ اور مواد۔ آپ کو ان شرائط کے مطابق پلیٹ فارم استعمال کرنے کے لیے محدود، غیر خصوصی اور ناقابل منتقلی لائسنس دیا جاتا ہے۔ پیشگی تحریری اجازت کے بغیر پلیٹ فارم کا کوئی حصہ نقل، دوبارہ تیار یا تقسیم نہیں کیا جا سکتا۔",
+        s8p1: "MrZahi پلیٹ فارم سے متعلق تمام دانشورانہ ملکیت کے حقوق محفوظ ہیں، بشمول ٹریڈ مارک، لوگو، انٹرفیس ڈیزائن، سورس کوڈ اور مواد۔ آپ کو ان شرائط کے مطابق پلیٹ فارم استعمال کرنے کے لیے محدود، غیر خصوصی اور ناقابل منتقلی لائسنس دیا جاتا ہے۔ پیشگی تحریری اجازت کے بغیر پلیٹ فارم کا کوئی حصہ نقل، دوبارہ تیار یا تقسیم نہیں کیا جا سکتا۔",
         h9: "9. دستیابی اور تبدیلیاں",
         s9p1: "ہم پلیٹ فارم کو ہر وقت دستیاب رکھنے کی کوشش کرتے ہیں، لیکن بلا تعطل کام کی ضمانت نہیں دیتے۔ دیکھ بھال، اپ ڈیٹس، ہماری ہوسٹنگ اور انفراسٹرکچر فراہم کنندگان کی خرابیوں یا ہمارے قابو سے باہر حالات کی وجہ سے سروس عارضی طور پر دستیاب نہیں ہو سکتی۔ ہم پلیٹ فارم یا اس کی خصوصیات میں تبدیلی بھی کر سکتے ہیں یا ان میں سے کسی کو بند کر سکتے ہیں؛ جہاں ممکن ہو، آپ کے استعمال کو متاثر کرنے والی اہم تبدیلیوں سے ہم آپ کو پیشگی آگاہ کریں گے۔",
         h10: "10. اختتام",
@@ -378,8 +378,8 @@ const t = {
     let l = lang();
     document.documentElement.lang = l;
     document.documentElement.dir = (l === "ar" || l === "ur") ? "rtl" : "ltr";
-    function setLang(c) { localStorage.setItem("tracker_lang", c); l = c; document.documentElement.lang = c; document.documentElement.dir = (c === "ar" || c === "ur") ? "rtl" : "ltr"; document.getElementById("currentLangDisplay").textContent = langNames[c] || c; ["ar","en","fr","ur"].forEach(x => { const e = document.getElementById("check-" + x); if (e) e.style.display = c === x ? "inline" : "none"; }); document.querySelectorAll("[data-i18n]").forEach(el => { const k = el.dataset.i18n; if (t[c] && t[c][k]) el.innerHTML = t[c][k]; }); document.getElementById("currentThemeDisplay").textContent = t[c][theme() === "dark" ? "dark" : "light"]; document.title = (t[c]?.title || "Terms of Use") + " | TheTracker"; }
-    function setTheme(th) { localStorage.setItem("tracker_theme", th); document.documentElement.dataset.theme = th; document.getElementById("themeColorMeta").content = th === "dark" ? "#1a2933" : "#0068b8"; document.getElementById("footerLogo").src = th === "dark" ? "tracker-logo-full-dark.png?v=2" : "tracker-logo-full-light.png?v=2"; document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️"; document.getElementById("currentThemeDisplay").textContent = t[l][th === "dark" ? "dark" : "light"]; document.getElementById("check-light").style.display = th === "light" ? "inline" : "none"; document.getElementById("check-dark").style.display = th === "dark" ? "inline" : "none"; }
+    function setLang(c) { localStorage.setItem("tracker_lang", c); l = c; document.documentElement.lang = c; document.documentElement.dir = (c === "ar" || c === "ur") ? "rtl" : "ltr"; document.getElementById("currentLangDisplay").textContent = langNames[c] || c; ["ar","en","fr","ur"].forEach(x => { const e = document.getElementById("check-" + x); if (e) e.style.display = c === x ? "inline" : "none"; }); document.querySelectorAll("[data-i18n]").forEach(el => { const k = el.dataset.i18n; if (t[c] && t[c][k]) el.innerHTML = t[c][k]; }); document.getElementById("currentThemeDisplay").textContent = t[c][theme() === "dark" ? "dark" : "light"]; document.title = (t[c]?.title || "Terms of Use") + " | MrZahi"; }
+    function setTheme(th) { localStorage.setItem("tracker_theme", th); document.documentElement.dataset.theme = th; document.getElementById("themeColorMeta").content = th === "dark" ? "#1a2933" : "#0068b8"; document.getElementById("footerLogo").src = th === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2"; document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️"; document.getElementById("currentThemeDisplay").textContent = t[l][th === "dark" ? "dark" : "light"]; document.getElementById("check-light").style.display = th === "light" ? "inline" : "none"; document.getElementById("check-dark").style.display = th === "dark" ? "inline" : "none"; }
     document.getElementById("langMenuBtn").onclick = e => { e.stopPropagation(); document.getElementById("langDropdown").classList.toggle("show"); document.getElementById("themeDropdown").classList.remove("show"); };
     // زر المظهر يبدل الثيم مباشرة بضغطة واحدة بلا قائمة (طلب المهندس رعد)
     document.getElementById("themeMenuBtn").onclick = e => { e.stopPropagation(); setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"); document.getElementById("langDropdown").classList.remove("show"); };
@@ -389,5 +389,5 @@ const t = {
     document.querySelectorAll("[data-i18n]").forEach(el => { const k = el.dataset.i18n; if (t[l] && t[l][k]) el.innerHTML = t[l][k]; });
     document.getElementById("currentLangDisplay").textContent = langNames[l] || l;
     ["ar","en","fr","ur"].forEach(x => { const e = document.getElementById("check-" + x); if (e) e.style.display = l === x ? "inline" : "none"; });
-    document.title = (t[l]?.title || "Terms of Use") + " | TheTracker";
-    (function(){ const th = theme(); document.documentElement.dataset.theme = th; document.getElementById("themeColorMeta").content = th === "dark" ? "#1a2933" : "#0068b8"; document.getElementById("footerLogo").src = th === "dark" ? "tracker-logo-full-dark.png?v=2" : "tracker-logo-full-light.png?v=2"; document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️"; document.getElementById("currentThemeDisplay").textContent = t[l][th === "dark" ? "dark" : "light"]; document.getElementById("check-light").style.display = th === "light" ? "inline" : "none"; document.getElementById("check-dark").style.display = th === "dark" ? "inline" : "none"; })();
+    document.title = (t[l]?.title || "Terms of Use") + " | MrZahi";
+    (function(){ const th = theme(); document.documentElement.dataset.theme = th; document.getElementById("themeColorMeta").content = th === "dark" ? "#1a2933" : "#0068b8"; document.getElementById("footerLogo").src = th === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2"; document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️"; document.getElementById("currentThemeDisplay").textContent = t[l][th === "dark" ? "dark" : "light"]; document.getElementById("check-light").style.display = th === "light" ? "inline" : "none"; document.getElementById("check-dark").style.display = th === "dark" ? "inline" : "none"; })();

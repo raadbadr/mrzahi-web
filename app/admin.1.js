@@ -482,7 +482,7 @@
         if (translations[code] && translations[code][k]) el.innerHTML = translations[code][k];
       });
       applyPlaceholders(code);
-      document.title = (translations[code] && translations[code].title ? translations[code].title : "Admin") + " | TheTracker";
+      document.title = (translations[code] && translations[code].title ? translations[code].title : "Admin") + " | MrZahi";
       if (typeof window.__trackerAuthRefresh === "function") window.__trackerAuthRefresh();
       if (typeof window.__adminRefresh === "function") window.__adminRefresh();
     }
@@ -493,7 +493,7 @@
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = th === "dark" ? "#1a2933" : "#0068b8";
       const logo = document.getElementById("footerLogo");
-      if (logo) logo.src = th === "dark" ? "/tracker-logo-full-dark.png?v=2" : "/tracker-logo-full-light.png?v=2";
+      if (logo) logo.src = th === "dark" ? "/mrzahi-logo-full-dark.png?v=2" : "/mrzahi-logo-full-light.png?v=2";
       document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️";
       document.getElementById("currentThemeDisplay").textContent = translations[l][th === "dark" ? "dark" : "light"];
       document.getElementById("check-light").style.display = th === "light" ? "inline" : "none";
@@ -536,7 +536,7 @@
       const el = document.getElementById("check-" + c);
       if (el) el.style.display = l === c ? "inline" : "none";
     });
-    document.title = (translations[l] && translations[l].title ? translations[l].title : "Admin") + " | TheTracker";
+    document.title = (translations[l] && translations[l].title ? translations[l].title : "Admin") + " | MrZahi";
 
     (function() {
       const th = theme();
@@ -544,7 +544,7 @@
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = th === "dark" ? "#1a2933" : "#0068b8";
       const logo = document.getElementById("footerLogo");
-      if (logo) logo.src = th === "dark" ? "/tracker-logo-full-dark.png?v=2" : "/tracker-logo-full-light.png?v=2";
+      if (logo) logo.src = th === "dark" ? "/mrzahi-logo-full-dark.png?v=2" : "/mrzahi-logo-full-light.png?v=2";
       document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️";
       document.getElementById("currentThemeDisplay").textContent = translations[l][th === "dark" ? "dark" : "light"];
       document.getElementById("check-light").style.display = th === "light" ? "inline" : "none";

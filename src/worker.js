@@ -1,5 +1,5 @@
 /**
- * TheTracker API Worker — proxies Supabase calls server-side.
+ * MrZahi API Worker — proxies Supabase calls server-side.
  * Keys are read from environment variables (Secrets in Cloudflare Dashboard).
  * Static assets are served by the [assets] binding automatically.
  */
@@ -312,7 +312,7 @@ async function telegramAssistantReply(env, chatId, userId, text, attachment) {
     import_url: "https://mrzahi.com/app/documents.html#importFlow",
   };
   if (attachment) facts.attachment = { name: attachment.name || "", kind: attachment.kind || "file", content: String(attachment.content || "").slice(0, 9000) };
-  const system = `أنت مساعد TheTracker داخل تلغرام، تخدم المستخدم ${facts.user.name || ""}${facts.user.company ? ` من شركة «${facts.user.company}»` : ""}.
+  const system = `أنت مساعد MrZahi داخل تلغرام، تخدم المستخدم ${facts.user.name || ""}${facts.user.company ? ` من شركة «${facts.user.company}»` : ""}.
 التراكر منصة لتتبع القضايا والمخالفات والعقود والمواعيد من ملفات إكسل، مع تقويم وتنبيهات.
 قواعدك:
 - أجب بـ${TG_LANG_NAMES[lang] || "العربية الفصحى"} دائما، باختصار وود ومباشرة، والأرقام غربية (1234567890) والتواريخ بتوقيت الرياض.
@@ -504,7 +504,7 @@ async function companyMenu(env, chatId, userId, lang) {
 async function logBotReply(env, chatId, userId, text) {
   if (!env.WORKER_SECRET || !text) return;
   try {
-    await rpc(env, "log_telegram_message", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_username: "bot", p_first_name: "TheTracker",
+    await rpc(env, "log_telegram_message", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_username: "bot", p_first_name: "MrZahi",
       p_body: String(text).slice(0, 4000), p_user_id: userId || null, p_action: "reply" });
   } catch (e) { console.log("reply log failed", String(e && e.message || e).slice(0, 200)); }
 }

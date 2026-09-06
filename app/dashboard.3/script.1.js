@@ -248,7 +248,7 @@
         var text = viewTitleText(state.viewType);
         var h1 = document.querySelector('h1[data-i18n="title"]');
         if (h1 && h1.textContent !== text) { h1.textContent = text; h1.removeAttribute("data-i18n"); }
-        var docTitle = text + " | TheTracker";
+        var docTitle = text + " | MrZahi";
         if (document.title !== docTitle) document.title = docTitle;
       }
 

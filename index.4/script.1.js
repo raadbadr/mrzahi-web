@@ -69,7 +69,7 @@
         contactError: "حدث خطأ أثناء الإرسال، حاول مرة أخرى",
         chatPrefix: "مساعد ",
         chatBotStatus: "متصل · يرد عادة خلال دقائق",
-        chatWelcome: "مرحبا! أنا مساعد TheTracker<br>اختر الموضوع أو اكتب رسالتك:",
+        chatWelcome: "مرحبا! أنا مساعد MrZahi<br>اختر الموضوع أو اكتب رسالتك:",
         chatTypeOrSelect: "اختر أو اكتب...",
         chatAskName: "ما اسمك؟",
         chatAskEmail: "ما بريدك الإلكتروني؟",
@@ -77,7 +77,7 @@
         chatNameInvalid: "هذا لا يبدو اسما، الرجاء كتابة اسمك.",
         chatAskMessage: "اكتب رسالتك:",
         chatSending: "جاري الإرسال...",
-        chatAssistantWelcome: "أهلا بك! أنا مساعد TheTracker الذكي. اسألني عن الباقات، أو طريقة رفع ملف إكسل، أو التنبيهات، أو أي شيء عن المنصة.",
+        chatAssistantWelcome: "أهلا بك! أنا مساعد MrZahi الذكي. اسألني عن الباقات، أو طريقة رفع ملف إكسل، أو التنبيهات، أو أي شيء عن المنصة.",
         chatAssistantPlaceholder: "اكتب سؤالك...",
         chatAssistantSuggest1: "كيف أرفع ملف إكسل؟",
         chatAssistantSuggest2: "ما الفرق بين الباقات؟",
@@ -161,7 +161,7 @@
         contactError: "Something went wrong while sending, please try again",
         chatPrefix: "Assistant ",
         chatBotStatus: "Online · usually replies within minutes",
-        chatWelcome: "Hi! I'm the TheTracker assistant<br>Pick a topic or type your message:",
+        chatWelcome: "Hi! I'm the MrZahi assistant<br>Pick a topic or type your message:",
         chatTypeOrSelect: "Select or type...",
         chatAskName: "What's your name?",
         chatAskEmail: "What's your email?",
@@ -169,7 +169,7 @@
         chatNameInvalid: "That doesn't look like a name, please type your name.",
         chatAskMessage: "Type your message:",
         chatSending: "Sending...",
-        chatAssistantWelcome: "Welcome! I'm the TheTracker smart assistant. Ask me about plans, how to upload an Excel file, alerts, or anything about the platform.",
+        chatAssistantWelcome: "Welcome! I'm the MrZahi smart assistant. Ask me about plans, how to upload an Excel file, alerts, or anything about the platform.",
         chatAssistantPlaceholder: "Type your question...",
         chatAssistantSuggest1: "How do I upload an Excel file?",
         chatAssistantSuggest2: "What's the difference between the plans?",
@@ -253,7 +253,7 @@
         contactError: "Une erreur est survenue lors de l'envoi, veuillez réessayer",
         chatPrefix: "Assistant ",
         chatBotStatus: "En ligne · répond généralement en quelques minutes",
-        chatWelcome: "Bonjour ! Je suis l'assistant TheTracker<br>Choisissez un sujet ou écrivez votre message :",
+        chatWelcome: "Bonjour ! Je suis l'assistant MrZahi<br>Choisissez un sujet ou écrivez votre message :",
         chatTypeOrSelect: "Choisissez ou écrivez...",
         chatAskName: "Quel est votre nom ?",
         chatAskEmail: "Quelle est votre adresse e-mail ?",
@@ -261,7 +261,7 @@
         chatNameInvalid: "Cela ne ressemble pas à un nom, veuillez écrire votre nom.",
         chatAskMessage: "Écrivez votre message :",
         chatSending: "Envoi en cours...",
-        chatAssistantWelcome: "Bienvenue ! Je suis l'assistant intelligent TheTracker. Posez-moi vos questions sur les forfaits, l'import d'un fichier Excel, les alertes ou tout ce qui concerne la plateforme.",
+        chatAssistantWelcome: "Bienvenue ! Je suis l'assistant intelligent MrZahi. Posez-moi vos questions sur les forfaits, l'import d'un fichier Excel, les alertes ou tout ce qui concerne la plateforme.",
         chatAssistantPlaceholder: "Écrivez votre question...",
         chatAssistantSuggest1: "Comment importer un fichier Excel ?",
         chatAssistantSuggest2: "Quelle est la différence entre les forfaits ?",
@@ -345,7 +345,7 @@
         contactError: "بھیجتے وقت خرابی پیش آئی، دوبارہ کوشش کریں",
         chatPrefix: "معاون ",
         chatBotStatus: "آن لائن · عموما چند منٹ میں جواب دیتا ہے",
-        chatWelcome: "خوش آمدید! میں TheTracker کا معاون ہوں<br>موضوع منتخب کریں یا اپنا پیغام لکھیں:",
+        chatWelcome: "خوش آمدید! میں MrZahi کا معاون ہوں<br>موضوع منتخب کریں یا اپنا پیغام لکھیں:",
         chatTypeOrSelect: "منتخب کریں یا لکھیں...",
         chatAskName: "آپ کا نام کیا ہے؟",
         chatAskEmail: "آپ کا ای میل کیا ہے؟",
@@ -353,7 +353,7 @@
         chatNameInvalid: "یہ نام معلوم نہیں ہوتا، براہ کرم اپنا نام لکھیں۔",
         chatAskMessage: "اپنا پیغام لکھیں:",
         chatSending: "بھیجا جا رہا ہے...",
-        chatAssistantWelcome: "خوش آمدید! میں TheTracker کا ذہین معاون ہوں۔ مجھ سے پیکجز، ایکسل فائل اپ لوڈ کرنے کے طریقے، اطلاعات، یا پلیٹ فارم کے بارے میں کچھ بھی پوچھیں۔",
+        chatAssistantWelcome: "خوش آمدید! میں MrZahi کا ذہین معاون ہوں۔ مجھ سے پیکجز، ایکسل فائل اپ لوڈ کرنے کے طریقے، اطلاعات، یا پلیٹ فارم کے بارے میں کچھ بھی پوچھیں۔",
         chatAssistantPlaceholder: "اپنا سوال لکھیں...",
         chatAssistantSuggest1: "میں ایکسل فائل کیسے اپ لوڈ کروں؟",
         chatAssistantSuggest2: "پیکجز میں کیا فرق ہے؟",
@@ -393,10 +393,10 @@
 
     const langNames = { ar: "العربية", en: "English", fr: "Français", ur: "اردو" };
     const langTitles = {
-      ar: "TheTracker | تتبع أعمالك في مكان واحد",
-      en: "TheTracker | Track your business in one place",
-      fr: "TheTracker | Suivez votre activité en un seul endroit",
-      ur: "TheTracker | اپنا کاروبار ایک جگہ ٹریک کریں"
+      ar: "MrZahi | تتبع أعمالك في مكان واحد",
+      en: "MrZahi | Track your business in one place",
+      fr: "MrZahi | Suivez votre activité en un seul endroit",
+      ur: "MrZahi | اپنا کاروبار ایک جگہ ٹریک کریں"
     };
 
     function setLang(l) {
@@ -432,7 +432,7 @@
       const themeText = currentTheme === "dark" ? translations[l].dark : translations[l].light;
       document.getElementById("currentThemeDisplay").textContent = themeText;
 
-      document.title = langTitles[l] || "TheTracker";
+      document.title = langTitles[l] || "MrZahi";
 
       const wlInput = document.getElementById("waitlistEmail");
       if (wlInput && translations[l]?.waitlistPlaceholder) wlInput.placeholder = translations[l].waitlistPlaceholder;
@@ -465,12 +465,12 @@
       document.getElementById("check-dark").style.display = t === "dark" ? "inline" : "none";
       
       // Update all logos based on theme
-      const heroLogoSrc = t === "dark" ? "tracker-logo-full-dark.png?v=2" : "tracker-logo-full-light.png?v=2";
+      const heroLogoSrc = t === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2";
       const heroLogo = document.getElementById("heroLogo");
       if (heroLogo) heroLogo.src = heroLogoSrc;
       document.querySelectorAll("[data-brand-logo]").forEach(img => { img.src = heroLogoSrc; });
       // Footer & chat header: خلفية داكنة → شعار أبيض
-      const footerLogoSrc = t === "dark" ? "tracker-logo-full-dark.png?v=2" : "tracker-logo-full-light.png?v=2";
+      const footerLogoSrc = t === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2";
       document.querySelectorAll("[data-brand-logo-footer], [data-brand-logo-header]").forEach(img => { img.src = footerLogoSrc; });
 
     }

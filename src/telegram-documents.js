@@ -175,7 +175,7 @@ export function profileOfferText(lang, updates, current) {
 async function logReply(env, chatId, userId, text) {
   if (!env.WORKER_SECRET || !text) return;
   try {
-    await rpc(env, "log_telegram_message", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_username: "bot", p_first_name: "TheTracker",
+    await rpc(env, "log_telegram_message", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_username: "bot", p_first_name: "MrZahi",
       p_body: String(text).slice(0, 4000), p_user_id: userId || null, p_action: "reply" });
   } catch (e) { console.log("reply log failed", String(e && e.message || e).slice(0, 200)); }
 }

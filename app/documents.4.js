@@ -23,7 +23,7 @@
         });
       }
 
-      const NEW_TheTracker = "__new__";
+      const NEW_MrZahi = "__new__";
       const CHUNK = 200;
       const MAX_UNMATCHED_LISTED = 10;
       const ALLOWED_EXT = ["xlsx", "xlsm", "xls", "csv", "tsv", "txt", "json"];
@@ -496,16 +496,16 @@
         const sel = els.trackerSelect;
         const prev = sel.value;
         sel.innerHTML = "";
-        sel.appendChild(new Option(t("newTracker"), NEW_TheTracker));
+        sel.appendChild(new Option(t("newTracker"), NEW_MrZahi));
         state.trackers.forEach(function (tr) { sel.appendChild(new Option(tr.name, tr.id)); });
-        let keep = NEW_TheTracker;
+        let keep = NEW_MrZahi;
         for (let i = 0; i < sel.options.length; i++) if (sel.options[i].value === prev) { keep = prev; break; }
         sel.value = keep;
         toggleTrackerName();
       }
 
       function toggleTrackerName() {
-        show(els.trackerNameField, els.trackerSelect.value === NEW_TheTracker);
+        show(els.trackerNameField, els.trackerSelect.value === NEW_MrZahi);
       }
 
       function analyzeAndRender() {
@@ -673,7 +673,7 @@
           setMsg(els.importProgress, t(needsTitle ? "mappingRequired" : "mappingRequiredDue"), "error"); return;
         }
 
-        const isNew = els.trackerSelect.value === NEW_TheTracker;
+        const isNew = els.trackerSelect.value === NEW_MrZahi;
         const trackerName = String(els.trackerName.value || "").trim();
         if (isNew && !trackerName) { setMsg(els.importProgress, t("trackerNameRequired"), "error"); els.trackerName.focus(); return; }
 

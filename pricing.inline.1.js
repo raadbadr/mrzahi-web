@@ -1,7 +1,7 @@
 const t = {
       ar: {
         title: "الباقات والأسعار",
-        intro: "تبدأ منصة TheTracker بفترة تجريبية مدتها 14 يوما بكل المزايا وبلا بطاقة بنكية، ثم تختار الباقة الشهرية أو السنوية للاستمرار. تشمل الباقات جميعها رفع ملفات إكسل، والقائمة والتقويم الشهري، والتنبيهات قبل مواعيد الاستحقاق.",
+        intro: "تبدأ منصة MrZahi بفترة تجريبية مدتها 14 يوما بكل المزايا وبلا بطاقة بنكية، ثم تختار الباقة الشهرية أو السنوية للاستمرار. تشمل الباقات جميعها رفع ملفات إكسل، والقائمة والتقويم الشهري، والتنبيهات قبل مواعيد الاستحقاق.",
         planTrialName: "التجريبية",
         planTrialPrice: "0",
         planTrialPeriod: "/ لمدة 14 يوما",
@@ -65,7 +65,7 @@ const t = {
       },
       en: {
         title: "Plans & Pricing",
-        intro: "TheTracker starts with a 14-day trial that includes every feature and needs no credit card. When it ends you choose the monthly or yearly plan to continue. Every plan includes Excel uploads, the list and monthly calendar, and reminders before due dates.",
+        intro: "MrZahi starts with a 14-day trial that includes every feature and needs no credit card. When it ends you choose the monthly or yearly plan to continue. Every plan includes Excel uploads, the list and monthly calendar, and reminders before due dates.",
         planTrialName: "Trial",
         planTrialPrice: "0",
         planTrialPeriod: "/ for 14 days",
@@ -129,7 +129,7 @@ const t = {
       },
       fr: {
         title: "Forfaits et tarifs",
-        intro: "TheTracker commence par un essai de 14 jours incluant toutes les fonctionnalités, sans carte bancaire. À la fin, vous choisissez le forfait mensuel ou annuel pour continuer. Tous les forfaits incluent l'import Excel, la liste et le calendrier mensuel, ainsi que les rappels avant les échéances.",
+        intro: "MrZahi commence par un essai de 14 jours incluant toutes les fonctionnalités, sans carte bancaire. À la fin, vous choisissez le forfait mensuel ou annuel pour continuer. Tous les forfaits incluent l'import Excel, la liste et le calendrier mensuel, ainsi que les rappels avant les échéances.",
         planTrialName: "Essai",
         planTrialPrice: "0",
         planTrialPeriod: "/ pendant 14 jours",
@@ -193,7 +193,7 @@ const t = {
       },
       ur: {
         title: "پلانز اور قیمتیں",
-        intro: "TheTracker کا آغاز 14 دن کی آزمائشی مدت سے ہوتا ہے جس میں تمام خصوصیات شامل ہیں اور کریڈٹ کارڈ کی ضرورت نہیں۔ اس کے بعد جاری رکھنے کے لیے ماہانہ یا سالانہ پلان منتخب کریں۔ ہر پلان میں ایکسل اپ لوڈ، فہرست اور ماہانہ کیلنڈر، اور آخری تاریخ سے پہلے یاد دہانیاں شامل ہیں۔",
+        intro: "MrZahi کا آغاز 14 دن کی آزمائشی مدت سے ہوتا ہے جس میں تمام خصوصیات شامل ہیں اور کریڈٹ کارڈ کی ضرورت نہیں۔ اس کے بعد جاری رکھنے کے لیے ماہانہ یا سالانہ پلان منتخب کریں۔ ہر پلان میں ایکسل اپ لوڈ، فہرست اور ماہانہ کیلنڈر، اور آخری تاریخ سے پہلے یاد دہانیاں شامل ہیں۔",
         planTrialName: "آزمائشی",
         planTrialPrice: "0",
         planTrialPeriod: "/ 14 دن کے لیے",
@@ -280,7 +280,7 @@ const t = {
         const k = el.dataset.i18n;
         if (t[code] && t[code][k]) el.innerHTML = t[code][k];
       });
-      document.title = (t[code] && t[code].title ? t[code].title : "Plans & Pricing") + " | TheTracker";
+      document.title = (t[code] && t[code].title ? t[code].title : "Plans & Pricing") + " | MrZahi";
     }
 
     function setTheme(th) {
@@ -289,7 +289,7 @@ const t = {
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = th === "dark" ? "#1a2933" : "#0068b8";
       const logo = document.getElementById("footerLogo");
-      if (logo) logo.src = th === "dark" ? "tracker-logo-full-dark.png?v=2" : "tracker-logo-full-light.png?v=2";
+      if (logo) logo.src = th === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2";
       document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️";
       document.getElementById("currentThemeDisplay").textContent = t[l][th === "dark" ? "dark" : "light"];
       document.getElementById("check-light").style.display = th === "light" ? "inline" : "none";
@@ -331,7 +331,7 @@ const t = {
       const el = document.getElementById("check-" + c);
       if (el) el.style.display = l === c ? "inline" : "none";
     });
-    document.title = (t[l] && t[l].title ? t[l].title : "Plans & Pricing") + " | TheTracker";
+    document.title = (t[l] && t[l].title ? t[l].title : "Plans & Pricing") + " | MrZahi";
 
     (function() {
       const th = theme();
@@ -339,7 +339,7 @@ const t = {
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = th === "dark" ? "#1a2933" : "#0068b8";
       const logo = document.getElementById("footerLogo");
-      if (logo) logo.src = th === "dark" ? "tracker-logo-full-dark.png?v=2" : "tracker-logo-full-light.png?v=2";
+      if (logo) logo.src = th === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2";
       document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️";
       document.getElementById("currentThemeDisplay").textContent = t[l][th === "dark" ? "dark" : "light"];
       document.getElementById("check-light").style.display = th === "light" ? "inline" : "none";

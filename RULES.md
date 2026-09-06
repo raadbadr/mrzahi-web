@@ -1,4 +1,4 @@
-# TheTracker Website — Immutable Rules
+# MrZahi Website — Immutable Rules
 
 These rules apply to every AI agent, developer, and automated tool working on this project.
 **No exceptions without explicit written approval from المهندس رعد.**
@@ -12,8 +12,8 @@ These rules apply to every AI agent, developer, and automated tool working on th
 | `favicon.ico` | Website favicon | Brand identity — generated "T" icon (Monoton font on brand blue). Never replace. |
 | `favicon-32x32.png` / `favicon-16x16.png` | Favicon 32px / 16px | Brand identity — same source as favicon.ico |
 | `apple-touch-icon.png` | iOS home screen icon | Brand identity — same source as favicon.ico |
-| `tracker-logo-dark.png` / `tracker-logo-light.png` | Small "T" brand mark | Brand identity — used by `brand-logo.js` and the header/footer |
-| `tracker-logo-full-dark.png` / `tracker-logo-full-light.png` | "TheTracker" wordmark | Brand identity — the only approved wordmark files |
+| `mrzahi-logo-dark.png` / `mrzahi-logo-light.png` | Small "T" brand mark | Brand identity — used by `brand-logo.js` and the header/footer |
+| `mrzahi-logo-full-dark.png` / `mrzahi-logo-full-light.png` | "MrZahi" wordmark | Brand identity — the only approved wordmark files |
 | `header.css` / `footer.css` | Shared header and footer | Design must stay identical to parkinzi.com — owner's red line |
 | `index.html` — `:root` / theme CSS variables | Neumorphic + glass theme tokens | Design must stay identical to parkinzi.com — owner's red line |
 | `src/worker.js` — `/api/config` | Browser config endpoint | Must only ever expose `SUPABASE_URL` and `SUPABASE_ANON_KEY` — never the service role key |
@@ -46,11 +46,11 @@ These rules apply to every AI agent, developer, and automated tool working on th
 
 ## Brand Rules
 
-- Wordmark is "TheTracker": `tracker-logo-full-dark.png` (dark theme) / `tracker-logo-full-light.png` (light theme)
-- Mark is the letter "T": `tracker-logo-dark.png` / `tracker-logo-light.png`
+- Wordmark is "MrZahi": `mrzahi-logo-full-dark.png` (dark theme) / `mrzahi-logo-full-light.png` (light theme)
+- Mark is the letter "T": `mrzahi-logo-dark.png` / `mrzahi-logo-light.png`
 - Favicon must always be the generated "T" icon (Monoton font on brand blue)
 - Never replace `favicon.ico`, `favicon-32x32.png`, `favicon-16x16.png`, or `apple-touch-icon.png` with any other asset without explicit approval
-- `brand-logo.js` replaces "TheTracker" text nodes with the logo image — never disable or remove it
+- `brand-logo.js` replaces "MrZahi" text nodes with the logo image — never disable or remove it
 - The visual theme is inherited verbatim from parkinzi.com and must not change
 
 ---
@@ -87,7 +87,7 @@ These rules apply to every AI agent, developer, and automated tool working on th
 - **Three steps remain and only Eng. Raad can do them** (each is his own account, not ours):
   Google OAuth authorised JavaScript origins and redirect URIs, Supabase Auth redirect/site
   URLs, and repointing the Telegram webhook at mrzahi.com.
-- **The two projects merge into one under mrzahi.com**: TheTracker and Eng. Raad's Zahi robot
+- **The two projects merge into one under mrzahi.com**: MrZahi and Eng. Raad's Zahi robot
   project become one product — the robot backed by the platform, the platform as its reminder
   brain. Agents on either side coordinate before touching shared surfaces (domain, Worker,
   Supabase, bot). Nothing about the Zahi side is assumed: its scope, data and boundaries come

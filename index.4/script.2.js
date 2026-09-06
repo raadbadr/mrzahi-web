@@ -4,9 +4,9 @@
       const div = document.createElement("div");
       div.className = "chat-msg " + (isBot ? "bot" : "user");
       const content = document.createElement("div");
-      if (text.includes("TheTracker")) {
-        const logoHtml = '<img src="tracker-logo-full-dark.png?v=2" alt="TheTracker" class="brand-logo-inline brand-logo-inline--xs">';
-        const parts = text.split("TheTracker");
+      if (text.includes("MrZahi")) {
+        const logoHtml = '<img src="mrzahi-logo-full-dark.png?v=2" alt="MrZahi" class="brand-logo-inline brand-logo-inline--xs">';
+        const parts = text.split("MrZahi");
         content.innerHTML = parts.map((p, i) => p + (i < parts.length - 1 ? logoHtml : "")).join("");
       } else {
         content.textContent = text;

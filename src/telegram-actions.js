@@ -31,7 +31,7 @@ function nowRiyadh() {
 }
 
 function intentSystem(ctx) {
-  return `You turn one message from a lawyer using TheTracker (cases, court sessions, municipal violations/fines, deadlines) into a single JSON action. Output JSON only.
+  return `You turn one message from a lawyer using MrZahi (cases, court sessions, municipal violations/fines, deadlines) into a single JSON action. Output JSON only.
 Now in Riyadh: ${nowRiyadh()} (timezone ${RIYADH}, UTC+3). Resolve relative dates ("Sunday", "tomorrow", "after 3 days", "next week", "10 AM") against this moment; output due_at as ISO 8601 with +03:00 offset. If no time is given for a session use 09:00; for a violation deadline use 23:59.
 Actions:
 - "add": the user wants to record/remember something new (a session/hearing, a fine/violation, a task, a deadline, a payment). Fill item: kind (violation = fine/مخالفة, session = hearing/جلسة/قضية date, task = anything else), title (short, in the user's language, e.g. "جلسة القضية 4521 — شركة الأبراج"), due_at, amount (number, fine amount), client_name, case_number, violation_number, location (issuing authority/place), notes.

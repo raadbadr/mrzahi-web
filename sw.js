@@ -1,5 +1,5 @@
-/* TheTracker — تخزين مؤقت للتصفح دون اتصال (نفس أصل الموقع فقط) */
-const CACHE_NAME = "tracker-offline-v2";
+/* MrZahi — تخزين مؤقت للتصفح دون اتصال (نفس أصل الموقع فقط) */
+const CACHE_NAME = "tracker-offline-v2-mrzahi";
 
 const PRECACHE_URLS = [
   "./index.html",
@@ -11,8 +11,8 @@ const PRECACHE_URLS = [
   "./footer.css",
   "./rial-symbol.png",
   "./Monoton-Regular.ttf",
-  "./tracker-logo-dark.png",
-  "./tracker-logo-light.png",
+  "./mrzahi-logo-dark.png",
+  "./mrzahi-logo-light.png",
   "./robots.txt",
   "./sitemap.xml",
   "./login.html",

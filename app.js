@@ -1,5 +1,5 @@
 /**
- * app.js — TheTracker shared auth helper (plain script, no modules).
+ * app.js — MrZahi shared auth helper (plain script, no modules).
  *
  * Loads after the supabase-js UMD bundle (window.supabase) and exposes
  * window.trackerAuth = {

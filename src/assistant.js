@@ -48,7 +48,7 @@ const PLANS = [
 
 function toolAppInfo() {
   return {
-    name: "TheTracker",
+    name: "MrZahi",
     url: "https://mrzahi.com",
     support_email: "support@mrzahi.com",
     languages: ["ar", "en", "fr", "ur"],
@@ -88,12 +88,12 @@ async function toolPlatformStats(env) {
 const TOOLS = [
   {
     name: "get_plans",
-    description: "Lists TheTracker subscription plans (free, monthly, yearly) with prices in SAR and limits (members, items, channels).",
+    description: "Lists MrZahi subscription plans (free, monthly, yearly) with prices in SAR and limits (members, items, channels).",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
     name: "get_app_info",
-    description: "Returns static facts about the TheTracker platform: what it does, how it works, login methods, support email.",
+    description: "Returns static facts about the MrZahi platform: what it does, how it works, login methods, support email.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
@@ -113,14 +113,14 @@ async function callTool(name, args, env) {
 }
 
 function assistantSystemPrompt() {
-  return `أنت مساعد TheTracker الرسمي على موقع mrzahi.com — منصة لتتبع عقود الشركات وتراخيصها ومهامها من ملف إكسل، مع تقويم وتنبيهات على تيليغرام.
+  return `أنت مساعد MrZahi الرسمي على موقع mrzahi.com — منصة لتتبع عقود الشركات وتراخيصها ومهامها من ملف إكسل، مع تقويم وتنبيهات على تيليغرام.
 
 قواعدك:
 - أجب بلغة رسالة الزائر (عربية فصحى، إنجليزية، فرنسية، أو أردو).
 - كن مختصرا وودودا ومباشرا؛ الأرقام دائما غربية (1234567890).
 - استخدم الأدوات لأي معلومة (الباقات، طريقة العمل، الأرقام الحية) — لا تختلق بيانات أبدا.
 - لطلبات الدعم الشخصية (مشكلة حساب، تفعيل اشتراك، فاتورة): وجه الزائر لزر "التواصل مع الدعم" في هذه المحادثة أو support@mrzahi.com — لا تجمع بياناته بنفسك.
-- لا تناقش مواضيع خارج TheTracker والتتبع والتنبيهات؛ اعتذر بلطف وأعد التوجيه.`;
+- لا تناقش مواضيع خارج MrZahi والتتبع والتنبيهات؛ اعتذر بلطف وأعد التوجيه.`;
 }
 
 export async function handleAssistantRequest(request, env) {

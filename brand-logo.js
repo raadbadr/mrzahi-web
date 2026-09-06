@@ -1,13 +1,13 @@
 /**
  * brand-logo.js
- * Replaces every visible occurrence of the literal text "TheTracker"
+ * Replaces every visible occurrence of the literal text "MrZahi"
  * with the wordmark image, following the active theme.
  */
 (function () {
-  var LOGO_DARK = '/tracker-logo-full-dark.png?v=2';
-  var LOGO_LIGHT = '/tracker-logo-full-light.png?v=2';
+  var LOGO_DARK = '/mrzahi-logo-full-dark.png?v=2';
+  var LOGO_LIGHT = '/mrzahi-logo-full-light.png?v=2';
   var SKIP_SELECTOR = 'script, style, noscript, code, pre, title, .brand-logo-mark, .brand-logo-inline, [data-brand-logo-footer]';
-  var TARGET = 'TheTracker';
+  var TARGET = 'MrZahi';
 
   function logoSrc() {
     return document.documentElement.getAttribute('data-theme') === 'light' ? LOGO_LIGHT : LOGO_DARK;
