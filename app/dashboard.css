@@ -723,7 +723,11 @@
       display: flex; align-items: center; justify-content: space-between;
       gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem;
     }
-    .cal-nav-group { display: flex; align-items: center; gap: 0.5rem; }
+    .cal-nav-group { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; min-width: 0; }
+    /* فلاتر التقويم: سطر مستقل موسط تحت شريط التنقل — لا تزاحم الأشهر ولا تفيض عن الشاشة */
+    .cal-nav > #calFilters { order: 3; flex: 0 0 100%; min-width: 100%; justify-content: center; margin-top: .25rem; }
+    .cal-nav > #calFilters[hidden] { display: none; }
+    #calFilters .cal-modes { flex-wrap: wrap; max-width: 100%; justify-content: center; height: auto; }
     /* اليوم والشهر والتقويمان في سطر واحد على ارتفاع واحد 40px */
     .cal-nav .chat-option-btn, .cal-nav .cal-modes, .cal-nav .cal-title { height: 40px; box-sizing: border-box; display: inline-flex; align-items: center; margin: 0; }
     .cal-nav .cal-modes { padding: 0 0.2rem; }
