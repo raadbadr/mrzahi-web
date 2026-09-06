@@ -52,3 +52,13 @@ These rules apply to every AI agent, developer, and automated tool working on th
 - Never replace `favicon.ico`, `favicon-32x32.png`, `favicon-16x16.png`, or `apple-touch-icon.png` with any other asset without explicit approval
 - `brand-logo.js` replaces "TheTracker" text nodes with the logo image — never disable or remove it
 - The visual theme is inherited verbatim from parkinzi.com and must not change
+
+---
+
+## Never Delete or Change Anything on an Inference (Eng. Raad, 2026-09-06)
+
+- **Nothing is deleted and nothing is changed unless an explicit instruction names it**: no visible element, text, button, filter, column, file, code line, ordering, design or existing behaviour.
+- **An inference is not an instruction.** A general remark — "put it back the way it was", "this design is bad", "you broke the order" — means *fix what is being complained about*, not remove a feature. Reading a deletion into it is an inference.
+- **When in doubt, keep it**, then ask one short question that names the thing ("hide X, or fix how X looks?") — before acting, never after.
+- This outranks any tidiness judgement, including things that look like leftovers or dead code.
+- Origin: the calendar filter chips were deleted in 94c8179 on an inference from "put it back the way it was", when the owner meant fix the toolbar's layout. Restored the same day.
