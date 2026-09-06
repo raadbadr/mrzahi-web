@@ -69,3 +69,15 @@ These rules apply to every AI agent, developer, and automated tool working on th
 - **Do not act without coming back to him.** Any doubt about the intent of an instruction, or any gap that admits more than one reading, gets one short question and waits for his answer. Silence is not consent; an inference is not an instruction (see the no-inference rule above).
 - **After any inference or unilateral action**: repeat his request back to him, state what was done and why, and undo whatever rests on the inference.
 - **Everything about running the platform belongs in the platform admin page** (`/app/admin.html`) and in his hands alone: organisations, users, each account's interface and the ability to change it, subscriptions, upgrade requests and contact messages. What an ordinary user holds may be taken back from them; the admin page is the authority.
+
+---
+
+## New Domain: mrzahi.com (Eng. Raad, 2026-09-06)
+
+- **`mrzahi.com` has been acquired and the whole project moves onto it** — site, app and email.
+  `appmails.net` is the domain in service until the move happens. There is no third domain.
+- **It will be linked with Eng. Raad's "Zahi" project, which becomes the reminder project.**
+  Nothing about that link is to be assumed — scope, boundaries and shape come from him directly
+  before any work starts on it.
+- No agent starts the migration, buys, binds or changes any DNS/Worker route on this without a
+  direct instruction from him naming the step.
