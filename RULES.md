@@ -116,5 +116,16 @@ Consequence worth stating plainly: a Worker in Cloudflare cannot reach a device 
 network by itself. Push from the platform therefore needs either a bridge process on the Mac
 holding the account token, or a tunnel giving the device a public address.
 
+**A rule conflict he must settle** (raised by the firmware session, not by us): our rule forbids
+`text-overflow: ellipsis` and forbids cutting text in code — the information is shown whole. The
+device holds 83 bytes per title and four appointments. Either the device screen is treated as a
+different surface with its own limit, or the platform sends a deliberately short wording that
+was written short (not a cut title), or long items simply do not go to the device.
+
+Shaping is not a conflict: what the platform stores and shows stays logically ordered and
+unshaped, exactly as our rules require; the presentation-form and visual-order conversion
+belongs to the moment of sending to the device, on whichever side owns the bridge. No diacritics
+and western digits are identical rules on both sides.
+
 Open for Eng. Raad alone: push or pull; whether a "device" channel joins the notification
-channels; and who owns the bridge that holds the token.
+channels; who owns the bridge that holds the token; and the title-length conflict above.
