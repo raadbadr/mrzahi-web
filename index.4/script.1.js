@@ -5,7 +5,7 @@
         statUsers: "المستخدمون",
         statOrgs: "الشركات",
         statTrackers: "السجلات",
-        statItems: "العناصر السجلة",
+        statItems: "العناصر المسجلة",
         statItemsUpcoming: "قادمة",
         statItemsOverdue: "متأخرة",
         statItemsNoDue: "بلا موعد",
