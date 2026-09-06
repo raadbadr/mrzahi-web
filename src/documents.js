@@ -233,8 +233,25 @@ function arabicScore(line) {
   return score;
 }
 function joinSingles(line) {
-  /* «ش ر ك ة» → «شركة»: سلسلة حروف عربية مفردة تفصلها مسافات */
-  return line.replace(new RegExp("(?:" + AR_LETTER + "\\s){2,}" + AR_LETTER, "g"), (run) => run.replace(/\s+/g, ""));
+  /* «ش ر ك ة» → «شركة»: سلسلة حروف عربية مفردة تفصلها مسافات.
+     تعمل على الرموز لا على النص الخام: التعبير القديم كان يبدأ من آخر حرف في
+     كلمة كاملة فيلصقها بما بعدها («الابراج و ن ص» → «الابراجونص»). */
+  const single = new RegExp("^" + AR_LETTER + "$");
+  const tokens = String(line || "").trim().split(/\s+/).filter(Boolean);
+  const out = [];
+  let run = [];
+  const flush = () => {
+    if (run.length >= 3) out.push(run.join(""));
+    else out.push(...run);
+    run = [];
+  };
+  for (const token of tokens) {
+    if (single.test(token)) { run.push(token); continue; }
+    flush();
+    out.push(token);
+  }
+  flush();
+  return out.join(" ");
 }
 function reverseVisual(line) {
   const tokens = line.trim().split(/\s+/).filter(Boolean).reverse();
@@ -257,7 +274,18 @@ function looksGlyphSplit(line) {
   return tokens.length >= 6 && singles / tokens.length >= 0.4 && /\S {2,}\S/.test(line);
 }
 function collapseGlyphGaps(line) {
-  return line.replace(new RegExp("(" + AR_LETTER + ") (?=" + AR_LETTER + ")", "g"), "$1").replace(/ {2,}/g, " ");
+  /* المسافة بين الكلمات لا تُمس: كانت كل مسافة بين حرفين عربيين تُحذف، فتخرج
+     «جلسة شركة الأبراج» كلمة واحدة ملتصقة. الكلمات في السطر المفرق تفصلها
+     مسافتان فأكثر، فتُقسم المجموعات عليها، ولا يُلصق داخل المجموعة إلا ما كان
+     حروفا مفردة فعلا؛ والمجموعة المختلطة تمر على joinSingles وحدها. */
+  /* المجموعة كلها شظايا حروف (حرف أو حرفان) → كلمة واحدة، كما تخرج ملفات
+     PDF الرسمية؛ وإلا فكلماتها سليمة ولا يُلصق فيها إلا سلسلة الحروف المفردة. */
+  const fragment = new RegExp("^" + AR_LETTER + "{1,2}$");
+  return line.split(/ {2,}/).map((group) => {
+    const tokens = group.trim().split(/\s+/).filter(Boolean);
+    if (!tokens.length) return "";
+    return tokens.every((t) => fragment.test(t)) ? tokens.join("") : joinSingles(tokens.join(" "));
+  }).filter(Boolean).join(" ");
 }
 function repairVisualOrder(line) {
   if (!new RegExp(AR_LETTER).test(line)) return line;
