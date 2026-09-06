@@ -79,5 +79,18 @@ These rules apply to every AI agent, developer, and automated tool working on th
 - **It will be linked with Eng. Raad's "Zahi" project, which becomes the reminder project.**
   Nothing about that link is to be assumed — scope, boundaries and shape come from him directly
   before any work starts on it.
-- No agent starts the migration, buys, binds or changes any DNS/Worker route on this without a
-  direct instruction from him naming the step.
+- **Status (2026-09-06): the move has started and the new domain is live.** mrzahi.com and
+  www.mrzahi.com are bound to the Worker `thetracker` as custom domains and serve every path;
+  all 186 internal references (canonical, Open Graph, sitemap, robots, manifest, bot links,
+  calendar, MCP endpoint, assistant answers) now point at mrzahi.com. appmails.net stays live
+  and is still accepted in CORS until the move completes.
+- **Three steps remain and only Eng. Raad can do them** (each is his own account, not ours):
+  Google OAuth authorised JavaScript origins and redirect URIs, Supabase Auth redirect/site
+  URLs, and repointing the Telegram webhook at mrzahi.com.
+- **The two projects merge into one under mrzahi.com**: TheTracker and Eng. Raad's Zahi robot
+  project become one product — the robot backed by the platform, the platform as its reminder
+  brain. Agents on either side coordinate before touching shared surfaces (domain, Worker,
+  Supabase, bot). Nothing about the Zahi side is assumed: its scope, data and boundaries come
+  from Eng. Raad or from its own agents, never invented here.
+- No agent starts the remaining migration steps, buys, binds or changes any DNS/Worker route
+  without a direct instruction from him naming the step.
