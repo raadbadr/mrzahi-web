@@ -546,6 +546,17 @@
                 esc(it.due_at ? fmtDate(it.due_at) : t("noDue")),
                 isLate(it) ? '<span class="is-late">' + esc(t("wlOverdue")) + "</span>" : ""].filter(Boolean).join(" · ");
       }
+      /* زر ＋ في عموده الثابت خارج الشرائح: موضعه واحد في كل الصفوف مهما طالت الأسماء */
+      function plusHidden(it) {
+        var members = activeMembers();
+        if (!members.length) return true;
+        for (var i = 0; i < members.length; i++) if (!roleOf(it, members[i].user_id)) return false;
+        return true;
+      }
+      function plusHtml(it) {
+        return '<button type="button" class="wr-plus chat-option-btn icon-only" data-plus-item="' + esc(it.id) + '" title="' + esc(t("wrAddMember")) + '" aria-label="' + esc(t("wrAddMember")) + '"' + (plusHidden(it) ? " hidden" : "") + ">" + SVG_PLUS + "</button>";
+      }
+
       function rolePills(it) {
         var members = activeMembers(), allHave = members.length > 0;
         var html = members.map(function (m) {
@@ -557,7 +568,6 @@
                  (pending[key] ? ' aria-busy="true"' : "") + ' aria-label="' + esc(memberName(m) + (role ? " — " + roleWord(role) : "")) + '">' +
                  '<span class="mchip-name">' + esc(memberName(m)) + "</span>" + (role ? '<b class="mchip-role">' + esc(roleWord(role)) + "</b>" : "") + "</button>";
         }).join("");
-        html += '<button type="button" class="wr-plus chat-option-btn icon-only" data-plus-item="' + esc(it.id) + '" title="' + esc(t("wrAddMember")) + '" aria-label="' + esc(t("wrAddMember")) + '"' + (allHave ? " hidden" : "") + ">" + SVG_PLUS + "</button>";
         return html;
       }
       function buildDetail(it) {
@@ -589,6 +599,7 @@
         var open = !!openRows[it.id];
         el.innerHTML = '<div class="wr-head"><span class="wr-title" data-tr>' + esc(it.title || "-") + '</span><span class="wr-meta">' + metaHtml(it) + "</span></div>" +
           '<div class="wr-pills" role="group" aria-label="' + esc(t("assignTo")) + '">' + rolePills(it) + "</div>" +
+          plusHtml(it) +
           '<button type="button" class="wr-more chat-option-btn icon-only" data-more-item="' + esc(it.id) + '" aria-expanded="' + (open ? "true" : "false") + '" aria-controls="wr-detail-' + esc(it.id) + '" title="' + esc(t("wrDetails")) + '" aria-label="' + esc(t("wrDetails")) + '">' + SVG_MORE + "</button>" +
           '<div class="wr-detail" id="wr-detail-' + esc(it.id) + '"' + (open ? ' data-built="1"' : " hidden") + ">" + (open ? buildDetail(it) : "") + "</div>";
         return el;
@@ -604,6 +615,8 @@
         }
         el.querySelector(".wr-meta").innerHTML = metaHtml(it);
         el.querySelector(".wr-pills").innerHTML = rolePills(it);
+        var plus = el.querySelector(".wr-plus");
+        if (plus) plus.hidden = plusHidden(it);
         var detail = el.querySelector(".wr-detail");
         if (detail) {
           if (!detail.hidden) { detail.innerHTML = buildDetail(it); detail.dataset.built = "1"; }
