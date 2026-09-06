@@ -64,7 +64,7 @@ function handleImportTemplate(url) {
   return new Response(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": 'attachment; filename="thetracker-template.csv"',
+      "Content-Disposition": 'attachment; filename="mrzahi-template.csv"',
       "Cache-Control": "no-store",
     },
   });
@@ -313,14 +313,14 @@ async function telegramAssistantReply(env, chatId, userId, text, attachment) {
   };
   if (attachment) facts.attachment = { name: attachment.name || "", kind: attachment.kind || "file", content: String(attachment.content || "").slice(0, 9000) };
   const system = `أنت مساعد MrZahi داخل تلغرام، تخدم المستخدم ${facts.user.name || ""}${facts.user.company ? ` من شركة «${facts.user.company}»` : ""}.
-التراكر منصة لتتبع القضايا والمخالفات والعقود والمواعيد من ملفات إكسل، مع تقويم وتنبيهات.
+مستر زاهي منصة لتتبع القضايا والمخالفات والعقود والمواعيد من ملفات إكسل، مع تقويم وتنبيهات.
 قواعدك:
 - أجب بـ${TG_LANG_NAMES[lang] || "العربية الفصحى"} دائما، باختصار وود ومباشرة، والأرقام غربية (1234567890) والتواريخ بتوقيت الرياض.
 - اعتمد على الحقائق أدناه وحدها (مواعيده القادمة والمتأخرة وعدها)؛ إن سئلت عن شيء ليس فيها قل إنك لا تراه هنا ووجهه إلى لوحة التحكم.
 - التسجيل والإنجاز والإسناد تتم عبر أزرار تأكيد يعرضها النظام تلقائيا حين يكتب المستخدم طلبه صراحة (مثل: «سجل جلسة القضية 4521 الأحد 10 صباحا»). لا تقل أبدا إنك تنتظر تفعيل أدوات أو أنك ستسجل الطلب للمتابعة — إن بدا أنه يريد تسجيل شيء فاطلب منه كتابته بهذه الصيغة في سطر واحد، أو أجب من الحقائق.
 - لا تعد بتعديل أو حذف شيء بنفسك؛ لأي تعديل يدوي وجهه إلى لوحة التحكم: ${facts.dashboard_url}
-- لا تختلق أرقاما أو قضايا أو تواريخ. لا تخرج عن مواضيع التراكر.
-- إن وجد "attachment" في الحقائق فهو محتوى ملف/صورة أرسله المستخدم الآن: افهم المطلوب من رسالته، وإلا فلخصه واستخرج منه المواعيد والأرقام والأطراف المهمة، واذكر ما يمكنه فعله به في التراكر (الاستيراد من ${facts.import_url} إن كان جدولا). لا تقل إنك لا تستطيع قراءة الملفات — المحتوى أمامك.
+- لا تختلق أرقاما أو قضايا أو تواريخ. لا تخرج عن مواضيع مستر زاهي.
+- إن وجد "attachment" في الحقائق فهو محتوى ملف/صورة أرسله المستخدم الآن: افهم المطلوب من رسالته، وإلا فلخصه واستخرج منه المواعيد والأرقام والأطراف المهمة، واذكر ما يمكنه فعله به في مستر زاهي (الاستيراد من ${facts.import_url} إن كان جدولا). لا تقل إنك لا تستطيع قراءة الملفات — المحتوى أمامك.
 الحقائق (JSON): ${JSON.stringify(facts).slice(0, 20000)}`;
   return askAssistant(env, system, [{ role: "user", content: text }]);
 }
@@ -432,7 +432,7 @@ async function smartReply(env, chatId, userId, text, lang, tgName, attachment, p
     else if (await askToConfirm(env, chatId, userId, intent, lang, pre, userTimeZone)) return;
     else intent.action = "question";
   }
-  /* الوكيل الذكي أولا: يعرف من يخاطب، يستعمل أدوات تراكر (بحث، مواعيد، إضافة، إنجاز، إسناد) باسمه، ويتذكر المحادثة */
+  /* الوكيل الذكي أولا: يعرف من يخاطب، يستعمل أدوات مستر زاهي (بحث، مواعيد، إضافة، إنجاز، إسناد) باسمه، ويتذكر المحادثة */
   let agent = null;
   try {
     let target = null;

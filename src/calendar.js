@@ -119,7 +119,7 @@ export async function handleCalendar(token, env) {
   return new Response(buildIcs(Array.isArray(feed.items) ? feed.items : [], calName), {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": 'inline; filename="tracker.ics"',
+      "Content-Disposition": 'inline; filename="mrzahi.ics"',
       "Cache-Control": "private, max-age=300",
     },
   });

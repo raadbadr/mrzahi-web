@@ -125,7 +125,7 @@
         const csv = "\ufeff" + heads.map(q).join(",") + "\r\n" + sample.map(q).join(",") + "\r\n";
         const a = document.createElement("a");
         a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-        a.download = "thetracker-template.csv";
+        a.download = "mrzahi-template.csv";
         document.body.appendChild(a); a.click();
         setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
       }
