@@ -532,6 +532,25 @@
     });
   }
 
+  /* إدارة المنصة: المستخدمون، وواجهة كل حساب، وتغييرها — لمدير المنصة وحده (الحارس في القاعدة) */
+  function adminListUsers(limit) {
+    return run(function (client) {
+      return client.rpc("admin_list_users", { p_limit: Number(limit) || 500 }).then(unwrap);
+    }).then(function (rows) { return Array.isArray(rows) ? rows : []; });
+  }
+
+  function adminListOrgPacks() {
+    return run(function (client) {
+      return client.rpc("admin_list_orgs_packs").then(unwrap);
+    }).then(function (rows) { return Array.isArray(rows) ? rows : []; });
+  }
+
+  function adminSetOrgPack(orgId, packKey) {
+    return run(function (client) {
+      return client.rpc("admin_set_org_pack", { p_org: orgId, p_pack: packKey || null }).then(unwrap);
+    });
+  }
+
   function adminActivate(input) {
     return run(function (client) {
       var a = input || {};

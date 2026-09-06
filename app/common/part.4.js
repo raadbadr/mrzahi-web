@@ -168,6 +168,9 @@
   app.adminPlanRequests = adminPlanRequests;
   app.adminDecideRequest = adminDecideRequest;
   app.adminListOrgs = adminListOrgs;
+  app.adminListUsers = adminListUsers;
+  app.adminListOrgPacks = adminListOrgPacks;
+  app.adminSetOrgPack = adminSetOrgPack;
   app.adminActivate = adminActivate;
   app.adminContactMessages = adminContactMessages;
   app.adminTelegramMessages = adminTelegramMessages;

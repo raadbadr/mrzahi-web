@@ -70,6 +70,14 @@ function stub(url, method, body) {
 
 
   if (p.includes("/rest/v1/rpc/platform_stats")) return { users: 12, orgs: 3, items: 120 };
+  if (p.includes("/rest/v1/rpc/admin_list_users")) return [
+    { id: USER.id, full_name: "المهندس رعد بدر", email: "owner@example.com", phone: "0500000000", profile_number: "USR-01092026-0001", lang: "ar", is_platform_admin: true, created_at: "2026-09-01T10:00:00Z", orgs: 2, owns: 1, org_names: ["PARKINZI Company", "حسابي الشخصي"] },
+    { id: "55555555-5555-4555-8555-555555555555", full_name: "أحمد الفهد", email: "ahmed@example.com", phone: "0511111111", profile_number: "USR-02092026-0002", lang: "ar", is_platform_admin: false, created_at: "2026-09-02T10:00:00Z", orgs: 1, owns: 0, org_names: ["PARKINZI Company"] }
+  ];
+  if (p.includes("/rest/v1/rpc/admin_list_orgs_packs")) return [
+    { org_id: ORG.id, name: ORG.name, owner_id: USER.id, entity_type: "company", ui_pack: null, resolved_pack: "legal", created_at: ORG.created_at }
+  ];
+  if (p.includes("/rest/v1/rpc/admin_set_org_pack")) return "individual";
   /* أحداث الخط الزمني في الشهر الجاري، اثنان منها في يوم واحد (للتنقل بين المتزامنة) */
   if (p.includes("/rest/v1/rpc/activity_feed")) { const y = new Date().getFullYear(), m = new Date().getMonth(); const at = (d, h) => new Date(y, m, d, h, 0, 0).toISOString();
     return [{ at: at(2, 9), kind: "import", title: "التقرير الشامل للمخالفات", meta: {} }, { at: at(4, 10), kind: "attachment", title: "السجل التجاري — PARKINZI Company", meta: {} }, { at: at(4, 10), kind: "item_done", title: "قضية تجارية رقم 1002", meta: {} }, { at: at(5, 8), kind: "member", title: "المهندس رعد بدر", meta: {} }, { at: at(5, 12), kind: "item_created", title: "RSK-05092026-0001 · عدم ارتكاب المخالفة والالتزام بالإجراءات والمقاييس المعتمدة في كل الفروع", meta: {} }]; }

@@ -100,6 +100,102 @@
                '<span class="platform-stat-detail-val"' + (extraAttrs || "") + '>' + valueHtml + '</span></div>';
       }
 
+      /* ---------- واجهة كل حساب: تعرض هنا وتغير من هنا (إدارة المنصة هي المرجع) ---------- */
+      let packList = [];      /* الحزم المتاحة */
+      let orgPacks = {};      /* org_id → { ui_pack, resolved_pack } */
+
+      function packName(key) {
+        for (let i = 0; i < packList.length; i++) {
+          if (packList[i].key !== key) continue;
+          const n = packList[i].names || {};
+          return n[lang()] || n.ar || key;
+        }
+        return key || "—";
+      }
+
+      function packSelectHtml(orgId) {
+        if (!packList.length) return esc(packName((orgPacks[orgId] || {}).resolved_pack));
+        const cur = (orgPacks[orgId] || {}).resolved_pack || "";
+        return '<select class="waitlist-input admin-pack" data-pack-org="' + esc(orgId) + '">' +
+          packList.map(p => '<option value="' + esc(p.key) + '"' + (p.key === cur ? " selected" : "") + ">" +
+            esc(packName(p.key)) + "</option>").join("") + "</select>";
+      }
+
+      function loadPacks() {
+        const packs = app.listPacks ? app.listPacks() : Promise.resolve([]);
+        const rows = app.adminListOrgPacks ? app.adminListOrgPacks() : Promise.resolve([]);
+        return Promise.all([packs, rows]).then(res => {
+          packList = res[0] || [];
+          orgPacks = {};
+          (res[1] || []).forEach(r => { orgPacks[r.org_id] = r; });
+        }).catch(() => { /* الواجهة تعرض ما لديها */ });
+      }
+
+      function onPackChange(ev) {
+        const sel = ev.target.closest("[data-pack-org]");
+        if (!sel) return;
+        const orgId = sel.getAttribute("data-pack-org");
+        const wanted = sel.value;
+        sel.disabled = true;
+        app.adminSetOrgPack(orgId, wanted).then(resolved => {
+          orgPacks[orgId] = Object.assign({}, orgPacks[orgId], { ui_pack: wanted, resolved_pack: resolved || wanted });
+          setStatus($("orgsStatus"), T("packChanged"), "success");
+        }).catch(err => {
+          setStatus($("orgsStatus"), T("loadError") + " " + ((err && err.message) || ""), "error");
+        }).then(() => { sel.disabled = false; });
+      }
+
+      /* ---------- (1-ب) users ---------- */
+
+      let users = [];
+      let userFilterText = "";
+
+      function userCard(u) {
+        const orgNames = Array.isArray(u.org_names) ? u.org_names : [];
+        return '<div class="feature-card">' +
+          "<h3>" + esc(u.full_name || u.email || "—") + "</h3>" +
+          row("colOwner", esc(u.email || "—"), ' style="overflow-wrap:anywhere"') +
+          row("colPhone", esc(u.phone || "—"), ' dir="ltr"') +
+          row("colUserNumber", esc(u.profile_number || "—"), ' dir="ltr"') +
+          row("colOrgs", esc(orgNames.length ? orgNames.join(" · ") : "—"), ' style="overflow-wrap:anywhere"') +
+          row("colAdmin", esc(u.is_platform_admin ? T("yes") : T("no"))) +
+          row("colCreated", esc(fmtDate(u.created_at, { withTime: true }))) +
+          "</div>";
+      }
+
+      function matchesUser(u) {
+        if (!userFilterText) return true;
+        const hay = [u.full_name, u.email, u.phone, u.profile_number].filter(Boolean).join(" ").toLowerCase();
+        return hay.indexOf(userFilterText) !== -1;
+      }
+
+      function renderUsers() {
+        const grid = $("usersGrid"), countEl = $("usersCount");
+        if (!grid) return;
+        if (!users.length) {
+          grid.innerHTML = ""; countEl.textContent = "";
+          setStatus($("usersStatus"), T("usersEmpty"));
+          return;
+        }
+        const list = users.filter(matchesUser);
+        const html = list.map(userCard).join("");
+        if (grid.innerHTML !== html) grid.innerHTML = html;
+        countEl.textContent = T("usersCountLabel") + " " + list.length + (userFilterText ? " / " + users.length : "");
+      }
+
+      function loadUsers() {
+        if (!app.adminListUsers) return Promise.resolve();
+        setStatus($("usersStatus"), T("loading"));
+        const btn = $("usersRefresh"); if (btn) btn.disabled = true;
+        return app.adminListUsers(500).then(rows => {
+          users = rows || [];
+          setStatus($("usersStatus"), "");
+          renderUsers();
+        }).catch(err => {
+          setStatus($("usersStatus"), T("loadError") + " " + ((err && err.message) || ""), "error");
+        }).then(() => { if (btn) btn.disabled = false; });
+      }
+
       /* ---------- (1) organizations ---------- */
 
       function orgCard(org) {
@@ -112,6 +208,7 @@
           row("colMembers", esc(countText(org.id, "members")), ' data-count="members:' + esc(org.id) + '"') +
           row("colItems", esc(countText(org.id, "items")), ' data-count="items:' + esc(org.id) + '"') +
           row("colCreated", esc(fmtDate(org.created_at, { withTime: true }))) +
+          row("colPack", packSelectHtml(org.id)) +
           '<div class="chat-options"><button type="button" class="chat-option-btn" data-activate="' + esc(org.id) + '">' +
           esc(T("activateRowBtn")) + '</button></div>' +
           '</div>';
@@ -183,7 +280,7 @@
       function loadOrgs() {
         setStatus($("orgsStatus"), T("loading"));
         $("orgsRefresh").disabled = true;
-        return Promise.all([app.adminListOrgs(), plansList.length ? Promise.resolve(plansList) : app.plans()])
+        return Promise.all([app.adminListOrgs(), plansList.length ? Promise.resolve(plansList) : app.plans(), loadPacks()])
           .then(res => {
             orgs = res[0] || [];
             plansList = res[1] || [];
@@ -477,6 +574,12 @@
           if (orgsLoaded) renderOrgs();
         });
         $("orgsRefresh").addEventListener("click", () => { loadOrgs(); });
+        $("orgsGrid").addEventListener("change", onPackChange);
+        $("userFilter").addEventListener("input", () => {
+          userFilterText = String($("userFilter").value || "").trim().toLowerCase();
+          renderUsers();
+        });
+        $("usersRefresh").addEventListener("click", () => { loadUsers(); });
         $("msgsRefresh").addEventListener("click", () => { loadMessages(); });
         $("tgRefresh").addEventListener("click", () => { loadTgMessages(); });
         $("reqRefresh").addEventListener("click", () => { loadRequests(); });
@@ -546,6 +649,7 @@
           bindPlatformAdmins();
           loadPlatformAdmins();
           loadOrgs();
+          loadUsers();
           loadMessages();
           loadTgMessages();
           loadRequests();

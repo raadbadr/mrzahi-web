@@ -87,6 +87,19 @@
         <div class="features-grid" id="orgsGrid"></div>
       </div>
 
+      <!-- (1-ب) المستخدمون: من هم، وأي واجهة يستعملون، وحساباتهم -->
+      <div class="content" id="usersCard">
+        <h2 data-i18n="usersTitle">المستخدمون</h2>
+        <p data-i18n="usersIntro">كل من سجل في المنصة، وحساباته، وواجهة كل حساب. تغيير الواجهة من بطاقة الشركة.</p>
+        <div class="waitlist-form">
+          <input type="search" class="waitlist-input" id="userFilter" placeholder="ابحث بالاسم أو البريد أو الجوال" autocomplete="off" dir="auto">
+          <button type="button" class="waitlist-btn" id="usersRefresh" data-i18n="refreshBtn">تحديث</button>
+        </div>
+        <p class="waitlist-msg" id="usersStatus" role="status" aria-live="polite" style="display:none"></p>
+        <p id="usersCount"></p>
+        <div class="features-grid" id="usersGrid"></div>
+      </div>
+
       <!-- (2) activate a subscription -->
       <!-- طلبات الترقية المرسلة من داخل الموقع -->
       <div class="content" id="requestsCard">
@@ -173,12 +186,12 @@
     </p>
   </footer>
 
-  <script src="/app/admin.1.js?v=1"></script>
-  <script src="/app/admin.2.js?v=1"></script>
-  <script src="/app/admin.3.js?v=1"></script>
+  <script src="/app/admin.1.js?v=2"></script>
+  <script src="/app/admin.2.js?v=2"></script>
+  <script src="/app/admin.3.js?v=2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/app.js?v=4" defer></script>
-<script src="/app/common.js?v=25" defer></script>
+<script src="/app/common.js?v=26" defer></script>
 <script src="/brand-logo.js?v=4" defer></script>
 </body>
 </html>
