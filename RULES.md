@@ -79,7 +79,21 @@ These rules apply to every AI agent, developer, and automated tool working on th
 - **It will be linked with Eng. Raad's "Zahi" project, which becomes the reminder project.**
   Nothing about that link is to be assumed — scope, boundaries and shape come from him directly
   before any work starts on it.
-- **Status (2026-09-06): the move has started and the new domain is live.** mrzahi.com and
+- **Status (2026-09-06, later): the move is done — mrzahi.com is the site.** appmails.net now
+  answers every page with a 301 to the same path on mrzahi.com (verified on /, /pricing,
+  /app/dashboard, /privacy and www). Only `/api/*` still answers on the old host, deliberately,
+  because the Telegram webhook still points there and a POST does not follow a redirect; that
+  exception is removed the moment the webhook moves.
+- **Remaining, and only Eng. Raad can do them**: Google Search Console domain verification for
+  mrzahi.com (TXT record via Cloudflare), then the consent screen (name MrZahi, home
+  https://mrzahi.com, privacy /privacy, terms /terms — the terms field wrongly points at
+  /privacy today) and authorised domain, then the OAuth client's JavaScript origins, then
+  Supabase Site URL and redirect URLs. Until the origins are added, Google sign-in will fail on
+  the new domain.
+- **The new bot** @mrzahibot has been created; its token and username go into the Worker secrets
+  by his own hand, then the webhook moves to https://mrzahi.com/api/telegram/webhook and the
+  four existing links are re-made from the settings page.
+- **Earlier status: the move has started and the new domain is live.** mrzahi.com and
   www.mrzahi.com are bound to the Worker `thetracker` as custom domains and serve every path;
   all 186 internal references (canonical, Open Graph, sitemap, robots, manifest, bot links,
   calendar, MCP endpoint, assistant answers) now point at mrzahi.com. appmails.net stays live

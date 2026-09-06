@@ -832,6 +832,17 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
 
+    /* النطاق الجديد هو الأصل (أمر المهندس رعد 2026-09-06): كل زيارة على النطاق القديم
+       تحول إليه بالمسار نفسه وبالمعاملات نفسها. تستثنى مسارات /api لأن خطاف تيليغرام
+       وأي عميل يرسل POST لا يتبع التحويل — تحول بعد نقل الخطاف. */
+    if (url.hostname === "appmails.net" || url.hostname === "www.appmails.net") {
+      if (!path.startsWith("/api/")) {
+        const to = new URL(url.toString());
+        to.hostname = "mrzahi.com";
+        return Response.redirect(to.toString(), 301);
+      }
+    }
+
     // تقويم ICS — /api/calendar/<token>.ics
     const cal = path.match(/^\/api\/calendar\/([a-f0-9]{16,64})\.ics$/i);
     if (cal && request.method === "GET") {
