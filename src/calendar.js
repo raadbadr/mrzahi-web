@@ -2,6 +2,7 @@
 // GET /api/calendar/:token.ics — يعيد عناصر الشركة المرتبطة بالرمز كتقويم
 // يُشترَك فيه من آبل/جوجل/أوتلوك. الرمز خاص بكل مستخدم ولا يكشف بيانات غيره.
 import { rpc } from "./notify.js";
+import { fitDevice } from "./arabic-shape.js";
 
 function icsEscape(s) {
   return String(s == null ? "" : s)
@@ -60,6 +61,52 @@ export function buildIcs(items, calName) {
   }
   lines.push("END:VCALENDAR");
   return lines.join("\r\n") + "\r\n";
+}
+
+/* --- قناة الجهاز (شاشة زاهي) -------------------------------------------------
+   الجهاز خادم لا عميل: لا TLS ولا NTP عنده، فيقرأ منه جسر محلي هذا المسار ويدفعه إليه.
+   الصيغة التي يفهمها حرفيا: epoch|عنوان;epoch|عنوان — بإبوك محلي جاهز، وعنوان مشكل بصريا. */
+const DEVICE_MAX_ITEMS = 4;
+const DEVICE_MAX_BYTES = 83;
+const DEVICE_TZ = "Asia/Riyadh";
+const DEVICE_GRACE_MS = 30 * 60 * 1000; /* الجهاز يسقط الموعد بعد نصف ساعة من مروره */
+
+/* ساعة الجهاز محلية بلا منطقة زمنية: نعطيه لحظة الحائط كما لو كانت UTC */
+export function localEpoch(iso, tz) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: tz || DEVICE_TZ, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).formatToParts(d);
+  const g = {};
+  parts.forEach((p) => { g[p.type] = p.value; });
+  return Math.floor(Date.UTC(Number(g.year), Number(g.month) - 1, Number(g.day), Number(g.hour === "24" ? 0 : g.hour), Number(g.minute), Number(g.second)) / 1000);
+}
+
+export function buildDevicePayload(items, opts) {
+  const o = opts || {};
+  const now = o.now || Date.now();
+  const max = Math.max(1, Math.min(8, Number(o.max) || DEVICE_MAX_ITEMS));
+  const rows = (Array.isArray(items) ? items : [])
+    .filter((it) => it && it.due_at && !Number.isNaN(new Date(it.due_at).getTime()))
+    .filter((it) => new Date(it.due_at).getTime() >= now - DEVICE_GRACE_MS)
+    .sort((a, b) => new Date(a.due_at) - new Date(b.due_at))
+    .slice(0, max);
+  return rows.map((it) => localEpoch(it.due_at, o.tz) + "|" + fitDevice(it.title, DEVICE_MAX_BYTES)).join(";");
+}
+
+export async function handleDevice(token, env, url) {
+  const safe = String(token || "").replace(/[^a-f0-9]/gi, "");
+  if (!safe || safe.length < 16) return new Response("not found", { status: 404 });
+  let feed;
+  try { feed = await rpc(env, "calendar_feed", { p_token: safe }); } catch { feed = null; }
+  if (!feed || typeof feed !== "object") return new Response("not found", { status: 404 });
+  const max = url && url.searchParams ? Number(url.searchParams.get("n")) : 0;
+  const body = buildDevicePayload(Array.isArray(feed.items) ? feed.items : [], { max });
+  return new Response(body, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
 }
 
 export async function handleCalendar(token, env) {

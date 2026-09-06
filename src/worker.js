@@ -10,7 +10,7 @@ import { serveBundle } from "./bundles.js";
 import { handleMcp } from "./mcp.js";
 import { handleV1, mcpAuthenticate, importRowsWithKey } from "./api-v1.js";
 import { agentReply, quickAnswer, VERBS, ungrounded, NO_DATA } from "./telegram-agent.js";
-import { handleCalendar } from "./calendar.js";
+import { handleCalendar, handleDevice } from "./calendar.js";
 import { handleDocumentAnalyze } from "./documents.js";
 import { runNotificationCron, purgeExpiredAccountDeletions, linkChannelByCode, notifyTarget, sendTelegram, sendWhatsapp, sendSms, sendEmail, rpc, t as channelText, westernDigits,
          bot as botText, menuKeyboard, menuAction, urlButton, formatItems, telegramItems, linkChannelDirect, linkChannelByPhone, contactKeyboard,
@@ -841,6 +841,13 @@ export default {
         to.hostname = "mrzahi.com";
         return Response.redirect(to.toString(), 301);
       }
+    }
+
+    // قناة الجهاز — /api/device/<token>: مواعيد بصيغة شاشة زاهي، يقرؤها الجسر المحلي
+    const dev = path.match(/^\/api\/device\/([a-f0-9]{16,64})$/i);
+    if (dev && request.method === "GET") {
+      if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return new Response("not configured", { status: 503 });
+      return handleDevice(dev[1], env, url);
     }
 
     // تقويم ICS — /api/calendar/<token>.ics
