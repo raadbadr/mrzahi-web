@@ -265,6 +265,7 @@
     [data-accent="facilities"] .platform-stat-icon { color: rgb(26, 166, 179); }
     [data-accent="spots"] .platform-stat-icon { color: rgb(242, 140, 26); }
     [data-accent="cars"] .platform-stat-icon { color: rgb(52, 199, 89); }
+    [data-accent="telegram"] .platform-stat-icon { color: rgb(0, 136, 204); }
     .platform-stat-label {
       font-size: 1.05rem;
       font-weight: 700;
@@ -320,6 +321,7 @@
     [data-accent="facilities"] .platform-stat-value { color: rgb(26, 166, 179); }
     [data-accent="spots"] .platform-stat-value { color: rgb(242, 140, 26); }
     [data-accent="cars"] .platform-stat-value { color: rgb(52, 199, 89); }
+    [data-accent="telegram"] .platform-stat-value { color: rgb(0, 136, 204); }
 
     
     
