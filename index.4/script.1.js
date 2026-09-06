@@ -2,6 +2,7 @@
       ar: {
         tagline: "تتبع أعمالك في مكان واحد",
         statsSectionTitle: "أرقام المنصة",
+        statUsers: "المستخدمون",
         statOrgs: "الشركات",
         statTrackers: "السجلات",
         statItems: "العناصر السجلة",
@@ -90,6 +91,7 @@
       en: {
         tagline: "Track your business in one place",
         statsSectionTitle: "Platform stats",
+        statUsers: "Users",
         statOrgs: "Companies",
         statTrackers: "Trackers",
         statItems: "Tracked items",
@@ -178,6 +180,7 @@
       fr: {
         tagline: "Suivez votre activité en un seul endroit",
         statsSectionTitle: "Chiffres de la plateforme",
+        statUsers: "Utilisateurs",
         statOrgs: "Entreprises",
         statTrackers: "Trackers",
         statItems: "Éléments suivis",
@@ -266,6 +269,7 @@
       ur: {
         tagline: "اپنا کاروبار ایک جگہ ٹریک کریں",
         statsSectionTitle: "پلیٹ فارم کے اعداد و شمار",
+        statUsers: "صارفین",
         statOrgs: "کمپنیاں",
         statTrackers: "ٹریکرز",
         statItems: "ٹریک شدہ آئٹمز",
@@ -604,6 +608,7 @@
       const flash = opts && opts.flash;
       const animateNumbers = opts && opts.animateNumbers;
       const pairs = [
+        ["statValueUsers", "users"],
         ["statValueOrgs", "organizations"],
         ["statValueTrackers", "trackers"],
         ["statValueItems", "items"],
@@ -643,7 +648,7 @@
 
     async function loadPlatformStats() {
       const zeroStats = {
-        organizations: 0, trackers: 0,
+        users: 0, organizations: 0, trackers: 0,
         items: 0, itemsUpcoming: 0, itemsOverdue: 0, itemsDone: 0,
         notifications: 0, notifEmail: 0, notifTelegram: 0, notifWhatsapp: 0, notifSms: 0
       };

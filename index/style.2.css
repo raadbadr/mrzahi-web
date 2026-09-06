@@ -25,7 +25,8 @@
     }
     @media (min-width: 561px) {
       .platform-stats-list .platform-stat-card:nth-child(3),
-      .platform-stats-list .platform-stat-card:nth-child(4) {
+      .platform-stats-list .platform-stat-card:nth-child(4),
+      .platform-stats-list .platform-stat-card:nth-child(5) {
         grid-column: 1 / -1;
       }
     }
@@ -259,6 +260,7 @@
     .platform-stat-icon svg path {
       fill: currentColor;
     }
+    [data-accent="members"] .platform-stat-icon { color: var(--primary); }
     [data-accent="users"] .platform-stat-icon { color: rgb(51, 128, 230); }
     [data-accent="facilities"] .platform-stat-icon { color: rgb(26, 166, 179); }
     [data-accent="spots"] .platform-stat-icon { color: rgb(242, 140, 26); }
@@ -313,6 +315,7 @@
     [data-theme="light"] .platform-stat-detail-val.platform-stat-value--counting {
       text-shadow: 0 0 16px rgba(0, 100, 180, 0.08);
     }
+    [data-accent="members"] .platform-stat-value { color: var(--primary); }
     [data-accent="users"] .platform-stat-value { color: rgb(51, 128, 230); }
     [data-accent="facilities"] .platform-stat-value { color: rgb(26, 166, 179); }
     [data-accent="spots"] .platform-stat-value { color: rgb(242, 140, 26); }
