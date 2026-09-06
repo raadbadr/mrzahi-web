@@ -743,7 +743,7 @@
     /* رمز الريال السعودي (الطريقة نفسها في باركينزي: قناع من rial-symbol.png بلون النص) */
     ".app-sidebar-sar{display:inline-block;width:20px;height:20px;flex:0 0 20px;background-color:currentColor;",
     "-webkit-mask:url(/rial-symbol.png) center/contain no-repeat;mask:url(/rial-symbol.png) center/contain no-repeat}",
-    ".sar-symbol{display:inline-block;width:.95em;height:.95em;vertical-align:-.1em;background-color:currentColor;-webkit-mask:url(/rial-symbol.png) center/contain no-repeat;mask:url(/rial-symbol.png) center/contain no-repeat;margin:0 .12em}",
+    ".sar-symbol{display:inline-block;width: 1.2em;height: 1.2em;vertical-align: -0.22em;background-color:currentColor;-webkit-mask:url(/rial-symbol.png) center/contain no-repeat;mask:url(/rial-symbol.png) center/contain no-repeat;margin:0 .12em}",
     "body .content{margin-bottom:var(--gap)}",
     "body .content:last-child{margin-bottom:0}",
     "body .dash-grid,body .dash-main,body .dash-side,body .features-grid,body .ind-grid,body .svc-grid,body .ach-row,body .platform-stats-list,body .user-list,body .chat-shell{gap:var(--gap)}",

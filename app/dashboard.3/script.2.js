@@ -338,8 +338,7 @@
         if (f.status === "overdue") { q.status = "open"; q.to = new Date().toISOString(); }
         else if (f.status) q.status = f.status;
         return app.listItems(q).then(function (items) {
-          /* الأوراق الرسمية مكانها صفحة المستندات وحدها، فلا تتكرر في هذه القائمة */
-          state.items = (items || []).filter(matchesView).filter(function (it) { return !(it.data && it.data.document_kind); });
+          state.items = (items || []).filter(matchesView);
           if (f.status === "overdue") state.items = state.items.filter(function (it) { return !!it.due_at; });
           clearMsg("listMsg");
           renderList();
