@@ -587,6 +587,16 @@
         });
       }
 
+      function copyDeviceUrl() {
+        var input = el("deviceUrl");
+        var url = input ? input.value : "";
+        if (!url) return;
+        var done = function () { setMsg("calendarMsg", t("urlCopied"), "success"); toast(t("urlCopied"), "success"); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(done).catch(function () { input.focus(); input.select(); });
+        } else { input.focus(); input.select(); }
+      }
+
       function copyCalendarUrl() {
         var url = state.calendarUrl || el("calendarUrl").value;
         if (!url) return;
@@ -711,6 +721,9 @@
       /* اشتراك بنقرة واحدة: جوجل يقبل رابط ICS مباشرة، وآبل وأوتلوك عبر webcal. */
       function syncCalendarLinks(url) {
         if (!url) return;
+        /* رابط الشاشة المكتبية من رمز التقويم نفسه: لا رمز جديد ولا صلاحية جديدة */
+        var dev = el("deviceUrl");
+        if (dev) dev.value = url.replace("/api/calendar/", "/api/device/").replace(/\.ics$/, "");
         var g = el("googleCalBtn");
         var a = el("appleCalBtn");
         if (g) g.href = "https://calendar.google.com/calendar/r?cid=" + encodeURIComponent(url);

@@ -69,7 +69,7 @@ check("tampered signature is rejected", !(await verifyFileSig(env, fileId, tampe
 check("signature for another file is rejected", !(await verifyFileSig(env, fileId + "x", sig1)));
 check("no secret means no verification", !(await verifyFileSig({}, fileId, sig1)));
 const url = await telegramFileUrl(env, fileId, "السجل التجاري.pdf");
-check("file url is absolute and routes back to the worker", url.startsWith(`https://appmails.net/api/telegram/file/${fileId}/${sig1}?name=`), url);
+check("file url is absolute and routes back to the worker", url.startsWith(`https://mrzahi.com/api/telegram/file/${fileId}/${sig1}?name=`), url);
 const route = telegramFileRoute(new URL(url).pathname);
 check("route parser recovers file id and signature", route && route.fileId === fileId && route.sig === sig1);
 check("route parser ignores other paths", telegramFileRoute("/api/telegram/webhook") === null && telegramFileRoute(`/api/telegram/file/${fileId}/short`) === null);

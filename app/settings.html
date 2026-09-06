@@ -239,6 +239,11 @@ curl -H "Authorization: Bearer tt_live_..." "https://mrzahi.com/api/v1/items?tra
           <a class="waitlist-btn" id="googleCalBtn" href="#" target="_blank" rel="noopener" data-i18n="addToGoogle">أضف إلى تقويم جوجل</a>
           <a class="chat-option-btn" id="appleCalBtn" href="#" data-i18n="addToApple">أضف إلى تقويم آبل أو أوتلوك</a>
         </div>
+        <p data-i18n="deviceIntro">وللشاشة المكتبية: هذا الرابط يقرأ منه الجهاز أقرب أربعة مواعيد بالعربية.</p>
+        <div class="waitlist-form">
+          <input type="text" class="waitlist-input" id="deviceUrl" readonly dir="ltr">
+          <button type="button" class="chat-option-btn" id="copyDeviceBtn" data-i18n="copyUrlBtn">نسخ الرابط</button>
+        </div>
         <p class="waitlist-msg" id="calendarMsg" style="display:none" role="status" aria-live="polite"></p>
       </div>
 
@@ -387,7 +392,7 @@ curl -H "Authorization: Bearer tt_live_..." "https://mrzahi.com/api/v1/items?tra
 <!-- رمز QR لربط تيليجرام من الجوال (qrcode-generator من cdnjs — مسموح في CSP) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" defer integrity="sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/app.js?v=5" defer></script>
-<script src="/app/common.js?v=26" defer></script>
+<script src="/app/common.js?v=27" defer></script>
 <script src="/brand-logo.js?v=4" defer></script>
 </body>
 </html>

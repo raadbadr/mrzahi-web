@@ -100,6 +100,7 @@
           el("channelsGrid").addEventListener("submit", onSmsSubmit);
           el("rulesWrap").addEventListener("click", onRuleAction);
           el("copyUrlBtn").addEventListener("click", copyCalendarUrl);
+          if (el("copyDeviceBtn")) el("copyDeviceBtn").addEventListener("click", copyDeviceUrl);
           el("upgradeBtn").addEventListener("click", submitUpgrade);
           el("storageDriveToggle").addEventListener("change", onDriveToggle);
           document.addEventListener("tracker:drive", renderDriveSwitch);
