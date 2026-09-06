@@ -725,13 +725,11 @@
     }
     .cal-nav-group { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; min-width: 0; }
     /* فلاتر التقويم كما كانت: في نهاية الشريط على الشاشات الواسعة (b2336c9)،
-       وتنزل سطرا موسطا حيث لا يتسع الشريط وحده — إصلاح تجاوز 901 بكسل داخل التخطيط لا بحذف. */
+       ولا تنتقل عن مكانها في أي مقاس. */
     .cal-nav > #calFilters { order: 3; justify-self: end; }
     .cal-nav > #calFilters[hidden] { display: none; }
-    @media (max-width: 1180px) {
-      .cal-nav > #calFilters { flex: 0 0 100%; min-width: 100%; justify-content: center; margin-top: .25rem; }
-      #calFilters .cal-modes { flex-wrap: wrap; max-width: 100%; justify-content: center; height: auto; }
-    }
+    /* تبقى في مكانها في كل المقاسات؛ إن ضاق الشريط تلتف الأزرار داخل مجموعتها ولا تنتقل */
+    #calFilters .cal-modes { flex-wrap: wrap; max-width: 100%; justify-content: center; height: auto; }
     /* اليوم والشهر والتقويمان في سطر واحد على ارتفاع واحد 40px */
     .cal-nav .chat-option-btn, .cal-nav .cal-modes, .cal-nav .cal-title { height: 40px; box-sizing: border-box; display: inline-flex; align-items: center; margin: 0; }
     .cal-nav .cal-modes { padding: 0 0.2rem; }
