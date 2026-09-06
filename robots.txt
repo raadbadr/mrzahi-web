@@ -69,4 +69,4 @@ Allow: /
 Disallow: /app/
 
 # Sitemaps and feeds
-Sitemap: https://appmails.net/sitemap.xml
+Sitemap: https://mrzahi.com/sitemap.xml

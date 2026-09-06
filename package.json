@@ -1,7 +1,7 @@
 {
   "name": "thetracker-web",
   "private": true,
-  "description": "TheTracker — Cloudflare Worker + static site (appmails.net)",
+  "description": "TheTracker — Cloudflare Worker + static site (mrzahi.com)",
   "dependencies": {
     "xlsx": "0.18.5"
   },

@@ -283,7 +283,7 @@
   /* ---------- تسجيل الدخول بجوجل من نطاقنا ----------
      مسار OAuth عبر سوبابيس ينقل المتصفح إلى <project>.supabase.co فتظهر جوجل ذلك
      المضيف للمستخدم. هنا نطلب رمز الهوية من جوجل مباشرة بتحويل كامل للصفحة
-     (OpenID Connect implicit) فتظهر appmails.net على شاشة جوجل، ثم نسلم الرمز
+     (OpenID Connect implicit) فتظهر mrzahi.com على شاشة جوجل، ثم نسلم الرمز
      لسوبابيس. تحويل كامل بلا نوافذ منبثقة ولا إطارات، فيعمل في سفاري وغيره. */
 
   var GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";

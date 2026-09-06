@@ -1,7 +1,7 @@
 const t = {
       ar: {
         title: "شروط الاستخدام",
-        intro: "مرحبا بك في منصة TheTracker المتاحة عبر appmails.net. تمثل هذه الشروط اتفاقا ملزما بينك وبين منصة TheTracker. باستخدامك للمنصة أو الموقع الإلكتروني فإنك تقر بأنك قد قرأت هذه الشروط وفهمتها ووافقت على الالتزام بها. إذا لم توافق على أي من هذه الشروط، فيرجى عدم استخدام الخدمة.",
+        intro: "مرحبا بك في منصة TheTracker المتاحة عبر mrzahi.com. تمثل هذه الشروط اتفاقا ملزما بينك وبين منصة TheTracker. باستخدامك للمنصة أو الموقع الإلكتروني فإنك تقر بأنك قد قرأت هذه الشروط وفهمتها ووافقت على الالتزام بها. إذا لم توافق على أي من هذه الشروط، فيرجى عدم استخدام الخدمة.",
         lastUpdated: "تاريخ السريان: 2026-09-03",
         h1: "1. قبول الشروط",
         s1p1: "بالوصول إلى المنصة أو إنشاء حساب أو الانضمام إلى فريق شركة أو استخدام أي من خدماتها، فإنك توافق على هذه الشروط وعلى سياسة الخصوصية التي تشكل جزءا لا يتجزأ منها. وإذا كنت تستخدم المنصة نيابة عن شركة أو جهة، فإنك تقر بأنك مخول بإلزامها بهذه الشروط.",
@@ -94,7 +94,7 @@ const t = {
       },
       en: {
         title: "Terms of Use",
-        intro: "Welcome to TheTracker, available at appmails.net. These terms constitute a binding agreement between you and the TheTracker platform. By using the platform or the website, you acknowledge that you have read, understood, and agree to be bound by these terms. If you do not agree to any of these terms, please do not use the service.",
+        intro: "Welcome to TheTracker, available at mrzahi.com. These terms constitute a binding agreement between you and the TheTracker platform. By using the platform or the website, you acknowledge that you have read, understood, and agree to be bound by these terms. If you do not agree to any of these terms, please do not use the service.",
         lastUpdated: "Effective date: 2026-09-03",
         h1: "1. Acceptance of the Terms",
         s1p1: "By accessing the platform, creating an account, joining a company team, or using any of its services, you agree to these terms and to the Privacy Policy, which forms an integral part of them. If you use the platform on behalf of a company or organization, you confirm that you are authorized to bind it to these terms.",
@@ -187,7 +187,7 @@ const t = {
       },
       fr: {
         title: "Conditions d'utilisation",
-        intro: "Bienvenue sur la plateforme TheTracker, accessible sur appmails.net. Les présentes conditions constituent un accord contraignant entre vous et la plateforme TheTracker. En utilisant la plateforme ou le site web, vous reconnaissez avoir lu et compris ces conditions et acceptez de vous y conformer. Si vous n'acceptez pas l'une de ces conditions, veuillez ne pas utiliser le service.",
+        intro: "Bienvenue sur la plateforme TheTracker, accessible sur mrzahi.com. Les présentes conditions constituent un accord contraignant entre vous et la plateforme TheTracker. En utilisant la plateforme ou le site web, vous reconnaissez avoir lu et compris ces conditions et acceptez de vous y conformer. Si vous n'acceptez pas l'une de ces conditions, veuillez ne pas utiliser le service.",
         lastUpdated: "Date d'entrée en vigueur : 2026-09-03",
         h1: "1. Acceptation des conditions",
         s1p1: "En accédant à la plateforme, en créant un compte, en rejoignant l'équipe d'une entreprise ou en utilisant l'un de ses services, vous acceptez les présentes conditions ainsi que la politique de confidentialité, qui en fait partie intégrante. Si vous utilisez la plateforme au nom d'une entreprise ou d'une organisation, vous confirmez être habilité à l'engager par ces conditions.",
@@ -280,7 +280,7 @@ const t = {
       },
       ur: {
         title: "استعمال کی شرائط",
-        intro: "TheTracker پلیٹ فارم میں خوش آمدید، جو appmails.net پر دستیاب ہے۔ یہ شرائط آپ اور TheTracker پلیٹ فارم کے درمیان ایک پابند معاہدہ ہیں۔ پلیٹ فارم یا ویب سائٹ استعمال کرکے آپ تسلیم کرتے ہیں کہ آپ نے یہ شرائط پڑھ اور سمجھ لی ہیں اور ان کی پابندی پر متفق ہیں۔ اگر آپ ان میں سے کسی شرط سے متفق نہیں ہیں تو براہ کرم سروس استعمال نہ کریں۔",
+        intro: "TheTracker پلیٹ فارم میں خوش آمدید، جو mrzahi.com پر دستیاب ہے۔ یہ شرائط آپ اور TheTracker پلیٹ فارم کے درمیان ایک پابند معاہدہ ہیں۔ پلیٹ فارم یا ویب سائٹ استعمال کرکے آپ تسلیم کرتے ہیں کہ آپ نے یہ شرائط پڑھ اور سمجھ لی ہیں اور ان کی پابندی پر متفق ہیں۔ اگر آپ ان میں سے کسی شرط سے متفق نہیں ہیں تو براہ کرم سروس استعمال نہ کریں۔",
         lastUpdated: "نفاذ کی تاریخ: 2026-09-03",
         h1: "1. شرائط کی قبولیت",
         s1p1: "پلیٹ فارم تک رسائی، اکاؤنٹ بنانے، کسی کمپنی کی ٹیم میں شامل ہونے یا اس کی کوئی بھی سروس استعمال کرنے سے آپ ان شرائط اور رازداری کی پالیسی سے متفق ہوتے ہیں، جو ان شرائط کا لازمی حصہ ہے۔ اگر آپ کسی کمپنی یا ادارے کی جانب سے پلیٹ فارم استعمال کر رہے ہیں تو آپ تصدیق کرتے ہیں کہ آپ اسے ان شرائط کا پابند بنانے کے مجاز ہیں۔",

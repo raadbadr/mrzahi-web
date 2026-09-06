@@ -257,7 +257,7 @@ async function askToLink(env, chatId, lang) {
   let extra = {};
   if (env.WORKER_SECRET) {
     const token = await makeLinkToken(env, chatId);
-    extra = urlButton(b.linkBtn, `https://appmails.net/app/settings?tglink=${encodeURIComponent(token)}`);
+    extra = urlButton(b.linkBtn, `https://mrzahi.com/app/settings?tglink=${encodeURIComponent(token)}`);
   }
   try { await sendTelegram(env, chatId, b.linkIntro, extra); } catch {}
   // الطريق الثاني: مشاركة رقم الجوال المسجل في الملف الشخصي (زر واحد)
@@ -279,7 +279,7 @@ async function runMenu(env, chatId, userId, action) {
     /* رد الزر يُسجل مثل بقية الردود كي يرى مدير المنصة المحادثة كاملة */
     await logBotReply(env, chatId, userId, text);
   } else if (action === "dashboard") {
-    try { await sendTelegram(env, chatId, b.openDash, urlButton(b.openDash, "https://appmails.net/app/dashboard.html")); } catch {}
+    try { await sendTelegram(env, chatId, b.openDash, urlButton(b.openDash, "https://mrzahi.com/app/dashboard.html")); } catch {}
   } else if (action === "company") {
     await companyMenu(env, chatId, userId, lang);
   } else {
@@ -308,8 +308,8 @@ async function telegramAssistantReply(env, chatId, userId, text, attachment) {
     now_riyadh: new Date().toLocaleString("en-GB", { timeZone: "Asia/Riyadh" }),
     upcoming_items: upcoming, overdue_items: overdue,
     counts: { upcoming: Array.isArray(upcoming) ? upcoming.length : 0, overdue: Array.isArray(overdue) ? overdue.length : 0 },
-    dashboard_url: "https://appmails.net/app/dashboard.html",
-    import_url: "https://appmails.net/app/documents.html#importFlow",
+    dashboard_url: "https://mrzahi.com/app/dashboard.html",
+    import_url: "https://mrzahi.com/app/documents.html#importFlow",
   };
   if (attachment) facts.attachment = { name: attachment.name || "", kind: attachment.kind || "file", content: String(attachment.content || "").slice(0, 9000) };
   const system = `أنت مساعد TheTracker داخل تلغرام، تخدم المستخدم ${facts.user.name || ""}${facts.user.company ? ` من شركة «${facts.user.company}»` : ""}.
@@ -750,7 +750,7 @@ async function handleTelegramCallback(env, cq) {
     if (results.length) text += b.importDoneTitle + "\n" + results.map((r) => b.importDoneLine(r.tracker_name, r.inserted || 0, !!r.tracker_new)).join("\n");
     if (errors.length) text += (text ? "\n\n" : "") + (errors.some((e) => e.limit) ? b.importLimit : b.importFailed);
     if (!text) text = b.importFailed;
-    try { await sendTelegram(env, chatId, text, results.length ? urlButton(b.openDash, "https://appmails.net/app/dashboard.html") : menuKeyboard(lang)); } catch {}
+    try { await sendTelegram(env, chatId, text, results.length ? urlButton(b.openDash, "https://mrzahi.com/app/dashboard.html") : menuKeyboard(lang)); } catch {}
     return json({ ok: true });
   }
   return json({ ok: true });
@@ -818,6 +818,9 @@ async function handleWhatsappWebhook(request, env, url) {
 
 // --- Main router ---
 
+/* نطاقا المنصة أثناء النقل: الجديد أولا، والقديم حتى يكتمل التحويل */
+const SITE_ORIGINS = ["https://mrzahi.com", "https://www.mrzahi.com", "https://appmails.net", "https://www.appmails.net"];
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -867,12 +870,14 @@ export default {
     }
 
     // CORS preflight
+    const origin = request.headers.get("Origin") || "";
     if (request.method === "OPTIONS") {
       /* مسارات الموقع للموقع وحده؛ واجهة المفاتيح (/api/v1 و/mcp) تبقى مفتوحة لأنها موثقة بمفتاح لا بجلسة */
       const openToAll = path.startsWith("/api/v1/") || path.startsWith("/mcp");
       return new Response(null, {
         headers: {
-          "Access-Control-Allow-Origin": openToAll ? "*" : "https://appmails.net",
+          /* أثناء النقل: النطاق الجديد والقديم كلاهما مقبول، وأي أصل آخر يرفض كما كان */
+          "Access-Control-Allow-Origin": openToAll ? "*" : (SITE_ORIGINS.includes(origin) ? origin : "https://mrzahi.com"),
           Vary: "Origin",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Authorization",

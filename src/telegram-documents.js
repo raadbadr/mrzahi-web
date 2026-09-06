@@ -6,7 +6,7 @@
 import { rpc, sendTelegram, menuKeyboard, bot as botText } from "./notify.js";
 import { analyzeTextOffline, KIND_LABELS_AR } from "./documents.js";
 
-const DOCS_URL = "https://appmails.net/app/documents.html";
+const DOCS_URL = "https://mrzahi.com/app/documents.html";
 
 // ---------- توقيع رابط الملف (HMAC بسر الـ Worker) ----------
 export async function hmacHex(secret, data) {
@@ -36,7 +36,7 @@ export function safeFileName(name, fallback) {
 }
 export async function telegramFileUrl(env, fileId, name) {
   const sig = await telegramFileSig(env, fileId);
-  return `https://appmails.net/api/telegram/file/${fileId}/${sig}` + (name ? "?name=" + encodeURIComponent(safeFileName(name)) : "");
+  return `https://mrzahi.com/api/telegram/file/${fileId}/${sig}` + (name ? "?name=" + encodeURIComponent(safeFileName(name)) : "");
 }
 
 const MIME = { pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif", heic: "image/heic",

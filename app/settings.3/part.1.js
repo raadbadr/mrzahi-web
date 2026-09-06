@@ -7,7 +7,7 @@
       var CHANNELS = ["email", "telegram", "whatsapp", "sms"];
       var CHANNEL_KEYS = { email: "chEmail", telegram: "chTelegram", whatsapp: "chWhatsapp", sms: "chSms" };
       var OFFSETS = [60, 1440, 4320, 10080, 43200];
-      var SUPPORT_EMAIL = "support@appmails.net";
+      var SUPPORT_EMAIL = "support@mrzahi.com";
 
       var app = null;
       var config = { telegramBot: null, whatsappNumber: null, smsEnabled: false };

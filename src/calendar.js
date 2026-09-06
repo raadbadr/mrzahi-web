@@ -33,7 +33,7 @@ export function buildIcs(items, calName) {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//TheTracker//appmails.net//AR",
+    "PRODID:-//TheTracker//mrzahi.com//AR",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${icsEscape(calName || "TheTracker")}`,
@@ -44,7 +44,7 @@ export function buildIcs(items, calName) {
     const due = icsDate(it.due_at);
     if (!due) continue;
     lines.push("BEGIN:VEVENT");
-    lines.push(`UID:${it.id}@appmails.net`);
+    lines.push(`UID:${it.id}@mrzahi.com`);
     lines.push(`DTSTAMP:${stamp}`);
     lines.push(`DTSTART:${due}`);
     lines.push(`DTEND:${due}`);
@@ -54,7 +54,7 @@ export function buildIcs(items, calName) {
     if (it.category) descParts.push(it.category);
     if (it.status) descParts.push(it.status);
     if (descParts.length) lines.push(foldLine(`DESCRIPTION:${icsEscape(descParts.join(" · "))}`));
-    lines.push(`URL:https://appmails.net/app/dashboard.html?item=${it.id}`);
+    lines.push(`URL:https://mrzahi.com/app/dashboard.html?item=${it.id}`);
     lines.push(`STATUS:${it.status === "cancelled" ? "CANCELLED" : "CONFIRMED"}`);
     lines.push("END:VEVENT");
   }

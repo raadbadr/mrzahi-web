@@ -6,7 +6,7 @@ import { rpc, sendTelegram, bot as botText, menuKeyboard, urlButton, VERBS } fro
 
 const INTENT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const RIYADH = "Asia/Riyadh";
-export const DASHBOARD_URL = "https://appmails.net/app/dashboard.html";
+export const DASHBOARD_URL = "https://mrzahi.com/app/dashboard.html";
 
 const INTENT_SCHEMA = {
   type: "object",
