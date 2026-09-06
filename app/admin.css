@@ -231,6 +231,11 @@
     }
 
     /* Gradient Border Effect */
+    /* بطاقات الإدارة على ارتفاع واحد وأزرارها على خط واحد أسفلها مهما اختلف طول البيانات */
+    .features-grid > .feature-card { display: flex; flex-direction: column; height: 100%; }
+    .feature-card > .chat-options { margin-top: auto; padding-top: .75rem; }
+    .feature-card .platform-stat-detail-row { align-items: flex-start; }
+
     .feature-card::before {
       content: '';
       position: absolute;

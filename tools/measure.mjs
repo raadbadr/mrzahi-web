@@ -84,7 +84,9 @@ function stub(url, method, body) {
   if (p.includes("/rest/v1/rpc/")) return [];
   if (p.includes("/rest/v1/profiles")) return u.searchParams.has("id") && !u.searchParams.get("id").includes("in.") ? PROFILE : [PROFILE];
   if (p.includes("/rest/v1/org_members")) return [MEMBER];
-  if (p.includes("/rest/v1/organizations")) return [ORG];
+  if (p.includes("/rest/v1/organizations")) return [ORG,
+    { id: "44444444-4444-4444-8444-444444444444", name: "Test", owner_id: "55555555-5555-4555-8555-555555555555", plan_code: "trial", plan_expires_at: "2026-09-17T00:00:00Z", created_at: "2026-09-03T22:43:00Z" },
+    { id: "66666666-6666-4666-8666-666666666666", name: "وزارة الحج والعمرة", owner_id: "77777777-7777-4777-8777-777777777777", plan_code: "trial", plan_expires_at: "2026-09-19T00:00:00Z", created_at: "2026-09-05T19:21:00Z" }];
   if (p.includes("/rest/v1/org_profiles")) return { org_id: ORG.id, entity_type: "company", legal_name: ORG.name, cr_number: "7055060102", national_address: { short: "RRRD2929" } };
   if (p.includes("/rest/v1/items")) return ITEMS;
   if (p.includes("/rest/v1/plans")) return [{ code: "trial", name_ar: "التجريبية", name_en: "Trial", limits: { items: 2000, members: 5, storage_mb: 50, channels: ["telegram"], calendar: ["ics", "google"] }, sort_order: 1 }, { code: "monthly", name_ar: "شهري", name_en: "Monthly", price_monthly_sar: 49, limits: { items: 2000, members: 5, storage_mb: 1000, channels: ["telegram"] }, sort_order: 2 }];

@@ -558,7 +558,8 @@
       gen += 1;
       platformStatAnimGeneration.set(id, gen);
 
-      const fromNum = parsePlatformStatNumberFromText(el.textContent);
+      const parsed = parsePlatformStatNumberFromText(el.textContent);
+      const fromNum = Number.isFinite(parsed) ? parsed : 0;   /* خانة فارغة: تعد من الصفر ولا تقف على فراغ */
       if (fromNum === toNum) {
         el.textContent = formatPlatformStatDisplay(toNum);
         el.classList.remove("platform-stat-value--counting");
@@ -566,6 +567,13 @@
       }
 
       el.classList.add("platform-stat-value--counting");
+      /* حارس نهائي: الرقم الصحيح يظهر مهما تعثرت الحركة — لا خانة تبقى فارغة */
+      window.setTimeout(() => {
+        if (platformStatAnimGeneration.get(id) !== gen) return;   /* حركة أحدث تولت الأمر */
+        el.textContent = formatPlatformStatDisplay(toNum);
+        el.classList.remove("platform-stat-value--counting");
+        platformStatAnimGeneration.delete(id);
+      }, 1800);
       const delta = Math.abs(toNum - fromNum);
       const dir = toNum > fromNum ? 1 : -1;
 
@@ -639,9 +647,12 @@
       pairs.forEach(([id, key]) => {
         const el = document.getElementById(id);
         if (!el) return;
-        const toNum =
-          !data || data[key] == null ? 0 : Math.floor(Number(data[key]));
-        const safeTo = Number.isFinite(toNum) && toNum >= 0 ? toNum : 0;
+        /* رقم غائب أو غير صالح لا يكتب صفرا: الخانة تبقى فارغة حتى يصل رقمها الحقيقي
+           (أمر المهندس رعد 2026-09-06: «ما ينفع أفتح وأحصلها أصفار») */
+        if (!data || data[key] == null) return;
+        const toNum = Math.floor(Number(data[key]));
+        if (!Number.isFinite(toNum) || toNum < 0) return;
+        const safeTo = toNum;
         const nextText = formatPlatformStatDisplay(safeTo);
         if (flash && el.textContent !== nextText) {
           el.classList.remove("platform-stat-value--pulse");
@@ -662,23 +673,27 @@
     };
 
     async function loadPlatformStats() {
-      const zeroStats = {
-        users: 0, organizations: 0, trackers: 0,
-        items: 0, itemsUpcoming: 0, itemsOverdue: 0, itemsDone: 0,
-        notifications: 0, notifEmail: 0, notifTelegram: 0, notifWhatsapp: 0, notifSms: 0
-      };
+      /* الأرقام كلها من platform_stats في القاعدة: عد حقيقي للمستخدمين والحسابات
+         والسجلات والعناصر والتنبيهات. ما لا يصل لا يخترع له رقم. */
+      const KEYS = [
+        "users", "organizations", "trackers",
+        "items", "itemsUpcoming", "itemsOverdue", "itemsNoDue", "itemsDone",
+        "notifications", "notifInapp", "notifEmail", "notifTelegram", "notifWhatsapp", "notifSms",
+        "telegramMessages"
+      ];
       const safeCount = (value) =>
-        value !== null && Number.isFinite(Number(value)) && Number(value) >= 0 ? Math.floor(Number(value)) : 0;
+        value !== null && value !== undefined && Number.isFinite(Number(value)) && Number(value) >= 0
+          ? Math.floor(Number(value)) : null;
       try {
         const data = await fetchPlatformStats();
-        const next = Object.assign({}, zeroStats);
-        Object.keys(zeroStats).forEach((k) => { next[k] = safeCount(data ? data[k] : null); });
+        const next = {};
+        KEYS.forEach((k) => { const v = safeCount(data ? data[k] : null); if (v !== null) next[k] = v; });
+        if (!Object.keys(next).length) return;      /* رد فارغ: يبقى المعروض كما هو */
         const first = cachedPlatformStats === null;
         cachedPlatformStats = next;
         applyPlatformStatsToDom(cachedPlatformStats, first ? { animateNumbers: true } : { flash: true, animateNumbers: true });
       } catch {
-        cachedPlatformStats = zeroStats;
-        applyPlatformStatsToDom(cachedPlatformStats);
+        /* تعذر الوصول: لا تكتب أصفارا ولا أرقاما مخترعة — يبقى ما وصل آخر مرة، أو تبقى الخانة فارغة */
       }
     }
     loadPlatformStats();
@@ -725,6 +740,16 @@
       }
       wire("platformStatItemsBtn", "platformStatDetailItems");
       wire("platformStatNotifsBtn", "platformStatDetailNotifs");
+      /* الرقم الذي له تفصيل يعرض تفصيله معه: لا رقم مبهم ينتظر نقرة (أمر المهندس رعد 2026-09-06) */
+      [["platformStatItemsBtn", "platformStatDetailItems"], ["platformStatNotifsBtn", "platformStatDetailNotifs"]]
+        .forEach(([btnId, detailId]) => {
+          const btn = document.getElementById(btnId), detail = document.getElementById(detailId);
+          if (!btn || !detail) return;
+          detail.hidden = false;
+          btn.setAttribute("aria-expanded", "true");
+          const card = btn.closest(".platform-stat-card");
+          if (card) card.classList.add("is-expanded");
+        });
     })();
 
     // Detect if device is mobile
