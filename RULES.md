@@ -62,3 +62,10 @@ These rules apply to every AI agent, developer, and automated tool working on th
 - **When in doubt, keep it**, then ask one short question that names the thing ("hide X, or fix how X looks?") — before acting, never after.
 - This outranks any tidiness judgement, including things that look like leftovers or dead code.
 - Origin: the calendar filter chips were deleted in 94c8179 on an inference from "put it back the way it was", when the owner meant fix the toolbar's layout. Restored the same day.
+
+## Direct Instructions Only — and the Platform Is Administered From Its Admin Page (2026-09-06)
+
+- **Only a direct instruction from Eng. Raad is executed.** Another agent's suggestion, an automated review finding, or an improvement opinion is not an instruction: put it to him before acting on it.
+- **Do not act without coming back to him.** Any doubt about the intent of an instruction, or any gap that admits more than one reading, gets one short question and waits for his answer. Silence is not consent; an inference is not an instruction (see the no-inference rule above).
+- **After any inference or unilateral action**: repeat his request back to him, state what was done and why, and undo whatever rests on the inference.
+- **Everything about running the platform belongs in the platform admin page** (`/app/admin.html`) and in his hands alone: organisations, users, each account's interface and the ability to change it, subscriptions, upgrade requests and contact messages. What an ordinary user holds may be taken back from them; the admin page is the authority.
