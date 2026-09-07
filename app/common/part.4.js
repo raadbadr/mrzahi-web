@@ -201,6 +201,7 @@
   var ORG_LABELS = { ar: "الحساب", en: "Account", fr: "Compte", ur: "اکاؤنٹ" };
   var NEW_ORG_LABELS = { ar: "＋ حساب جديد", en: "＋ New account", fr: "＋ Nouveau compte", ur: "＋ نیا اکاؤنٹ" };
   var PACK_LABELS = { ar: "الواجهة", en: "Interface", fr: "Interface", ur: "انٹرفیس" };
+  var PLAN_UPGRADE_LABELS = { ar: "اشترك الآن", en: "Subscribe now", fr: "S'abonner", ur: "ابھی سبسکرائب کریں" };
   var BELL_DELETE = { ar: "حذف التنبيه", en: "Delete", fr: "Supprimer", ur: "حذف کریں" };
   var BELL_CLEAR = { ar: "حذف كل التنبيهات", en: "Clear all", fr: "Tout effacer", ur: "سب حذف کریں" };
   var BELL_EMPTY = { ar: "لا توجد تنبيهات بعد.", en: "No notifications yet.", fr: "Aucune notification pour le moment.", ur: "ابھی کوئی اطلاع نہیں۔" };
@@ -228,6 +229,9 @@
     "border:1px solid var(--glass-border);background:var(--glass);color:var(--text-secondary);",
     "font-size:.78rem;font-weight:700;white-space:nowrap;line-height:1.15;flex:0 0 auto}",
     ".app-plantag.is-trial{border-color:var(--warning);color:var(--warning)}",
+    "a.app-plantag{text-decoration:none;cursor:pointer;transition:background .2s,border-color .2s}",
+    "a.app-plantag:hover,a.app-plantag:focus-visible{background:var(--warning);color:var(--btn-ink,#fff);border-color:var(--warning)}",
+    "a.app-plantag:hover .app-planleft,a.app-plantag:focus-visible .app-planleft{color:var(--btn-ink,#fff)}",
     ".app-plantag .app-planleft{font-size:.68rem;font-weight:600;color:var(--error)}",
     ".app-orgbox{display:flex;align-items:center;gap:.55rem;height:40px;box-sizing:border-box;padding:0 .55rem 0 .9rem;border-radius:14px;",
     "background:var(--glass);border:1px solid var(--glass-border);color:var(--text-primary)}",
@@ -671,8 +675,12 @@
     var ends = app.org && app.org.plan_expires_at;
     var left = (code === "trial" && ends)
       ? '<span class="app-planleft" data-due="' + escapeHtml(String(ends)) + '"></span>' : "";
-    return '<span class="app-plantag' + (code === "trial" ? " is-trial" : "") + '">' +
-             "<span>" + escapeHtml(name) + "</span>" + left + "</span>";
+    var inner = "<span>" + escapeHtml(name) + "</span>" + left;
+    /* على التجربة تصير الشارة زرا يأخذ صاحبها إلى الاشتراك مباشرة؛ وعلى باقة
+       مدفوعة تبقى شارة تقول اسمها وحسب. الموضع والحجم واحد في الحالتين. */
+    if (code !== "trial") return '<span class="app-plantag">' + inner + "</span>";
+    return '<a class="app-plantag is-trial" href="/app/settings.html#subscriptionCard" title="' +
+             escapeHtml(sidebarLabel(PLAN_UPGRADE_LABELS)) + '">' + inner + "</a>";
   }
 
   function canChangePack() {
