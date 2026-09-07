@@ -210,6 +210,11 @@
       function isDateValue(v) { return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v); }
       function isNumberish(v) { return typeof v === "number" || (typeof v === "string" && /^[0-9][0-9\s.,\-\/]*$/.test(v)); }
 
+      /* حقول المال التي يستخرجها القارئ: تُعرض برمز الريال كبقية المنصة، لا رقما عاريا. */
+      var MONEY_KEYS = ["amount", "annual_rent", "capital", "claim_amount", "premium", "salary",
+                        "subtotal", "total", "total_value", "value", "vat_amount"];
+      function isMoneyKey(k) { return MONEY_KEYS.indexOf(String(k)) !== -1; }
+
       function detailRowsHtml(details, labels) {
         var keys = Object.keys(details || {}).filter(function (k) {
           var v = details[k];
@@ -218,10 +223,15 @@
         if (!keys.length) return "";
         return keys.map(function (k) {
           var raw = details[k];
+          var money = isMoneyKey(k) && isNumberish(raw) && Number(String(raw).replace(/[^0-9.\-]/g, "")) > 0;
           var value = isDateValue(raw) ? app.fmtDate(raw + "T09:00:00") : String(raw);
           var ltr = isDateValue(raw) || isNumberish(raw);
+          var shown = money
+            ? esc(app.fmtAmount(Number(String(raw).replace(/[^0-9.\-]/g, "")))) +
+              ' <span class="sar-symbol" aria-label="ريال سعودي"></span>'
+            : esc(value);
           return '<div class="detail-row"><span class="detail-key">' + esc(detailLabel(k, labels)) + "</span>" +
-                 '<span class="detail-val"' + (ltr ? ' dir="ltr"' : ' dir="auto"') + ">" + esc(value) + "</span></div>";
+                 '<span class="detail-val"' + (ltr ? ' dir="ltr"' : ' dir="auto"') + ">" + shown + "</span></div>";
         }).join("");
       }
 

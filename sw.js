@@ -1,12 +1,15 @@
 /* MrZahi — تخزين مؤقت للتصفح دون اتصال (نفس أصل الموقع فقط) */
-const CACHE_NAME = "mrzahi-offline-v5";
+const CACHE_NAME = "mrzahi-offline-v6";
 
+/* المسارات كما يخدمها الموقع فعلا: صفحة بلاحقة .html تُحوَّل إلى المسار النظيف،
+   والاستجابة المحفوظة عن تحويل يرفض المتصفح إعادة تشغيلها في تنقل، فيموت
+   التصفح دون اتصال بصمت. */
 const PRECACHE_URLS = [
-  "./index.html",
-  "./about.html",
-  "./privacy.html",
-  "./terms.html",
-  "./pricing.html",
+  "./",
+  "./about",
+  "./privacy",
+  "./terms",
+  "./pricing",
   "./header.css",
   "./footer.css",
   "./rial-symbol.png",
@@ -15,7 +18,7 @@ const PRECACHE_URLS = [
   "./mrzahi-logo-light.png",
   "./robots.txt",
   "./sitemap.xml",
-  "./login.html",
+  "./login",
   "./mrzahi-og.png",
   "./404.html"
 ];
@@ -116,10 +119,10 @@ self.addEventListener("fetch", (event) => {
         .catch(() =>
           caches.match(request).then((cached) => {
             if (cached) return cached;
-            /* سقوط index.html للمستندات فقط — لا يصلح بديلاً لأصل CSS/JS */
+            /* سقوط الصفحة الرئيسية للمستندات فقط — لا يصلح بديلا لأصل CSS/JS */
             if (isFreshAsset) return Response.error();
             return caches
-              .match(new URL("./index.html", scopeBase()).href)
+              .match(new URL("./", scopeBase()).href)
               .then((page) => page || Response.error());
           })
         )
