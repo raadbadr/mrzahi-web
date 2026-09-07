@@ -19,7 +19,10 @@
         var s = t("area_" + key);
         return s === "area_" + key ? key : s;
       }
-      var STATUSES = ["draft","review","published","archived"];
+      /* «طلبت تعديلات» حالة قائمة في القاعدة وتستعملها الشيفرة؛ غيابها من هذه
+         القائمة كان يجعل القائمة تقع على «مسودة» عند فتح إجراء طلب تعديله،
+         فيمحى طلب المراجع صامتا مع أول حفظ. */
+      var STATUSES = ["draft","review","changes","published","archived"];
       var WIZ = ["wizBasics", "wizContext", "wizSteps", "wizReview"];
       var state = { list: [], members: [], names: {}, draft: null, area: "", search: "",
                     libView: "grid", wizStep: 0, current: null, statusFilter: "", zoom: 1 };
