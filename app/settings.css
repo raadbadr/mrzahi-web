@@ -482,7 +482,7 @@
     .drive-note { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; }
     .drive-folder {
       color: var(--primary); font-size: 0.9rem; text-decoration: none;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      white-space: normal; overflow-wrap: anywhere;
     }
     .drive-folder:hover { text-decoration: underline; }
     .drive-switch { position: relative; display: block; width: 52px; height: 32px; }

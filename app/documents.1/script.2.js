@@ -233,6 +233,7 @@
         docDeleteConfirm: "دستاویز اور فائلیں مستقل حذف کریں؟",
         allKinds: "تمام اقسام",
         search: "تلاش",
+        cancel: "منسوخ",
         actions: "کارروائیاں",
         delete: "حذف",
         unavailable: "خدمت دستیاب نہیں۔",

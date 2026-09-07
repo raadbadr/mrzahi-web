@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/mrzahi-icon-32.png?v=1">
   <link rel="icon" type="image/png" sizes="16x16" href="/mrzahi-icon-16.png?v=1">
   <link rel="apple-touch-icon" sizes="180x180" href="/mrzahi-icon-180.png?v=1">
-  <meta name="description" content="الباقات والأسعار في منصة MrZahi - تجربة مجانية 14 يوما، وباقة شهرية ب 49 ريالا، وباقة سنوية ب 490 ريالا للشركات الناشئة ووثائق العمل الحر والأفراد، وباقة الشركات ب 7,000 ريال سنويا بدون ضريبة القيمة المضافة.">
+  <meta name="description" content="الباقات والأسعار في MrZahi: تجربة أربعة عشر يوما بلا بطاقة بنكية، ثم أربع شرائح بحسب نوع الحساب — شخصي 150 ريالا شهريا، وعمل حر 300، ومؤسسة وشركة ناشئة 500 أو 5,000 سنويا، وشركة كبيرة 700 أو 7,000 سنويا بلا ضريبة القيمة المضافة.">
   <link rel="canonical" href="https://mrzahi.com/pricing.html">
   <link rel="alternate" hreflang="ar" href="https://mrzahi.com/pricing.html">
   <link rel="alternate" hreflang="en" href="https://mrzahi.com/pricing.html">
@@ -20,14 +20,14 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mrzahi.com/pricing.html">
   <meta property="og:title" content="الباقات والأسعار | MrZahi">
-  <meta property="og:description" content="الباقات والأسعار في منصة MrZahi - تجربة مجانية 14 يوما، وباقة شهرية ب 49 ريالا، وباقة سنوية ب 490 ريالا للشركات الناشئة ووثائق العمل الحر والأفراد، وباقة الشركات ب 7,000 ريال سنويا بدون ضريبة القيمة المضافة.">
+  <meta property="og:description" content="الباقات والأسعار في MrZahi: تجربة أربعة عشر يوما بلا بطاقة بنكية، ثم أربع شرائح بحسب نوع الحساب — شخصي 150 ريالا شهريا، وعمل حر 300، ومؤسسة وشركة ناشئة 500 أو 5,000 سنويا، وشركة كبيرة 700 أو 7,000 سنويا بلا ضريبة القيمة المضافة.">
   <meta property="og:image" content="https://mrzahi.com/mrzahi-og.png">
   <meta property="og:locale" content="ar_SA">
   <meta property="og:site_name" content="MrZahi">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="الباقات والأسعار | MrZahi">
-  <meta name="twitter:description" content="الباقات والأسعار في منصة MrZahi - تجربة مجانية 14 يوما، وباقة شهرية ب 49 ريالا، وباقة سنوية ب 490 ريالا للشركات الناشئة ووثائق العمل الحر والأفراد، وباقة الشركات ب 7,000 ريال سنويا بدون ضريبة القيمة المضافة.">
+  <meta name="twitter:description" content="الباقات والأسعار في MrZahi: تجربة أربعة عشر يوما بلا بطاقة بنكية، ثم أربع شرائح بحسب نوع الحساب — شخصي 150 ريالا شهريا، وعمل حر 300، ومؤسسة وشركة ناشئة 500 أو 5,000 سنويا، وشركة كبيرة 700 أو 7,000 سنويا بلا ضريبة القيمة المضافة.">
   <meta name="twitter:image" content="https://mrzahi.com/mrzahi-og.png">
   <title>الباقات والأسعار | MrZahi</title>
   <link rel="manifest" href="manifest.webmanifest?v=zahi3">
@@ -265,28 +265,6 @@
     }
     
     /* Gradient Border Effect */
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 24px;
-      padding: 2px;
-      background: linear-gradient(
-        135deg,
-        var(--primary),
-        var(--primary-light),
-        var(--secondary),
-        var(--accent)
-      );
-      -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-      z-index: -1;
-    }
     
     /* Shine Effect */
     .feature-card::after {
@@ -310,13 +288,8 @@
       transform: translateY(-8px) scale(1.02) rotateX(2deg);
       box-shadow: 
         0 20px 60px rgba(0,104,184,0.25),
-        0 0 40px rgba(0,104,184,0.15),
-        inset 0 0 0 1px rgba(255,255,255,0.2);
+        0 0 40px rgba(0,104,184,0.15);
       border-color: var(--primary);
-    }
-    
-    .feature-card:hover::before {
-      opacity: 1;
     }
     
     .feature-card:hover::after {
@@ -325,16 +298,13 @@
     
     [data-theme="dark"] .feature-card {
       box-shadow: 
-        0 8px 32px rgba(0,0,0,0.6),
-        0 0 0 1px var(--glass-border),
-        inset 0 0 0 1px rgba(255,255,255,0.05);
+        0 8px 32px rgba(0,0,0,0.6);
     }
     
     [data-theme="dark"] .feature-card:hover {
       box-shadow: 
         0 20px 60px rgba(0,160,210,0.3),
-        0 0 50px rgba(0,160,210,0.2),
-        inset 0 0 0 1px rgba(255,255,255,0.15);
+        0 0 50px rgba(0,160,210,0.2);
     }
 
     .feature-card h3 {
@@ -546,7 +516,7 @@
   <div class="container">
     <div class="header">
       <h1 data-i18n="title">الباقات والأسعار</h1>
-      <p data-i18n="intro">تبدأ منصة MrZahi بفترة تجريبية مدتها 14 يوما بكل المزايا وبلا بطاقة بنكية، ثم تختار الشريحة التي تناسب حسابك: شخصي لمن يرتب أوراقه وحده، وعمل حر لصاحب الوثيقة، ومؤسسة وشركة ناشئة، وشركة كبيرة. وكل الشرائح فيها التقويم والتنبيهات قبل مواعيد الاستحقاق ورفع ملفات إكسل.</p>
+      <p data-i18n="intro">تبدأ منصة MrZahi بفترة تجريبية مدتها 14 يوما بكل المزايا وبلا بطاقة بنكية، ثم تختار الشريحة التي تناسب حسابك: شخصي لمن يرتب أوراقه وحده، وعمل حر لصاحب الوثيقة، ومؤسسة وشركة ناشئة، وشركة كبيرة. وكل الشرائح فيها التقويم والتنبيهات قبل مواعيد الاستحقاق ورفع ملفات Excel.</p>
     </div>
 
     <section class="features">
@@ -561,7 +531,7 @@
             <li data-i18n="planTrialStorage">‏200 ميغابايت للملفات</li>
             <li data-i18n="planTrialChannels">تنبيهات على Telegram</li>
             <li data-i18n="planTrialImports">استيراد ملفين</li>
-            <li data-i18n="planTrialCalendar">تقويم ICS وتقويم جوجل</li>
+            <li data-i18n="planTrialCalendar">تقويم ICS وتقويم Google</li>
             <li data-i18n="planTrialSupport">الدعم عبر البريد الإلكتروني</li>
           </ul>
           <a class="waitlist-btn" href="login.html" style="text-decoration:none" data-i18n="planTrialCta">ابدأ التجربة المجانية</a>
@@ -575,7 +545,7 @@
             <li data-i18n="planPersonalMembers">مستخدم واحد</li>
             <li data-i18n="planPersonalItems">حتى 300 عنصر</li>
             <li data-i18n="planPersonalStorage">‏200 ميغابايت للملفات</li>
-            <li data-i18n="planPersonalCalendar">تقويم ICS وتقويم جوجل</li>
+            <li data-i18n="planPersonalCalendar">تقويم ICS وتقويم Google</li>
             <li data-i18n="planPersonalImports">استيراد ملفين شهريا</li>
             <li data-i18n="planPersonalScope">المستندات والمواعيد فقط</li>
           </ul>
@@ -592,7 +562,7 @@
             <li data-i18n="planFreelanceStorage">‏1 غيغابايت للملفات</li>
             <li data-i18n="planFreelanceDocs">الوثيقة والـ IBAN والعقود والفواتير</li>
             <li data-i18n="planFreelanceChannels">تنبيهات على Telegram</li>
-            <li data-i18n="planFreelanceCalendar">تقويم ICS وتقويم جوجل</li>
+            <li data-i18n="planFreelanceCalendar">تقويم ICS وتقويم Google</li>
           </ul>
           <a class="waitlist-btn" href="login.html" style="text-decoration:none" data-i18n="planPaidCta">اختر الباقة</a>
         </div>
