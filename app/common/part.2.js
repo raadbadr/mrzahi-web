@@ -732,17 +732,31 @@
     var f = filters || {};
     return run(function (client) {
       var orgId = requireOrg();
-      var q = client.from("items").select(ITEM_COLUMNS).eq("org_id", orgId);
-      if (f.trackerId) q = q.eq("tracker_id", f.trackerId);
-      if (f.status) q = q.eq("status", f.status);
-      if (f.from) q = q.gte("due_at", f.from);
-      if (f.to) q = q.lte("due_at", f.to);
-      if (f.search) {
-        var term = String(f.search).trim().replace(/[%_,()]/g, " ").replace(/\s+/g, " ").trim();
-        if (term) q = q.ilike("title", "%" + term + "%");
+      /* كل صفحة تُبنى باستعلام جديد: الجلب مقطوعا عند 500 كان يجعل كل مجموع في
+         اللوحة محسوبا على أول خمسمئة عنصر والباقي يسقط بصمت. */
+      function build() {
+        var q = client.from("items").select(ITEM_COLUMNS).eq("org_id", orgId);
+        if (f.trackerId) q = q.eq("tracker_id", f.trackerId);
+        if (f.status) q = q.eq("status", f.status);
+        if (f.from) q = q.gte("due_at", f.from);
+        if (f.to) q = q.lte("due_at", f.to);
+        if (f.search) {
+          var term = String(f.search).trim().replace(/[%_,()]/g, " ").replace(/\s+/g, " ").trim();
+          if (term) q = q.ilike("title", "%" + term + "%");
+        }
+        return q.order("due_at", { ascending: true, nullsFirst: false });
       }
-      q = q.order("due_at", { ascending: true, nullsFirst: false }).limit(f.limit || 500);
-      return q.then(unwrap).then(function (rows) { return rows || []; });
+      if (f.limit) return build().limit(f.limit).then(unwrap).then(function (rows) { return rows || []; });
+      var PAGE = 500, all = [];
+      function grab(from) {
+        return build().range(from, from + PAGE - 1).then(unwrap).then(function (rows) {
+          rows = rows || [];
+          all = all.concat(rows);
+          if (rows.length < PAGE || all.length >= 20000) return all;
+          return grab(from + PAGE);
+        });
+      }
+      return grab(0);
     });
   }
 

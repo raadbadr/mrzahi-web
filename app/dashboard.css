@@ -934,6 +934,9 @@
 
     /* زر الرمز: مربع بلا كلمات، واسم الفعل في التلميح */
     .chat-option-btn.is-icon { width: 34px; height: 34px; min-height: 34px; padding: 0; justify-content: center; }
+    /* داخل الجداول الأزرار بارتفاع 32، فزر الرمز يساويها بالضبط: كان يزيد بيكسلين
+       فيخرج عن خط الصف، والمواضع الثابتة شرط في كل صف. */
+    .content .items-table .row-actions .chat-option-btn.is-icon { width: 32px; height: 32px; min-height: 32px; padding: 0; }
     .chat-option-btn svg { width: 16px; height: 16px; fill: currentColor; flex: 0 0 auto; }
     .chat-option-btn { display: inline-flex; align-items: center; gap: .35rem; }
     .chat-option-btn.is-danger { color: var(--error); border-color: var(--error); }

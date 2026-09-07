@@ -775,6 +775,9 @@
         var donut = donutHtml(byCat, "noExpenseData");
         var t = expenseSums(rows);
         var monthsWith = months.filter(function (v) { return v > 0; }).length;
+        /* متوسط الشهر من أشهر السنة المعروضة نفسها: قسمة مجموع كل السنوات على
+           أشهر سنة واحدة كانت تعطي رقما لا يخص أي سنة. */
+        var yearSum = months.reduce(function (a, b) { return a + b; }, 0);
 
         paintEl(card).html =
           "<h2>" + esc(T("expIndicatorsTitle")) + "</h2>" +
@@ -786,7 +789,7 @@
             '<div class="ind-total"><b>' + shortMoney(t.sum) + "</b><span>" + esc(T("expTotal")) + "</span></div>" +
             '<div class="ind-total"><b>' + shortMoney(t.due) + "</b><span>" + esc(T("expDue")) + "</span></div>" +
             '<div class="ind-total"><b>' + shortMoney(t.overdue) + "</b><span>" + esc(T("expOverdue")) + "</span></div>" +
-            '<div class="ind-total"><b>' + shortMoney(monthsWith ? t.sum / monthsWith : 0) + "</b><span>" + esc(T("expAvgMonth")) + "</span></div>" +
+            '<div class="ind-total"><b>' + shortMoney(monthsWith ? yearSum / monthsWith : 0) + "</b><span>" + esc(T("expAvgMonth")) + "</span></div>" +
           "</div>";
       }
 
