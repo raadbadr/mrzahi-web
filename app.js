@@ -510,6 +510,15 @@
   /* عودة من مزود الدخول إلى صفحة عامة تنتهي عند لوحة التحكم لا عند الصفحة الرئيسية.
      يحدث هذا حين يعيد سوبابيس المستخدم إلى Site URL بدل الرابط المطلوب — مثل ما وقع
      بعد نقل النطاق. التوجيه مشروط بأثر العودة (access_token أو code) فلا يمس زائرا يتصفح. */
+  /* الجلسة قد تتأخر لحظة بعد تبديل الرمز، فننتظرها بدل أن نسأل مرة واحدة ونستسلم. */
+  function waitForSession(tries) {
+    return auth.getSession().then(function (session) {
+      if (session || tries <= 1) return session;
+      return new Promise(function (done) { setTimeout(done, 400); })
+        .then(function () { return waitForSession(tries - 1); });
+    });
+  }
+
   function landAfterAuth() {
     var here = String(window.location.pathname || "");
     if (/^\/app\//.test(here)) return;
@@ -517,7 +526,13 @@
     if (h.indexOf("access_token") === -1 && q.indexOf("code=") === -1) return;
     auth.ready.then(function () {
       if (auth.unavailable || !auth.client) return null;
-      return auth.getSession().then(function (session) {
+      var code = null;
+      try { code = new URLSearchParams(q).get("code"); } catch (e) { code = null; }
+      /* نبدل الرمز بأنفسنا: لا ننتظر أن تسبقنا المكتبة، والخطأ هنا يعني أنها سبقتنا فعلا. */
+      var exchanged = (code && auth.client.auth.exchangeCodeForSession)
+        ? auth.client.auth.exchangeCodeForSession(window.location.href).catch(function () { return null; })
+        : Promise.resolve(null);
+      return exchanged.then(function () { return waitForSession(4); }).then(function (session) {
         if (session) window.location.replace(DASHBOARD_PATH);
       });
     }).catch(function () { /* لا يعطل الصفحة */ });

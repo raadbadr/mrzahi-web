@@ -482,25 +482,49 @@
     });
   }
 
+  /* مفتاح التخزين لا يقبل إلا محارف لاتينية: اسم ملف فيه حرف عربي واحد يرد الرفع بـ 400
+     «Invalid key»، فيظن صاحبه أنه رفعه وهو ضائع. الاسم الأصلي يبقى في صف attachments كما
+     كتبه صاحبه، والمفتاح وحده يشتق منه بحروف آمنة مع بقاء الامتداد. */
+  function storageKeyName(name) {
+    var raw = String(name || "file");
+    var dot = raw.lastIndexOf(".");
+    var ext = dot > 0 ? raw.slice(dot + 1).replace(/[^A-Za-z0-9]/g, "").slice(0, 12).toLowerCase() : "";
+    var stem = (dot > 0 ? raw.slice(0, dot) : raw).replace(/[^A-Za-z0-9_.\-]+/g, "-").replace(/^[-.]+|[-.]+$/g, "").slice(-80);
+    if (!stem) stem = "file";
+    return ext ? stem + "." + ext : stem;
+  }
+  app.storageKeyName = storageKeyName;
+
   /* الطريق الواحد لحفظ ملف وتسجيله في attachments: درايف إن اختاره المستخدم (مع سقوط آمن إلى المنصة)، وإلا تخزين المنصة */
   function storeAttachment(file, meta, path) {
     if (!file) return Promise.reject(new Error("file required"));
     var orgId = requireOrg();
     var base = Object.assign({ org_id: orgId, uploaded_by: app.user.id }, meta || {});
-    function viaPlatform() {
+    function uploadTo(key) {
       return run(function (client) {
-        return client.storage.from(ATTACH_BUCKET).upload(path, file, { upsert: false, contentType: file.type || undefined })
+        return client.storage.from(ATTACH_BUCKET).upload(key, file, { upsert: false, contentType: file.type || undefined })
           .then(function (res) {
             if (res && res.error) throw res.error;
             return client.from("attachments").insert(Object.assign({}, base, {
-              name: file.name || "file", mime: file.type || null, size_bytes: file.size || 0, storage_path: path
+              name: file.name || "file", mime: file.type || null, size_bytes: file.size || 0, storage_path: key
             })).select("*").single().then(unwrap)
               .catch(function (err) {
                 /* لا نترك ملفا يتيما في التخزين إذا رفضت القاعدة الصف */
-                client.storage.from(ATTACH_BUCKET).remove([path]);
+                client.storage.from(ATTACH_BUCKET).remove([key]);
                 throw err;
               });
           });
+      });
+    }
+    /* مفتاح رفضه التخزين لا يعني ضياع الملف: محاولة ثانية بمفتاح لاتيني محض من صنعنا. */
+    function viaPlatform() {
+      return uploadTo(path).catch(function (err) {
+        var cut = path.lastIndexOf("/");
+        var dot = String(file.name || "").lastIndexOf(".");
+        var ext = dot > 0 ? "." + String(file.name).slice(dot + 1).replace(/[^A-Za-z0-9]/g, "").slice(0, 12).toLowerCase() : "";
+        var plain = path.slice(0, cut + 1) + randomCode(14).toLowerCase() + ext;
+        if (plain === path) throw err;
+        return uploadTo(plain);
       });
     }
     if (storageMode() !== "drive") return viaPlatform();

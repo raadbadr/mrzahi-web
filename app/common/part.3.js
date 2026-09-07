@@ -54,7 +54,7 @@
   function sendTeamFile(file, toUserId, itemId) {
     var orgId = requireOrg();
     if (!file) return Promise.reject(new Error("file required"));
-    var safe = String(file.name || "file").replace(/[^\w.\- \u0600-\u06FF]/g, "_").slice(-120);
+    var safe = storageKeyName(file.name);
     var thread = toUserId ? String(toUserId) : "team";
     var d = new Date(), ym = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
     var path = orgId + "/chat/" + thread + "/" + ym + "/" + randomCode(10).toLowerCase() + "-" + safe;

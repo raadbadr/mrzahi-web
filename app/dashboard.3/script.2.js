@@ -47,6 +47,45 @@
         var nameInp = $("createOrgName"); if (nameInp) nameInp.focus();
       });
 
+      /* مكان حفظ الملفات يختار قبل أول ورقة ترفع، لا بعد أن تضيع.
+         درايف يطلب إذن جوجل بنقرة المستخدم نفسها، فإن رفض الإذن بقي الاختيار على المنصة. */
+      (function () {
+        var box = $("createOrgStore"), line = $("createOrgStoreLine");
+        if (!box) return;
+        if (!app.driveOAuthAvailable || !app.driveOAuthAvailable()) {
+          var drive = box.querySelector('[data-store="drive"]');
+          if (drive) drive.remove();
+          if (box.children.length < 2) { box.hidden = true; if (line) line.hidden = true; }
+        }
+        function mark(pick) {
+          box.querySelectorAll("[data-store]").forEach(function (card) {
+            var on = card.getAttribute("data-store") === pick;
+            card.classList.toggle("is-on", on);
+            card.setAttribute("aria-pressed", on ? "true" : "false");
+          });
+        }
+        box.addEventListener("click", function (ev) {
+          var btn = ev.target.closest("[data-store-pick]");
+          if (!btn || btn.disabled) return;
+          var pick = btn.getAttribute("data-store-pick");
+          if (pick === (app.profile && app.profile.storage_mode)) { mark(pick); return; }
+          if (pick !== "drive") {
+            mark("platform");
+            app.updateProfile({ storage_mode: "platform" }).catch(function () { /* الافتراضي أصلا المنصة */ });
+            return;
+          }
+          btn.disabled = true;
+          app.connectDrive()
+            .then(function () { return app.updateProfile({ storage_mode: "drive" }); })
+            .then(function () { btn.disabled = false; mark("drive"); })
+            .catch(function () {
+              btn.disabled = false;
+              mark("platform");
+              toast("storePickDriveDenied", "error");
+            });
+        });
+      })();
+
       /* أنواع الحسابات تأتي من النواة المشتركة، والاسم يتبع النوع المختار. */
       window.__fillOrgTypes = function () {
         var sel = $("createOrgType");

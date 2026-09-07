@@ -916,8 +916,7 @@
   function uploadAttachment(itemId, file) {
     var orgId = requireOrg();
     if (!file) return Promise.reject(new Error("file required"));
-    var safe = String(file.name || "file").replace(/[^\w.\- \u0600-\u06FF]/g, "_").slice(-120);
-    var path = orgId + "/" + (itemId || "org") + "/" + randomCode(10).toLowerCase() + "-" + safe;
+    var path = orgId + "/" + (itemId || "org") + "/" + randomCode(10).toLowerCase() + "-" + storageKeyName(file.name);
     return storeAttachment(file, { item_id: itemId || null }, path);
   }
 
