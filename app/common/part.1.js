@@ -723,7 +723,7 @@
   app.ready.then(function (res) {
     if (!res || res.unavailable) { bootGuardReveal(); return; }
     settleThenReveal();
-    /* آخر ظهور على المنصة: يقاس منه من غاب فتصله رسالة تيليغرام */
+    /* آخر ظهور على المنصة: يقاس منه من غاب فتصله رسالة Telegram */
     if (app.markSeen) { try { app.markSeen(); } catch (e) { /* لا يعطل الصفحة أبدا */ } }
   }, function () { bootGuardReveal(); });
 
@@ -769,7 +769,7 @@
     return { kind: "license", pattern: /^[A-Za-z0-9\-\/]{4,30}$/ };
   }
 
-  /* ---------- المرفقات (PDF / Word / صور) وروابط جوجل درايف ---------- */
+  /* ---------- المرفقات (PDF / Word / صور) وروابط Google Drive ---------- */
 
   var ATTACH_BUCKET = "attachments";
 

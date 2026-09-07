@@ -342,7 +342,7 @@
     });
   }
 
-  /* تصدير CSV: BOM ليفتحه إكسل بالعربية، وكل خلية محاطة بعلامتي اقتباس */
+  /* تصدير CSV: BOM ليفتحه Excel بالعربية، وكل خلية محاطة بعلامتي اقتباس */
   function exportCsv(filename, rows, columns) {
     var cols = columns || Object.keys((rows && rows[0]) || {});
     var q = function (v) {
@@ -362,7 +362,7 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   }
 
-  /* ---------- التصدير إلى إكسل: ملف xlsx حقيقي بالعربية بلا تشويه ---------- */
+  /* ---------- التصدير إلى Excel: ملف xlsx حقيقي بالعربية بلا تشويه ---------- */
   var XLSX_SRC = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
   var xlsxPromise = null;
 

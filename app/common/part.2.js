@@ -166,7 +166,7 @@
 
   /* ---------- Google Drive: اختيار ملف من درايف المستخدم وربطه بالعنصر ----------
      يعمل عبر Google Picker بصلاحية drive.file (غير حساسة): المستخدم يختار الملف
-     بنفسه، ونخزن رابطه واسمه فقط؛ الملف يبقى في درايفه. */
+     بنفسه، ونخزن رابطه واسمه فقط؛ الملف يبقى في Drive الخاص به. */
   var DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
   var driveConfig = { clientId: null, apiKey: null };
   var driveToken = null;
@@ -240,7 +240,7 @@
   }
 
   /* ملف درايف المختار ينزل مؤقتا في المتصفح ليقرأه المحلل، ولا يرفع لتخزيننا.
-     ملفات جوجل (مستند/جدول) تصدر PDF أو XLSX لأنها لا تنزل كما هي. */
+     ملفات Google (مستند/جدول) تصدر PDF أو XLSX لأنها لا تنزل كما هي. */
   var GOOGLE_EXPORT = {
     "application/vnd.google-apps.document": ["application/pdf", ".pdf"],
     "application/vnd.google-apps.presentation": ["application/pdf", ".pdf"],
@@ -383,7 +383,7 @@
 
   function driveOAuthAvailable() { return !!driveConfig.clientId; }
 
-  /* وضع التخزين الفعال: درايف فقط إن اختاره المستخدم في ملفه وكان عميل جوجل مضبوطا */
+  /* وضع التخزين الفعال: درايف فقط إن اختاره المستخدم في ملفه وكان عميل Google مضبوطا */
   function storageMode() {
     var mode = app.profile && app.profile.storage_mode;
     return mode === "drive" && driveOAuthAvailable() ? "drive" : "platform";

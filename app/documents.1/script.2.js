@@ -237,6 +237,7 @@
         delete: "حذف",
         unavailable: "خدمت دستیاب نہیں۔",
         kind_commercial_register: "کمرشل رجسٹر",
+        kind_bank_certificate: "بینک اکاؤنٹ",
         kind_vat_certificate: "ٹیکس سرٹیفکیٹ",
         kind_license: "لائسنس",
         kind_contract: "معاہدہ",

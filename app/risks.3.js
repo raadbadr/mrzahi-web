@@ -191,7 +191,7 @@
           renderAll();
         });
       }
-      /* أعمدة السجل بأسمائها المعروضة، تستعمل في CSV وإكسل معا */
+      /* أعمدة السجل بأسمائها المعروضة، تستعمل في CSV وExcel معا */
       function riskColumns() {
         var keys = ["code","title","category","client_name","case_number","likelihood","impact","res_likelihood","res_impact","strategy","status","review_at"];
         var labels = { code: t("colCode"), title: t("colTitle"), category: t("colCategory"), client_name: t("colClient"),

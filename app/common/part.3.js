@@ -197,7 +197,7 @@
     });
   }
 
-  /* ربط محادثة تلغرام من زر داخل البوت: الرمز الموقع يأتي في رابط الإعدادات (?tglink=) */
+  /* ربط محادثة Telegram من زر داخل البوت: الرمز الموقع يأتي في رابط الإعدادات (?tglink=) */
   function linkTelegramByToken(token) {
     return app.ready.then(function () {
       requireClient();
@@ -582,7 +582,7 @@
     });
   }
 
-  /* سجل رسائل بوت تلغرام (RLS: مدير المنصة فقط) مع صاحب المحادثة إن كانت مربوطة */
+  /* سجل رسائل بوت Telegram (RLS: مدير المنصة فقط) مع صاحب المحادثة إن كانت مربوطة */
   function adminTelegramMessages(limit) {
     return run(function (client) {
       return client.from("telegram_messages").select("*, profiles(email, full_name)")

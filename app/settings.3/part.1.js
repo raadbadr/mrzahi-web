@@ -83,7 +83,7 @@
       }
 
       function allowedChannels() {
-        /* القنوات تأتي من حدود الباقة: التجريبية تيليغرام فقط، والمدفوعة تيليغرام والبريد. */
+        /* القنوات تأتي من حدود الباقة: التجريبية Telegram فقط، والمدفوعة Telegram والبريد. */
         var list = state.limits && Array.isArray(state.limits.channels) ? state.limits.channels : ["telegram"];
         return list.length ? list : ["telegram"];
       }
@@ -334,7 +334,7 @@
       function renderChannels() {
         /* القنوات بيانات: لا ترسم قبل وصول حدود الباقة وروابط المستخدم */
         if (!state.loaded || !state.limits || !state.linksLoaded) return;
-        /* لا نعرض إلا القنوات التي تسمح بها الباقة (حاليا تيليغرام وحده). */
+        /* لا نعرض إلا القنوات التي تسمح بها الباقة (حاليا Telegram وحده). */
         var allowed = allowedChannels();
         CHANNELS.forEach(function (ch) {
           var card = document.getElementById(ch + "Card");
@@ -736,7 +736,7 @@
             .catch(function () { box.checked = true; setMsg("storageMsg", t("genericError"), "error"); });
         }
         box.disabled = true;
-        /* بالإذن نفسه ينشأ المجلد فورا في درايفه ليرى أين تذهب ملفاته */
+        /* بالإذن نفسه ينشأ المجلد فورا في Drive الخاص به ليرى أين تذهب ملفاته */
         return app.connectDrive().then(function () { return app.updateProfile({ storage_mode: "drive" }); })
           .then(function () { return app.driveFolder ? app.driveFolder().catch(function () { return null; }) : null; })
           .then(function () { box.disabled = false; renderDriveSwitch(); })
@@ -756,7 +756,7 @@
         return String(v);
       }
 
-      /* اشتراك بنقرة واحدة: جوجل يقبل رابط ICS مباشرة، وآبل وأوتلوك عبر webcal. */
+      /* اشتراك بنقرة واحدة: Google يقبل رابط ICS مباشرة، وآبل وأوتلوك عبر webcal. */
       function syncCalendarLinks(url) {
         if (!url) return;
         /* رابط الشاشة المكتبية من رمز التقويم نفسه: لا رمز جديد ولا صلاحية جديدة */

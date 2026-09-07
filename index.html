@@ -13,7 +13,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/mrzahi-icon-16.png?v=1">
   <link rel="apple-touch-icon" sizes="180x180" href="/mrzahi-icon-180.png?v=1">
   <!-- أيقونات «أرقام المنصة»: Bootstrap Icons (MIT، يتطلب الإبقاء على إشعار الترخيص عند إعادة التوزيع) — https://github.com/twbs/icons/blob/main/LICENSE -->
-  <meta name="description" content="MrZahi - تتبع عقود شركتك وتراخيصها ومهامها من ملف إكسل، مع تقويم وتنبيهات على تيليغرام.">
+  <meta name="description" content="MrZahi - تتبع عقود شركتك وتراخيصها ومهامها من ملف Excel، مع تقويم وتنبيهات على Telegram.">
   <link rel="canonical" href="https://mrzahi.com/">
   <link rel="alternate" hreflang="ar" href="https://mrzahi.com/">
   <link rel="alternate" hreflang="en" href="https://mrzahi.com/">
@@ -24,7 +24,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mrzahi.com/">
   <meta property="og:title" content="MrZahi | تتبع أعمالك في مكان واحد">
-  <meta property="og:description" content="ارفع ملف إكسل، واحصل على تقويم وتنبيهات لعقودك وتراخيصك ومهامك، وشارك فريقك.">
+  <meta property="og:description" content="ارفع ملف Excel، واحصل على تقويم وتنبيهات لعقودك وتراخيصك ومهامك، وشارك فريقك.">
   <meta property="og:image" content="https://mrzahi.com/mrzahi-og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -33,7 +33,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="MrZahi | تتبع أعمالك في مكان واحد">
-  <meta name="twitter:description" content="ارفع ملف إكسل، واحصل على تقويم وتنبيهات لعقودك وتراخيصك ومهامك، وشارك فريقك.">
+  <meta name="twitter:description" content="ارفع ملف Excel، واحصل على تقويم وتنبيهات لعقودك وتراخيصك ومهامك، وشارك فريقك.">
   <meta name="twitter:image" content="https://mrzahi.com/mrzahi-og.png">
   <!-- JSON-LD Structured Data: يبقى داخلياً — المتصفحات لا تجلب src لعنصر script بنوع غير تنفيذي مثل ld+json، فيبقى فارغاً لو صار خارجياً (تحقق فعلي، ليس افتراضاً) -->
   <script type="application/ld+json">
@@ -42,7 +42,7 @@
     "@type": "WebApplication",
     "name": "MrZahi",
     "alternateName": "MrZahi",
-    "description": "منصة لتتبع عقود الشركات وتراخيصها ومهامها من ملف إكسل، مع تقويم وتنبيهات على تيليغرام.",
+    "description": "منصة لتتبع عقود الشركات وتراخيصها ومهامها من ملف Excel، مع تقويم وتنبيهات على Telegram.",
     "url": "https://mrzahi.com",
     "image": "https://mrzahi.com/mrzahi-og.png",
     "applicationCategory": "BusinessApplication",
@@ -235,8 +235,8 @@
         <div class="platform-stat-detail" id="platformStatDetailNotifs">
           <div class="platform-stat-detail-row"><span data-i18n="statNotifInapp">داخل المنصة</span><span class="platform-stat-detail-val" id="statNotifInapp"></span></div>
           <div class="platform-stat-detail-row"><span data-i18n="statNotifEmail">بريد إلكتروني</span><span class="platform-stat-detail-val" id="statNotifEmail"></span></div>
-          <div class="platform-stat-detail-row"><span data-i18n="statNotifTelegram">تيليغرام</span><span class="platform-stat-detail-val" id="statNotifTelegram"></span></div>
-          <div class="platform-stat-detail-row" hidden><span data-i18n="statNotifWhatsapp">واتساب</span><span class="platform-stat-detail-val" id="statNotifWhatsapp"></span></div>
+          <div class="platform-stat-detail-row"><span data-i18n="statNotifTelegram">Telegram</span><span class="platform-stat-detail-val" id="statNotifTelegram"></span></div>
+          <div class="platform-stat-detail-row" hidden><span data-i18n="statNotifWhatsapp">WhatsApp</span><span class="platform-stat-detail-val" id="statNotifWhatsapp"></span></div>
           <div class="platform-stat-detail-row" hidden><span data-i18n="statNotifSms">رسائل SMS</span><span class="platform-stat-detail-val" id="statNotifSms"></span></div>
         </div>
       </div>
@@ -244,7 +244,7 @@
         <div class="platform-stat-icon" aria-hidden="true">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.04 15.47l-.37 5.2c.53 0 .76-.23 1.04-.5l2.5-2.39 5.18 3.79c.95.52 1.63.25 1.88-.88l3.4-15.95c.31-1.4-.5-1.95-1.43-1.6L1.6 10.8c-1.36.53-1.34 1.29-.23 1.63l5.1 1.59L18.3 6.58c.56-.36 1.06-.16.65.2L9.04 15.47z"/></svg>
         </div>
-        <h3 class="platform-stat-label" data-i18n="statTelegramMsgs">رسائل تيليغرام</h3>
+        <h3 class="platform-stat-label" data-i18n="statTelegramMsgs">رسائل Telegram</h3>
         <span class="platform-stat-value" id="statValueTelegramMsgs"></span>
       </div>
     </div>
@@ -263,7 +263,7 @@
             <path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z" fill="currentColor"/>
           </svg>
         </div>
-        <h3 data-i18n="f1">ارفع ملف إكسل</h3>
+        <h3 data-i18n="f1">ارفع ملف Excel</h3>
         <p data-i18n="f1p">حول جدولك الحالي إلى سجل خلال دقيقة، دون إعادة إدخال أي بيانات</p>
       </div>
       <div class="feature-card">
@@ -282,7 +282,7 @@
           </svg>
         </div>
         <h3 data-i18n="f3">تنبيهات قبل الموعد</h3>
-        <p data-i18n="f3p">تصلك على تيليغرام قبل الاستحقاق بالوقت الذي تحدده</p>
+        <p data-i18n="f3p">تصلك على Telegram قبل الاستحقاق بالوقت الذي تحدده</p>
       </div>
     </div>
 
@@ -331,8 +331,8 @@
       </a>
       <a href="login.html" class="download-block download-block--waitlist">
         <p class="waitlist-title" data-i18n="waitlistTitle">لديك حساب؟</p>
-        <p class="waitlist-desc" data-i18n="waitlistDesc">سجل دخولك بضغطة واحدة عبر حساب جوجل</p>
-        <span class="waitlist-btn" data-i18n="waitlistSubmit">تسجيل الدخول بحساب جوجل</span>
+        <p class="waitlist-desc" data-i18n="waitlistDesc">سجل دخولك بضغطة واحدة عبر حساب Google</p>
+        <span class="waitlist-btn" data-i18n="waitlistSubmit">تسجيل الدخول بحساب Google</span>
       </a>
     </div>
   </section>

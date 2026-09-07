@@ -132,7 +132,7 @@
       setInputPlaceholder(t.chatAssistantPlaceholder);
     }
     
-    /* لا دخول بالبريد: الحساب بجوجل وحده، فالبطاقة صارت رابطا إلى صفحة الدخول */
+    /* لا دخول بالبريد: الحساب بGoogle وحده، فالبطاقة صارت رابطا إلى صفحة الدخول */
 
     async function sendToSupabase() {
       chatSendBtn.disabled = true;

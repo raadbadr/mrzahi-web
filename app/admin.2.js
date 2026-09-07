@@ -407,7 +407,7 @@
           .then(() => { $("msgsRefresh").disabled = false; });
       }
 
-      /* ---------- رسائل تلغرام ---------- */
+      /* ---------- رسائل Telegram ---------- */
 
       let tgMessages = [];
       let tgOpenChat = null;   /* المحادثة المفتوحة الآن، أو null فالقائمة */

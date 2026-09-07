@@ -1,6 +1,6 @@
     const translations = {
       ar: {
-        exportXlsx: "تصدير إكسل",
+        exportXlsx: "تصدير Excel",
         exportBtn: "تصدير",
         colDate: "التاريخ",
         colFrom: "من",

@@ -35,6 +35,7 @@ const DOC_KINDS = [
   "vehicle_registration",  // استمارة مركبة
   "insurance_policy",      // وثيقة تأمين
   "employment_contract",   // عقد عمل
+  "bank_certificate",      // شهادة رقم الحساب الدولي (IBAN)
   "other",
 ];
 
@@ -135,13 +136,17 @@ function sanitizeDetail(spec, value) {
 }
 
 /* ما يصلح لتحديث ملف الشركة من هذه الورقة: أوراق الشركة نفسها فقط، لا فواتير الغير ولا هويات الأفراد */
-const PROFILE_KINDS = ["commercial_register", "vat_certificate", "zakat_certificate", "gosi_certificate", "chamber_certificate", "saudization_certificate", "articles_of_association", "bylaws", "license"];
+const PROFILE_KINDS = ["commercial_register", "vat_certificate", "zakat_certificate", "gosi_certificate", "chamber_certificate", "saudization_certificate", "articles_of_association", "bylaws", "license", "bank_certificate"];
 function profileUpdates(kind, details, shortAddress) {
   const out = {};
   if (!PROFILE_KINDS.includes(kind)) return out;
   if (details.vat_number) out.vat_number = details.vat_number;
   if (details.cr_number) out.cr_number = details.cr_number;
   if (details.unified_number) out.unified_number = details.unified_number;
+  /* شهادة الحساب الدولي تملأ بيانات البنك في بطاقة الشركة كما يفعل السجل والضريبي */
+  if (details.iban) out.iban = String(details.iban).replace(/\s+/g, "");
+  if (details.bank_name) out.bank_name = details.bank_name;
+  if (details.account_name) out.account_name = details.account_name;
   const legalName = details.taxpayer_name || details.company_name || details.establishment_name;
   if (legalName) out.legal_name = legalName;
   if (shortAddress) out.national_address_short = shortAddress;
@@ -466,6 +471,16 @@ export const KIND_FIELDS = {
     F("start_date", "date", "بداية الوثيقة", "Effective Date", ["بداية\\s*(?:ال)?(?:وثيقة|تغطية)", "تاريخ\\s*بداية\\s*(?:ال)?(?:وثيقة|تغطية)", "Effective\\s*Date", "Policy\\s*Start"].concat(LB.start), { core: "issue_date" }),
     F("end_date", "date", "نهاية الوثيقة", "Expiry Date", ["نهاية\\s*(?:ال)?(?:وثيقة|تغطية)", "تاريخ\\s*نهاية\\s*(?:ال)?(?:وثيقة|تغطية)", "Policy\\s*End"].concat(LB.expiry, LB.end), { core: "expiry_date" }),
     F("premium", "number", "قسط التأمين", "Premium", ["إجمالي\\s*(?:ال)?قسط", "اجمالي\\s*(?:ال)?قسط", "قسط\\s*التأمين", "القسط", "(?:Total\\s*)?Premium"], { core: "amount" }),
+  ],
+  bank_certificate: [
+    F("iban", "id", "رقم الحساب الدولي", "IBAN",
+      ["رقم\\s*(?:ال)?حساب\\s*(?:ال)?دولي", "الآيبان", "الايبان", "\\bIBAN\\b", "International\\s*Bank\\s*Account\\s*Number"],
+      { pattern: "SA[0-9 ]{20,34}", core: "number" }),
+    F("bank_name", "text", "اسم البنك", "Bank", ["اسم\\s*(?:ال)?(?:بنك|مصرف)", "\\bBank\\s*Name\\b", "\\bBank\\b"]),
+    F("account_name", "text", "اسم صاحب الحساب", "Account holder",
+      ["اسم\\s*(?:صاحب\\s*)?(?:ال)?حساب", "اسم\\s*(?:ال)?عميل", "Account\\s*(?:Holder|Name)", "Beneficiary\\s*Name"], { core: "party" }),
+    F("account_number", "id", "رقم الحساب", "Account No.", ["رقم\\s*(?:ال)?حساب", "Account\\s*(?:No\\.?|Number)"], { pattern: "[0-9]{6,25}" }),
+    issueField(), expiryField(),
   ],
   license: [
     F("permit_number", "id", "رقم الرخصة", "License No.", ["رقم\\s*(?:ال)?رخصة", "رقم\\s*(?:ال)?ترخيص", "رقم\\s*(?:ال)?تصريح", "رقم\\s*(?:ال)?وثيقة", "رقم\\s*(?:ال)?تسجيل", "Licen[cs]e\\s*(?:No\\.?|Number)", "Permit\\s*(?:No\\.?|Number)", "Document\\s*(?:No\\.?|Number)"], { pattern: "[0-9A-Za-z\\-\\/]{4,30}", core: "number" }),

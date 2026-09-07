@@ -1,6 +1,6 @@
     const translations = {
       ar: {
-        exportXlsx: "إكسل",
+        exportXlsx: "Excel",
         colLikelihood: "الاحتمال",
         colImpact: "الأثر",
         colResLikelihood: "الاحتمال بعد المعالجة",
