@@ -3,7 +3,16 @@
       var app = null;
       var AREAS = ["lawsuits","violations","contracts","licenses","documents","other"];
       var STATUSES = ["draft","review","published","archived"];
-      var state = { list: [], members: [], names: {}, draft: null, area: "", search: "" };
+      var WIZ = ["wizBasics", "wizContext", "wizSteps", "wizReview"];
+      var state = { list: [], members: [], names: {}, draft: null, area: "", search: "",
+                    libView: "grid", wizStep: 0, current: null };
+      function isAdmin() {
+        var org = app && app.org;
+        if (!org || !app.user) return false;
+        return org.owner_id === app.user.id || org.role === "owner" || org.role === "admin";
+      }
+      function statusLabel(st) { return t("status_" + (st || "draft")); }
+      function fmtWhen(iso) { return iso && app && app.fmtDate ? app.fmtDate(iso) : ""; }
       function $(id) { return document.getElementById(id); }
       function t(k) { if (app && app.t) return app.t(k); var d = translations[lang()] || translations.ar; return d[k] || translations.ar[k] || k; }
       function esc(v) { return app && app.escapeHtml ? app.escapeHtml(v) : String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
@@ -29,30 +38,96 @@
 
       function newStep() { return { id: "s_" + Math.random().toString(36).slice(2, 7), type: "task", title: "", role: "", R: "", A: "", C: "", I: "", note: "", yesTarget: "", noTarget: "" }; }
 
-      /* ---------- القائمة ---------- */
-      function renderList() {
-        var rows = state.list.filter(function (p) {
+      /* ---------- المكتبة: أرقامها، شرائحها، بطاقاتها أو جدولها ---------- */
+      function visible() {
+        var q = state.search.toLowerCase();
+        return state.list.filter(function (p) {
           if (state.area && p.area !== state.area) return false;
-          if (state.search && (p.name + " " + (p.code || "")).toLowerCase().indexOf(state.search.toLowerCase()) === -1) return false;
-          return true;
+          if (!q) return true;
+          var hay = ((p.name || "") + " " + (p.code || "") + " " + (p.description || "")).toLowerCase();
+          return hay.indexOf(q) !== -1;
         });
+      }
+
+      function renderStats() {
+        var all = state.list;
+        var pub = all.filter(function (p) { return p.status === "published"; });
+        var drafts = all.filter(function (p) { return p.status === "draft" || p.status === "changes"; });
+        var review = all.filter(function (p) { return p.status === "review"; });
+        var areas = {};
+        pub.forEach(function (p) { if (p.area) areas[p.area] = true; });
+        var boxes = [
+          { key: "libPublished", n: pub.length, cls: "status-done" },
+          { key: "libDrafts", n: drafts.length, cls: "status-open" },
+          { key: "libReview", n: review.length, cls: "" },
+          { key: "libAreas", n: Object.keys(areas).length, cls: "" }
+        ];
+        var html = boxes.map(function (b) {
+          return '<div class="platform-stat-card"><span class="platform-stat-label">' + esc(t(b.key)) + "</span>" +
+                 '<span class="platform-stat-value ' + b.cls + '">' + b.n + "</span></div>";
+        }).join("");
+        if (app && app.paint) app.paint($("libStats"), html); else $("libStats").innerHTML = html;
+      }
+
+      function renderPills() {
+        var present = {};
+        state.list.forEach(function (p) { if (p.area) present[p.area] = true; });
+        var html = '<button type="button" class="pill' + (state.area ? "" : " is-on") + '" data-area="">' + esc(t("allAreas")) + "</button>" +
+          AREAS.filter(function (a) { return present[a]; }).map(function (a) {
+            return '<button type="button" class="pill' + (state.area === a ? " is-on" : "") + '" data-area="' + a + '">' + esc(t("area_" + a)) + "</button>";
+          }).join("");
+        if (app && app.paint) app.paint($("areaPills"), html); else $("areaPills").innerHTML = html;
+      }
+
+      function pcard(p) {
+        return '<button type="button" class="pcard" data-open="' + esc(p.id) + '">' +
+          '<span class="proc-code">' + esc(p.code || t("status_draft")) + "</span>" +
+          '<span class="pcard-name" data-tr>' + esc(p.name) + "</span>" +
+          '<span class="pcard-desc" data-tr>' + esc(p.description || "") + "</span>" +
+          '<span class="pcard-foot">' +
+            '<span class="proc-status ' + esc(p.status) + '">' + esc(statusLabel(p.status)) + "</span>" +
+            (p.area ? '<span class="area-tag">' + esc(t("area_" + p.area)) + "</span>" : "") +
+            '<span class="pcard-steps">' + ((p.steps || []).length) + " " + esc(t("stepsCount")) + "</span>" +
+          "</span></button>";
+      }
+
+      function renderList() {
+        renderStats();
+        renderPills();
+        var rows = visible();
+        var grid = state.libView !== "list";
+        $("viewGrid").classList.toggle("is-on", grid);
+        $("viewList").classList.toggle("is-on", !grid);
+        show("libGrid", grid && rows.length > 0);
+        show("listWrap", !grid && rows.length > 0);
+        show("listEmpty", rows.length === 0);
+        if (!rows.length) { $("listEmpty").textContent = state.list.length ? t("noProcesses") : t("libEmpty"); return; }
+        if (grid) {
+          var cards = rows.map(pcard).join("");
+          if (app && app.paint) app.paint($("libGrid"), cards); else $("libGrid").innerHTML = cards;
+          if (app && app.translateNodes) app.translateNodes($("libGrid"));
+          return;
+        }
         var body = $("listBody"); body.innerHTML = "";
-        show("listWrap", rows.length > 0); show("listEmpty", rows.length === 0);
+        var admin = isAdmin();
         rows.forEach(function (p) {
+          var on = p.active !== false;
           var tr = document.createElement("tr");
-          tr.innerHTML = '<td dir="ltr">' + esc(p.code || "") + "</td>" +
-            '<td><a href="#" class="item-title" data-tr data-open="' + esc(p.id) + '">' + esc(p.name) + "</a></td>" +
-            "<td>" + esc(t("area_" + (p.area || "other"))) + "</td>" +
-            "<td>" + esc(name(p.owner_id)) + "</td>" +
-            "<td>" + esc(String((p.steps || []).length)) + "</td>" +
-            '<td><span class="status-pill ' + esc(p.status) + '">' + esc(t("status_" + p.status)) + "</span></td>" +
+          tr.innerHTML =
+            '<td><a href="#" class="cell-stack" data-open="' + esc(p.id) + '">' +
+              '<span class="proc-code">' + esc(p.code || "—") + "</span>" +
+              '<span class="item-title" data-tr>' + esc(p.name) + "</span></a></td>" +
+            "<td>" + esc(name(p.published_by || p.created_by)) + "</td>" +
+            "<td>" + esc(fmtWhen(p.updated_at)) + "</td>" +
+            '<td><span class="proc-status ' + esc(p.status) + '">' + esc(statusLabel(p.status)) + "</span></td>" +
             '<td><div class="chat-options row-actions">' +
-              '<button type="button" class="icon-btn" data-edit="' + esc(p.id) + '" title="' + esc(t("edit")) + '" aria-label="' + esc(t("edit")) + '">' +
-                '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>' +
-                "<span>" + esc(t("edit")) + "</span></button></div></td>";
+              (admin && p.status === "published"
+                ? '<button type="button" class="chat-option-btn" data-toggle="' + esc(p.id) + '">' + esc(t(on ? "setInactive" : "setActive")) + "</button>"
+                : "") +
+              '<button type="button" class="chat-option-btn" data-edit="' + esc(p.id) + '">' + esc(t("edit")) + "</button>" +
+            "</div></td>";
           body.appendChild(tr);
         });
-        /* النص الحر يُعرض بلغة القارئ متى توفرت الترجمة المشتركة */
         if (app && app.translateNodes) app.translateNodes(body);
       }
 

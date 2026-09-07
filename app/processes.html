@@ -56,44 +56,81 @@
     <div class="content" id="noOrgCard" hidden><p data-i18n="noOrg">أنشئ شركتك أولا من لوحة التحكم ثم عد إلى هنا.</p></div>
 
     <div id="view" hidden>
+      <!-- (1) المكتبة: أرقامها، ثم البحث والعرض، ثم شرائح المجالات، ثم البطاقات أو الجدول -->
       <div class="content" id="listCard">
         <h2 data-i18n="libTitle">مكتبة الإجراءات</h2>
-        <p data-i18n="libIntro">الإجراءات القانونية المعتمدة في المكتب خطوة خطوة: من يفعل ماذا (RACI)، وما الذي يبدأ الإجراء وما ينتج عنه.</p>
+        <p class="settings-note" data-i18n="libIntro">الإجراءات المعتمدة خطوة خطوة: من يفعل ماذا، وما الذي يبدأ الإجراء وما ينتج عنه.</p>
+
+        <div class="platform-stats-list" id="libStats"></div>
+
         <div class="proc-toolbar">
-          <input type="search" class="waitlist-input" id="search" placeholder="بحث" data-i18n-placeholder="search" dir="auto">
-          <select class="waitlist-input" id="areaFilter"></select>
-          <button type="button" class="waitlist-btn" id="newBtn" data-i18n="newProcess">＋ إجراء جديد</button>
+          <input type="search" class="waitlist-input" id="search" placeholder="ابحث بالاسم أو الرمز أو كلمة" data-i18n-placeholder="libSearchPh" dir="auto">
+          <div class="view-toggle" role="group" aria-label="طريقة العرض">
+            <button type="button" class="chat-option-btn is-icon" id="viewGrid" data-libview="grid" title="بطاقات" aria-label="بطاقات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg></button>
+            <button type="button" class="chat-option-btn is-icon" id="viewList" data-libview="list" title="قائمة" aria-label="قائمة"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg></button>
+          </div>
+          <button type="button" class="waitlist-btn" id="newBtn" data-i18n="newProcess">إجراء جديد</button>
         </div>
+
+        <div class="filter-pills" id="areaPills"></div>
+
+        <div class="proc-grid" id="libGrid" hidden></div>
         <div class="table-wrap" id="listWrap" hidden>
           <table class="items-table"><thead><tr>
-            <th data-i18n="colCode">الرمز</th><th data-i18n="colName">الإجراء</th><th data-i18n="colArea">المجال</th>
-            <th data-i18n="colOwner">المسؤول</th><th data-i18n="colSteps">الخطوات</th><th data-i18n="colStatus">الحالة</th><th data-i18n="actions">الإجراءات</th>
+            <th data-i18n="colProcess">الإجراء</th>
+            <th data-i18n="colPublisher">نشره</th>
+            <th data-i18n="colLastEdit">آخر تعديل</th>
+            <th data-i18n="colStatus">الحالة</th>
+            <th data-i18n="actions">الإجراءات</th>
           </tr></thead><tbody id="listBody"></tbody></table>
         </div>
-        <p class="empty-note" id="listEmpty" data-i18n="libEmpty" hidden>لا إجراءات بعد — ابدأ بإجراء «رفع دعوى» أو «الاعتراض على مخالفة».</p>
+        <p class="empty-note" id="listEmpty" data-i18n="libEmpty" hidden>لا إجراءات بعد.</p>
       </div>
 
+      <!-- (2) المعالج: أربع خطوات كما في المرجع -->
       <div class="content" id="editorCard" hidden>
-        <h2 id="editorTitle" data-i18n="editorNew">إجراء جديد</h2>
+        <div class="wiz-head">
+          <h2 id="editorTitle" data-i18n="editorNew">إجراء جديد</h2>
+          <div class="wiz-steps" id="wizSteps"></div>
+        </div>
         <form id="form" novalidate>
-          <div class="form-grid">
-            <label class="form-field"><span data-i18n="fName">اسم الإجراء</span><input type="text" class="waitlist-input" id="fName" maxlength="200" required dir="auto"></label>
-            <label class="form-field"><span data-i18n="fArea">المجال</span><select class="waitlist-input" id="fArea"></select></label>
-            <label class="form-field"><span data-i18n="fOwner">المسؤول عن الإجراء</span><select class="waitlist-input" id="fOwner"></select></label>
-            <label class="form-field"><span data-i18n="fFrequency">التكرار</span><input type="text" class="waitlist-input" id="fFrequency" maxlength="120" placeholder="عند الحاجة / شهري" dir="auto"></label>
-            <label class="form-field"><span data-i18n="fTrigger">ما الذي يبدأ الإجراء</span><input type="text" class="waitlist-input" id="fTrigger" maxlength="300" dir="auto"></label>
-            <label class="form-field"><span data-i18n="fStatus">الحالة</span><select class="waitlist-input" id="fStatus"></select></label>
-            <label class="form-field"><span data-i18n="fInputs">المدخلات</span><input type="text" class="waitlist-input" id="fInputs" maxlength="300" dir="auto"></label>
-            <label class="form-field"><span data-i18n="fOutputs">المخرجات</span><input type="text" class="waitlist-input" id="fOutputs" maxlength="300" dir="auto"></label>
+          <!-- الخطوة 1: الأساسيات -->
+          <div class="wiz-pane" data-pane="0">
+            <div class="form-grid">
+              <label class="form-field"><span data-i18n="fName">اسم الإجراء</span><input type="text" class="waitlist-input" id="fName" maxlength="200" required dir="auto"></label>
+              <label class="form-field"><span data-i18n="fCode">الرمز</span><input type="text" class="waitlist-input" id="fCode" maxlength="40" dir="ltr" placeholder="LEG-01"></label>
+              <label class="form-field"><span data-i18n="fArea">المجال</span><select class="waitlist-input" id="fArea"></select></label>
+              <label class="form-field"><span data-i18n="fOwner">المسؤول عن الإجراء</span><select class="waitlist-input" id="fOwner"></select></label>
+              <label class="form-field"><span data-i18n="fFrequency">التكرار</span><input type="text" class="waitlist-input" id="fFrequency" maxlength="120" placeholder="عند الحاجة / شهري" dir="auto"></label>
+              <label class="form-field"><span data-i18n="fStatus">الحالة</span><select class="waitlist-input" id="fStatus"></select></label>
+            </div>
+            <label class="form-field wiz-wide"><span data-i18n="fDescription">الوصف</span><textarea class="waitlist-input" id="fDescription" rows="3" maxlength="1000"></textarea></label>
           </div>
-          <label class="form-field" style="display:block;margin-top:.75rem"><span data-i18n="fDescription">الوصف</span><textarea class="waitlist-input" id="fDescription" rows="2" maxlength="1000"></textarea></label>
 
-          <h3 style="margin:1.25rem 0 .5rem" data-i18n="stepsTitle">الخطوات</h3>
-          <div class="steps-list" id="steps"></div>
-          <button type="button" class="add-step" id="addStep" data-i18n="addStep">＋ خطوة</button>
+          <!-- الخطوة 2: السياق -->
+          <div class="wiz-pane" data-pane="1" hidden>
+            <label class="form-field wiz-wide"><span data-i18n="fTrigger">ما الذي يبدأ الإجراء</span><input type="text" class="waitlist-input" id="fTrigger" maxlength="300" dir="auto"></label>
+            <div class="form-grid">
+              <label class="form-field"><span data-i18n="fInputs">المدخلات — سطر لكل مدخل</span><textarea class="waitlist-input" id="fInputs" rows="4" maxlength="1000"></textarea></label>
+              <label class="form-field"><span data-i18n="fOutputs">المخرجات — سطر لكل مخرج</span><textarea class="waitlist-input" id="fOutputs" rows="4" maxlength="1000"></textarea></label>
+            </div>
+          </div>
 
-          <div class="waitlist-form form-actions" style="margin-top:1rem">
-            <button type="submit" class="waitlist-btn" id="saveBtn" data-i18n="save">حفظ</button>
+          <!-- الخطوة 3: الخطوات -->
+          <div class="wiz-pane" data-pane="2" hidden>
+            <div class="steps-list" id="steps"></div>
+            <button type="button" class="add-step" id="addStep" data-i18n="addStep">＋ خطوة</button>
+          </div>
+
+          <!-- الخطوة 4: المراجعة -->
+          <div class="wiz-pane" data-pane="3" hidden>
+            <div id="wizReview"></div>
+          </div>
+
+          <div class="waitlist-form form-actions wiz-actions">
+            <button type="button" class="chat-option-btn" id="wizBack" data-i18n="wizBack" hidden>السابق</button>
+            <button type="button" class="waitlist-btn" id="wizNext" data-i18n="wizNext">التالي</button>
+            <button type="submit" class="waitlist-btn" id="saveBtn" data-i18n="save" hidden>حفظ</button>
             <button type="button" class="chat-option-btn" id="cancelBtn" data-i18n="cancel">إلغاء</button>
             <button type="button" class="chat-option-btn is-danger" id="deleteBtn" data-i18n="delete" hidden>حذف</button>
           </div>
@@ -101,17 +138,38 @@
         </form>
       </div>
 
+      <!-- (3) صفحة الإجراء: ترويسة، بيانات، سياق، مخطط، مصفوفة -->
       <div class="content" id="detailCard" hidden>
-        <h2 id="detailTitle"></h2>
-        <p class="inline-hint" id="detailMeta"></p>
-        <div class="dash-grid" style="display:grid;grid-template-columns:1fr;gap:1.25rem">
-          <div><h3 data-i18n="raciTitle">مصفوفة RACI</h3><div class="table-wrap" id="raciWrap"></div></div>
-          <div><h3 data-i18n="flowTitle">المخطط الانسيابي</h3><div class="flow" id="flow"></div></div>
+        <div class="approval-bar" id="approvalBar" hidden></div>
+        <div class="detail-head">
+          <div class="dh-top">
+            <div class="dh-title">
+              <span class="proc-code" id="detailCode"></span>
+              <h2 id="detailTitle"></h2>
+              <p class="settings-note" id="detailDesc"></p>
+            </div>
+            <span class="proc-status" id="detailStatus"></span>
+          </div>
+          <div class="detail-meta" id="detailMeta"></div>
         </div>
-        <div class="waitlist-form form-actions" style="margin-top:1rem">
-          <button type="button" class="waitlist-btn" id="editBtn" data-i18n="edit">تعديل</button>
-          <button type="button" class="chat-option-btn" id="backBtn" data-i18n="back">رجوع</button>
+
+        <div class="proc-panel" id="contextPanel" hidden>
+          <h3 data-i18n="contextTitle">السياق</h3>
+          <div id="contextBody"></div>
         </div>
+
+        <div class="proc-panel">
+          <h3 data-i18n="flowTitle">المخطط الانسيابي</h3>
+          <div class="flow" id="flow"></div>
+        </div>
+
+        <div class="proc-panel">
+          <h3 data-i18n="raciTitle">مصفوفة RACI</h3>
+          <div class="table-wrap" id="raciWrap"></div>
+          <div class="raci-legend" id="raciLegend"></div>
+        </div>
+
+        <div class="waitlist-form form-actions" id="detailActions"></div>
       </div>
     </div>
   </div>

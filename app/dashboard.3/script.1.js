@@ -22,6 +22,9 @@
         calItems: [],
         viewType: "",
         clientFilter: "",
+        contractParty: "",
+        contractType: "",
+        contractState: "",
         calMode: (function () { try { return localStorage.getItem("tracker_cal_mode") || "greg"; } catch (e) { return "greg"; } })(),
         calAnchor: new Date(),
         filters: { tracker: "", status: "", search: "" },
@@ -774,7 +777,7 @@
         if (state.viewType === "violations") addChart("violationsChart");
         else if (state.viewType === "cases") addChart("casesChart");
         else if (state.viewType === "expenses") addChart("expensesChart");
-        else { addChart("violationsChart"); addChart("casesChart"); }
+        else if (!state.viewType) { addChart("violationsChart"); addChart("casesChart"); }
 
         calCard.appendChild(calendar);
         if (!state.viewType) {

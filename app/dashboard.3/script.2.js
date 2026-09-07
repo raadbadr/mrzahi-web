@@ -316,7 +316,10 @@
         if (!ev.target) return;
         if (ev.target.id === "clientFilter") { state.clientFilter = ev.target.value || ""; renderList(); return; }
         if (ev.target.id === "expenseCatFilter") { state.expenseCat = ev.target.value || ""; renderList(); return; }
-        if (ev.target.id === "expenseYearFilter") { state.expenseYear = ev.target.value || ""; renderList(); }
+        if (ev.target.id === "expenseYearFilter") { state.expenseYear = ev.target.value || ""; renderList(); return; }
+        if (ev.target.id === "contractPartyFilter") { state.contractParty = ev.target.value || ""; renderList(); return; }
+        if (ev.target.id === "contractTypeFilter") { state.contractType = ev.target.value || ""; renderList(); return; }
+        if (ev.target.id === "contractStateFilter") { state.contractState = ev.target.value || ""; renderList(); }
       });
 
       $("filterForm").addEventListener("submit", function (ev) {
@@ -352,6 +355,41 @@
           renderList();
           fail(err, "listMsg");
         });
+      }
+
+      /* بيانات العقد تُقرأ من نموذجه وتُكتب في data، فلا عمود جديد في القاعدة. */
+      function contractRowData(prefix) {
+        if (state.viewType !== "contracts") return null;
+        var num = $(prefix + "ContractNumber"), type = $(prefix + "ContractType");
+        var start = $(prefix + "ContractStart"), renew = $(prefix + "ContractRenewal"), notice = $(prefix + "ContractNotice");
+        var out = {};
+        if (num && num.value.trim()) out.contract_number = num.value.trim();
+        if (type && type.value.trim()) out.contract_type = type.value.trim();
+        if (start && start.value) out.contract_start = start.value;
+        if (renew && renew.value) out.contract_renewal = renew.value;
+        if (notice && String(notice.value).trim()) out.contract_notice = String(notice.value).trim();
+        return out;
+      }
+
+      function fillContractFields(prefix, item) {
+        var f = contractFields(item || {});
+        var d = (item && item.data) || {};
+        var num = $(prefix + "ContractNumber"), type = $(prefix + "ContractType");
+        var start = $(prefix + "ContractStart"), notice = $(prefix + "ContractNotice");
+        if (num) num.value = d.contract_number || "";
+        if (type) type.value = d.contract_type || "";
+        if (start) start.value = d.contract_start || "";
+        if (notice) notice.value = d.contract_notice || "";
+        fillRenewalOptions($(prefix + "ContractRenewal"), f.renewal);
+      }
+
+      function clearContractFields(prefix) {
+        ["ContractNumber", "ContractType", "ContractStart", "ContractNotice"].forEach(function (k) {
+          var el = $(prefix + k);
+          if (el) el.value = "";
+        });
+        var renew = $(prefix + "ContractRenewal");
+        if (renew) renew.value = "";
       }
 
       function numOrNull(v) {
@@ -434,6 +472,154 @@
           '<div class="total-card"><span class="total-label">' + esc(T("totalAmount")) + '</span><span class="total-value">' + money(sum) + "</span></div>" +
           '<div class="total-card"><span class="total-label">' + esc(T("totalUnpaid")) + '</span><span class="total-value">' + money(unpaidSum) + "</span></div>" +
           '<div class="total-card"><span class="total-label">' + esc(T("totalOverdue")) + '</span><span class="total-value">' + esc(String(overdue)) + "</span></div>";
+      }
+
+      /* ---------- العقود: شاشتها تقرأ ما يقرؤه صاحب العقد ----------
+         العقد ليس عنصرا بموعد، بل مدة بين تاريخين لها قيمة وطرف وتجديد ومهلة إشعار.
+         المهلة هي بيت القصيد: من يفوّتها يتجدد عليه العقد سنة كاملة بلا إرادته. */
+
+      var CONTRACT_RENEWALS = ["auto", "manual", "none"];
+      var CONTRACT_RENEWAL_KEYS = { auto: "renewalAuto", manual: "renewalManual", none: "renewalNone" };
+      var CONTRACT_SOON_DAYS = 90;   /* بلا مهلة مكتوبة: تسعون يوما تكفي لقرار التجديد */
+
+      function contractFields(item) {
+        var d = item.data || {};
+        var renew = String(d.contract_renewal || d["التجديد"] || "").trim();
+        return {
+          number: dataOf(item, ["contract_number", "رقم العقد"]) || item.case_number || "",
+          party: (app.clientDisplayName ? app.clientDisplayName(item) : item.client_name) || dataOf(item, ["الطرف الآخر", "party"]),
+          ctype: dataOf(item, ["contract_type", "نوع العقد"]) || item.category || "",
+          start: dataOf(item, ["contract_start", "تاريخ البدء", "تاريخ التوقيع", "start_date"]),
+          notice: dataOf(item, ["contract_notice", "مهلة الإشعار"]),
+          renewal: CONTRACT_RENEWAL_KEYS[renew] ? renew : ""
+        };
+      }
+
+      function contractNoticeDays(f) {
+        var n = Number(f.notice);
+        return isFinite(n) && n > 0 ? n : CONTRACT_SOON_DAYS;
+      }
+
+      /* ثلاث حالات لا أكثر: ساري، وقربت مهلته، ومنتهٍ. */
+      function contractState(item) {
+        if (item.status === "done" || item.status === "cancelled") return "ended";
+        if (!item.due_at) return "active";
+        var due = new Date(item.due_at).getTime();
+        if (!isFinite(due)) return "active";
+        var now = Date.now();
+        if (due < now) return "ended";
+        return due - now <= contractNoticeDays(contractFields(item)) * 86400000 ? "soon" : "active";
+      }
+
+      var CONTRACT_STATE_KEYS = { active: "contractActive", soon: "contractSoon", ended: "contractEnded" };
+
+      function fillRenewalOptions(sel, value) {
+        if (!sel) return;
+        paintEl(sel).html = '<option value="">' + esc(T("renewalNone")) + "</option>" +
+          CONTRACT_RENEWALS.map(function (k) {
+            return '<option value="' + k + '">' + esc(T(CONTRACT_RENEWAL_KEYS[k])) + "</option>";
+          }).join("");
+        sel.value = value || "";
+      }
+
+      function renderContractFilters(items) {
+        var parties = {}, types = {};
+        items.forEach(function (it) {
+          var f = contractFields(it);
+          if (f.party) parties[f.party] = true;
+          if (f.ctype) types[f.ctype] = true;
+        });
+        var party = $("contractPartyFilter");
+        if (party) {
+          var cur = state.contractParty || "";
+          paintEl(party).html = '<option value="">' + esc(T("allParties")) + "</option>" +
+            Object.keys(parties).sort().map(function (n) { return '<option value="' + esc(n) + '">' + esc(n) + "</option>"; }).join("");
+          party.value = cur;
+        }
+        var type = $("contractTypeFilter");
+        if (type) {
+          var curT = state.contractType || "";
+          paintEl(type).html = '<option value="">' + esc(T("allContractTypes")) + "</option>" +
+            Object.keys(types).sort().map(function (n) { return '<option value="' + esc(n) + '">' + esc(n) + "</option>"; }).join("");
+          type.value = curT;
+        }
+        var st = $("contractStateFilter");
+        if (st) {
+          var curS = state.contractState || "";
+          paintEl(st).html = '<option value="">' + esc(T("allContractStates")) + "</option>" +
+            ["active", "soon", "ended"].map(function (k) {
+              return '<option value="' + k + '">' + esc(T(CONTRACT_STATE_KEYS[k])) + "</option>";
+            }).join("");
+          st.value = curS;
+        }
+        var list = $("contractTypeSuggest");
+        if (list) paintEl(list).html = Object.keys(types).sort().map(function (n) { return '<option value="' + esc(n) + '"></option>'; }).join("");
+      }
+
+      function renderContractTotals(items) {
+        var box = $("contractTotals");
+        if (!box) return;
+        var sum = 0, soon = 0, ended = 0;
+        items.forEach(function (it) {
+          sum += Number(it.amount) || 0;
+          var st = contractState(it);
+          if (st === "soon") soon++;
+          if (st === "ended") ended++;
+        });
+        paintEl(box).html =
+          '<div class="total-card"><span class="total-label">' + esc(T("totalContracts")) + '</span><span class="total-value">' + esc(String(items.length)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("totalContractValue")) + '</span><span class="total-value">' + money(sum) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("totalContractSoon")) + '</span><span class="total-value">' + esc(String(soon)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("totalContractEnded")) + '</span><span class="total-value">' + esc(String(ended)) + "</span></div>";
+      }
+
+      function renderContracts() {
+        renderContractFilters(state.items);
+        var items = state.items.filter(function (it) {
+          var f = contractFields(it);
+          if (state.contractParty && f.party !== state.contractParty) return false;
+          if (state.contractType && f.ctype !== state.contractType) return false;
+          if (state.contractState && contractState(it) !== state.contractState) return false;
+          return true;
+        });
+        renderContractTotals(items);
+        var body = $("contractsBody");
+        body.innerHTML = "";
+        $("contractsWrap").hidden = items.length === 0;
+        $("emptyList").hidden = items.length > 0;
+        items.forEach(function (item) {
+          var f = contractFields(item);
+          var sk = statusKeyOf(item);
+          var cs = contractState(item);
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            '<td class="cell-num">' + esc(f.number || "-") + "</td>" +
+            '<td><span class="item-title" data-tr>' + esc(item.title) + "</span></td>" +
+            '<td data-tr>' + esc(f.party || "-") + "</td>" +
+            "<td>" + esc(f.ctype || "-") + "</td>" +
+            '<td class="cell-num">' + esc(shortDate(f.start)) + "</td>" +
+            '<td class="cell-num">' + (item.due_at ? esc(app.fmtDate(item.due_at)) : "-") + "</td>" +
+            '<td class="cell-num">' + (item.due_at
+              ? '<span class="item-cat due-left" data-due="' + esc(item.due_at) + '"></span>'
+              : "-") + "</td>" +
+            '<td class="cell-num">' + money(item.amount) + "</td>" +
+            "<td>" + (f.renewal ? esc(T(CONTRACT_RENEWAL_KEYS[f.renewal])) : "-") +
+              (f.notice ? ' <span class="item-cat">' + esc(T("noticeShort").replace("%s", f.notice)) + "</span>" : "") + "</td>" +
+            '<td><span class="status-' + sk + '">' + esc(T(CONTRACT_STATE_KEYS[cs])) + "</span></td>" +
+            '<td><div class="chat-options row-actions">' +
+              (item.status === "done" ? actionBtn(item, "reopen", "actionReopen") : actionBtn(item, "done", "actionDone")) +
+              actionBtn(item, "edit", "actionEdit") +
+              actionBtn(item, "delete", "actionDelete", "is-danger") +
+            "</div></td>";
+          body.appendChild(tr);
+        });
+      }
+
+      /* حقول العقد تظهر في شاشة العقود وحدها، في نموذجي الإضافة والتعديل معا. */
+      function applyViewFields() {
+        document.querySelectorAll("[data-view]").forEach(function (el) {
+          el.hidden = el.getAttribute("data-view") !== state.viewType;
+        });
       }
 
       /* ---------- مصاريف التشغيل: شاشتها لا تشبه القضايا ---------- */
@@ -895,6 +1081,8 @@
           $("tableWrap").hidden = true;
           $("expensesBar").hidden = true;
           $("expensesWrap").hidden = true;
+          $("contractsBar").hidden = true;
+          $("contractsWrap").hidden = true;
           renderViolations();
           return;
         }
@@ -903,13 +1091,27 @@
           $("tableWrap").hidden = true;
           $("violationsBar").hidden = true;
           $("violationsWrap").hidden = true;
+          $("contractsBar").hidden = true;
+          $("contractsWrap").hidden = true;
           renderExpenses();
+          return;
+        }
+        if (state.viewType === "contracts") {
+          $("contractsBar").hidden = false;
+          $("tableWrap").hidden = true;
+          $("violationsBar").hidden = true;
+          $("violationsWrap").hidden = true;
+          $("expensesBar").hidden = true;
+          $("expensesWrap").hidden = true;
+          renderContracts();
           return;
         }
         $("expensesBar").hidden = true;
         $("expensesWrap").hidden = true;
         $("violationsBar").hidden = true;
         $("violationsWrap").hidden = true;
+        $("contractsBar").hidden = true;
+        $("contractsWrap").hidden = true;
         if (renderPackTable()) return;
         var body = $("itemsBody");
         body.innerHTML = "";
@@ -982,6 +1184,8 @@
           var catField = $("addCategory");
           if (catField && !catField.value) catField.value = VIEW_TYPES[state.viewType].defaultCategory;
         }
+        applyViewFields();
+        if (state.viewType === "contracts") fillRenewalOptions($("addContractRenewal"), $("addContractRenewal").value);
         var p = $("addItemPanel");
         p.hidden = !p.hidden;
         clearMsg("addMsg");
@@ -1008,6 +1212,8 @@
           case_number: $("addCaseNumber").value.trim() || null,
           status: "open"
         };
+        var cdata = contractRowData("add");
+        if (cdata) row.data = cdata;
         if (state.pendingParent) row.parent_id = state.pendingParent;
         guard(function () {
           $("addSaveBtn").disabled = true;
@@ -1020,6 +1226,7 @@
             $("addClient").value = "";
             $("addClientEn").value = "";
             $("addCaseNumber").value = "";
+            clearContractFields("add");
             state.pendingParent = "";
             return refresh();
           });
@@ -1167,6 +1374,8 @@
         $("editClient").value = item.client_name || "";
         $("editClientEn").value = item.client_name_en || "";
         $("editCaseNumber").value = item.case_number || "";
+        applyViewFields();
+        if (state.viewType === "contracts") fillContractFields("edit", item);
         fillRemindOptions($("editRemind"), item.remind_before);
         clearMsg("editMsg");
         show("editPanel");

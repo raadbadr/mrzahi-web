@@ -20,6 +20,9 @@
           status: $("editStatus").value || "open",
           remind_before: $("editRemind").value || null
         };
+        /* data تُستبدل كاملة عند الحفظ، فتُدمج بيانات العقد فوق ما كان لا بدلا منه. */
+        var cdata = contractRowData("edit");
+        if (cdata) patch.data = Object.assign({}, state.editing.data || {}, cdata);
         var id = state.editing.id;
         guard(function () {
           $("editSaveBtn").disabled = true;
