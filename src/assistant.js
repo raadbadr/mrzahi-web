@@ -44,6 +44,8 @@ const PLANS = [
     members: 5, items: 2000, channels: ["telegram"], excel_imports_per_month: null, calendar: ["ics", "google"] },
   { code: "yearly", name_ar: "سنوي", name_en: "Yearly", price_monthly_sar: null, price_yearly_sar: 490,
     members: 15, items: 20000, channels: ["telegram"], excel_imports_per_month: null, calendar: ["ics", "google"], priority_support: true },
+  { code: "business", name_ar: "باقة الشركات", name_en: "Business", price_monthly_sar: null, price_yearly_sar: 7000,
+    vat_excluded: true, members: null, items: null, channels: ["telegram"], excel_imports_per_month: null, calendar: ["ics", "google"], priority_support: true },
 ];
 
 function toolAppInfo() {
