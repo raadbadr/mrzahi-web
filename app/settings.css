@@ -446,9 +446,54 @@
     .rule-check { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; white-space: nowrap; }
     .rule-check input { accent-color: var(--primary); }
     .rule-check input:disabled + span { opacity: 0.5; }
-    .storage-switch { white-space: normal; margin: 0.5rem 0 0.25rem; }
-    .storage-bar { height: 8px; border-radius: 4px; background: var(--glass-border); overflow: hidden; margin: 0 0 1rem; }
+    /* ــ التخزين: عدّاد الحصة، ثم بطاقة درايف بشعارها ومفتاحها ــ */
+    .storage-meter { margin-bottom: 1.25rem; }
+    .storage-meter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
+    .storage-meter-head span { color: var(--text-secondary); font-size: 0.95rem; }
+    .storage-meter-head b { font-weight: 700; font-size: 1.05rem; }
+    .storage-bar { height: 8px; border-radius: 4px; background: var(--glass-border); overflow: hidden; margin: 0; }
     .storage-bar i { display: block; height: 100%; width: 0; background: var(--primary); transition: width 0.3s; }
+
+    /* الصف شبكة بثلاثة أعمدة ثابتة: الشعار، النص، المفتاح — لا يتحرك المفتاح مهما طال النص */
+    .drive-row {
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr) 52px;
+      align-items: center;
+      gap: 0.9rem;
+      padding: 1rem;
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      background: var(--glass);
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .drive-row.is-on { border-color: var(--primary); box-shadow: 0 6px 18px var(--primary-shadow); }
+    .drive-mark svg { display: block; width: 40px; height: 40px; }
+    .drive-text { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+    .drive-title { font-weight: 600; line-height: 1.5; }
+    .drive-note { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; }
+    .drive-folder {
+      color: var(--primary); font-size: 0.9rem; text-decoration: none;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .drive-folder:hover { text-decoration: underline; }
+    .drive-switch { position: relative; display: block; width: 52px; height: 32px; }
+    .drive-switch input { position: absolute; inset: 0; z-index: 2; margin: 0; opacity: 0; cursor: pointer; }
+    .drive-switch input:disabled { cursor: not-allowed; }
+    .drive-switch i { position: absolute; inset: 0; border-radius: 999px; background: var(--glass-border); transition: background 0.25s; }
+    .drive-switch i::after {
+      content: ""; position: absolute; top: 3px; inset-inline-start: 3px;
+      width: 26px; height: 26px; border-radius: 50%; background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 0.25s;
+    }
+    .drive-switch input:checked + i { background: var(--primary); }
+    .drive-switch input:checked + i::after { transform: translateX(20px); }
+    [dir="rtl"] .drive-switch input:checked + i::after { transform: translateX(-20px); }
+    .drive-switch input:disabled + i { opacity: 0.5; }
+    .drive-switch input:focus-visible + i { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .visually-hidden {
+      position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
     .rules-table .chat-options { margin-top: 0; flex-wrap: nowrap; }
     .plan-limits { list-style: none; margin-bottom: 1.5rem; }
     .plan-limits li {
@@ -555,8 +600,7 @@
     }
 
     @media (max-width: 900px) {
-      /* مربع اختيار جوجل درايف كان 13 بكسل: أصغر من أن يُلمس.
-         الصندوق 24 والسطر كله 44 فالإصبع يصيبه من أي موضع. */
-      #storageDriveToggle { width: 24px; height: 24px; flex: 0 0 auto; }
-      .storage-switch { min-height: 44px; display: flex; align-items: center; gap: .6rem; }
+      /* الجوال: الشعار أصغر قليلا والمفتاح يبقى في عموده، ومساحة لمسه 52×32 كافية. */
+      .drive-row { grid-template-columns: 32px minmax(0, 1fr) 52px; gap: 0.7rem; padding: 0.9rem; }
+      .drive-mark svg { width: 32px; height: 32px; }
     }

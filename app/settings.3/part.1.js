@@ -660,20 +660,20 @@
       }
 
       function renderStorage() {
-        var list = el("storageSummary");
-        if (!list) return Promise.resolve();
+        var value = el("storageUsageValue");
+        if (!value) return Promise.resolve();
         renderDriveSwitch();
-        if (!app.org || typeof app.storageUsed !== "function") { list.innerHTML = ""; return Promise.resolve(); }
+        if (!app.org || typeof app.storageUsed !== "function") { value.textContent = "—"; return Promise.resolve(); }
         var capMb = state.limits ? state.limits.storage_mb : null;
         return app.storageUsed().then(function (used) {
           var usedMb = (Number(used) || 0) / 1048576;
           var capText = (capMb === null || capMb === undefined) ? t("unlimited") : fmtMb(Number(capMb));
-          list.innerHTML = "<li><span>" + esc(t("storageUsage")) + "</span><span dir=\"ltr\">" + esc(fmtMb(usedMb) + " / " + capText) + "</span></li>";
+          value.textContent = fmtMb(usedMb) + " / " + capText;
           var pct = capMb ? Math.min(100, Math.round(usedMb / Number(capMb) * 100)) : 0;
           var fill = el("storageBarFill");
           if (fill) fill.style.width = pct + "%";
           if (pct >= 90) setMsg("storageMsg", t("storageFull"), "error"); else show("storageMsg", false);
-        }).catch(function () { list.innerHTML = ""; });
+        }).catch(function () { value.textContent = "—"; });
       }
 
       function renderDriveSwitch() {
@@ -684,9 +684,11 @@
         box.checked = on && available;
         box.disabled = !available;
         status.textContent = !available ? t("storageDriveUnavailable") : (on ? t("storageDriveOn") : t("storageDriveOff"));
-        var folderRow = el("storageDriveFolder"), link = el("storageDriveFolderLink");
+        var row = el("storageDriveRow");
+        if (row) row.classList.toggle("is-on", box.checked);
+        var link = el("storageDriveFolderLink");
         var f = on && app.driveFolderCached ? app.driveFolderCached() : null;
-        if (folderRow && link) { folderRow.hidden = !f; if (f) { link.href = f.url; link.textContent = f.path; } }
+        if (link) { link.hidden = !f; if (f) { link.href = f.url; link.textContent = f.path; link.title = t("storageDriveFolder"); } }
       }
 
       /* التفويض يطلب بنقرة المستخدم نفسها، ولا يحفظ الخيار إلا بعد الإذن */
