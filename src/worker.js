@@ -17,7 +17,7 @@ import { runNotificationCron, purgeExpiredAccountDeletions, linkChannelByCode, n
          bot as botText, menuKeyboard, menuAction, urlButton, formatItems, telegramItems, linkChannelDirect, linkChannelByPhone, contactKeyboard,
          sendChatAction, fetchTelegramFile, bytesToBase64, TELEGRAM_FILE_MAX, answerCallback, clearInlineButtons, confirmButtons, actionButtons } from "./notify.js";
 import { ALLOWED_EXT, fileExt, parseWorkbook, draftPayload, commitImport } from "./telegram-import.js";
-import { extractIntent, describeAction, formatSearch, executeAction, runTelegramDigests, runAbsenceNudges } from "./telegram-actions.js";
+import { extractIntent, describeAction, formatSearch, executeAction, runTelegramDigests, runAbsenceNudges, runTrialCountdown } from "./telegram-actions.js";
 import { hmacHex, telegramFileRoute, handleTelegramFile, offerDocument, handleDocCallback } from "./telegram-documents.js";
 
 function json(data, status = 200) {
@@ -969,6 +969,8 @@ export default {
     ctx.waitUntil(runTelegramDigests(env).then((r) => console.log("[digest]", JSON.stringify(r))).catch((e) => console.error("[digest]", String(e))));
     // من غاب عن المنصة يومين: رسالة «وحشتنا» بأرقامه، العاشرة بتوقيته، مرة كل ثلاثة أيام
     ctx.waitUntil(runAbsenceNudges(env).then((r) => console.log("[nudge]", JSON.stringify(r))).catch((e) => console.error("[nudge]", String(e))));
+    // الفترة التجريبية: كم بقي منها، كل يوم التاسعة بتوقيت صاحب الحساب
+    ctx.waitUntil(runTrialCountdown(env).then((r) => console.log("[trial]", JSON.stringify(r))).catch((e) => console.error("[trial]", String(e))));
     // حذف الحسابات التي انتهت فترة سماحها (30 يوما بلا دخول)
     ctx.waitUntil(purgeExpiredAccountDeletions(env).then((r) => console.log("[account-purge]", JSON.stringify(r))).catch((e) => console.error("[account-purge]", String(e))));
   },

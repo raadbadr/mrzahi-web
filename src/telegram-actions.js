@@ -7,6 +7,7 @@ import { rpc, sendTelegram, bot as botText, menuKeyboard, urlButton, VERBS } fro
 const INTENT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const RIYADH = "Asia/Riyadh";
 export const DASHBOARD_URL = "https://mrzahi.com/app/dashboard.html";
+export const PLANS_URL = "https://mrzahi.com/app/settings#subscriptionCard";
 
 const INTENT_SCHEMA = {
   type: "object",
@@ -313,6 +314,29 @@ export async function runAbsenceNudges(env) {
       await rpc(env, "telegram_mark_nudge", { p_secret: env.WORKER_SECRET, p_user_id: u.user_id });
       sent++;
     } catch (e) { console.error("[nudge]", String((e && e.message) || e).slice(0, 200)); }
+  }
+  return { targets: Array.isArray(targets) ? targets.length : 0, sent };
+}
+
+/* عد تنازلي يومي في الفترة التجريبية: كم بقي، ومتى تنتهي، وزر الباقات.
+   لصاحب الحساب ومشرفيه وحدهم، التاسعة بتوقيته، مرة واحدة في اليوم. الأرقام من القاعدة لا من تقدير. */
+export async function runTrialCountdown(env) {
+  if (!env.WORKER_SECRET || !env.TELEGRAM_BOT_TOKEN) return { skipped: "not configured" };
+  let targets = [];
+  try { targets = await rpc(env, "telegram_trial_targets", { p_secret: env.WORKER_SECRET }); }
+  catch (e) { return { error: String((e && e.message) || e).slice(0, 200) }; }
+  let sent = 0;
+  for (const u of (Array.isArray(targets) ? targets : [])) {
+    try {
+      const b = botText(u.lang || "ar");
+      const days = Number(u.days_left) || 0;
+      const lines = [b.trialLeft(days)];
+      if (u.ends_at) lines.push(b.trialEnds(fmtDue(u.ends_at, u.tz || RIYADH, false).slice(0, 10)));
+      lines.push(b.trialCall);
+      await sendTelegram(env, u.chat_id, lines.join("\n"), urlButton(b.trialBtn, PLANS_URL));
+      await rpc(env, "telegram_mark_trial", { p_secret: env.WORKER_SECRET, p_user_id: u.user_id });
+      sent++;
+    } catch (e) { console.error("[trial]", String((e && e.message) || e).slice(0, 200)); }
   }
   return { targets: Array.isArray(targets) ? targets.length : 0, sent };
 }
