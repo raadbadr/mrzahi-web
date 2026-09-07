@@ -73,10 +73,10 @@ const ABOUT_REPLY = { ar: "أنا مساعد مستر زاهي، أجيب من �
 const GREET_REPLY = { ar: "أهلا. اكتب ما تريد مباشرة: قضايا، مخالفات، مهام، مستندات، مواعيد، متأخر، مصاريف، الشركة، الفريق.", en: "Hello. Just write what you need: cases, violations, tasks, documents, upcoming, overdue, expenses, company, team.", fr: "Bonjour. Écrivez directement : affaires, infractions, tâches, documents, échéances, retards, dépenses, société, équipe.", ur: "خوش آمدید۔ براہ راست لکھیں: مقدمات، خلاف ورزیاں، کام، دستاویزات، تاریخیں، تاخیر، اخراجات، کمپنی، ٹیم۔" };
 const THANKS_REPLY = { ar: "على الرحب.", en: "Anytime.", fr: "Avec plaisir.", ur: "خوش آمدید۔" };
 export const LABELS = {
-  ar: { case: "القضايا", violation: "المخالفات", task: "المهام", document: "المستندات", all: "العناصر", done: "المنجز", upcoming: "المواعيد القادمة", overdue: "المتأخرات", search: "النتائج", today: "اليوم", tomorrow: "غدا", day_after: "بعد غد", today_tomorrow: "اليوم وغدا", week: "هذا الأسبوع", month: "هذا الشهر", none_window: "لا مواعيد", nearest: "الأقرب", none_kw: "لا شيء بهذه الكلمة ضمن" },
-  en: { case: "Cases", violation: "Violations", task: "Tasks", document: "Documents", all: "Items", done: "Done", upcoming: "Upcoming", overdue: "Overdue", search: "Results", today: "today", tomorrow: "tomorrow", day_after: "the day after tomorrow", today_tomorrow: "today and tomorrow", week: "this week", month: "this month", none_window: "Nothing due", nearest: "Nearest", none_kw: "Nothing with that word among" },
-  fr: { case: "Affaires", violation: "Infractions", task: "Tâches", document: "Documents", all: "Éléments", done: "Terminé", upcoming: "À venir", overdue: "En retard", search: "Résultats", today: "aujourd'hui", tomorrow: "demain", day_after: "après-demain", today_tomorrow: "aujourd'hui et demain", week: "cette semaine", month: "ce mois", none_window: "Rien d'échu", nearest: "Le plus proche", none_kw: "Rien avec ce mot parmi" },
-  ur: { case: "مقدمات", violation: "خلاف ورزیاں", task: "کام", document: "دستاویزات", all: "آئٹمز", done: "مکمل", upcoming: "آنے والی", overdue: "تاخیر شدہ", search: "نتائج", today: "آج", tomorrow: "کل", day_after: "پرسوں", today_tomorrow: "آج اور کل", week: "اس ہفتے", month: "اس مہینے", none_window: "کوئی تاریخ نہیں", nearest: "قریب ترین", none_kw: "اس لفظ کے ساتھ کچھ نہیں" },
+  ar: { case: "القضايا", violation: "المخالفات", task: "المهام", document: "المستندات", all: "العناصر", done: "المنجز", upcoming: "المواعيد القادمة", overdue: "المتأخرات", search: "النتائج", today: "اليوم", tomorrow: "غدا", day_after: "بعد غد", today_tomorrow: "اليوم وغدا", week: "هذا الأسبوع", month: "هذا الشهر", none_window: "لا مواعيد", nearest: "الأقرب", none_kw: "لا شيء بهذه الكلمة ضمن", at_least: "على الأقل" },
+  en: { case: "Cases", violation: "Violations", task: "Tasks", document: "Documents", all: "Items", done: "Done", upcoming: "Upcoming", overdue: "Overdue", search: "Results", today: "today", tomorrow: "tomorrow", day_after: "the day after tomorrow", today_tomorrow: "today and tomorrow", week: "this week", month: "this month", none_window: "Nothing due", nearest: "Nearest", none_kw: "Nothing with that word among", at_least: "at least" },
+  fr: { case: "Affaires", violation: "Infractions", task: "Tâches", document: "Documents", all: "Éléments", done: "Terminé", upcoming: "À venir", overdue: "En retard", search: "Résultats", today: "aujourd'hui", tomorrow: "demain", day_after: "après-demain", today_tomorrow: "aujourd'hui et demain", week: "cette semaine", month: "ce mois", none_window: "Rien d'échu", nearest: "Le plus proche", none_kw: "Rien avec ce mot parmi", at_least: "au moins" },
+  ur: { case: "مقدمات", violation: "خلاف ورزیاں", task: "کام", document: "دستاویزات", all: "آئٹمز", done: "مکمل", upcoming: "آنے والی", overdue: "تاخیر شدہ", search: "نتائج", today: "آج", tomorrow: "کل", day_after: "پرسوں", today_tomorrow: "آج اور کل", week: "اس ہفتے", month: "اس مہینے", none_window: "کوئی تاریخ نہیں", nearest: "قریب ترین", none_kw: "اس لفظ کے ساتھ کچھ نہیں", at_least: "کم از کم" },
 };
 /* كلمات تصفية المستندات: «الضريبية» ← شهادة القيمة المضافة، «السجل» ← السجل التجاري… */
 const DOC_KEYS = [
@@ -209,6 +209,9 @@ export function composeAnswer(u, rows, lang, rowsText, toolText, tz) {
     list = w;
   }
   if (!list.length) return toolText && toolText !== "No items." ? toolText : null;
-  const head = u.count ? `${u.label}: ${list.length}\n` : "";
+  /* العدد لا يُقال إلا إن كان حقيقيا: حين تبلغ الصفوف حد الصفحة فما بعده لم يُقرأ،
+     فيقال «على الأقل» بدل تقديم حد الصفحة على أنه المجموع. */
+  const capped = !!(u.args && u.args.limit) && Array.isArray(rows) && rows.length >= u.args.limit;
+  const head = u.count ? `${u.label}: ${capped ? L.at_least + " " : ""}${list.length}\n` : "";
   return head + rowsText(list);
 }
