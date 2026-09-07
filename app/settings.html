@@ -116,11 +116,12 @@
             </select>
           </div>
           <div class="settings-field">
-            <label for="profileTimeFormat" data-i18n="timeFormatLabel">صيغة الوقت</label>
-            <select class="waitlist-input" id="profileTimeFormat" dir="ltr">
-              <option value="24" data-i18n="timeFormat24">24 ساعة</option>
-              <option value="12" data-i18n="timeFormat12">12 ساعة (ص/م)</option>
-            </select>
+            <label data-i18n="timeFormatLabel">صيغة الوقت</label>
+            <div class="cal-modes" id="profileTimeFormat" role="group" aria-labelledby="timeFormatLabel">
+              <button type="button" class="cal-mode is-active" data-time-format="24" data-i18n="timeFormat24">24 ساعة</button>
+              <button type="button" class="cal-mode" data-time-format="12" data-i18n="timeFormat12">12 ساعة (ص/م)</button>
+            </div>
+            <p class="settings-note" id="timeFormatSample" dir="ltr"></p>
           </div>
           <div class="settings-actions">
             <button type="submit" class="waitlist-btn" id="profileSaveBtn" data-i18n="saveBtn">حفظ</button>
@@ -251,7 +252,9 @@ curl -H "Authorization: Bearer tt_live_..." "https://mrzahi.com/api/v1/items?tra
         <ul class="plan-limits" id="planSummary"></ul>
         <div class="waitlist-form" id="upgradeForm">
           <select class="waitlist-input" id="upgradePlan"></select>
-          <button type="button" class="waitlist-btn" id="upgradeBtn" data-i18n="upgradeBtn">طلب ترقية</button>
+          <select class="waitlist-input" id="upgradePeriod"></select>
+          <span class="upgrade-price" id="upgradePrice"></span>
+          <button type="button" class="waitlist-btn" id="upgradeBtn" data-i18n="upgradeBtn">اشترك وادفع</button>
         </div>
         <p class="waitlist-msg" id="upgradeMsg" style="display:none" role="status" aria-live="polite"></p>
         <ul class="plan-limits" id="upgradeHistory"></ul>

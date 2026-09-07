@@ -357,6 +357,40 @@
     .settings-field label { font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); }
     .settings-field .waitlist-input { width: 100%; min-width: 0; }
     .settings-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+    /* صفوف مفاتيح الربط: الفئات نفسها معرفة في admin.css وprocesses.css وحدهما،
+       فكانت هنا بلا تنسيق إطلاقا فتلاصق كل شيء. القيم منقولة حرفا بحرف من admin.css. */
+    #apiKeyList { width: 100%; margin-top: 0.75rem; border-top: 1px solid var(--glass-border); }
+    .platform-stat-detail-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.55rem 0;
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+    }
+    .platform-stat-detail-row + .platform-stat-detail-row { border-top: 1px solid var(--glass-border); }
+    .platform-stat-detail-row span:first-child { flex: 1; text-align: start; line-height: 1.9; }
+    .platform-stat-detail-row code { font-size: 0.85rem; opacity: 0.9; }
+    .platform-stat-detail-val { flex: 0 0 auto; text-align: end; }
+    /* الزر لا يمتد على عرض الصف ولا يلتصق بالنص */
+    .platform-stat-detail-val .chat-option-btn { width: auto; padding: 0.3rem 0.9rem; font-size: 0.85rem; }
+    @media (max-width: 600px) {
+      .platform-stat-detail-row { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+      .platform-stat-detail-val { text-align: start; }
+    }
+
+    /* مفتاح تبديل بزرين بنفس نمط «ميلادي/هجري» في التقويم، بالقيم نفسها حرفا بحرف */
+    .cal-modes { display: inline-flex; padding: 0.2rem; border-radius: 12px; background: var(--glass-border); gap: 0.15rem; }
+    .cal-mode {
+      padding: 0.35rem 0.8rem; border: 0; border-radius: 10px; background: transparent;
+      color: var(--text-secondary); font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      -webkit-appearance: none; appearance: none;
+    }
+    .cal-mode.is-active { background: var(--primary); color: var(--btn-ink); }
+    [data-theme="dark"] .cal-mode.is-active { background: var(--primary-light); color: var(--btn-ink); }
+    #timeFormatSample { margin: 0.35rem 0 0; }
     .settings-note { font-size: 0.85rem; }
     .feature-card { text-align: center; }
     .feature-card .chat-options { justify-content: center; }

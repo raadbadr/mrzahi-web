@@ -101,7 +101,22 @@
           el("rulesWrap").addEventListener("click", onRuleAction);
           el("copyUrlBtn").addEventListener("click", copyCalendarUrl);
           if (el("copyDeviceBtn")) el("copyDeviceBtn").addEventListener("click", copyDeviceUrl);
+          if (el("profileTimeFormat")) el("profileTimeFormat").addEventListener("click", function (ev) {
+            var b = ev.target.closest(".cal-mode");
+            if (b) setTimeFormat(b.getAttribute("data-time-format"));
+          });
           el("upgradeBtn").addEventListener("click", submitUpgrade);
+          /* العودة من بوابة الدفع: تُقال النتيجة ويُنظَّف العنوان. */
+          try {
+            var payFlag = new URLSearchParams(window.location.search).get("pay");
+            if (payFlag) {
+              setMsg("upgradeMsg", t(payFlag === "done" ? "payDone" : payFlag === "failed" ? "payFailed" : "payCancelled"),
+                     payFlag === "done" ? "success" : "error");
+              window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+            }
+          } catch (e) { /* تجاهل */ }
+          el("upgradePlan").addEventListener("change", renderUpgradePrice);
+          el("upgradePeriod").addEventListener("change", renderUpgradePrice);
           el("storageDriveToggle").addEventListener("change", onDriveToggle);
           document.addEventListener("tracker:drive", renderDriveSwitch);
 

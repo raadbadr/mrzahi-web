@@ -10,7 +10,7 @@
       var SUPPORT_EMAIL = "support@mrzahi.com";
 
       var app = null;
-      var config = { telegramBot: null, whatsappNumber: null, smsEnabled: false };
+      var config = { telegramBot: null, whatsappNumber: null, smsEnabled: false, payEnabled: false };
       /* القنوات المرتبطة تظهر مطوية حتى يضغط عليها المستخدم */
       var expanded = {};
       var state = {
@@ -122,7 +122,7 @@
           tzSel.appendChild(opt);
         }
         tzSel.value = tz;
-        el("profileTimeFormat").value = p.time_format === "12" ? "12" : "24";
+        setTimeFormat(p.time_format === "12" ? "12" : "24");
       }
 
       /* نفس نمط رقم الجوال في بوابة إكمال الملف الشخصي (mountProfileGate في common.js) — إلزامي دائما. */
@@ -143,7 +143,7 @@
           phone: phone,
           lang: el("profileLang").value,
           tz: el("profileTz").value,
-          time_format: el("profileTimeFormat").value
+          time_format: timeFormat()
         };
         btn.disabled = true;
         setMsg("profileMsg", t("saving"));
@@ -167,6 +167,7 @@
           .then(function (cfg) {
             cfg = cfg || {};
             config.telegramBot = cfg.telegramBot ? String(cfg.telegramBot).replace(/^@/, "") : null;
+            config.payEnabled = !!cfg.payEnabled;
             config.whatsappNumber = cfg.whatsappNumber ? String(cfg.whatsappNumber) : null;
             config.smsEnabled = !!cfg.smsEnabled;
           })
@@ -587,6 +588,27 @@
         });
       }
 
+      /* صيغة الوقت: مفتاح بزرين، ومثال حي تحته يريه الفرق قبل أن يحفظ */
+      function timeFormat() {
+        var on = document.querySelector("#profileTimeFormat .cal-mode.is-active");
+        return on && on.getAttribute("data-time-format") === "12" ? "12" : "24";
+      }
+      function setTimeFormat(value) {
+        var box = el("profileTimeFormat");
+        if (!box) return;
+        var btns = box.querySelectorAll(".cal-mode");
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].classList.toggle("is-active", btns[i].getAttribute("data-time-format") === value);
+          btns[i].setAttribute("aria-pressed", btns[i].getAttribute("data-time-format") === value ? "true" : "false");
+        }
+        var sample = el("timeFormatSample");
+        if (sample) {
+          var d = new Date();
+          d.setHours(21, 30, 0, 0);
+          sample.textContent = new Intl.DateTimeFormat("en-GB", { numberingSystem: "latn", hour: value === "12" ? "numeric" : "2-digit", minute: "2-digit", hour12: value === "12" }).format(d);
+        }
+      }
+
       function copyDeviceUrl() {
         var input = el("deviceUrl");
         var url = input ? input.value : "";
@@ -796,6 +818,8 @@
           options += '<option value="' + code + '">' + esc(planLabel(code)) + "</option>";
         });
         sel.innerHTML = options;
+        fillUpgradePeriod();
+        renderUpgradePrice();
         el("upgradeForm").style.display = options ? "" : "none";
         renderUpgradeHistory();
       }
@@ -820,17 +844,60 @@
         }).catch(function () { /* الطلبات ليست حرجة */ });
       }
 
+      /* السعر يُقرأ من جدول الباقات لا من نص مكتوب، ويتبع المدة المختارة. */
+      function planRow(code) {
+        for (var i = 0; i < (state.plans || []).length; i++) if (state.plans[i].code === code) return state.plans[i];
+        return null;
+      }
+
+      function renderUpgradePrice() {
+        var box = el("upgradePrice"), sel = el("upgradePlan"), per = el("upgradePeriod");
+        if (!box || !sel || !per) return;
+        var row = planRow(sel.value);
+        var amount = row ? (per.value === "yearly" ? row.price_yearly_sar : row.price_monthly_sar) : null;
+        box.innerHTML = amount
+          ? esc(app.fmtAmount(Number(amount))) + ' <span class="sar-symbol" aria-label="ريال سعودي"></span>'
+          : "";
+      }
+
+      function fillUpgradePeriod() {
+        var per = el("upgradePeriod");
+        if (!per || per.options.length) return;
+        per.innerHTML = '<option value="monthly">' + esc(t("periodMonthly")) + "</option>" +
+                        '<option value="yearly">' + esc(t("periodYearly")) + "</option>";
+        per.value = "yearly";
+      }
+
+      /* الدفع داخل النظام: يُنشأ الطلب في الوركر ثم يُحوَّل صاحبه إلى البوابة،
+         وعند نجاح التحصيل تفعّل القاعدة الاشتراك وحدها بلا تدخل أحد. */
       function submitUpgrade() {
-        var btn = el("upgradeBtn");
-        var sel = el("upgradePlan");
+        var btn = el("upgradeBtn"), sel = el("upgradePlan"), per = el("upgradePeriod");
         if (!app.org) { setMsg("upgradeMsg", t("noOrg"), "error"); return; }
         btn.disabled = true;
-        app.requestPlan({ plan_code: sel.value }).then(function () {
-          setMsg("upgradeMsg", t("upgradeSent"), "success");
-          return loadPlanRequests();
+        if (!config.payEnabled) {
+          return app.requestPlan({ plan_code: sel.value }).then(function () {
+            setMsg("upgradeMsg", t("upgradeSent"), "success");
+            return loadPlanRequests();
+          }).catch(function () {
+            setMsg("upgradeMsg", t("genericError"), "error");
+          }).finally(function () { btn.disabled = false; });
+        }
+        setMsg("upgradeMsg", t("payOpening"));
+        window.trackerAuth.getSession().then(function (session) {
+          var jwt = session && session.access_token;
+          if (!jwt) throw new Error("no session");
+          return swFetch("/api/pay/paypal/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + jwt },
+            body: JSON.stringify({ org: app.org.id, plan: sel.value, period: per ? per.value : "yearly" }),
+          }, 15000);
+        }).then(function (res) { return res.json(); }).then(function (out) {
+          if (!out || !out.url) throw new Error(out && out.error ? out.error : "no url");
+          window.location.href = out.url;
         }).catch(function () {
-          setMsg("upgradeMsg", t("genericError"), "error");
-        }).finally(function () { btn.disabled = false; });
+          btn.disabled = false;
+          setMsg("upgradeMsg", t("payFailed"), "error");
+        });
       }
 
       /* ---------- sign out ---------- */
