@@ -18,3 +18,11 @@ insert into public.pack_services (pack_key, service, sort_order) values
   ('legal', 'rulings', 3),
   ('legal', 'contracts', 4)
 on conflict (pack_key, service) do update set sort_order = excluded.sort_order;
+
+-- وصف الواجهة في شاشة اختيار الواجهات يسمي الشاشتين، وإلا اختار المحامي واجهته وهو لا يعلم بهما.
+update public.ui_packs set hints = jsonb_build_object(
+  'ar','للمحامي والمكتب والإدارة القانونية: قضايا وأحكام وعقود ومخالفات ومستندات وفريق وإجراءات ومخاطر',
+  'en','For a lawyer, a firm or a legal department: cases, rulings, contracts, violations, documents, team, processes and risks',
+  'fr','Pour un avocat, un cabinet ou un service juridique : affaires, jugements, contrats, infractions, documents, equipe',
+  'ur','وکیل، فرم یا قانونی شعبے کے لیے: مقدمات، فیصلے، معاہدے، خلاف ورزیاں، دستاویزات، ٹیم')
+ where key = 'legal';
