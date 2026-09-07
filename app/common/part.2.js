@@ -213,7 +213,10 @@
     if (!driveAvailable()) return Promise.reject(new Error("drive_unavailable"));
     return driveAccessToken().then(function (token) {
       return loadScriptOnce("https://apis.google.com/js/api.js", function () { return !!window.gapi; })
-        .then(function () { return new Promise(function (resolve) { window.gapi.load("picker", { callback: resolve }); }); })
+        .then(function () { return new Promise(function (resolve, reject) {
+      var timer = setTimeout(function () { reject(new Error("picker_timeout")); }, 20000);
+      window.gapi.load("picker", { callback: function () { clearTimeout(timer); resolve(); } });
+    }); })
         .then(function () {
           return new Promise(function (resolve, reject) {
             var view = new window.google.picker.DocsView(window.google.picker.ViewId.DOCS).setIncludeFolders(true).setSelectFolderEnabled(false);

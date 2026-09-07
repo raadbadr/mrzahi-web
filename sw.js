@@ -1,5 +1,5 @@
 /* MrZahi — تخزين مؤقت للتصفح دون اتصال (نفس أصل الموقع فقط) */
-const CACHE_NAME = "mrzahi-offline-v4";
+const CACHE_NAME = "mrzahi-offline-v5";
 
 const PRECACHE_URLS = [
   "./index.html",
@@ -58,6 +58,33 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+/* طلب لا يعود لا ينجح ولا يفشل، فلا يصل الدور إلى الكاش ولا إلى أي معالج:
+   المتصفح يبقى واقفا على العامل. هنا يُسابَق كل طلب بمهلة، فينتهي الأمر دائما. */
+function raceNetwork(request, ms) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      reject(new Error("sw_network_timeout"));
+    }, ms);
+    fetch(request).then(
+      (response) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(response);
+      },
+      (err) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
@@ -78,11 +105,11 @@ self.addEventListener("fetch", (event) => {
   const isFreshAsset = p.endsWith(".css") || p.endsWith(".js") || p.endsWith(".webmanifest") || isIcon;
   if (isDocumentRequest(request, url) || isFreshAsset) {
     event.respondWith(
-      fetch(request)
+      raceNetwork(request, 5000)
         .then((response) => {
-          if (response.ok) {
+          if (response && response.ok) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => {});
           }
           return response;
         })
@@ -91,7 +118,9 @@ self.addEventListener("fetch", (event) => {
             if (cached) return cached;
             /* سقوط index.html للمستندات فقط — لا يصلح بديلاً لأصل CSS/JS */
             if (isFreshAsset) return Response.error();
-            return caches.match(new URL("./index.html", scopeBase()).href);
+            return caches
+              .match(new URL("./index.html", scopeBase()).href)
+              .then((page) => page || Response.error());
           })
         )
     );
@@ -101,15 +130,15 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
-      return fetch(request)
+      return raceNetwork(request, 8000)
         .then((response) => {
-          if (response.ok) {
+          if (response && response.ok) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => {});
           }
           return response;
         })
-        .catch(() => Promise.resolve());
+        .catch(() => Response.error());
     })
   );
 });

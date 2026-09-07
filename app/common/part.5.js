@@ -69,7 +69,11 @@
 
   (function fetchDriveConfig() {
     try {
-      fetch("/api/config", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (cfg) {
+      (function () {
+      var ctrl = window.AbortController ? new AbortController() : null;
+      setTimeout(function () { if (ctrl) ctrl.abort(); }, 8000);
+      return fetch("/api/config", ctrl ? { cache: "no-store", signal: ctrl.signal } : { cache: "no-store" });
+    })().then(function (r) { return r.ok ? r.json() : null; }).then(function (cfg) {
         if (!cfg) return;
         driveConfig.clientId = cfg.googleClientId || null;
         driveConfig.apiKey = cfg.googleApiKey || null;

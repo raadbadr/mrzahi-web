@@ -244,7 +244,7 @@
           $("statOverdueVal").textContent = String(overdue);
           statsReady();
           $("statDoneVal").textContent = String(done);
-        }).catch(function (err) { fail(err); });
+        }).catch(function (err) { statsReady(); fail(err); });
       }
 
       /* ---------- tabs ---------- */

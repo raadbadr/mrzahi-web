@@ -51,7 +51,7 @@
       position: relative;
       z-index: 1;
     }
-    /* Gradient border + shine — نفس أسلوب بطاقات الميزات */
+    /* لمعة خفيفة عند المرور */
     .platform-stat-card::after {
       content: '';
       position: absolute;
@@ -652,7 +652,6 @@
       transform-style: preserve-3d;
     }
     
-    /* Gradient Border Effect */
     
     /* Shine Effect */
     .feature-card::after {

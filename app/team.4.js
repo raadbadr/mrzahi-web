@@ -393,10 +393,17 @@
           }).catch(function (err) { toast(err && err.message ? err.message : t("chatLoadError"), "error"); });
         });
 
-        if (!app || !app.ready) {  return; }
+        /* المخارج الثلاثة كانت فارغة، فتبقى مساحة بيضاء بلا دردشة ولا سبب. */
+        function chatStop(key) {
+          var box = $("chatError");
+          if (box) box.textContent = t(key);
+          show("chatError", true);
+          show("chatCard", true);
+        }
+        if (!app || !app.ready) { chatStop("chatUnavailable"); return; }
         app.ready.then(function (res) {
-          if (app.unavailable || (res && res.unavailable)) {  return; }
-          if (!app.org) {  return; }
+          if (app.unavailable || (res && res.unavailable)) { chatStop("chatUnavailable"); return; }
+          if (!app.org) { chatStop("chatNoOrg"); return; }
           try {
             var qs = new URLSearchParams(window.location.search);
             var p = qs.get("with") || qs.get("chat");

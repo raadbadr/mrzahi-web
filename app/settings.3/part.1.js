@@ -162,7 +162,7 @@
       /* ---------- notification channels ---------- */
 
       function loadConfig() {
-        return fetch("/api/config", { cache: "no-store", headers: { Accept: "application/json" } })
+        return swFetch("/api/config", { cache: "no-store", headers: { Accept: "application/json" } }, 8000)
           .then(function (res) { return res.ok ? res.json() : {}; })
           .then(function (cfg) {
             cfg = cfg || {};
@@ -650,6 +650,16 @@
           state.limits = { channels: ["telegram"] };
           el("planSummary").innerHTML = '<li><span class="waitlist-msg error">' + esc(errorMessage(err)) + "</span></li>";
         });
+      }
+
+      /* طلب معلق لا يمر بـ catch: بلا مهلة تبقى بطاقات القنوات فارغة بلا سبب ظاهر. */
+      function swFetch(url, opts, ms) {
+        var o = Object.assign({}, opts || {});
+        var ctrl = window.AbortController ? new AbortController() : null;
+        if (ctrl) o.signal = ctrl.signal;
+        var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, ms || 8000);
+        return fetch(url, o).then(function (r) { clearTimeout(timer); return r; },
+          function (e) { clearTimeout(timer); throw e; });
       }
 
       /* ---------- التخزين: حصة المنصة وخيار درايف ---------- */
