@@ -316,6 +316,14 @@
     .feature-card:nth-child(2) { animation-delay: 0.2s; }
     .feature-card:nth-child(3) { animation-delay: 0.3s; }
 
+    /* البريد لا ينكسر في منتصف الكلمة: يأخذ سطرا كاملا تحت عنوانه، وإن طال زحف أفقيا بلا نقاط */
+    .platform-stat-detail-row.is-email { flex-direction: column; align-items: stretch; gap: 0.1rem; }
+    .platform-stat-detail-row.is-email .platform-stat-detail-val {
+      direction: ltr; text-align: start; white-space: nowrap; min-width: 0; max-width: 100%;
+      overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none;
+    }
+    .platform-stat-detail-row.is-email .platform-stat-detail-val::-webkit-scrollbar { display: none; }
+
     /* Label / value rows (verbatim from index.html .platform-stat-card family) */
     .platform-stat-detail-row {
       display: flex;

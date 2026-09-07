@@ -62,6 +62,7 @@
   app.markChatRead = markChatRead;
   app.exportCsv = exportCsv;
   app.apiKeys = apiKeys;
+  app.markSeen = markSeen;
   app.createApiKey = createApiKey;
   app.revokeApiKey = revokeApiKey;
   app.removeMember = removeMember;
@@ -416,6 +417,16 @@
       XLSX.writeFile(workbook, filename || "export.xlsx");
       return true;
     });
+  }
+
+  /* آخر ظهور: مرة واحدة كل يوم، بلا انتظار ولا تعطيل للصفحة إن فشلت */
+  function markSeen() {
+    try {
+      var today = new Date().toISOString().slice(0, 10);
+      if (localStorage.getItem("mrzahi:seen") === today) return Promise.resolve();
+      localStorage.setItem("mrzahi:seen", today);
+    } catch (e) { /* التخزين محجوب: نسجل على أي حال */ }
+    return run(function (client) { return client.rpc("mark_seen").then(function () { return true; }); }).catch(function () { return false; });
   }
 
   function apiKeys() {

@@ -723,6 +723,8 @@
   app.ready.then(function (res) {
     if (!res || res.unavailable) { bootGuardReveal(); return; }
     settleThenReveal();
+    /* آخر ظهور على المنصة: يقاس منه من غاب فتصله رسالة تيليغرام */
+    if (app.markSeen) { try { app.markSeen(); } catch (e) { /* لا يعطل الصفحة أبدا */ } }
   }, function () { bootGuardReveal(); });
 
   /* ============================================================

@@ -291,6 +291,32 @@ export function formatDigest(lang, name, d, kind, userTimeZone, userHour12) {
   return lines.join("\n");
 }
 
+/* من غاب عن المنصة تصله رسالة ودية بأرقامه هو: كم المفتوح والمتأخر وما يستحق قريبا وأقرب موعد.
+   لا رقم من خارج القاعدة. الساعة العاشرة بتوقيته، وبعد يومين غياب، ومرة كل ثلاثة أيام على الأكثر. */
+export async function runAbsenceNudges(env) {
+  if (!env.WORKER_SECRET || !env.TELEGRAM_BOT_TOKEN) return { skipped: "not configured" };
+  let targets = [];
+  try { targets = await rpc(env, "telegram_absent_targets", { p_secret: env.WORKER_SECRET, p_days: 2, p_cooldown_days: 3 }); }
+  catch (e) { return { error: String((e && e.message) || e).slice(0, 200) }; }
+  let sent = 0;
+  for (const u of (Array.isArray(targets) ? targets : [])) {
+    try {
+      const lang = u.lang || "ar";
+      const b = botText(lang);
+      const tz = u.tz || RIYADH;
+      const lines = [b.missYou(u.name || ""), b.missYouDays(Number(u.days_absent) || 0)];
+      const state = b.missYouState(Number(u.open_total) || 0, Number(u.overdue_count) || 0, Number(u.due_soon_count) || 0);
+      if (state) lines.push(state);
+      if (u.next_title && u.next_due) lines.push(b.missYouNext(u.next_title, fmtDue(u.next_due, tz, u.time_format === "12")));
+      lines.push(b.missYouCall);
+      await sendTelegram(env, u.chat_id, lines.join("\n"), urlButton(b.openDash, DASHBOARD_URL));
+      await rpc(env, "telegram_mark_nudge", { p_secret: env.WORKER_SECRET, p_user_id: u.user_id });
+      sent++;
+    } catch (e) { console.error("[nudge]", String((e && e.message) || e).slice(0, 200)); }
+  }
+  return { targets: Array.isArray(targets) ? targets.length : 0, sent };
+}
+
 export async function runTelegramDigests(env) {
   if (!env.WORKER_SECRET || !env.TELEGRAM_BOT_TOKEN) return { skipped: "not configured" };
   let targets = [];

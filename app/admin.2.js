@@ -95,8 +95,8 @@
         return hay.indexOf(filterText) !== -1;
       }
 
-      function row(labelKey, valueHtml, extraAttrs) {
-        return '<div class="platform-stat-detail-row"><span>' + esc(T(labelKey)) + '</span>' +
+      function row(labelKey, valueHtml, extraAttrs, rowClass) {
+        return '<div class="platform-stat-detail-row' + (rowClass ? " " + rowClass : "") + '"><span>' + esc(T(labelKey)) + '</span>' +
                '<span class="platform-stat-detail-val"' + (extraAttrs || "") + '>' + valueHtml + '</span></div>';
       }
 
@@ -154,7 +154,7 @@
         const orgNames = Array.isArray(u.org_names) ? u.org_names : [];
         return '<div class="feature-card">' +
           "<h3>" + esc(u.full_name || u.email || "—") + "</h3>" +
-          row("colOwner", esc(u.email || "—"), ' style="overflow-wrap:anywhere"') +
+          row("colOwner", esc(u.email || "—"), ' dir="ltr"', "is-email") +
           row("colPhone", esc(u.phone || "—"), ' dir="ltr"') +
           row("colUserNumber", esc(u.profile_number || "—"), ' dir="ltr"') +
           row("colOrgs", esc(orgNames.length ? orgNames.join(" · ") : "—"), ' style="overflow-wrap:anywhere"') +
@@ -202,7 +202,7 @@
         const email = ownerEmail(org);
         return '<div class="feature-card" data-org="' + esc(org.id) + '">' +
           '<h3>' + esc(org.name) + '</h3>' +
-          row("colOwner", email ? esc(email) : "—", ' style="overflow-wrap:anywhere"') +
+          row("colOwner", email ? esc(email) : "—", ' dir="ltr"', "is-email") +
           row("colPlan", esc(planName(org.plan_code))) +
           row("colExpires", esc(expiryText(org))) +
           row("colMembers", esc(countText(org.id, "members")), ' data-count="members:' + esc(org.id) + '"') +
