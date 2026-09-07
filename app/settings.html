@@ -72,7 +72,7 @@
         <form id="profileForm" novalidate>
           <div class="settings-field">
             <label for="fullName" data-i18n="fullNameLabel">الاسم الكامل</label>
-            <input type="text" class="waitlist-input" id="fullName" placeholder="اسمك الكامل" autocomplete="name" maxlength="120" dir="auto">
+            <input type="text" class="waitlist-input" id="fullName" data-i18n-placeholder="fullNamePh" placeholder="اسمك الكامل" autocomplete="name" maxlength="120" dir="auto">
           </div>
           <div class="settings-field">
             <label for="fullNameEn" data-i18n="fullNameEnLabel">الاسم بالإنجليزية</label>
@@ -196,7 +196,7 @@
         <h2 data-i18n="apiTitle">ربط المنصات (API)</h2>
         <p data-i18n="apiIntro">مفتاح لكل منصة. يظهر مرة واحدة عند إنشائه.</p>
         <div class="waitlist-form">
-          <input type="text" class="waitlist-input" id="apiKeyName" placeholder="اسم المنصة" maxlength="60" dir="auto">
+          <input type="text" class="waitlist-input" id="apiKeyName" data-i18n-placeholder="apiKeyNamePh" placeholder="اسم المنصة" maxlength="60" dir="auto">
           <button type="button" class="waitlist-btn" id="apiKeyCreateBtn" data-i18n="apiCreate">إنشاء مفتاح</button>
         </div>
         <div class="waitlist-form" id="apiKeyReveal" hidden>
@@ -413,7 +413,7 @@ curl -H "Authorization: Bearer tt_live_..." "https://mrzahi.com/api/v1/items?tra
 <!-- رمز QR لربط تيليجرام من الجوال (qrcode-generator من cdnjs — مسموح في CSP) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" defer integrity="sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/app.js?v=5" defer></script>
-<script src="/app/common.js?v=31" defer></script>
+<script src="/app/common.js?v=32" defer></script>
 <script src="/brand-logo.js?v=4" defer></script>
 </body>
 </html>

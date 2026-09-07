@@ -83,7 +83,9 @@
       }
       function pdfFirstPageImage(pdf) { return pdfPageImage(pdf, 1); }
       var ERROR_TEXT = { ar: { unauthorized: "انتهت الجلسة، سجل الدخول من جديد.", rate_limited: "طلبات كثيرة، انتظر دقيقة ثم أعد المحاولة.", ai_unavailable: "خدمة القراءة غير متاحة الآن.", no_text: "لم يقرأ نص من الملف. جرب صورة أوضح.", image_read_failed: "تعذرت قراءة الصورة.", extract_failed: "قرئ النص لكن تعذر فهم المستند." },
-                         en: { unauthorized: "Session expired, sign in again.", rate_limited: "Too many requests, wait a minute and try again.", ai_unavailable: "Reading service unavailable.", no_text: "No text could be read. Try a clearer image.", image_read_failed: "Could not read the image.", extract_failed: "Text was read but the document could not be understood." } };
+                         en: { unauthorized: "Session expired, sign in again.", rate_limited: "Too many requests, wait a minute and try again.", ai_unavailable: "Reading service unavailable.", no_text: "No text could be read. Try a clearer image.", image_read_failed: "Could not read the image.", extract_failed: "Text was read but the document could not be understood." },
+                         fr: { unauthorized: "Session expirée, reconnectez-vous.", rate_limited: "Trop de requêtes, attendez une minute puis réessayez.", ai_unavailable: "Service de lecture indisponible.", no_text: "Aucun texte n'a pu être lu. Essayez une image plus nette.", image_read_failed: "Impossible de lire l'image.", extract_failed: "Le texte a été lu mais le document n'a pas pu être compris." },
+                         ur: { unauthorized: "سیشن ختم ہو گیا، دوبارہ سائن ان کریں۔", rate_limited: "بہت زیادہ درخواستیں، ایک منٹ بعد دوبارہ کوشش کریں۔", ai_unavailable: "پڑھنے کی سروس اس وقت دستیاب نہیں۔", no_text: "فائل سے کوئی متن نہیں پڑھا جا سکا۔ واضح تصویر آزمائیں۔", image_read_failed: "تصویر پڑھی نہیں جا سکی۔", extract_failed: "متن پڑھا گیا مگر دستاویز سمجھی نہیں جا سکی۔" } };
       function errorText(code) { var d = ERROR_TEXT[lang()] || ERROR_TEXT.ar; return d[code] || (ERROR_TEXT.ar[code]) || ""; }
 
       function analyze(payload) {
@@ -243,11 +245,11 @@
 
       /* ما تحمله الورقة ويخالف ملف الشركة يُعرض ويُنتظر قرار صاحبه */
       var PROFILE_LABELS = {
-        vat_number: { ar: "الرقم الضريبي", en: "VAT number" },
-        cr_number: { ar: "رقم السجل التجاري", en: "Commercial register" },
-        unified_number: { ar: "الرقم الموحد", en: "Unified number" },
-        legal_name: { ar: "الاسم النظامي", en: "Legal name" },
-        national_address_short: { ar: "العنوان الوطني", en: "National address" }
+        vat_number: { ar: "الرقم الضريبي", en: "VAT number", fr: "Numéro de TVA", ur: "ٹیکس نمبر" },
+        cr_number: { ar: "رقم السجل التجاري", en: "Commercial register", fr: "Registre de commerce", ur: "کمرشل رجسٹر نمبر" },
+        unified_number: { ar: "الرقم الموحد", en: "Unified number", fr: "Numéro unifié", ur: "متحد نمبر" },
+        legal_name: { ar: "الاسم النظامي", en: "Legal name", fr: "Raison sociale", ur: "قانونی نام" },
+        national_address_short: { ar: "العنوان الوطني", en: "National address", fr: "Adresse nationale", ur: "قومی پتہ" }
       };
 
       function askProfileUpdate(f) {

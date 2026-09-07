@@ -97,7 +97,9 @@
       function assigneeName(id) { return (id && state.names[id]) ? state.names[id] : T("noAssignee"); }
 
       function findItem(id) {
-        var lists = [state.items, state.calItems];
+        /* أبناء ملف القضية محمّلون في caseKids لا في state.items، فزر «تعديل» على
+           صف الحكم أو الجلسة كان لا يفعل شيئا بلا رسالة. */
+        var lists = [state.items, state.calItems, state.caseKids || []];
         for (var l = 0; l < lists.length; l++) for (var i = 0; i < lists[l].length; i++) if (lists[l][i].id === id) return lists[l][i];
         return null;
       }

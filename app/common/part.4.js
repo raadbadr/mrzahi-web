@@ -382,8 +382,12 @@
       var body = (rows || []).map(function (row) {
         return cols.map(function (col) {
           var value = cellValue(row, col);
-          var numericOrValue = (typeof value === "string" && value.trim() !== "" && isFinite(Number(value))) ? Number(value) : value;
-          return numericOrValue;
+          /* رقم تعريفي ليس عددا: التحويل كان يبتلع الصفر البادئ في الجوالات
+             وأرقام السجلات، ويعرض الطويل منها بصيغة علمية. */
+          var text = typeof value === "string" ? value.trim() : value;
+          var isCount = typeof text === "string" && text !== "" && isFinite(Number(text)) &&
+                        text.length <= 15 && !/^0\d/.test(text) && !/^\+/.test(text);
+          return isCount ? Number(text) : value;
         });
       });
       var worksheet = XLSX.utils.aoa_to_sheet([header].concat(body));
