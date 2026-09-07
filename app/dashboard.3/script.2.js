@@ -52,11 +52,16 @@
       (function () {
         var box = $("createOrgStore"), line = $("createOrgStoreLine");
         if (!box) return;
-        if (!app.driveOAuthAvailable || !app.driveOAuthAvailable()) {
+        /* هذا الجزء يعمل عند تحميل السكربت، وapp لا يُسند إلا في boot:
+           قراءته هنا كانت ترمي فتتوقف الصفحة كلها على «جاري التحميل». */
+        window.__dashDriveCheck = function () {
+          if (!box) return;
+          if (window.trackerApp && window.trackerApp.driveOAuthAvailable && window.trackerApp.driveOAuthAvailable()) return;
           var drive = box.querySelector('[data-store="drive"]');
           if (drive) drive.remove();
           if (box.children.length < 2) { box.hidden = true; if (line) line.hidden = true; }
-        }
+        };
+        window.__dashDriveCheck();
         function mark(pick) {
           box.querySelectorAll("[data-store]").forEach(function (card) {
             var on = card.getAttribute("data-store") === pick;

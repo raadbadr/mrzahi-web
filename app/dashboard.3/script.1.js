@@ -853,6 +853,7 @@
             show("createOrgCard");
             if (typeof window.__fillOrgTypes === "function") window.__fillOrgTypes();
             if (typeof window.__renderPackCards === "function") window.__renderPackCards();
+            if (typeof window.__dashDriveCheck === "function") window.__dashDriveCheck();
             return;
           }
           state.org = app.org;
