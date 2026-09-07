@@ -25,7 +25,7 @@ begin
   if not public.check_worker_secret(p_secret) then
     raise exception 'unauthorized' using errcode = '42501';
   end if;
-  -- رسالة من محادثة مربوطة سابقاً: انسبها لصاحبها
+  -- رسالة من محادثة مربوطة سابقا: انسبها لصاحبها
   if v_user is null then
     select user_id into v_user from public.channel_links
     where channel = 'telegram' and external_id = p_chat_id and verified_at is not null

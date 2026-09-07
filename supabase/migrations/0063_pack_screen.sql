@@ -1,5 +1,5 @@
 -- الحزمة تكتب الشاشة: خانات إعداد على ui_packs — الفارغ يعني «ابق على ما في الشيفرة اليوم».
--- طُبقت على القاعدة في الجلسة نفسها (migration: pack_screen_tiles_and_columns).
+-- طبقت على القاعدة في الجلسة نفسها (migration: pack_screen_tiles_and_columns).
 alter table public.ui_packs add column if not exists views        jsonb;
 alter table public.ui_packs add column if not exists tiles        jsonb;
 alter table public.ui_packs add column if not exists list_columns jsonb;

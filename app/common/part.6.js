@@ -189,7 +189,7 @@
   }
 
   /* ============================================================
-   * حاسبة المدة والعدّاد التنازلي (أمر المهندس رعد 2026-09-05):
+   * حاسبة المدة والعداد التنازلي (أمر المهندس رعد 2026-09-05):
    * بجانب كل حقل تاريخ يحمل data-duration حقل «المدة بالأيام»: كتابة 60 تضبط
    * التاريخ بعد 60 يوما، واختيار تاريخ يحسب الأيام، وتحته سطر «المتبقي 59 يوما و13 ساعة»
    * يتحدث كل دقيقة. والعناصر التي تحمل data-due (في الجداول) تأخذ النص نفسه بلا إعادة رسم.
@@ -205,7 +205,7 @@
     var f = n === 1 ? forms[0] : n === 2 ? forms[1] : (n >= 3 && n <= 10 ? forms[2] : forms[3]);
     return f.replace("{n}", String(n));
   }
-  /* نص العدّاد لتاريخ ISO: أيام وساعات، أو «ينتهي اليوم»، أو التأخر */
+  /* نص العداد لتاريخ ISO: أيام وساعات، أو «ينتهي اليوم»، أو التأخر */
   function remainingText(iso) {
     if (!iso) return "";
     var ms = new Date(iso).getTime() - Date.now();
@@ -240,7 +240,7 @@
   function mountDurationCalc(native) {
     if (native.__dur) return;
     var compact = native.getAttribute("data-duration") === "compact" || !native.closest(".form-field");
-    if (compact) {   /* صف ضيق (إجراءات المعالجة): العدّاد وحده في سطر منتقي التاريخ */
+    if (compact) {   /* صف ضيق (إجراءات المعالجة): العداد وحده في سطر منتقي التاريخ */
       /* بعد سطر الهجري لا داخله: منتقي التاريخ يعيد كتابة نص ذلك السطر فيمحو ما بداخله */
       var subHost = native.__dp ? native.__dp.wrap : native.parentNode;
       var cd = document.createElement("span"); cd.className = "dur-countdown dur-inline"; cd.setAttribute("aria-live", "polite");
@@ -255,7 +255,7 @@
     var field = native.closest(".form-field") || native.closest("label") || native.parentNode;
     if (!field) return;
     var t = durText();
-    /* داخل حقل التاريخ نفسه (لا خلية مستقلة تبتعد عنه في الشبكة): سطر «المدة بالأيام» ثم العدّاد */
+    /* داخل حقل التاريخ نفسه (لا خلية مستقلة تبتعد عنه في الشبكة): سطر «المدة بالأيام» ثم العداد */
     var wrap = document.createElement("span");
     wrap.className = "dur-field";
     wrap.innerHTML = '<span class="dur-label"></span>' +

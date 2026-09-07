@@ -1,6 +1,6 @@
 -- توزيع المهام بضغطة واحدة (طلب المهندس رعد: "طريقة أسهل"): اختيار اسم العضو على العنصر
--- يجعله المنفّذ المسؤول (R) ومكلَّفاً به (assignee)، ومن وزّع يصبح المعتمد (A) تلقائياً
--- إن لم يكن للعنصر معتمد. الضغطة الثانية تجعله مسانداً (S)، والثالثة تزيله.
+-- يجعله المنفذ المسؤول (R) ومكلفا به (assignee)، ومن وزع يصبح المعتمد (A) تلقائيا
+-- إن لم يكن للعنصر معتمد. الضغطة الثانية تجعله مساندا (S)، والثالثة تزيله.
 create or replace function public.distribute_item(p_item uuid, p_user uuid, p_mode text)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare v_org uuid; v_actor uuid := auth.uid();
@@ -34,7 +34,7 @@ end $$;
 revoke all on function public.distribute_item(uuid, uuid, text) from public;
 grant execute on function public.distribute_item(uuid, uuid, text) to authenticated;
 
--- إسناد من البوت يضبط الأدوار نفسها: المُسنَد إليه R، والمُسنِد A إن لم يوجد
+-- إسناد من البوت يضبط الأدوار نفسها: المسند إليه R، والمسند A إن لم يوجد
 create or replace function public.telegram_assign(p_secret text, p_user_id uuid, p_query text, p_member text)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare q text; mq text; v_item uuid; v_org uuid; v_title text; v_num text; c int; v_member uuid; v_member_name text; v_chat text; v_lang text;

@@ -3,7 +3,7 @@ update public.ui_packs set is_default = false where is_default;
 update public.ui_packs set is_default = true where key = 'individual';
 
 -- التسعير على أربع شرائح بحسب نوع الحساب. القديمتان تبقيان في الجدول
--- ولا تُحذفان، لكن تُطفآن فلا تظهران لأحد.
+-- ولا تحذفان، لكن تطفآن فلا تظهران لأحد.
 alter table public.plans add column if not exists active boolean not null default true;
 update public.plans set active = false where code in ('monthly', 'yearly');
 

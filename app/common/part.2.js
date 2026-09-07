@@ -202,7 +202,7 @@
             error_callback: function () { reject(new Error("denied")); }
           });
           tc.requestAccessToken({ prompt: driveToken ? "" : "consent" });
-          /* نافذة الإذن قد تُحجب بصمت (سفاري) فلا يصل أي رد: لا ننتظر إلى الأبد */
+          /* نافذة الإذن قد تحجب بصمت (سفاري) فلا يصل أي رد: لا ننتظر إلى الأبد */
           setTimeout(function () { reject(new Error("drive_timeout")); }, 25000);
         });
       });
@@ -271,7 +271,7 @@
   /* ------------------------------------------------------------
    * ترجمة العرض التلقائية (أمر المهندس رعد): نص حر كتبه مستخدم بلغة يظهر لغيره بلغة واجهته.
    * الصفحة تضع data-tr على عناصر النص الحر وتنادي app.translateNodes(container) بعد كل رسم.
-   * لا يُرسل شيء حين تتطابق لغة النص مع لغة الواجهة أو حين يكون النص أرقاما ورموزا فقط.
+   * لا يرسل شيء حين تتطابق لغة النص مع لغة الواجهة أو حين يكون النص أرقاما ورموزا فقط.
    * ------------------------------------------------------------ */
   var TR_MEM = {};
   var TR_PREFIX = "tracker_tr:";
@@ -286,7 +286,7 @@
   function trNeeded(text, target) {
     var sc = trScript(text);
     if (sc === "none") return false;
-    if (sc === "latin") return target === "ar" || target === "ur";   /* إنجليزي/فرنسي لا يُفرَّق بينهما من الحروف: لا يُترجم بينهما */
+    if (sc === "latin") return target === "ar" || target === "ur";   /* إنجليزي/فرنسي لا يفرق بينهما من الحروف: لا يترجم بينهما */
     return sc !== target;
   }
   function trKey(text, target) {
@@ -539,8 +539,8 @@
         })).select("*").single().then(unwrap);
       });
     }).catch(function (err) {
-      /* أي فشل في مسار درايف (إذن محجوب، واجهة غير مفعلة، شبكة…): الملف لا يضيع أبدا — يُحفظ على المنصة،
-         ويُعاد وضع التخزين إلى المنصة كي لا يتكرر الفشل مع كل رفع؛ يعيد المستخدم تفعيل درايف من الإعدادات متى شاء */
+      /* أي فشل في مسار درايف (إذن محجوب، واجهة غير مفعلة، شبكة…): الملف لا يضيع أبدا — يحفظ على المنصة،
+         ويعاد وضع التخزين إلى المنصة كي لا يتكرر الفشل مع كل رفع؛ يعيد المستخدم تفعيل درايف من الإعدادات متى شاء */
       if (window.console) console.warn("drive upload failed, saving to platform:", err && (err.message || err));
       toast(DRIVE_FALLBACK_TEXT[lang()] || DRIVE_FALLBACK_TEXT.ar, "error");
       try { if (app.profile && app.profile.storage_mode === "drive") updateProfile({ storage_mode: "platform" }).catch(function () { /* ignore */ }); } catch (e) { /* ignore */ }
@@ -569,7 +569,7 @@
 
   /* رابط المرفق: للعرض (افتراضي) أو للتنزيل الحقيقي ({download:true|اسم الملف}):
      تخزين المنصة يرسل Content-Disposition: attachment من الخادم نفسه (سمة download لا تعمل عبر النطاقات)،
-     وملف درايف يُحمَّل من uc?export=download بمعرّفه، وإلا يُفتح في عارض درايف. */
+     وملف درايف يحمل من uc?export=download بمعرفه، وإلا يفتح في عارض درايف. */
   function attachmentUrl(att, opts) {
     if (!att) return Promise.resolve(null);
     var download = opts && opts.download;
@@ -732,7 +732,7 @@
     var f = filters || {};
     return run(function (client) {
       var orgId = requireOrg();
-      /* كل صفحة تُبنى باستعلام جديد: الجلب مقطوعا عند 500 كان يجعل كل مجموع في
+      /* كل صفحة تبنى باستعلام جديد: الجلب مقطوعا عند 500 كان يجعل كل مجموع في
          اللوحة محسوبا على أول خمسمئة عنصر والباقي يسقط بصمت. */
       function build() {
         var q = client.from("items").select(ITEM_COLUMNS).eq("org_id", orgId);

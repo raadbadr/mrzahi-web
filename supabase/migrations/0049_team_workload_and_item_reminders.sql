@@ -160,7 +160,7 @@ set search_path = public
 as $$
 declare k int := 0; n int := 0; m int := 0;
 begin
-  -- (0) عنصر له مهلته الخاصة: تعلو على قواعد السجل، وقنواته قناة القاعدة إن وُجدت + داخل الموقع
+  -- (0) عنصر له مهلته الخاصة: تعلو على قواعد السجل، وقنواته قناة القاعدة إن وجدت + داخل الموقع
   insert into public.notifications (org_id, item_id, user_id, channel, scheduled_at, payload, status, sent_at)
   select i.org_id, i.id, mem.user_id, ch, i.due_at - i.remind_before,
          jsonb_build_object('title', i.title, 'due_at', i.due_at, 'tracker_id', i.tracker_id, 'item_number', i.item_number),

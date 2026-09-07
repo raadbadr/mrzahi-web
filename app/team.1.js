@@ -41,7 +41,7 @@
         deptUpdated: "حفظ القسم؛ يرى العضو خدمات قسمه فقط.",
         packLabel: "الواجهة",
         packUnset: "واجهة الحساب",
-        packUpdated: "حُفظت الواجهة؛ يراها العضو عند دخوله القادم.",
+        packUpdated: "حفظت الواجهة؛ يراها العضو عند دخوله القادم.",
         personPartner: "شريك",
         personManager: "مدير",
         personEmployee: "موظف",
@@ -705,7 +705,7 @@
     function applyPlaceholders(code) {
       const dict = translations[code] || translations.ar;
       /* السمة data-i18n-placeholder في الترميز لم يكن يقرؤها أحد، فيبقى النص
-         العربي في كل اللغات. تُقرأ هنا مرة واحدة لكل من يحملها. */
+         العربي في كل اللغات. تقرأ هنا مرة واحدة لكل من يحملها. */
       document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
         var k = el.getAttribute("data-i18n-placeholder");
         if (k && dict[k]) el.placeholder = dict[k];

@@ -1,4 +1,4 @@
--- حالات مهلة التذكير: تُشغَّل على القاعدة (MCP أو psql) وكلها يجب أن تمر.
+-- حالات مهلة التذكير: تشغل على القاعدة (MCP أو psql) وكلها يجب أن تمر.
 --   select * from public.test_parse_before_cases() where ok is false;   → صفر صفوف
 create or replace function public.test_parse_before_cases()
 returns table(input text, expected text, got text, ok boolean)

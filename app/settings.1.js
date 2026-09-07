@@ -121,8 +121,8 @@
         payOpening: "نفتح صفحة الدفع…",
         payFailed: "تعذر فتح صفحة الدفع، حاول مرة أخرى.",
         payNotReady: "بوابة الدفع غير مربوطة بعد.",
-        payDone: "تم الدفع وفُعّل اشتراكك.",
-        payCancelled: "أُلغي الدفع، ولم يتغير اشتراكك.",
+        payDone: "تم الدفع وفعل اشتراكك.",
+        payCancelled: "ألغي الدفع، ولم يتغير اشتراكك.",
         fullNamePh: "اسمك الكامل",
         apiKeyNamePh: "اسم المنصة",
         storageDriveFolder: "المجلد في Drive:",
@@ -836,7 +836,7 @@
     function applyPlaceholders(code) {
       const dict = translations[code] || translations.ar;
       /* السمة data-i18n-placeholder في الترميز لم يكن يقرؤها أحد، فيبقى النص
-         العربي في كل اللغات. تُقرأ هنا مرة واحدة لكل من يحملها. */
+         العربي في كل اللغات. تقرأ هنا مرة واحدة لكل من يحملها. */
       document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
         var k = el.getAttribute("data-i18n-placeholder");
         if (k && dict[k]) el.placeholder = dict[k];

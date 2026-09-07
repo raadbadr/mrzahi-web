@@ -1,5 +1,5 @@
--- إدخال سريع من صفحة الفريق (طلب المهندس رعد): سطر واحد يُنشئ العنصر في متتبع نوعه
--- ويوزّعه في اللحظة نفسها (المنفّذ R + المكلَّف، ومن أدخل = المعتمد A).
+-- إدخال سريع من صفحة الفريق (طلب المهندس رعد): سطر واحد ينشئ العنصر في متتبع نوعه
+-- ويوزعه في اللحظة نفسها (المنفذ R + المكلف، ومن أدخل = المعتمد A).
 create or replace function public.quick_add_item(p_item jsonb, p_assignee uuid default null)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare v_actor uuid := auth.uid(); v_org uuid; v_kind text; v_tracker uuid; v_tracker_name text; v_id uuid; v_num text;

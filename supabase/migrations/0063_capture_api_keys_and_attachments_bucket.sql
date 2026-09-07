@@ -1,7 +1,7 @@
 -- ============================================================
--- 0063 — إعادة رقن ما طُبِّق على القاعدة الحية ولم يدخل أي ملف هجرة:
+-- 0063 — إعادة رقن ما طبق على القاعدة الحية ولم يدخل أي ملف هجرة:
 -- جدول api_keys ودوالها الخمس، وحاوية التخزين attachments وسياساتها.
--- نص وصفي بلا أي تغيير سلوك: ينسخ ما هو مطبَّق اليوم حرفيا حتى يصير
+-- نص وصفي بلا أي تغيير سلوك: ينسخ ما هو مطبق اليوم حرفيا حتى يصير
 -- المخطط قابلا لإعادة البناء من المستودع وحده. (رصدتها مراجعة أمنية،
 -- 2026-09-06). كل عبارة آمنة التكرار (idempotent) فتطبيقها على القاعدة
 -- الحية لا يغير شيئا — تحقق منه هذا الالتزام قبل الدفع.
@@ -150,7 +150,7 @@ begin
     where i.org_id = v_org and (p_tracker is null or p_tracker = '' or t.name = p_tracker)), '[]'::jsonb);
 end $$;
 
--- الـ Worker يستدعي PostgREST بدور anon، فالدوال الثلاث تُمنح له (الحماية بـ p_secret + بصمة المفتاح)
+-- الـ Worker يستدعي PostgREST بدور anon، فالدوال الثلاث تمنح له (الحماية بـ p_secret + بصمة المفتاح)
 revoke all on function public.api_key_resolve(text, text) from public;
 grant execute on function public.api_key_resolve(text, text) to anon, service_role;
 revoke all on function public.api_import(text, text, text, text, jsonb, jsonb, jsonb) from public;
@@ -169,7 +169,7 @@ values ('attachments', 'attachments', false, 26214400, array[
 on conflict (id) do update set
   public = excluded.public, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 
--- المسار org_id/... : أول مقطع في اسم الملف هو معرّف الشركة، والعزل بعضوية current_org_ids()
+-- المسار org_id/... : أول مقطع في اسم الملف هو معرف الشركة، والعزل بعضوية current_org_ids()
 drop policy if exists tracker_attachments_read on storage.objects;
 create policy tracker_attachments_read on storage.objects for select
   using (bucket_id = 'attachments' and (split_part(name, '/', 1))::uuid in (select public.current_org_ids()));

@@ -253,7 +253,7 @@
         var fields = kindSel ? { person_kind: node.value } : { job_title: node.value };
         node.disabled = true;
         app.setMemberPerson(userId, fields).then(function (rows) {
-          /* سياسة الصفوف تُسقط التعديل صامتا لمن لا يملكه، فلا يُعلن حفظ لم يقع. */
+          /* سياسة الصفوف تسقط التعديل صامتا لمن لا يملكه، فلا يعلن حفظ لم يقع. */
           if (!rows || !rows.length) throw new Error("not allowed");
           var m = state.members.filter(function (x) { return x.user_id === userId; })[0];
           if (m) { if (kindSel) m.person_kind = node.value || null; else m.job_title = node.value || null; }
@@ -431,7 +431,7 @@
         return m ? memberName(m) : "";
       }
 
-      /* الرقم القياسي (ITM-) داخلي لا يُعرض: يظهر رقم القضية أو المخالفة أو المستند */
+      /* الرقم القياسي (ITM-) داخلي لا يعرض: يظهر رقم القضية أو المخالفة أو المستند */
       function shownNumber(it) {
         var d = it.data || {};
         return String(it.case_number || it.violation_number || it.doc_number || d.number || d.violation_number ||

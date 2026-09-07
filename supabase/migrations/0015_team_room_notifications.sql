@@ -1,4 +1,4 @@
--- رسالة الفريق كله تصل جرس كل عضو، وفتح الدردشة يُعلّمها مقروءة.
+-- رسالة الفريق كله تصل جرس كل عضو، وفتح الدردشة يعلمها مقروءة.
 create or replace function public.notify_team_message()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare

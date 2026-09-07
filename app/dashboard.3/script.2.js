@@ -60,11 +60,11 @@
       (function () {
         var box = $("createOrgStore"), line = $("createOrgStoreLine");
         if (!box) return;
-        /* هذا الجزء يعمل عند تحميل السكربت، وapp لا يُسند إلا في boot:
+        /* هذا الجزء يعمل عند تحميل السكربت، وapp لا يسند إلا في boot:
            قراءته هنا كانت ترمي فتتوقف الصفحة كلها على «جاري التحميل». */
-        /* لا يُحذف شيء: الإخفاء قابل للرجوع، والفحص يُنادى بعد جاهزية الطبقة المشتركة
+        /* لا يحذف شيء: الإخفاء قابل للرجوع، والفحص ينادى بعد جاهزية الطبقة المشتركة
            من boot. النداء وقت تحميل السكربت كان يمحو بطاقة درايف نهائيا لأن
-           window.trackerApp لم يكن قد أُسند بعد، فيختفي السؤال كله عن كل حساب جديد. */
+           window.trackerApp لم يكن قد أسند بعد، فيختفي السؤال كله عن كل حساب جديد. */
         window.__dashDriveCheck = function () {
           if (!box) return;
           var ok = !!(window.trackerApp && window.trackerApp.driveOAuthAvailable && window.trackerApp.driveOAuthAvailable());
@@ -270,7 +270,7 @@
           $("calendarPanel").hidden = false;
           return;
         }
-        /* التقويم لا يُخفى في أي حال: القائمة والتقويم يظهران معا */
+        /* التقويم لا يخفى في أي حال: القائمة والتقويم يظهران معا */
         state.tab = "list";
         $("listPanel").hidden = false;
         $("calendarPanel").hidden = false;
@@ -327,7 +327,7 @@
         return (state.viewType || "items") + "-" + new Date().toISOString().slice(0, 10) + "." + ext;
       }
 
-      /* زر تصدير واحد: يُضغط فيسأل عن نوع الملف، بلا زرين متجاورين */
+      /* زر تصدير واحد: يضغط فيسأل عن نوع الملف، بلا زرين متجاورين */
       function exportMenu(btn, run) {
         var wrap = btn.parentNode;
         var open = wrap.querySelector(".export-menu");
@@ -414,7 +414,7 @@
         });
       }
 
-      /* بيانات العقد تُقرأ من نموذجه وتُكتب في data، فلا عمود جديد في القاعدة. */
+      /* بيانات العقد تقرأ من نموذجه وتكتب في data، فلا عمود جديد في القاعدة. */
       function contractRowData(prefix) {
         if (state.viewType !== "contracts") return null;
         var num = $(prefix + "ContractNumber"), type = $(prefix + "ContractType");
@@ -533,7 +533,7 @@
 
       /* ---------- العقود: شاشتها تقرأ ما يقرؤه صاحب العقد ----------
          العقد ليس عنصرا بموعد، بل مدة بين تاريخين لها قيمة وطرف وتجديد ومهلة إشعار.
-         المهلة هي بيت القصيد: من يفوّتها يتجدد عليه العقد سنة كاملة بلا إرادته. */
+         المهلة هي بيت القصيد: من يفوتها يتجدد عليه العقد سنة كاملة بلا إرادته. */
 
       var CONTRACT_RENEWALS = ["auto", "manual", "none"];
       var CONTRACT_RENEWAL_KEYS = { auto: "renewalAuto", manual: "renewalManual", none: "renewalNone" };
@@ -557,7 +557,7 @@
         return isFinite(n) && n > 0 ? n : CONTRACT_SOON_DAYS;
       }
 
-      /* ثلاث حالات لا أكثر: ساري، وقربت مهلته، ومنتهٍ. */
+      /* ثلاث حالات لا أكثر: ساري، وقربت مهلته، ومنته. */
       function contractState(item) {
         if (item.status === "done" || item.status === "cancelled") return "ended";
         if (!item.due_at) return "active";
@@ -907,8 +907,8 @@
         return html + "</tbody></table></div>";
       }
 
-      /* الجلسة القادمة تُكتب من الجلسة الحالية: النموذج نفسه مملوءا من القضية،
-         والعنصر الجديد يُربط بالقضية نفسها فلا يطفو وحده. */
+      /* الجلسة القادمة تكتب من الجلسة الحالية: النموذج نفسه مملوءا من القضية،
+         والعنصر الجديد يربط بالقضية نفسها فلا يطفو وحده. */
       function startNextSession(sessionId) {
         var head = state.caseHead;
         var kids = state.caseKids || [];
@@ -935,8 +935,8 @@
         (shown || due).focus();
       }
 
-      /* مهلة الاستئناف: موعد يُكتب على القضية نفسها وينبّه قبله.
-         مدة المهلة لا تُفترض هنا — المحامي يكتب التاريخ لأنها تختلف
+      /* مهلة الاستئناف: موعد يكتب على القضية نفسها وينبه قبله.
+         مدة المهلة لا تفترض هنا — المحامي يكتب التاريخ لأنها تختلف
          باختلاف المحكمة ونوع الحكم. */
       function startAppealDeadline(rulingId) {
         var head = state.caseHead;
@@ -1322,7 +1322,7 @@
       });
 
       /* ---------- ملخص الأسبوع ----------
-         ثلاثة أرقام من العناصر نفسها: ما أُنجز، وما أُضيف، وما تأخر،
+         ثلاثة أرقام من العناصر نفسها: ما أنجز، وما أضيف، وما تأخر،
          وتحت كل رقم مقارنته بالأسبوع الماضي. بنمط بطاقات المؤشرات نفسه. */
       function weekStart(offsetWeeks) {
         var d = new Date();
@@ -1354,8 +1354,8 @@
         return (diff > 0 ? "+" : "−") + Math.abs(diff) + " " + T("weekVsLast");
       }
 
-      /* الأرقام من القاعدة على كل العناصر لا على الصفحة المحمّلة (500 صف).
-         إن تعذّرت الدالة تُحسب محليا كما كانت، فلا تختفي البطاقة أبدا. */
+      /* الأرقام من القاعدة على كل العناصر لا على الصفحة المحملة (500 صف).
+         إن تعذرت الدالة تحسب محليا كما كانت، فلا تختفي البطاقة أبدا. */
       function loadWeek() {
         if (!app.client || !app.org) return Promise.resolve(null);
         return app.client.rpc("week_summary", { p_org: app.org.id }).then(function (res) {

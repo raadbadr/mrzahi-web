@@ -1,9 +1,9 @@
--- الدعوات كانت تُقبل فقط داخل مشغّل إنشاء المستخدم (on_auth_user_created)، فمن
--- كان مسجّلاً في المنصة قبل دعوته لا يُنشأ له صف جديد في auth.users، فتبقى دعوته
+-- الدعوات كانت تقبل فقط داخل مشغل إنشاء المستخدم (on_auth_user_created)، فمن
+-- كان مسجلا في المنصة قبل دعوته لا ينشأ له صف جديد في auth.users، فتبقى دعوته
 -- معلقة إلى الأبد ولا تصل إليه. الحل: قبول الدعوات عند كل دخول للتطبيق.
 
--- منطق القبول في مكان واحد: يُدخل العضوية، ويختم الدعوة، ويعيد الشركات المنضم
--- إليها الآن ليخبر التطبيق المستخدم بها. حد الأعضاء في الباقة يبقى مفروضاً:
+-- منطق القبول في مكان واحد: يدخل العضوية، ويختم الدعوة، ويعيد الشركات المنضم
+-- إليها الآن ليخبر التطبيق المستخدم بها. حد الأعضاء في الباقة يبقى مفروضا:
 -- إن كانت الشركة ممتلئة تبقى الدعوة معلقة ولا يفشل الدخول.
 create or replace function public.accept_invitations_for(u uuid)
 returns table (joined_org_id uuid, joined_org_name text, joined_role text)
@@ -51,8 +51,8 @@ $$;
 revoke all on function public.accept_my_invitations() from public, anon;
 grant execute on function public.accept_my_invitations() to authenticated;
 
--- المستخدم الجديد يمر على المنطق نفسه، وفشل الانضمام (باقة ممتلئة مثلاً) لم يعد
--- يُسقط عملية التسجيل كلها.
+-- المستخدم الجديد يمر على المنطق نفسه، وفشل الانضمام (باقة ممتلئة مثلا) لم يعد
+-- يسقط عملية التسجيل كلها.
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
@@ -68,7 +68,7 @@ begin
   return new;
 end $$;
 
--- الدعوات المعلقة لمستخدمين مسجّلين أصلاً تُقبل دفعة واحدة.
+-- الدعوات المعلقة لمستخدمين مسجلين أصلا تقبل دفعة واحدة.
 select public.accept_invitations_for(u.id)
 from auth.users u
 where exists (

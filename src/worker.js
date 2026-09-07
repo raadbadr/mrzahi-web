@@ -278,7 +278,7 @@ async function runMenu(env, chatId, userId, action) {
     try { rows = await telegramItems(env, userId, action, 8); } catch {}
     const text = formatItems(lang, rows, action === "overdue" ? b.overdueTitle : b.upcomingTitle, action === "overdue" ? b.noOverdue : b.noUpcoming, userTimeZone);
     try { await sendTelegram(env, chatId, text, menuKeyboard(lang)); } catch {}
-    /* رد الزر يُسجل مثل بقية الردود كي يرى مدير المنصة المحادثة كاملة */
+    /* رد الزر يسجل مثل بقية الردود كي يرى مدير المنصة المحادثة كاملة */
     await logBotReply(env, chatId, userId, text);
   } else if (action === "dashboard") {
     try { await sendTelegram(env, chatId, b.openDash, urlButton(b.openDash, "https://mrzahi.com/app/dashboard.html")); } catch {}
@@ -459,7 +459,7 @@ async function smartReply(env, chatId, userId, text, lang, tgName, attachment, p
     try { await sendTelegram(env, chatId, pre + formatSearch(lang, intent.query, rows, userTimeZone), menuKeyboard(lang)); } catch {}
     return;
   }
-  /* المسار الأخير بلا أدوات: لا يُسأل النموذج أصلا إلا عن ملف أمامه، وإلا فالاعتراف بعدم المعرفة */
+  /* المسار الأخير بلا أدوات: لا يسأل النموذج أصلا إلا عن ملف أمامه، وإلا فالاعتراف بعدم المعرفة */
   let reply = null;
   if (attachment) {
     try { reply = await telegramAssistantReply(env, chatId, userId, text, attachment); } catch {}
@@ -625,7 +625,7 @@ async function handleTelegramWebhook(request, env) {
       try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_user_id: owner, p_payload: draftPayload(parsed) }); }
       catch (e) { try { await sendTelegram(env, chatId, b.importFailed, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
       const lines = parsed.sheets.map((sh) => b.importSheet(sh.tracker || sh.name, sh.records.length, sh.skipped)).join("\n");
-      let orgLine = ""; /* الشركة التي ستُكتب فيها الصفوف (النشطة في البوت) تظهر قبل التأكيد */
+      let orgLine = ""; /* الشركة التي ستكتب فيها الصفوف (النشطة في البوت) تظهر قبل التأكيد */
       try { const orgs = await orgChoices(env, owner); const cur = orgs.find((o) => o && o.active) || orgs[0]; if (cur && cur.name) orgLine = "\n🏢 " + cur.name; } catch {}
       const summary = b.importFound(doc.file_name || "file", parsed.sheets.length) + "\n" + lines + orgLine + "\n\n" + b.importAsk;
       try { await sendTelegram(env, chatId, summary, confirmButtons(lang)); } catch {}
@@ -693,7 +693,7 @@ async function handleTelegramCallback(env, cq) {
     let draft = null;
     try { draft = await rpc(env, "telegram_draft_take", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId) }); } catch {}
     const payload = draft && draft.payload && draft.payload.type === "action" ? draft.payload : null;
-    /* الزر يحمل رمز مسودته؛ إن كان لغيرها أعيدت المسودة إلى مكانها وأُبلغ أن هذا الزر انتهى */
+    /* الزر يحمل رمز مسودته؛ إن كان لغيرها أعيدت المسودة إلى مكانها وأبلغ أن هذا الزر انتهى */
     const stale = payload && payload.token && payload.token !== (act[2] || "");
     if (stale) {
       try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_user_id: draft.user_id, p_payload: payload }); } catch {}
@@ -838,7 +838,7 @@ export default {
        تحول إليه بالمسار نفسه وبالمعاملات نفسها. تستثنى مسارات /api لأن خطاف تيليغرام
        وأي عميل يرسل POST لا يتبع التحويل — تحول بعد نقل الخطاف. */
     if (url.hostname === "appmails.net" || url.hostname === "www.appmails.net") {
-      /* /mcp عميل POST كذلك، وملف توثيق جوجل يجب أن يبقى على النطاق القديم حتى يُقرأ. */
+      /* /mcp عميل POST كذلك، وملف توثيق جوجل يجب أن يبقى على النطاق القديم حتى يقرأ. */
       if (!path.startsWith("/api/") && !path.startsWith("/mcp") && !path.startsWith("/google")) {
         const to = new URL(url.toString());
         to.hostname = "mrzahi.com";

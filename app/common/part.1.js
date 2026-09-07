@@ -472,7 +472,7 @@
   }
 
   /* لا صفحة تبقى على «جاري التحميل» بلا سبب معروف: كل مرحلة من الإقلاع مسجلة،
-     وأي فشل أو بطء يُبلَّغ إلى سجل الخادم (/api/client-error) بلا أي بيانات شخصية، وتظهر للمستخدم بطاقة «غير متاح». */
+     وأي فشل أو بطء يبلغ إلى سجل الخادم (/api/client-error) بلا أي بيانات شخصية، وتظهر للمستخدم بطاقة «غير متاح». */
   var initStep = "start";
   function reportClientError(kind, detail) {
     try {
@@ -489,7 +489,7 @@
 
   /* لا شاشة تحميل أبدية: كل خطوة إقلاع لها مهلة. الطلب الذي لا يعود — قفل جلسة عالق
      في سوبابيس بعد انتهاء صلاحية الرمز، أو شبكة تتوقف في منتصفها — كان يترك «جاري
-     التحميل…» إلى الأبد لأن الوعد لا يُحسم لا بنجاح ولا بفشل، فلا يمسه أي catch. */
+     التحميل…» إلى الأبد لأن الوعد لا يحسم لا بنجاح ولا بفشل، فلا يمسه أي catch. */
   function withTimeout(promise, ms, label) {
     return new Promise(function (resolve, reject) {
       var done = false;
@@ -510,7 +510,7 @@
     });
   }
 
-  /* الإقلاع الذي تعثر يُقال للمستخدم مع زر إعادة، لا يُترك دوّامة تحميل. */
+  /* الإقلاع الذي تعثر يقال للمستخدم مع زر إعادة، لا يترك دوامة تحميل. */
   var BOOT_FAIL_TEXT = {
     ar: { title: "تعذر تحميل الصفحة", hint: "انقطع الاتصال أثناء التحميل. أعد المحاولة.", retry: "إعادة المحاولة", login: "تسجيل الدخول من جديد" },
     en: { title: "The page could not load", hint: "The connection stopped while loading. Try again.", retry: "Try again", login: "Sign in again" },
@@ -539,7 +539,7 @@
       document.body.appendChild(box);
       document.getElementById("appBootRetry").addEventListener("click", function () { window.location.reload(); });
       document.getElementById("appBootLogin").addEventListener("click", function () {
-        /* جلسة عالقة تُنظَّف قبل العودة لصفحة الدخول، وإلا تعلق مرة أخرى */
+        /* جلسة عالقة تنظف قبل العودة لصفحة الدخول، وإلا تعلق مرة أخرى */
         try {
           for (var i = localStorage.length - 1; i >= 0; i--) {
             var k = localStorage.key(i);
@@ -613,13 +613,13 @@
         });
       });
     }).catch(function (err) {
-      /* فشل الإقلاع لا يُترك صامتا: يُبلَّغ ويُعرض بدل صفحة تحميل أبدية */
+      /* فشل الإقلاع لا يترك صامتا: يبلغ ويعرض بدل صفحة تحميل أبدية */
       var detail = err && (err.message || err.code || err.error_description) || String(err);
       reportClientError("init_failed", detail);
       if (window.console) console.error("trackerApp init failed at", initStep, err);
       app.unavailable = true;
       app.initError = detail;
-      /* قفل جلسة عالق في supabase-js بعد انتهاء صلاحية الرمز: يُكسر بتنظيف مفاتيحه
+      /* قفل جلسة عالق في supabase-js بعد انتهاء صلاحية الرمز: يكسر بتنظيف مفاتيحه
          وإعادة تحميل واحدة تلقائية. مرة واحدة فقط لكل تبويب حتى لا تدور الصفحة. */
       if (err && err.code === "boot_timeout" && (initStep === "session" || initStep === "auth")) {
         var once = false;
@@ -642,7 +642,7 @@
   }
 
   /* حارس أخير مستقل عن كل ما سبق: إن بقيت بطاقة التحميل ظاهرة بعد اثنتي عشرة ثانية
-     فشيء ما لم يُحسم — تُخفى وتظهر بطاقة فيها زر إعادة. لا شاشة تحميل بلا نهاية. */
+     فشيء ما لم يحسم — تخفى وتظهر بطاقة فيها زر إعادة. لا شاشة تحميل بلا نهاية. */
   setTimeout(function () {
     var card = document.getElementById("loadingCard");
     if (!card || card.hidden || initStep === "done" || initStep === "redirect") return;
@@ -671,7 +671,7 @@
       "html." + BOOT_CLASS + " #loadingCard,html." + BOOT_CLASS + " #loadingCard[hidden]{display:block!important;visibility:visible!important}" +
       "html." + BOOT_CLASS + " *{transition:none!important;animation-duration:0s!important}";
     document.head.appendChild(style);
-    /* لا تُترك الصفحة مخفية أبدا: مهما حدث تظهر بعد 8 ثوان */
+    /* لا تترك الصفحة مخفية أبدا: مهما حدث تظهر بعد 8 ثوان */
     setTimeout(function () { bootGuardReveal(); }, 8000);
   }
   var revealed = false;
@@ -702,7 +702,7 @@
   }
   bootGuardStart();
 
-  /* اتجاه حقول النص يتبع لغة ما يُكتب فيها لا لغة الصفحة (أمر المهندس رعد): كل حقل نص بلا dir صريح يأخذ dir=auto؛
+  /* اتجاه حقول النص يتبع لغة ما يكتب فيها لا لغة الصفحة (أمر المهندس رعد): كل حقل نص بلا dir صريح يأخذ dir=auto؛
      المعرفات (بريد، رابط، هاتف، أرقام، تواريخ) تبقى كما حددتها صفحتها */
   var AUTO_DIR_SKIP = /^(email|url|tel|number|date|time|datetime-local|month|week|color|range|file|checkbox|radio|hidden|submit|button|reset|image|password)$/i;
   function autoDirInputs(root) {
@@ -924,7 +924,7 @@
         if (k === "national_address") clean[k] = v && typeof v === "object" ? v : {};
         else clean[k] = (v === "" || v == null) ? null : String(v).trim();
       });
-      /* لا يُكتب نوع الكيان إلا إن مرره المستدعي: الإسناد الافتراضي هنا كان يقلب
+      /* لا يكتب نوع الكيان إلا إن مرره المستدعي: الإسناد الافتراضي هنا كان يقلب
          «عمل حر» أو «فرد» إلى «شركة» مع أي حفظ لأي حقل آخر، فتتبدل الأوراق
          المطلوبة وواجهة الحساب بلا أن يطلب أحد. القاعدة نفسها تضع company افتراضا. */
       return client.from("org_profiles").upsert(clean, { onConflict: "org_id" }).select("*").single().then(unwrap);

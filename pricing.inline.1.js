@@ -56,7 +56,7 @@ const t = {
         planTrialName: "التجريبية",
         planTrialPrice: "0",
         planTrialPeriod: "/ لمدة 14 يوما",
-        planTrialNote: "جرّب المنصة أربعة عشر يوما بلا بطاقة بنكية، ثم اختر الشريحة التي تناسب حسابك.",
+        planTrialNote: "جرب المنصة أربعة عشر يوما بلا بطاقة بنكية، ثم اختر الشريحة التي تناسب حسابك.",
         planTrialMembers: "مستخدم واحد",
         planTrialItems: "حتى 300 عنصر",
         planTrialChannels: "تنبيهات على Telegram",

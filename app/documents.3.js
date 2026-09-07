@@ -1,5 +1,5 @@
     (function () {
-      /* كانت تُستدعى ولا تُعرَّف في أي سكربت تحمّله الصفحة، فينكسر مسار الخطأ نفسه. */
+      /* كانت تستدعى ولا تعرف في أي سكربت تحمله الصفحة، فينكسر مسار الخطأ نفسه. */
       function errorMessage(err) {
         var m = err && (err.message || err.error_description || err.code);
         return m ? String(m) : t("genericError");
@@ -20,7 +20,7 @@
       function kindLabel(k) { return t("kind_" + (KINDS.indexOf(k) !== -1 ? k : "other")); }
 
       /* ---------- قراءة الملف ---------- */
-      /* بصمة الملف تُتحقق قبل تنفيذه: نسخة مختلفة من الشبكة لا تعمل أصلا */
+      /* بصمة الملف تتحقق قبل تنفيذه: نسخة مختلفة من الشبكة لا تعمل أصلا */
       var PDF_SRI = "sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e";
 
       function loadScript(src) {
@@ -166,7 +166,7 @@
         var nameEn = String(f.party_en || "").trim();
         var number = String(f.number || "").trim();
 
-        /* شركة قائمة: لا يُكتب في ملفها شيء بلا إذن — بطاقة «تحديث بيانات الشركة» تسأل أولا */
+        /* شركة قائمة: لا يكتب في ملفها شيء بلا إذن — بطاقة «تحديث بيانات الشركة» تسأل أولا */
         if (app.org) return null;
         /* لا شركة بعد؟ الورقة نفسها تنشئها. */
         if (!app.org) {
@@ -200,7 +200,7 @@
 
       function fmtOne(key, value) { return String(t(key)).replace("{name}", value == null ? "" : value); }
 
-      /* كل بيان قرأه المحلل يُعرض كما هو: التسمية بلغة الواجهة، والقيمة كاملة.
+      /* كل بيان قرأه المحلل يعرض كما هو: التسمية بلغة الواجهة، والقيمة كاملة.
          التواريخ بصيغة المنصة يوم-شهر-سنة، والأرقام من اليسار. */
       /* أسماء حقول الأوراق: مصدرها ملف القراءة نفسه (KIND_FIELDS) حتى لا يظهر
          مفتاح خام مثل «cr number» لمن يقرأ بالعربية. ما لا اسم له في لغة يقع
@@ -321,7 +321,7 @@
       function isDateValue(v) { return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v); }
       function isNumberish(v) { return typeof v === "number" || (typeof v === "string" && /^[0-9][0-9\s.,\-\/]*$/.test(v)); }
 
-      /* حقول المال التي يستخرجها القارئ: تُعرض برمز الريال كبقية المنصة، لا رقما عاريا. */
+      /* حقول المال التي يستخرجها القارئ: تعرض برمز الريال كبقية المنصة، لا رقما عاريا. */
       var MONEY_KEYS = ["amount", "annual_rent", "capital", "claim_amount", "premium", "salary",
                         "subtotal", "total", "total_value", "value", "vat_amount"];
       function isMoneyKey(k) { return MONEY_KEYS.indexOf(String(k)) !== -1; }
@@ -352,7 +352,7 @@
         show("docDetails", !!rows);
       }
 
-      /* ما تحمله الورقة ويخالف ملف الشركة يُعرض ويُنتظر قرار صاحبه */
+      /* ما تحمله الورقة ويخالف ملف الشركة يعرض وينتظر قرار صاحبه */
       var PROFILE_LABELS = {
         vat_number: { ar: "الرقم الضريبي", en: "VAT number", fr: "Numéro de TVA", ur: "ٹیکس نمبر" },
         cr_number: { ar: "رقم السجل التجاري", en: "Commercial register", fr: "Registre de commerce", ur: "کمرشل رجسٹر نمبر" },
@@ -533,7 +533,7 @@
               return false;
             });
         }).then(function (stored) {
-          /* الملف أهم من السطر: لا نقول «حُفظ» ما لم يُخزَّن فعلا */
+          /* الملف أهم من السطر: لا نقول «حفظ» ما لم يخزن فعلا */
           if (stored === false) {
             var code = state.fileError || ""; state.fileError = null;
             setStatus(code.indexOf("PLAN_LIMIT_STORAGE") !== -1 ? t("docStorageLimit") : t("docFileFailed"), "error");
@@ -661,7 +661,7 @@
         return found;
       }
 
-      /* رمز السلة: الحذف يُعرف بلونه ورمزه في كل مكان */
+      /* رمز السلة: الحذف يعرف بلونه ورمزه في كل مكان */
       /* الرموز أوضح من الكلمات: كل فعل أيقونة واسمه في التلميح ولقارئ الشاشة */
       var ICON = {
         open: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.5-9 7s4 7 9 7 9-4.5 9-7-4-7-9-7zm0 11a4 4 0 110-8 4 4 0 010 8zm0-6.5A2.5 2.5 0 1014.5 12 2.5 2.5 0 0012 9.5z"/></svg>',
@@ -750,7 +750,7 @@
         });
       }
 
-      /* الورقة تعرض ما قُرئ منها: بياناتها محفوظة مع عنصرها في الجدول نفسه */
+      /* الورقة تعرض ما قرئ منها: بياناتها محفوظة مع عنصرها في الجدول نفسه */
       function paperDetails(p) {
         if (!p || !p.item_id) return null;
         for (var i = 0; i < state.items.length; i++) {

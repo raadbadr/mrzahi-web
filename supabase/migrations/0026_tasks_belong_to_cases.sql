@@ -1,9 +1,9 @@
--- قاعدة المهندس رعد: "المهمات تُشتق من القضايا والمخالفات — لا شيء فارغ، كل شيء مربوط بشيء".
+-- قاعدة المهندس رعد: "المهمات تشتق من القضايا والمخالفات — لا شيء فارغ، كل شيء مربوط بشيء".
 -- المهمة تحمل parent_id إلى القضية/الجلسة أو المخالفة التي تخدمها، وترث عميلها ورقم دعواها.
 alter table public.items add column if not exists parent_id uuid references public.items(id) on delete cascade;
 create index if not exists items_parent_idx on public.items (parent_id);
 
--- مرشّحو الأصل: القضايا/الجلسات والمخالفات المفتوحة في الشركة، مصفّاة بتلميح (رقم دعوى/مخالفة/عميل/عنوان)
+-- مرشحو الأصل: القضايا/الجلسات والمخالفات المفتوحة في الشركة، مصفاة بتلميح (رقم دعوى/مخالفة/عميل/عنوان)
 create or replace function public.parent_candidates(p_org uuid, p_hint text default null, p_limit int default 8)
 returns jsonb language sql stable security definer set search_path = public as $$
   with base as (
@@ -24,7 +24,7 @@ $$;
 revoke all on function public.parent_candidates(uuid, text, int) from public;
 grant execute on function public.parent_candidates(uuid, text, int) to authenticated, anon, service_role;
 
--- الإدخال السريع من الموقع: المهمة بلا أصل تُرفض بلطف مع مرشّحين للاختيار
+-- الإدخال السريع من الموقع: المهمة بلا أصل ترفض بلطف مع مرشحين للاختيار
 create or replace function public.quick_add_item(p_item jsonb, p_assignee uuid default null)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare v_actor uuid := auth.uid(); v_org uuid; v_kind text; v_tracker uuid; v_tracker_name text; v_id uuid; v_num text;
@@ -77,7 +77,7 @@ begin
   return jsonb_build_object('status', 'saved', 'id', v_id, 'item_number', v_num, 'tracker_name', v_tracker_name, 'title', p_item->>'title', 'due_at', p_item->>'due_at', 'parent_id', v_parent);
 end $$;
 
--- البوت: القاعدة نفسها (المهمة تحتاج أصلاً، وإلا يعيد المرشّحين ليختار المستخدم بزر)
+-- البوت: القاعدة نفسها (المهمة تحتاج أصلا، وإلا يعيد المرشحين ليختار المستخدم بزر)
 create or replace function public.telegram_add_item(p_secret text, p_user_id uuid, p_item jsonb)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare v_org uuid; v_kind text; v_tracker uuid; v_tracker_name text; v_id uuid; v_num text; v_new boolean := false;

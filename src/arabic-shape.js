@@ -9,7 +9,7 @@ const LAM_ALEF = { 1570:[65269,65270], 1571:[65271,65272], 1573:[65273,65274], 1
 const LAM = 1604;
 const TATWEEL = 1600;
 
-/* الحركات والتشكيل تُحذف قبل كل شيء: قاعدة المشروع، وخطوط الجهاز لا ترسمها أصلا */
+/* الحركات والتشكيل تحذف قبل كل شيء: قاعدة المشروع، وخطوط الجهاز لا ترسمها أصلا */
 function stripMarks(text) {
   return String(text || "").replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").replace(/\u0640/g, "");
 }
@@ -60,7 +60,7 @@ export function toVisual(text) {
   return out.join("");
 }
 
-/* ما يُرسل إلى الجهاز: مُشكَّل ومرتب بصريا */
+/* ما يرسل إلى الجهاز: مشكل ومرتب بصريا */
 export function forDevice(text) {
   return toVisual(shapeArabic(text));
 }

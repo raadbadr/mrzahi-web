@@ -619,7 +619,7 @@
     .footer .footer-copyright > span { display: inline-flex; align-items: center; gap: .45rem; }
     .footer #footerLogo { height: 1.15em; width: auto; vertical-align: middle; }
     .footer .footer-year { font-variant-numeric: tabular-nums; }
-    /* حين تُخفى روابط الفوتر للمستخدم المسجل لا يبقى فراغ فوق السطر */
+    /* حين تخفى روابط الفوتر للمستخدم المسجل لا يبقى فراغ فوق السطر */
     .footer .footer-links[hidden] + .footer-copyright { margin-top: 0; }
 
     /* الجداول: أزرار الصف جنبا إلى جنب ولا تنكسر الأعمدة القصيرة */

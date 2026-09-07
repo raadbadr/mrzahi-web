@@ -439,7 +439,7 @@
     .rule-check { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; white-space: nowrap; }
     .rule-check input { accent-color: var(--primary); }
     .rule-check input:disabled + span { opacity: 0.5; }
-    /* ــ التخزين: عدّاد الحصة، ثم بطاقة درايف بشعارها ومفتاحها ــ */
+    /* ــ التخزين: عداد الحصة، ثم بطاقة درايف بشعارها ومفتاحها ــ */
     /* صف الاشتراك: القائمتان والسعر والزر على خط واحد وارتفاع واحد،
        والسعر شارة لا نص عائم بينها. */
     #upgradeForm { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }

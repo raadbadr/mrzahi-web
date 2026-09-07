@@ -1,6 +1,6 @@
 -- ============================================================
 -- TheTracker — دوال الـ Worker (بدون مفتاح service role في Cloudflare)
--- الـ Worker يستخدم مفتاح anon + سرّ مشترك (worker_secret) تتحقق منه دوال SECURITY DEFINER.
+-- الـ Worker يستخدم مفتاح anon + سر مشترك (worker_secret) تتحقق منه دوال SECURITY DEFINER.
 -- ============================================================
 create table if not exists public.app_settings (
   key text primary key,
@@ -16,7 +16,7 @@ returns boolean language sql stable security definer set search_path = public as
      and exists (select 1 from public.app_settings where key = 'worker_secret' and value = p_secret)
 $$;
 
--- التنبيهات المعلّقة المستحقة (تولّد أولاً من القواعد)
+-- التنبيهات المعلقة المستحقة (تولد أولا من القواعد)
 create or replace function public.cron_pending_notifications(p_secret text)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare result jsonb;

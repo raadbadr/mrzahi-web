@@ -1,12 +1,12 @@
 -- ============================================================
--- 0054 — لحظة الإنجاز تُختم في العنصر نفسه
--- updated_at يتغير بأي تعديل، فكان «منجز هذا الأسبوع» يعني «لُمس هذا
--- الأسبوع». الآن completed_at تُملأ عند الانتقال إلى done وتُصفّر عند
--- إعادة الفتح (كما حدث حين أُعيدت مخالفة أقفلها البوت بالخطأ).
+-- 0054 — لحظة الإنجاز تختم في العنصر نفسه
+-- updated_at يتغير بأي تعديل، فكان «منجز هذا الأسبوع» يعني «لمس هذا
+-- الأسبوع». الآن completed_at تملأ عند الانتقال إلى done وتصفر عند
+-- إعادة الفتح (كما حدث حين أعيدت مخالفة أقفلها البوت بالخطأ).
 -- ============================================================
 
 alter table public.items add column if not exists completed_at timestamptz;
-comment on column public.items.completed_at is 'لحظة انتقال العنصر إلى منجز؛ تُصفّر إذا أُعيد فتحه';
+comment on column public.items.completed_at is 'لحظة انتقال العنصر إلى منجز؛ تصفر إذا أعيد فتحه';
 
 create or replace function public.stamp_completed_at()
 returns trigger language plpgsql set search_path = public as $$

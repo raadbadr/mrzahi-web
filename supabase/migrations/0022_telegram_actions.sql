@@ -1,11 +1,11 @@
 -- البوت العبقري (طلب المهندس رعد): أفعال بلغة طبيعية (إضافة/إنجاز/إسناد/بحث) وإيجاز صباحي
 -- وتجهيز مسائي لجلسات الغد. كل شيء عبر دوال محمية بسر الـ Worker، والقراءة/الكتابة داخل
--- شركات المستخدم الفعّالة فقط.
+-- شركات المستخدم الفعالة فقط.
 
 alter table public.channel_links add column if not exists last_digest_at timestamptz;
 alter table public.channel_links add column if not exists last_prep_at timestamptz;
 
--- شركة المستخدم الافتراضية (يملكها وإلا أول عضوية فعّالة)
+-- شركة المستخدم الافتراضية (يملكها وإلا أول عضوية فعالة)
 create or replace function public.telegram_user_org(p_user_id uuid)
 returns uuid language sql stable security definer set search_path = public as $$
   select o.id from public.organizations o join public.org_members m on m.org_id = o.id
@@ -19,7 +19,7 @@ returns setof uuid language sql stable security definer set search_path = public
   select m.org_id from public.org_members m where m.user_id = p_user_id and m.status = 'active'
 $$;
 
--- إضافة عنصر: المتتبع حسب النوع (مخالفة/جلسة/مهمة): موجود بالاسم المقارب وإلا يُنشأ
+-- إضافة عنصر: المتتبع حسب النوع (مخالفة/جلسة/مهمة): موجود بالاسم المقارب وإلا ينشأ
 create or replace function public.telegram_add_item(p_secret text, p_user_id uuid, p_item jsonb)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare v_org uuid; v_kind text; v_tracker uuid; v_tracker_name text; v_id uuid; v_num text; v_new boolean := false;
@@ -83,7 +83,7 @@ begin
   return result;
 end $$;
 
--- إنجاز عنصر: إن طابق عنصر مفتوح واحد يُنجز، وإلا تُعاد المرشحات ليختار المستخدم
+-- إنجاز عنصر: إن طابق عنصر مفتوح واحد ينجز، وإلا تعاد المرشحات ليختار المستخدم
 create or replace function public.telegram_complete(p_secret text, p_user_id uuid, p_query text, p_item_id uuid default null)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare q text; c int; v_id uuid; v_title text; v_num text;
@@ -114,7 +114,7 @@ begin
   return jsonb_build_object('status', 'done', 'id', v_id, 'title', v_title, 'item_number', v_num);
 end $$;
 
--- إسناد عنصر لعضو (بالاسم أو البريد) — يعيد محادثة تلغرام للمُسنَد إليه إن كانت مربوطة
+-- إسناد عنصر لعضو (بالاسم أو البريد) — يعيد محادثة تلغرام للمسند إليه إن كانت مربوطة
 create or replace function public.telegram_assign(p_secret text, p_user_id uuid, p_query text, p_member text)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare q text; mq text; v_item uuid; v_title text; v_num text; c int; v_member uuid; v_member_name text; v_chat text; v_lang text;
@@ -138,7 +138,7 @@ begin
                             'member_name', v_member_name, 'member_chat', v_chat, 'member_lang', coalesce(v_lang, 'ar'));
 end $$;
 
--- من يستحق إيجازاً الآن؟ (07:00–07:59 بتوقيته ولم يُرسل اليوم) ومن يستحق تجهيز الغد (18:00–18:59)
+-- من يستحق إيجازا الآن؟ (07:00–07:59 بتوقيته ولم يرسل اليوم) ومن يستحق تجهيز الغد (18:00–18:59)
 create or replace function public.telegram_digest_targets(p_secret text)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare result jsonb;
@@ -161,7 +161,7 @@ begin
   return result;
 end $$;
 
--- محتوى الإيجاز: مواعيد اليوم والغد، مخالفات تقترب مهلتها (3 أيام) بمبالغها، المتأخرات، والمهمَل
+-- محتوى الإيجاز: مواعيد اليوم والغد، مخالفات تقترب مهلتها (3 أيام) بمبالغها، المتأخرات، والمهمل
 create or replace function public.telegram_digest(p_secret text, p_user_id uuid)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare tz text; d0 timestamptz; d1 timestamptz; d2 timestamptz; result jsonb;

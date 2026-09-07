@@ -1,2 +1,2 @@
 -- أرقام قياسية بنفس أسلوب باركينزي: USR للمستخدم، ORG للشركة، ITM للعنصر (TYPE-DDMMYYYY-0001).
--- النص الكامل مطبَّق على المشروع؛ انظر public.generate_canonical_number ومشغّلاتها.
+-- النص الكامل مطبق على المشروع؛ انظر public.generate_canonical_number ومشغلاتها.

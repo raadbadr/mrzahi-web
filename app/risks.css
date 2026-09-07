@@ -708,7 +708,7 @@
     .sgrid .waitlist-input, .raci-grid .waitlist-input, .quick-add .waitlist-input,
     .form-grid .waitlist-input, .heat-tools .waitlist-input { width: 100%; min-width: 0; max-width: 100%; }
 
-    /* زر تصدير واحد يُسأل بعده عن النوع (أمر المهندس رعد: لا زران) */
+    /* زر تصدير واحد يسأل بعده عن النوع (أمر المهندس رعد: لا زران) */
     .export-wrap { position: relative; display: inline-block; }
     /* القائمة المنسدلة معتمة دائما وفوق كل شيء، لا يظهر من تحتها شيء */
     .export-menu { position: absolute; inset-inline-end: 0; top: calc(100% + 6px); z-index: 200;

@@ -188,9 +188,9 @@
     el.dispatchEvent(ev);
   }
 
-  /* أخطاء الكتابة الشائعة تُصحَّح عند مغادرة الحقل لا أثناء الكتابة،
-     كي لا تُمنع المسافة بين الكلمتين وهي تُكتب (أمر المهندس رعد:
-     مسافة قبل البداية أو بعد النهاية تُعدَّل، والأرقام بصيغة موحدة). */
+  /* أخطاء الكتابة الشائعة تصحح عند مغادرة الحقل لا أثناء الكتابة،
+     كي لا تمنع المسافة بين الكلمتين وهي تكتب (أمر المهندس رعد:
+     مسافة قبل البداية أو بعد النهاية تعدل، والأرقام بصيغة موحدة). */
   var INVISIBLE = /[​-‏‪-‮⁦-⁩﻿]/g;
   var ODD_SPACE = /[   	]/g;
   var NUMERIC_FIELD = /^(number|tel)$/;
@@ -207,7 +207,7 @@
     if (typeof value !== "string" || !value) return;
     var clean = toWesternDigits(value).replace(INVISIBLE, "").replace(ODD_SPACE, " ").trim();
     if (isNumericField(el)) {
-      /* رقم واحد بصيغة واحدة: الفاصلة العربية نقطة، وفواصل الآلاف تُحذف */
+      /* رقم واحد بصيغة واحدة: الفاصلة العربية نقطة، وفواصل الآلاف تحذف */
       clean = clean.replace(/٫/g, ".").replace(/[٬,]/g, "").replace(/\s+/g, "");
     }
     if (clean === value) return;
@@ -219,7 +219,7 @@
     document.addEventListener("input", function (ev) { fixDigitsIn(ev.target); }, true);
     document.addEventListener("blur", function (ev) { tidyValue(ev.target); }, true);
     document.addEventListener("change", function (ev) { tidyValue(ev.target); }, true);
-    /* حقول number لا تُرجع قيمة غير رقمية أصلا، فاللصق فيها يُحوَّل قبل أن يصل */
+    /* حقول number لا ترجع قيمة غير رقمية أصلا، فاللصق فيها يحول قبل أن يصل */
     document.addEventListener("paste", function (ev) {
       var el = ev.target;
       if (!el || (el.type !== "number" && el.type !== "tel")) return;

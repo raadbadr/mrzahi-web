@@ -797,7 +797,7 @@
       /* ---------- طلب الترقية داخل الموقع ---------- */
 
       /* الباقات المعروضة تأتي من الجدول لا من قائمة مكتوبة في الشيفرة:
-         أي شريحة جديدة تُضاف سطرا في plans فتظهر هنا بلا تعديل. */
+         أي شريحة جديدة تضاف سطرا في plans فتظهر هنا بلا تعديل. */
       function upgradeCodes() {
         return (state.plans || [])
           .filter(function (p) { return p.active !== false && p.code !== "trial" && p.code !== "expired"; })
@@ -829,7 +829,7 @@
 
 
 
-      /* السعر يُقرأ من جدول الباقات لا من نص مكتوب، ويتبع المدة المختارة. */
+      /* السعر يقرأ من جدول الباقات لا من نص مكتوب، ويتبع المدة المختارة. */
       function planRow(code) {
         for (var i = 0; i < (state.plans || []).length; i++) if (state.plans[i].code === code) return state.plans[i];
         return null;
@@ -853,8 +853,8 @@
         per.value = "yearly";
       }
 
-      /* الدفع داخل النظام: يُنشأ الطلب في الوركر ثم يُحوَّل صاحبه إلى البوابة،
-         وعند نجاح التحصيل تفعّل القاعدة الاشتراك وحدها بلا تدخل أحد. */
+      /* الدفع داخل النظام: ينشأ الطلب في الوركر ثم يحول صاحبه إلى البوابة،
+         وعند نجاح التحصيل تفعل القاعدة الاشتراك وحدها بلا تدخل أحد. */
       function submitUpgrade() {
         var btn = el("upgradeBtn"), sel = el("upgradePlan"), per = el("upgradePeriod");
         if (!app.org) { setMsg("upgradeMsg", t("noOrg"), "error"); return; }

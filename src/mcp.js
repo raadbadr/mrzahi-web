@@ -104,7 +104,7 @@ async function resolveActor(ctx, a) {
   let hit = null;
   try { hit = await ctx.rpc("channel_user_lookup", { p_secret: ctx.env.WORKER_SECRET, p_channel: "telegram", p_external_id: tg }); } catch (e) { hit = null; }
   if (!hit || !hit.user_id) return { user: null, name: null, tg };
-  /* المفتاح يعمل لشركة واحدة: مستخدم تيليغرام من شركة أخرى لا يُتصرف باسمه */
+  /* المفتاح يعمل لشركة واحدة: مستخدم تيليغرام من شركة أخرى لا يتصرف باسمه */
   if (ctx.who && ctx.who.org_id) {
     let orgs = [];
     try { orgs = (await ctx.rpc("telegram_org_choices", { p_secret: ctx.env.WORKER_SECRET, p_user_id: hit.user_id })) || []; } catch (e) { orgs = []; }

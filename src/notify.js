@@ -39,9 +39,7 @@ const TEXT = {
         missYouState: (open, overdue, soon) => [open ? `المفتوح لديك ${open}` : null, overdue ? `المتأخر ${overdue}` : null, soon ? `يستحق خلال أسبوع ${soon}` : null].filter(Boolean).join(" · "),
         missYouNext: (title, due) => `الأقرب: ${title} — ${due}`,
         missYouCall: "مواعيدك تحتاج تحديث.",
-        trialLeft: (n) => `تجربتك المجانية${n === 0 ? " تنتهي اليوم" : n === 1 ? " تنتهي غدا" : n === 2 ? " يتبقى لها يومان" : ` يتبقى لها ${n} ${n <= 10 ? "أيام" : "يوما"}`}.`,
-        trialEnds: (date) => `تنتهي في ${date}.`,
-        trialCall: "اشترك الآن حتى لا تضيع مستنداتك.",
+        trialLine: (n) => `${n === 0 ? "اليوم آخر يوم في تجربتك" : n === 1 ? "غدا تقفل تجربتك" : n === 2 ? "يومان ويقفل الباب" : `${n} أيام وتقفل تجربتك`}. اشترك الآن حتى لا تضيع مستنداتك.`,
         trialBtn: "الباقات والاشتراك" },
   en: { reminder: (t, due, tr) => `⏰ MrZahi reminder\n${t}\nDue: ${due}${tr ? `\nTracker: ${tr}` : ""}\nhttps://mrzahi.com/app/dashboard.html`,
         linked: (name, org) => `Hello ${name || ""}${org ? "\nCompany: " + org : ""}`,
@@ -54,9 +52,7 @@ const TEXT = {
         missYouState: (open, overdue, soon) => [open ? `${open} open` : null, overdue ? `${overdue} overdue` : null, soon ? `${soon} due within a week` : null].filter(Boolean).join(" · "),
         missYouNext: (title, due) => `Soonest: ${title} — ${due}`,
         missYouCall: "Your dates need updating.",
-        trialLeft: (n) => `Your free trial ${n === 0 ? "ends today" : n === 1 ? "ends tomorrow" : `has ${n} days left`}.`,
-        trialEnds: (date) => `It ends on ${date}.`,
-        trialCall: "Subscribe now so your documents are not lost.",
+        trialLine: (n) => `${n === 0 ? "Today is the last day of your trial" : n === 1 ? "Tomorrow your trial closes" : `${n} days and your trial closes`}. Subscribe now so your documents are not lost.`,
         trialBtn: "Plans and subscription" },
   fr: { reminder: (t, due, tr) => `⏰ Rappel MrZahi\n${t}\nÉchéance : ${due}${tr ? `\nSuivi : ${tr}` : ""}\nhttps://mrzahi.com/app/dashboard.html`,
         linked: (name, org) => `Bonjour ${name || ""}${org ? "\nSociete : " + org : ""}`,
@@ -69,9 +65,7 @@ const TEXT = {
         missYouState: (open, overdue, soon) => [open ? `${open} en cours` : null, overdue ? `${overdue} en retard` : null, soon ? `${soon} sous une semaine` : null].filter(Boolean).join(" · "),
         missYouNext: (title, due) => `Le plus proche : ${title} — ${due}`,
         missYouCall: "Vos échéances ont besoin d'une mise à jour.",
-        trialLeft: (n) => `Votre essai gratuit ${n === 0 ? "se termine aujourd'hui" : n === 1 ? "se termine demain" : `dure encore ${n} jours`}.`,
-        trialEnds: (date) => `Fin le ${date}.`,
-        trialCall: "Abonnez-vous maintenant pour ne pas perdre vos documents.",
+        trialLine: (n) => `${n === 0 ? "Aujourd'hui est le dernier jour de votre essai" : n === 1 ? "Demain votre essai se ferme" : `${n} jours et votre essai se ferme`}. Abonnez-vous pour ne pas perdre vos documents.`,
         trialBtn: "Offres et abonnement" },
   ur: { reminder: (t, due, tr) => `⏰ MrZahi یاد دہانی\n${t}\nآخری تاریخ: ${due}${tr ? `\nرجسٹر: ${tr}` : ""}\nhttps://mrzahi.com/app/dashboard.html`,
         linked: (name, org) => `خوش آمدید ${name || ""}${org ? "\nکمپنی: " + org : ""}`,
@@ -84,9 +78,7 @@ const TEXT = {
         missYouState: (open, overdue, soon) => [open ? `${open} کھلے` : null, overdue ? `${overdue} تاخیر شدہ` : null, soon ? `${soon} ایک ہفتے میں` : null].filter(Boolean).join(" · "),
         missYouNext: (title, due) => `قریب ترین: ${title} — ${due}`,
         missYouCall: "آپ کی تاریخوں کو اپ ڈیٹ کی ضرورت ہے۔",
-        trialLeft: (n) => `آپ کی مفت آزمائش ${n === 0 ? "آج ختم ہو رہی ہے" : n === 1 ? "کل ختم ہو رہی ہے" : `میں ${n} دن باقی ہیں`}۔`,
-        trialEnds: (date) => `${date} کو ختم ہوگی۔`,
-        trialCall: "ابھی سبسکرائب کریں تاکہ آپ کی دستاویزات ضائع نہ ہوں۔",
+        trialLine: (n) => `${n === 0 ? "آج آپ کی آزمائش کا آخری دن ہے" : n === 1 ? "کل آپ کی آزمائش بند ہو جائے گی" : `${n} دن اور آپ کی آزمائش بند`}۔ ابھی سبسکرائب کریں تاکہ آپ کی دستاویزات ضائع نہ ہوں۔`,
         trialBtn: "پلانز اور سبسکرپشن" },
 };
 export function t(lang) { return TEXT[lang] || TEXT.ar; }
@@ -272,7 +264,7 @@ export async function linkChannelDirect(env, userId, channel, externalId) {
    المنطقة الزمنية وصيغة الوقت (24 أو 12 ساعة) باختيار المستلم من إعداداته
    (profiles.tz وprofiles.time_format)، والافتراض توقيت الرياض و24 ساعة. */
 /* التواريخ للمستخدم دائما يوم-شهر-سنة؛ أي قيمة ليست تاريخا تعود كما هي */
-/* الأرقام غربية دائما: ما يكتبه المستخدم بالأرقام العربية الشرقية أو الفارسية يُحوَّل قبل أي فهم أو تخزين */
+/* الأرقام غربية دائما: ما يكتبه المستخدم بالأرقام العربية الشرقية أو الفارسية يحول قبل أي فهم أو تخزين */
 export function westernDigits(text) {
   return String(text || "").replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (d) => { const c = d.charCodeAt(0); return String(c >= 0x06F0 ? c - 0x06F0 : c - 0x0660); });
 }
@@ -382,10 +374,10 @@ export function actionButtons(lang, token) {
 /* أفعال الكتابة: لا تنفذ بلا طلب صريح في رسالة المستخدم نفسها، ثم لا تنفذ إلا بعد تأكيده.
    كلمات المجاملة (أحسنت، شكرا…) ليست أوامر — هذا ما أقفل مخالفة بالخطأ ذات مرة. */
 export const VERBS = {
-  add: /(أضف|اضف|ضيف|سجل|سجّل|أنشئ|انشئ|اعمل|سوي|سو |افتح قضية|افتح مخالفة|\badd\b|\bcreate\b|new task|\bregister\b|ajoute|enregistre|شامل کر|درج کر)/i,
-  done: /(أنجزت|انجزت|أنجزنا|انجزنا|تم إنجاز|تم انجاز|تم إنهاء|تم انهاء|أنهيت|انهيت|أنهينا|انهينا|أقفل|اقفل|أغلق|اغلق|إقفال|اقفال|إغلاق|اغلاق|خلصت|خلصنا|انتهت|انتهى|انتهينا|اعتبرها منجزة|اعتبره منجزا|كمنجز|منجزة|سددت|سُددت|تم سداد|تم دفع|دفعنا|دفعت|تم الدفع|تم السداد|\bdone\b|complete|finish|\bclose|paid|termin|clôtur|مکمل|ختم کر)/i,
-  assign: /(?:^|[\s،.:؛])(?:أسند|اسند|إسناد|اسناد|كلف|كلّف|تكليف|حوّل|حول|عيّن|عين|assign|delegate|hand (?:it )?to|attribue|confie|تفویض|سونپ)/i,
-  remind: /(ذكرني|ذكّرني|ذكرنا|ذكّرنا|نبهني|نبّهني|نبهنا|remind (?:me|us)|rappelle|یاد دلا)/i,
+  add: /(أضف|اضف|ضيف|سجل|سجل|أنشئ|انشئ|اعمل|سوي|سو |افتح قضية|افتح مخالفة|\badd\b|\bcreate\b|new task|\bregister\b|ajoute|enregistre|شامل کر|درج کر)/i,
+  done: /(أنجزت|انجزت|أنجزنا|انجزنا|تم إنجاز|تم انجاز|تم إنهاء|تم انهاء|أنهيت|انهيت|أنهينا|انهينا|أقفل|اقفل|أغلق|اغلق|إقفال|اقفال|إغلاق|اغلاق|خلصت|خلصنا|انتهت|انتهى|انتهينا|اعتبرها منجزة|اعتبره منجزا|كمنجز|منجزة|سددت|سددت|تم سداد|تم دفع|دفعنا|دفعت|تم الدفع|تم السداد|\bdone\b|complete|finish|\bclose|paid|termin|clôtur|مکمل|ختم کر)/i,
+  assign: /(?:^|[\s،.:؛])(?:أسند|اسند|إسناد|اسناد|كلف|كلف|تكليف|حول|حول|عين|عين|assign|delegate|hand (?:it )?to|attribue|confie|تفویض|سونپ)/i,
+  remind: /(ذكرني|ذكرني|ذكرنا|ذكرنا|نبهني|نبهني|نبهنا|remind (?:me|us)|rappelle|یاد دلا)/i,
 };
 /* التذكير ينفذ مباشرة، لذلك يشترط طلبا موجبا بمهلة، ولا إلغاء ولا نفي ولا سؤال في الرسالة */
 const REMIND_LEAD = /(\d+|يوم|أيام|ساعة|ساعات|أسبوع|أسبوعين|شهر|قبل|day|hour|week|month|before|jour|heure|semaine|دن|گھنٹ|ہفت)/i;

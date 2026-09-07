@@ -1,5 +1,5 @@
 /* /api/v1 بمفتاح API (tt_live_…): تصدير CSV/JSON، استيراد صفوف، وتوثيق خادم MCP.
-   نُقل من worker.js كي يبقى كل ملف تحت ألف سطر. */
+   نقل من worker.js كي يبقى كل ملف تحت ألف سطر. */
 import * as XLSX from "xlsx";
 import { rpc } from "./notify.js";
 import { ALLOWED_EXT, fileExt, parseWorkbook, draftPayload } from "./telegram-import.js";

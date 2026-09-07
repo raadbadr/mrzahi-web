@@ -329,11 +329,8 @@ export async function runTrialCountdown(env) {
   for (const u of (Array.isArray(targets) ? targets : [])) {
     try {
       const b = botText(u.lang || "ar");
-      const days = Number(u.days_left) || 0;
-      const lines = [b.trialLeft(days)];
-      if (u.ends_at) lines.push(b.trialEnds(fmtDue(u.ends_at, u.tz || RIYADH, false).slice(0, 10)));
-      lines.push(b.trialCall);
-      await sendTelegram(env, u.chat_id, lines.join("\n"), urlButton(b.trialBtn, PLANS_URL));
+      /* سطر واحد: كم بقي، ولماذا يشترك. لا ثلاثة أسطر ولا تكرار */
+      await sendTelegram(env, u.chat_id, b.trialLine(Number(u.days_left) || 0), urlButton(b.trialBtn, PLANS_URL));
       await rpc(env, "telegram_mark_trial", { p_secret: env.WORKER_SECRET, p_user_id: u.user_id });
       sent++;
     } catch (e) { console.error("[trial]", String((e && e.message) || e).slice(0, 200)); }

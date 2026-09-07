@@ -1,11 +1,11 @@
--- تخزين ملفات المستخدم في Google Drive الخاص به خياراً (المهندس رعد 2026-09-05):
--- وضع التخزين صفة على الملف الشخصي (مرجع لكل الأجهزة، 'platform' افتراضاً)، والمرفق يحفظ معرّف ملف درايف.
+-- تخزين ملفات المستخدم في Google Drive الخاص به خيارا (المهندس رعد 2026-09-05):
+-- وضع التخزين صفة على الملف الشخصي (مرجع لكل الأجهزة، 'platform' افتراضا)، والمرفق يحفظ معرف ملف درايف.
 alter table public.profiles add column if not exists storage_mode text not null default 'platform'
   check (storage_mode in ('platform','drive'));
 alter table public.attachments add column if not exists drive_file_id text;
 create index if not exists attachments_drive_idx on public.attachments (drive_file_id) where drive_file_id is not null;
 
--- حصة التخزين تُحسب على ما يسكن تخزين المنصة فقط؛ روابط درايف والملفات المحفوظة فيه لا تستهلك الحصة
+-- حصة التخزين تحسب على ما يسكن تخزين المنصة فقط؛ روابط درايف والملفات المحفوظة فيه لا تستهلك الحصة
 create or replace function public.enforce_storage_limit()
 returns trigger language plpgsql security definer set search_path to 'public' as $$
 declare used bigint; cap bigint;

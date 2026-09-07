@@ -21,9 +21,9 @@
           remind_before: $("editRemind").value || null
         };
         /* القائمة تعرض خمس مدد فقط. من ضبط تذكيره من البوت بمدة أخرى (يومين، ساعتين،
-           شهرين) كانت قيمته تسقط إلى فارغ فيُمحى تذكيره صامتا مع أي حفظ. */
+           شهرين) كانت قيمته تسقط إلى فارغ فيمحى تذكيره صامتا مع أي حفظ. */
         if (!patch.remind_before && state.editing.remind_before) delete patch.remind_before;
-        /* data تُستبدل كاملة عند الحفظ، فتُدمج بيانات العقد فوق ما كان لا بدلا منه. */
+        /* data تستبدل كاملة عند الحفظ، فتدمج بيانات العقد فوق ما كان لا بدلا منه. */
         var cdata = contractRowData("edit");
         if (cdata) patch.data = Object.assign({}, state.editing.data || {}, cdata);
         var id = state.editing.id;
@@ -158,7 +158,7 @@
         var grid = $("calGrid");
         /* مصاريف التشغيل بلا تقويم (السطر 816 في script.1.js يزيل calCard من
            الصفحة)، فعنصر التقويم غير موجود هنا؛ بلا هذا الحارس كانت الكتابة
-           على null تُسقط الوعد وتُظهر «تعذر تحميل البيانات» في كل مرة. */
+           على null تسقط الوعد وتظهر «تعذر تحميل البيانات» في كل مرة. */
         if (!grid) return;
         grid.innerHTML = "";
         $("calTitle").textContent = calendarIsHijri()
@@ -234,7 +234,7 @@
         commercial_register: { ar: "السجل التجاري", en: "Commercial register", fr: "Registre de commerce", ur: "تجارتی رجسٹر" },
         vat_certificate: { ar: "الشهادة الضريبية", en: "VAT certificate", fr: "Certificat de TVA", ur: "ویٹ سرٹیفکیٹ" },
         gosi_certificate: { ar: "شهادة التأمينات", en: "GOSI certificate", fr: "Certificat GOSI", ur: "جی او ایس آئی سرٹیفکیٹ" },
-        zakat_certificate: { ar: "شهادة الزكاة", en: "Zakat certificate", fr: "Certificat de zakat", ur: "زکوٰۃ سرٹیفکیٹ" },
+        zakat_certificate: { ar: "شهادة الزكاة", en: "Zakat certificate", fr: "Certificat de zakat", ur: "زکوۃ سرٹیفکیٹ" },
         chamber_certificate: { ar: "شهادة الغرفة", en: "Chamber certificate", fr: "Certificat de chambre", ur: "چیمبر سرٹیفکیٹ" },
         saudization_certificate: { ar: "شهادة السعودة", en: "Saudization certificate", fr: "Certificat de saoudisation", ur: "سعودائزیشن سرٹیفکیٹ" },
         license: { ar: "الرخصة", en: "Licence", fr: "Licence", ur: "لائسنس" },

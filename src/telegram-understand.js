@@ -6,7 +6,7 @@ import { VERBS, westernDigits } from "./notify.js";
 
 export function normalize(text) {
   return String(text || "")
-    .replace(/[ً-ْٰـ]/g, "")
+    .replace(/[\u064B-\u0652\u0670\u0640]/g, "")
     .replace(/[éèêëàâäîïôöûüùç]/g, (c) => LATIN[c] || c)
     .replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/ؤ/g, "و").replace(/ئ/g, "ي")
     .replace(/[^\p{L}\p{N}\s]/gu, " ")
@@ -209,7 +209,7 @@ export function composeAnswer(u, rows, lang, rowsText, toolText, tz) {
     list = w;
   }
   if (!list.length) return toolText && toolText !== "No items." ? toolText : null;
-  /* العدد لا يُقال إلا إن كان حقيقيا: حين تبلغ الصفوف حد الصفحة فما بعده لم يُقرأ،
+  /* العدد لا يقال إلا إن كان حقيقيا: حين تبلغ الصفوف حد الصفحة فما بعده لم يقرأ،
      فيقال «على الأقل» بدل تقديم حد الصفحة على أنه المجموع. */
   const capped = !!(u.args && u.args.limit) && Array.isArray(rows) && rows.length >= u.args.limit;
   /* على قدر السؤال: من سأل «كم» يريد عددا، لا عددا ومعه القائمة كلها.

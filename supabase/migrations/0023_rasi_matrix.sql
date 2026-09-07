@@ -1,6 +1,6 @@
 -- مصفوفة RASI للفريق (طلب المهندس رعد): لكل عنصر (قضية/مخالفة/مهمة) أدوار الأعضاء:
--- R منفّذ مسؤول، A معتمد ومساءل (واحد لكل عنصر)، S مساند، I مُبلَّغ.
--- يقرؤها أعضاء الشركة، ويحرّرها أعضاؤها، ومن يُسند إليه دور يعرف من جرس التنبيهات.
+-- R منفذ مسؤول، A معتمد ومساءل (واحد لكل عنصر)، S مساند، I مبلغ.
+-- يقرؤها أعضاء الشركة، ويحررها أعضاؤها، ومن يسند إليه دور يعرف من جرس التنبيهات.
 
 create table if not exists public.item_roles (
   org_id uuid not null references public.organizations(id) on delete cascade,
@@ -35,7 +35,7 @@ begin
   select coalesce(p.full_name, p.email) into actor from public.profiles p where p.id = auth.uid();
   select name into oname from public.organizations where id = new.org_id;
   select title, item_number into ititle, inum from public.items where id = new.item_id;
-  rname := case new.role when 'R' then 'المنفّذ المسؤول (R)' when 'A' then 'المعتمد (A)' when 'S' then 'المساند (S)' else 'المُبلَّغ (I)' end;
+  rname := case new.role when 'R' then 'المنفذ المسؤول (R)' when 'A' then 'المعتمد (A)' when 'S' then 'المساند (S)' else 'المبلغ (I)' end;
   perform public.notify_inapp(new.org_id, new.user_id, jsonb_build_object(
     'kind', 'role',
     'title', 'دورك في «' || coalesce(ititle, '') || '»: ' || rname,
@@ -56,7 +56,7 @@ $$;
 revoke all on function public.item_roles_text(uuid) from public;
 grant execute on function public.item_roles_text(uuid) to anon, authenticated, service_role;
 
--- نتائج بحث البوت تعرض الأدوار أيضاً
+-- نتائج بحث البوت تعرض الأدوار أيضا
 create or replace function public.telegram_search(p_secret text, p_user_id uuid, p_query text, p_limit int default 8)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare q text; result jsonb;

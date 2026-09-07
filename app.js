@@ -141,7 +141,7 @@
     return result ? result.data : null;
   }
 
-  /* الإعدادات أول ما يُطلب، وطلب بلا مهلة يوقف الموقع كله عند «جاري التحميل…» */
+  /* الإعدادات أول ما يطلب، وطلب بلا مهلة يوقف الموقع كله عند «جاري التحميل…» */
   function fetchWithTimeout(url, opts, ms) {
     var o = Object.assign({}, opts || {});
     var ctrl = window.AbortController ? new AbortController() : null;

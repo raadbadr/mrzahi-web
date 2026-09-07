@@ -473,7 +473,7 @@
     #papersStats .platform-stat-value.status-overdue { color: var(--error); }
     #papersNote { font-size: 0.78rem; margin: 0 0 0.75rem; opacity: 0.75; }
 
-    /* ما قرأه النظام من الورقة: تسمية وقيمة، القيمة كاملة تلتف ولا تُقص */
+    /* ما قرأه النظام من الورقة: تسمية وقيمة، القيمة كاملة تلتف ولا تقص */
     .doc-details, .doc-profile { margin: 1rem 0 .25rem; }
     .doc-profile { padding: .9rem 1rem; border: 1px solid var(--primary); border-radius: 14px; background: var(--glass); }
     .detail-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .5rem .9rem; margin-top: .5rem; }
@@ -787,8 +787,8 @@
       font-size: .8rem; white-space: nowrap; width: auto; flex: 0 0 auto; }
     .content .items-table td, .content .items-table th { white-space: nowrap; vertical-align: middle; }
     #docsWrap .items-table td:nth-child(2), #docsWrap .items-table td:nth-child(4) { white-space: normal; }
-    /* اسم الملف على سطر واحد: يُقصّ بثلاث نقاط والجدول يتمرر أفقيا */
-    /* اسم الملف كامل بلا قصّ: سطر واحد بخط أصغر قليلا، والجدول يتمرر أفقيا */
+    /* اسم الملف على سطر واحد: يقص بثلاث نقاط والجدول يتمرر أفقيا */
+    /* اسم الملف كامل بلا قص: سطر واحد بخط أصغر قليلا، والجدول يتمرر أفقيا */
     .content .items-table .file-row a { display: inline-block; white-space: nowrap; font-size: .82rem;
       vertical-align: middle; }
     #docsWrap .items-table td:nth-child(2) { min-width: 14rem; }

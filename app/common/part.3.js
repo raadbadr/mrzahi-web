@@ -726,7 +726,7 @@
     /* سطر العنوان: الزر في بدايته والعنوان في منتصفه (كشريط الشيت في باركينزي)، وما لا عنوان له يبدأ تحت السطر */
     "body .has-close-x>.close-x+h2,body .has-close-x>.close-x+h3{min-height:40px;display:flex;align-items:center;justify-content:center;text-align:center;padding-inline:56px;margin-top:0;box-sizing:border-box}",
     "body .has-close-x>.close-x+:not(h1):not(h2):not(h3){margin-top:calc(40px + .75rem)}",
-    /* حاسبة المدة والعدّاد: حقل الأيام بجانب التاريخ، والسطر محجوز فلا يقفز شيء؛ التأخر أحمر */
+    /* حاسبة المدة والعداد: حقل الأيام بجانب التاريخ، والسطر محجوز فلا يقفز شيء؛ التأخر أحمر */
     "body .dur-field{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .6rem;margin-top:.5rem}",
     "body .dur-label{font-size:.85rem;color:var(--text-secondary)}",
     "body .dur-days.waitlist-input{flex:0 0 6.5rem;width:6.5rem;min-width:0;text-align:center}",
@@ -735,7 +735,7 @@
     "body .due-left:empty{display:none}",
     "body .dp-wrap .dur-inline{display:block;margin-top:.15rem}",
     "body .waitlist-form>.close-x,body .form-actions>.close-x{width:40px;max-width:40px;flex:0 0 40px}",
-    /* داخل نوافذ app-gate: قاعدة الأزرار هناك تمدد كل زر بعرض النافذة، فتُخصَّص هنا: دائرة في الزاوية والعنوان في المنتصف */
+    /* داخل نوافذ app-gate: قاعدة الأزرار هناك تمدد كل زر بعرض النافذة، فتخصص هنا: دائرة في الزاوية والعنوان في المنتصف */
     "body .app-gate-card button.close-x{width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;grid-column:auto;",
     "background:var(--bg-top);color:var(--primary);border:1px solid var(--glass-border);box-shadow:0 2px 4px rgba(0,0,0,.2);",
     "position:absolute;z-index:5;font-weight:400}",
@@ -973,7 +973,7 @@
       host.insertBefore(btn, host.firstChild);
       /* حاوية بلا عنوان في أولها: يمنع تسرب هامش أول عنصر إلى الحاوية كلها فيبقى الزر فوق السطر المحجوز */
       var firstContent = btn.nextElementSibling;
-      if (firstContent && !/^H[1-3]$/.test(firstContent.tagName)) host.style.display = "flow-root";   /* الحاوية مخفية عند التركيب فلا يُقرأ display المحسوب */
+      if (firstContent && !/^H[1-3]$/.test(firstContent.tagName)) host.style.display = "flow-root";   /* الحاوية مخفية عند التركيب فلا يقرأ display المحسوب */
       placeCloseX(btn);
     }
   }
@@ -1005,8 +1005,8 @@
     });
   }
 
-  /* الختم الرسمي المعتمد: يوضع في نهاية كل صفحة تطبيق، ولا يُرى إلا على الورق.
-     الملف لا يُمس ولا يُعاد تصميمه (أمر المهندس رعد 2026-09-07). */
+  /* الختم الرسمي المعتمد: يوضع في نهاية كل صفحة تطبيق، ولا يرى إلا على الورق.
+     الملف لا يمس ولا يعاد تصميمه (أمر المهندس رعد 2026-09-07). */
   function mountPrintStamp() {
     if (document.getElementById("appPrintStamp")) return;
     if (!/^\/app\//.test(String(window.location.pathname || ""))) return;

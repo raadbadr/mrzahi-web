@@ -241,7 +241,7 @@ returns boolean language sql stable security definer set search_path = public as
   select coalesce((select is_platform_admin from public.profiles where id = auth.uid()), false)
 $$;
 
--- الباقة الفعّالة للشركة: اشتراك نشط غير منتهٍ، وإلا free
+-- الباقة الفعالة للشركة: اشتراك نشط غير منته، وإلا free
 create or replace function public.effective_plan(o uuid)
 returns text language sql stable security definer set search_path = public as $$
   select coalesce(
@@ -300,7 +300,7 @@ drop trigger if exists members_enforce_limit on public.org_members;
 create trigger members_enforce_limit before insert on public.org_members
   for each row execute function public.enforce_member_limit();
 
--- أرقام المنصة العامة (أعداد فقط) — تُستدعى من الـ Worker بمفتاح anon
+-- أرقام المنصة العامة (أعداد فقط) — تستدعى من الـ Worker بمفتاح anon
 create or replace function public.platform_stats()
 returns jsonb language sql stable security definer set search_path = public as $$
   select jsonb_build_object(

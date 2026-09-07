@@ -295,7 +295,7 @@
     ".app-userbox{flex:1 1 0%;min-width:0;max-width:100%;gap:.5rem}",
     ".app-orgbox{flex:1 1 0%;min-width:0;max-width:100%;padding:0 .5rem}",
     ".app-orglabel{display:none}",
-    /* 16 بكسل على الجوال: iOS يكبّر الصفحة تلقائيا عند لمس أي حقل خطه أصغر */
+    /* 16 بكسل على الجوال: iOS يكبر الصفحة تلقائيا عند لمس أي حقل خطه أصغر */
     ".app-orgselect{flex:1 1 0%;width:0;min-width:0;max-width:100%;font-size:16px}",
     ".app-sidebar-toggle{margin-inline-end:0}",
     "body.has-app-topbar{padding-top:calc(var(--site-header-h,61px) + 56px)}",
@@ -658,8 +658,8 @@
            "</div>";
   }
 
-  /* الواجهة تُبدَّل من جوار الحساب مباشرة، بالصندوق نفسه الذي يبدل الحساب.
-     القائمة تُجلب مرة وتُحفظ، والقاعدة هي الحارس: set_org_pack للمالك والمدير وحدهما. */
+  /* الواجهة تبدل من جوار الحساب مباشرة، بالصندوق نفسه الذي يبدل الحساب.
+     القائمة تجلب مرة وتحفظ، والقاعدة هي الحارس: set_org_pack للمالك والمدير وحدهما. */
   var packsCache = null, packsAsked = false;
   var planCache = null, planAsked = false;
 
@@ -681,7 +681,7 @@
     }
     var row = planCache.row, code = planCache.code;
     var name = row ? (row["name_" + lang()] || row.name_en || code) : code;
-    /* المتبقي على التجربة تحت الاسم بالأحمر. النص يملؤه عدّاد المنصة نفسه
+    /* المتبقي على التجربة تحت الاسم بالأحمر. النص يملؤه عداد المنصة نفسه
        الذي يملأ كل [data-due]، ويتحدث وحده كل دقيقة. */
     var ends = app.org && app.org.plan_expires_at;
     var left = (code === "trial" && ends)
@@ -712,7 +712,7 @@
       return "";
     }
     /* my_pack_config يعيد المفتاح باسم pack؛ قراءته باسم key كانت تترك القائمة
-       بلا خيار معلَّم فيظهر أول خيار («شخص») مهما كانت الواجهة الحقيقية. */
+       بلا خيار معلم فيظهر أول خيار («شخص») مهما كانت الواجهة الحقيقية. */
     var cur = (app.pack && (app.pack.pack || app.pack.key)) || "";
     /* الواجهة تتبع نوع الحساب: حساب الفرد واجهته شخصية وحدها، وحساب الكيان
        لا تظهر فيه الشخصية أصلا. القاعدة ترفض ما سوى ذلك على أي حال. */

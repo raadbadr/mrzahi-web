@@ -36,7 +36,7 @@ end $$;
 revoke all on function public.mark_chat_read(uuid) from public, anon;
 grant execute on function public.mark_chat_read(uuid) to authenticated;
 
--- التنبيه يحمل معرّف كاتبه ليُربط بالمحادثة الصحيحة.
+-- التنبيه يحمل معرف كاتبه ليربط بالمحادثة الصحيحة.
 create or replace function public.notify_team_message()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare

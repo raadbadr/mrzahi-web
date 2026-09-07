@@ -71,7 +71,7 @@ end $$;
 revoke all on function public.create_org_registered(text, text, text, date, text) from public;
 grant execute on function public.create_org_registered(text, text, text, date, text) to authenticated;
 
--- إعادة التسمية تقبل الاسمين معاً
+-- إعادة التسمية تقبل الاسمين معا
 create or replace function public.rename_org(p_org uuid, p_name text, p_name_en text default null)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare v_ar text; v_en text; v_show text;

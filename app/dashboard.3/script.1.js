@@ -97,7 +97,7 @@
       function assigneeName(id) { return (id && state.names[id]) ? state.names[id] : T("noAssignee"); }
 
       function findItem(id) {
-        /* أبناء ملف القضية محمّلون في caseKids لا في state.items، فزر «تعديل» على
+        /* أبناء ملف القضية محملون في caseKids لا في state.items، فزر «تعديل» على
            صف الحكم أو الجلسة كان لا يفعل شيئا بلا رسالة. */
         var lists = [state.items, state.calItems, state.caseKids || []];
         for (var l = 0; l < lists.length; l++) for (var i = 0; i < lists[l].length; i++) if (lists[l][i].id === id) return lists[l][i];
@@ -192,8 +192,8 @@
 
       /* التصنيف بالتصنيف المختار لا بالبحث في النص:
          «بخلاف» ليست مخالفة، و«showcase» ليست قضية، و«مهمة برمجية عن صفحة القضايا»
-         مهمة لأن تصنيفها مهمة. النص لا يُستشار إلا حين لا تصنيف للعنصر أصلا،
-         وحينها تُشترط كلمة كاملة: قبلها فراغ أو أداة تعريف، وبعدها فراغ. */
+         مهمة لأن تصنيفها مهمة. النص لا يستشار إلا حين لا تصنيف للعنصر أصلا،
+         وحينها تشترط كلمة كاملة: قبلها فراغ أو أداة تعريف، وبعدها فراغ. */
       var LETTER = /[A-Za-z0-9\u0600-\u06FF]/;
       var AR_PREFIX = ["ال", "وال", "فال", "بال", "كال", "لل"];
 
@@ -587,7 +587,7 @@
           else {
             var best = -1;
             marks.forEach(function (m) { var st = Number(m.dataset.step); if (st <= p && st > best) { best = st; active = m; } });
-            /* في اليوم الواحد أحداث عدة: يُختار آخرها فيبقى «التالي» ينتقل للأمام */
+            /* في اليوم الواحد أحداث عدة: يختار آخرها فيبقى «التالي» ينتقل للأمام */
             if (active) marks.forEach(function (m) { if (m.dataset.step === active.dataset.step) active = m; });
           }
           /* المؤشر يعد «على الحدث» حين يقف المقبض عنده؛ وإلا فالسهمان يقاسان من موضع المقبض نفسه */
@@ -811,8 +811,8 @@
         dash.insertBefore(timeline, grid);
         /* الرئيسية: المربعات الأربعة أولا ثم التقويم تحتها مباشرة (أمر المهندس رعد)؛ بقية الصفحات: التقويم أولا */
         var statsTop = dash.querySelector(".stats-section.stats-top");
-        /* الفلاتر للرئيسية وحدها: تُخفى هنا لا عند تحميل السكربت، لأن viewType
-           لا يُعرف إلا بعد قراءة ?type= من الرابط. */
+        /* الفلاتر للرئيسية وحدها: تخفى هنا لا عند تحميل السكربت، لأن viewType
+           لا يعرف إلا بعد قراءة ?type= من الرابط. */
 
         /* مصاريف التشغيل بلا تقويم: مواعيدها ليست جلسات ولا مخالفات (أمر المهندس رعد) */
         if (state.viewType === "expenses") calCard.remove();

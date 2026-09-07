@@ -1,5 +1,5 @@
--- هدف الإرسال يعيد أيضاً اسم المستخدم واسم شركته، ليرحّب به البوت باسمه عند ربط
--- القناة (طلب المهندس رعد). الشركة: التي يملكها، وإلا أول عضوية فعّالة.
+-- هدف الإرسال يعيد أيضا اسم المستخدم واسم شركته، ليرحب به البوت باسمه عند ربط
+-- القناة (طلب المهندس رعد). الشركة: التي يملكها، وإلا أول عضوية فعالة.
 create or replace function public.notify_target(p_secret text, p_user_id uuid, p_channel text)
 returns jsonb language plpgsql security definer set search_path = public as $$
 begin

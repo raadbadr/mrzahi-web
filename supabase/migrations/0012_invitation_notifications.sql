@@ -1,11 +1,11 @@
--- الدعوة لم تكن تُصدر أي تنبيه: الجرس يقرأ notifications بقناة inapp، ولا أحد
--- يكتب فيها عند الدعوة. الآن يُخطر الطرفان: المدعو لحظة دعوته، والداعي وبقية
+-- الدعوة لم تكن تصدر أي تنبيه: الجرس يقرأ notifications بقناة inapp، ولا أحد
+-- يكتب فيها عند الدعوة. الآن يخطر الطرفان: المدعو لحظة دعوته، والداعي وبقية
 -- المشرفين لحظة انضمامه.
 
--- تنبيهات الدعوة لا ترتبط بعنصر، فالعمود صار اختيارياً.
+-- تنبيهات الدعوة لا ترتبط بعنصر، فالعمود صار اختياريا.
 alter table public.notifications alter column item_id drop not null;
 
--- المدعو يقرأ تنبيهه قبل أن يصير عضواً في الشركة.
+-- المدعو يقرأ تنبيهه قبل أن يصير عضوا في الشركة.
 drop policy if exists notifications_read on public.notifications;
 create policy notifications_read on public.notifications
   for select using (user_id = auth.uid() or org_id in (select public.current_org_ids()));
@@ -18,11 +18,11 @@ begin
   insert into public.notifications (org_id, user_id, channel, scheduled_at, sent_at, status, payload)
   values (p_org, p_user, 'inapp', now(), now(), 'sent', p_payload);
 exception when others then
-  return; -- التنبيه لا يُسقط العملية الأصلية أبداً
+  return; -- التنبيه لا يسقط العملية الأصلية أبدا
 end $$;
 revoke all on function public.notify_inapp(uuid, uuid, jsonb) from public, anon, authenticated;
 
--- عند إنشاء الدعوة: إن كان البريد لمستخدم مسجّل وصله التنبيه فوراً.
+-- عند إنشاء الدعوة: إن كان البريد لمستخدم مسجل وصله التنبيه فورا.
 create or replace function public.notify_invitation()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
@@ -49,7 +49,7 @@ drop trigger if exists on_invitation_created on public.invitations;
 create trigger on_invitation_created after insert on public.invitations
   for each row execute function public.notify_invitation();
 
--- عند الانضمام: يُخطر المالك والمشرفون، ويُخطر المنضم بشركته الجديدة.
+-- عند الانضمام: يخطر المالك والمشرفون، ويخطر المنضم بشركته الجديدة.
 create or replace function public.accept_invitations_for(u uuid)
 returns table (joined_org_id uuid, joined_org_name text, joined_role text)
 language plpgsql security definer set search_path = public as $$

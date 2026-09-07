@@ -417,7 +417,7 @@
         return name || String(m.chat_id);
       }
 
-      /* رسائل كل مستخدم في محادثة واحدة: القائمة صناديق، والصندوق يُفتح فتُقرأ المحادثة */
+      /* رسائل كل مستخدم في محادثة واحدة: القائمة صناديق، والصندوق يفتح فتقرأ المحادثة */
       function tgConversations() {
         const byChat = new Map();
         tgMessages.forEach((m) => {

@@ -1,5 +1,5 @@
 -- صفحة الفريق صارت مكان العمل: توزيع الأعمال، والتواصل، وتوجيه المهمات.
--- الرسالة الموجهة إلى عضو تصل جرسه، ومن يُسند إليه عمل يعرف به فوراً.
+-- الرسالة الموجهة إلى عضو تصل جرسه، ومن يسند إليه عمل يعرف به فورا.
 
 create table if not exists public.team_messages (
   id uuid primary key default gen_random_uuid(),
@@ -60,7 +60,7 @@ begin
   select name into oname from public.organizations where id = new.org_id;
   perform public.notify_inapp(new.org_id, new.assignee_id, jsonb_build_object(
     'kind', 'assigned',
-    'title', 'أُسندت إليك: ' || coalesce(new.title, ''),
+    'title', 'أسندت إليك: ' || coalesce(new.title, ''),
     'org_id', new.org_id, 'org_name', oname, 'actor', actor,
     'item_id', new.id, 'item_number', new.item_number, 'item_title', new.title, 'due_at', new.due_at));
   return new;

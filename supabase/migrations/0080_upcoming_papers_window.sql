@@ -1,5 +1,5 @@
 -- «المواعيد القادمة» موعد لا أرشيف: الورقة الرسمية لا تدخلها إلا حين تدخل
--- نافذة انتهائها التي تعرّفها المنصة نفسها (ثلاثون يوما في org_documents_status).
+-- نافذة انتهائها التي تعرفها المنصة نفسها (ثلاثون يوما في org_documents_status).
 -- المهام والجلسات والمواعيد تبقى كما هي مهما بعدت، والمتأخر يبقى كله.
 create or replace function public.telegram_items(p_secret text, p_user_id uuid, p_mode text, p_limit integer default 5)
 returns jsonb language plpgsql security definer set search_path to 'public' as $function$

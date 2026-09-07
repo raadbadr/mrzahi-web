@@ -1,8 +1,8 @@
 -- بوت تلغرام كامل (طلب المهندس رعد): الربط بضغطة من داخل البوت (زر يفتح الموقع، أو
--- مشاركة رقم الجوال المسجَّل في الملف الشخصي)، وقوائم المواعيد القادمة والمتأخرة.
+-- مشاركة رقم الجوال المسجل في الملف الشخصي)، وقوائم المواعيد القادمة والمتأخرة.
 -- كل الدوال محمية بسر الـ Worker (SECURITY DEFINER).
 
--- ربط مباشر لمحادثة بحساب مسجَّل (الزر داخل البوت بعد التحقق من الرمز الموقّع)
+-- ربط مباشر لمحادثة بحساب مسجل (الزر داخل البوت بعد التحقق من الرمز الموقع)
 create or replace function public.link_channel_direct(p_secret text, p_user_id uuid, p_channel text, p_external_id text)
 returns void language plpgsql security definer set search_path = public as $$
 begin
@@ -37,7 +37,7 @@ end $$;
 revoke all on function public.link_channel_by_phone(text, text, text, text) from public;
 grant execute on function public.link_channel_by_phone(text, text, text, text) to anon, service_role;
 
--- مواعيد المستخدم عبر شركاته الفعّالة: القادمة (upcoming) أو المتأخرة (overdue)
+-- مواعيد المستخدم عبر شركاته الفعالة: القادمة (upcoming) أو المتأخرة (overdue)
 create or replace function public.telegram_items(p_secret text, p_user_id uuid, p_mode text, p_limit int default 5)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare result jsonb;

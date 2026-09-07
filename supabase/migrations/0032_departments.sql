@@ -5,7 +5,7 @@
 alter table public.org_members add column if not exists department text
   check (department is null or department in ('management','legal','hr','finance','operations','other'));
 
--- المالك مديرٌ بطبيعته
+-- المالك مدير بطبيعته
 update public.org_members set department = 'management' where role = 'owner' and department is null;
 
 create table if not exists public.department_services (

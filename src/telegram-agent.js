@@ -109,7 +109,7 @@ function rowsText(rows) {
   }).join("\n");
 }
 const TEXT_TOOLS = new Set(["tracker_company", "tracker_team", "tracker_expenses", "tracker_overview", "tracker_platform"]);
-/* الرسائل البديهية تُفهم وتُجاب من البيانات مباشرة بلا نموذج (telegram-understand.js) */
+/* الرسائل البديهية تفهم وتجاب من البيانات مباشرة بلا نموذج (telegram-understand.js) */
 async function oneWord(env, ctx) {
   const u = understand(ctx.text, ctx.lang);
   if (!u) return null;
@@ -122,7 +122,7 @@ async function oneWord(env, ctx) {
   const rows = out.structuredContent && out.structuredContent.items;
   if (!Array.isArray(rows)) return null;
   let text = composeAnswer(u, rows, ctx.lang, rowsText, toolText, ctx.userTimeZone);
-  /* ورقة بعينها غير مرفوعة بعد: بطاقة الشركة تحمل رقمها كما سُجل */
+  /* ورقة بعينها غير مرفوعة بعد: بطاقة الشركة تحمل رقمها كما سجل */
   if (!text && u.tool === "tracker_items" && u.args.kind === "document" && u.keyword) {
     const c = await callTool("tracker_company", {}, toolCtx);
     text = c && !c.isError && c.content && c.content[0] ? c.content[0].text : null;

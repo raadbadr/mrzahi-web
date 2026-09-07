@@ -95,7 +95,7 @@
                 "<span>" + esc(t("edit")) + "</span></button></div></td>";
           body.appendChild(tr);
         });
-        /* النص الحر يُعرض بلغة القارئ متى توفرت الترجمة المشتركة */
+        /* النص الحر يعرض بلغة القارئ متى توفرت الترجمة المشتركة */
         if (app && app.translateNodes) app.translateNodes(body);
       }
       function renderAll() { renderKpis(); renderHeat(); renderList(); }
@@ -214,7 +214,7 @@
 
       function wire() {
         $("newBtn").addEventListener("click", function () { openEditor(null); });
-        /* زر واحد للتصدير، والنوع يُختار بعده */
+        /* زر واحد للتصدير، والنوع يختار بعده */
         var exportBtn = $("exportBtn"), exportMenu = $("exportMenu");
         function closeExport() { exportMenu.hidden = true; exportBtn.setAttribute("aria-expanded", "false"); }
         exportBtn.addEventListener("click", function (ev) {

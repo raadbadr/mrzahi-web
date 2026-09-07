@@ -394,7 +394,7 @@
     .dash-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); align-items: start; margin-bottom: var(--gap); }
     @media (min-width: 1150px) { .dash-grid { grid-template-columns: minmax(0, 1fr) minmax(320px, 400px); } }
     .dash-grid--single { grid-template-columns: minmax(0, 1fr) !important; }
-    /* بطاقات الخدمات كلها في صف واحد متساوٍ بلا بطاقة يتيمة (أمر المهندس رعد)؛ تلتف إلى صفين متساويين على اللوحي */
+    /* بطاقات الخدمات كلها في صف واحد متساو بلا بطاقة يتيمة (أمر المهندس رعد)؛ تلتف إلى صفين متساويين على اللوحي */
     .dash-grid--single .svc-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); align-items: stretch; }
     .dash-grid--single .svc-card { display: flex; flex-direction: column; gap: 0.6rem; }
     .dash-grid--single .svc-card .waitlist-btn, .dash-grid--single .svc-card a.waitlist-btn { margin-top: auto; }
@@ -463,7 +463,7 @@
       border: 1px solid rgba(255,255,255,0.72); box-shadow: 0 12px 40px rgba(0,80,140,0.1), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(0,60,100,0.06); }
     .tlx-nav-row { display: flex; align-items: center; gap: 0.6rem; }
     .tlx-title { margin: 0 0 0.5rem; font-weight: 700; color: var(--text-primary); font-size: 1rem; }
-    /* المسطرة تتمرر أفقيا فتقص عموديا أيضا؛ الحشو العلوي يسع اسم الإنجاز على سطرين وتاريخه (كان النص يُقص من أعلاه) */
+    /* المسطرة تتمرر أفقيا فتقص عموديا أيضا؛ الحشو العلوي يسع اسم الإنجاز على سطرين وتاريخه (كان النص يقص من أعلاه) */
     .tlx-scroll { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: visible; padding: 3.8rem 0 1.4rem; scrollbar-width: thin; }
     .tlx-scroll .tlx-range-wrap { min-width: max(100%, calc(var(--tlx-days, 30) * 56px)); }
     .tlx-day-tick { position: absolute; top: calc(50% - 5px); width: 1px; height: 10px; background: rgba(255,255,255,0.18); transform: translateX(-50%); pointer-events: none; z-index: 1; }
@@ -486,7 +486,7 @@
       pointer-events: none; z-index: -1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.22);
       box-shadow: inset 0 1px 2px rgba(0,0,0,0.15), inset 0 -1px 1px rgba(255,255,255,0.12); }
     [data-theme="light"] .tlx-range-wrap::after { background: rgba(0,60,100,0.06); border: 1px solid rgba(255,255,255,0.85); }
-    /* الحقل نفسه 32 بكسل ليُمسك بالإصبع، والمسار المرئي مرسوم على الغلاف
+    /* الحقل نفسه 32 بكسل ليمسك بالإصبع، والمسار المرئي مرسوم على الغلاف
        بـ::before/::after فلا يتغير شكل الشريط قيد شعرة. */
     .tlx input[type="range"] { position: relative; z-index: 1; width: 100%; height: 32px; margin: -6px 0; padding: 0; display: block; border-radius: 999px;
       -webkit-appearance: none; appearance: none; background: transparent; cursor: default; touch-action: none; }
@@ -506,7 +506,7 @@
     .tlx-today.is-at-today { opacity: 1; }
     .tlx-today-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); white-space: nowrap; font-size: 0.46rem; font-weight: 800; line-height: 1; color: rgba(0,100,180,0.9); letter-spacing: 0.06em; text-transform: uppercase; }
     .tlx-ms { position: absolute; left: 0; top: 0; bottom: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2;
-      /* العلامة تُنقر: مساحة لمس 24 بكسل حول الشرطة، والعنوان فوقها لا يعترض المقبض */
+      /* العلامة تنقر: مساحة لمس 24 بكسل حول الشرطة، والعنوان فوقها لا يعترض المقبض */
       pointer-events: auto; cursor: pointer; width: 32px; top: -12px; bottom: -12px; }   /* هدف لمس 32×44 والشرطة في مركزه */
     .tlx-ms .tlx-ms-label, .tlx-ms .tlx-ms-date { pointer-events: none; }
     .tlx-ms:focus { outline: none; }
@@ -624,7 +624,7 @@
     @media (max-width: 600px) { .pack-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pack-hint { display: none; } .pack-card { min-height: 104px; } }
 
     /* نموذج العنصر: شبكة اثني عشر عمودا تجمع الحقول بمعناها — العنوان يتصدر بنصف الصف،
-       والحقول المتشابهة في صف واحد، وكل خانة بارتفاعها هي (المدة والعدّاد تحت الموعد
+       والحقول المتشابهة في صف واحد، وكل خانة بارتفاعها هي (المدة والعداد تحت الموعد
        لا يمددان جيرانه). الامتداد بأصناف span-3/4/6 لا بحساب في كل صفحة. */
     .form-grid {
       display: grid;
@@ -911,7 +911,7 @@
     .footer .footer-copyright > span { display: inline-flex; align-items: center; gap: .45rem; }
     .footer #footerLogo { height: 1.15em; width: auto; vertical-align: middle; }
     .footer .footer-year { font-variant-numeric: tabular-nums; }
-    /* حين تُخفى روابط الفوتر للمستخدم المسجل لا يبقى فراغ فوق السطر */
+    /* حين تخفى روابط الفوتر للمستخدم المسجل لا يبقى فراغ فوق السطر */
     .footer .footer-links[hidden] + .footer-copyright { margin-top: 0; }
 
     /* الجداول: أزرار الصف جنبا إلى جنب ولا تنكسر الأعمدة القصيرة */

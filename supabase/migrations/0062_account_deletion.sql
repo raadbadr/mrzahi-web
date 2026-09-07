@@ -3,7 +3,7 @@
 alter table public.profiles add column if not exists delete_requested_at timestamptz;
 
 -- مالك شركة فيها أعضاء نشطون آخرون لا يحذف حسابه فورا: بياناتهم ليست ملكه وحده،
--- فيوقَف الطلب حتى ينقل الملكية أو يزيل الأعضاء (نفس ما تفرضه org_members_delete على المالك أصلا).
+-- فيوقف الطلب حتى ينقل الملكية أو يزيل الأعضاء (نفس ما تفرضه org_members_delete على المالك أصلا).
 create or replace function public.request_account_deletion()
 returns jsonb
 language plpgsql

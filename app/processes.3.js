@@ -455,7 +455,7 @@
           });
           if (!jobs.length) { window.alert(t("importEmpty")); return; }
           if (!window.confirm(t("importConfirm").replace("{n}", jobs.length))) return;
-          /* العدد المعلن هو المحفوظ فعلا لا المُحاول: كان يقول «تم استيراد 100»
+          /* العدد المعلن هو المحفوظ فعلا لا المحاول: كان يقول «تم استيراد 100»
              ولو رفضت القاعدة المئة كلها، فيمضي صاحبها ويحذف ملفه الأصلي. */
           var saved = 0;
           jobs.reduce(function (chain, row) {

@@ -1,6 +1,6 @@
 -- ============================================================
 -- TheTracker — لا توجد باقة مجانية دائمة (قرار المهندس رعد 2026-09-03)
--- فترة تجريبية 14 يوماً بكل المزايا، ثم اشتراك شهري أو سنوي.
+-- فترة تجريبية 14 يوما بكل المزايا، ثم اشتراك شهري أو سنوي.
 -- بعد انتهاء التجربة تصبح الشركة للقراءة والتصدير فقط (باقة expired).
 -- ============================================================
 insert into public.plans (code, name_ar, name_en, name_fr, name_ur, price_monthly_sar, price_yearly_sar, limits, sort_order) values
@@ -46,7 +46,7 @@ declare lim int; cnt int; pc text;
 begin
   pc := public.effective_plan(new.org_id);
   if pc = 'expired' then
-    raise exception 'PLAN_EXPIRED: انتهت الفترة التجريبية — فعّل اشتراكاً للمتابعة' using errcode = 'P0001';
+    raise exception 'PLAN_EXPIRED: انتهت الفترة التجريبية — فعل اشتراكا للمتابعة' using errcode = 'P0001';
   end if;
   select (p.limits->>'items')::int into lim from public.plans p where p.code = pc;
   if lim is not null then
@@ -68,7 +68,7 @@ begin
     select count(*) into cnt from public.org_members where org_id = new.org_id;
     if cnt >= lim then
       if pc = 'expired' then
-        raise exception 'PLAN_EXPIRED: انتهت الفترة التجريبية — فعّل اشتراكاً للمتابعة' using errcode = 'P0001';
+        raise exception 'PLAN_EXPIRED: انتهت الفترة التجريبية — فعل اشتراكا للمتابعة' using errcode = 'P0001';
       end if;
       raise exception 'PLAN_LIMIT_MEMBERS: الباقة الحالية تسمح بـ % عضو', lim using errcode = 'P0001';
     end if;

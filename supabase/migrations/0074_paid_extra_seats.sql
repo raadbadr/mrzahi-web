@@ -1,5 +1,5 @@
--- المقاعد المدفوعة: الباقة تعطي عددا أساسيا، وما زاد يُشترى مقعدا مقعدا.
--- العدد يُسجَّل على الاشتراك نفسه، والحد يصير: أساس الباقة + المقاعد المشتراة.
+-- المقاعد المدفوعة: الباقة تعطي عددا أساسيا، وما زاد يشترى مقعدا مقعدا.
+-- العدد يسجل على الاشتراك نفسه، والحد يصير: أساس الباقة + المقاعد المشتراة.
 alter table public.subscriptions add column if not exists extra_seats integer not null default 0;
 
 create or replace function public.enforce_member_limit()
@@ -17,7 +17,7 @@ begin
     select count(*) into cnt from public.org_members where org_id = new.org_id;
     if cnt >= lim then
       if pc = 'expired' then
-        raise exception 'PLAN_EXPIRED: انتهت الفترة التجريبية — فعّل اشتراكاً للمتابعة' using errcode = 'P0001';
+        raise exception 'PLAN_EXPIRED: انتهت الفترة التجريبية — فعل اشتراكا للمتابعة' using errcode = 'P0001';
       end if;
       raise exception 'PLAN_LIMIT_MEMBERS: الباقة الحالية تسمح بـ % عضو', lim using errcode = 'P0001';
     end if;

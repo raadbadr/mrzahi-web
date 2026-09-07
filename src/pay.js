@@ -3,7 +3,7 @@
    من أسرار Cloudflare، وPAYPAL_ENV = "live" أو "sandbox". */
 import { rpc } from "./notify.js";
 
-/* الريال مربوط بالدولار عند 3.75، وPayPal يحصّل بالدولار. */
+/* الريال مربوط بالدولار عند 3.75، وPayPal يحصل بالدولار. */
 const SAR_PER_USD = 3.75;
 
 function base(env) {
@@ -32,7 +32,7 @@ function usd(amountSar) {
   return (Math.round((Number(amountSar) / SAR_PER_USD) * 100) / 100).toFixed(2);
 }
 
-/* يبدأ الدفع: المبلغ يُحسب في القاعدة من جدول الباقات، لا يرسله المتصفح. */
+/* يبدأ الدفع: المبلغ يحسب في القاعدة من جدول الباقات، لا يرسله المتصفح. */
 export async function payCreate(env, user, body, origin) {
   const org = String(body.org || "").trim();
   const plan = String(body.plan || "").trim();
@@ -74,7 +74,7 @@ export async function payCreate(env, user, body, origin) {
   return { url: approve.href, order: order.id, amount_sar: amountSar, amount_usd: usd(amountSar) };
 }
 
-/* عودة الدافع: نحصّل الطلب، ثم تفعّل القاعدة الاشتراك في المعاملة نفسها. */
+/* عودة الدافع: نحصل الطلب، ثم تفعل القاعدة الاشتراك في المعاملة نفسها. */
 export async function payReturn(env, url, origin) {
   const order = url.searchParams.get("token") || "";
   const back = (q) => Response.redirect(`${origin}/app/settings.html?pay=${q}#subscriptionCard`, 302);

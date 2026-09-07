@@ -1,6 +1,6 @@
 -- ثلاث ثغرات تسرب بيانات شركة إلى عضو شركة أخرى، ومنحة تنفيذ ناقصة للوركر.
 -- الحارس مشروط بوجود مستخدم مسجل: النداءات الداخلية من دوال الوركر (auth.uid() = null)
--- محمية أصلا بـ check_worker_secret، ولو حُجبت لتعطل مسار البوت.
+-- محمية أصلا بـ check_worker_secret، ولو حجبت لتعطل مسار البوت.
 
 -- 1) قائمة القضايا المرشحة كانت تقبل أي org_id من أي مستخدم مسجل
 create or replace function public.parent_candidates(p_org uuid, p_hint text default null, p_limit integer default 8)
@@ -23,7 +23,7 @@ returns jsonb language sql stable security definer set search_path to 'public' a
   from (select * from hinted order by due_at asc nulls last limit greatest(1, least(coalesce(p_limit, 8), 30))) x
 $$;
 
--- 2) أسماء المسؤولين عن عنصر كانت تُقرأ بمعرف العنصر وحده
+-- 2) أسماء المسؤولين عن عنصر كانت تقرأ بمعرف العنصر وحده
 create or replace function public.item_roles_text(p_item uuid)
 returns text language sql stable security definer set search_path to 'public' as $$
   select string_agg(r.role || ': ' || coalesce(p.full_name, p.email, ''), ' · ' order by array_position(array['A','R','S','I'], r.role))

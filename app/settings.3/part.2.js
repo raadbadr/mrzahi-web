@@ -106,7 +106,7 @@
             if (b) setTimeFormat(b.getAttribute("data-time-format"));
           });
           el("upgradeBtn").addEventListener("click", submitUpgrade);
-          /* العودة من بوابة الدفع: تُقال النتيجة ويُنظَّف العنوان. */
+          /* العودة من بوابة الدفع: تقال النتيجة وينظف العنوان. */
           try {
             var payFlag = new URLSearchParams(window.location.search).get("pay");
             if (payFlag) {
