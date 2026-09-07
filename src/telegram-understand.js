@@ -212,6 +212,8 @@ export function composeAnswer(u, rows, lang, rowsText, toolText, tz) {
   /* العدد لا يُقال إلا إن كان حقيقيا: حين تبلغ الصفوف حد الصفحة فما بعده لم يُقرأ،
      فيقال «على الأقل» بدل تقديم حد الصفحة على أنه المجموع. */
   const capped = !!(u.args && u.args.limit) && Array.isArray(rows) && rows.length >= u.args.limit;
-  const head = u.count ? `${u.label}: ${capped ? L.at_least + " " : ""}${list.length}\n` : "";
-  return head + rowsText(list);
+  /* على قدر السؤال: من سأل «كم» يريد عددا، لا عددا ومعه القائمة كلها.
+     ومن أراد التفصيل سأل عنه. */
+  if (u.count) return `${u.label}: ${capped ? L.at_least + " " : ""}${list.length}`;
+  return rowsText(list);
 }

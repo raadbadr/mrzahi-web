@@ -166,7 +166,7 @@ check("normalize: hamza, taa marbuta, diacritics, punctuation", normalize("ال�
 const rowsText = (rows) => rows.map((r) => r.title).join("\n");
 const docs = [{ title: "السجل التجاري — PARKINZI Company", document_kind: "commercial_register", doc_number: "7055060102", due_at: "2027-09-01T00:00:00Z" }, { title: "الشهادة الضريبية — PARKINZI Company", document_kind: "vat_certificate", doc_number: "314983900200003", due_at: "2026-10-31T00:00:00Z" }];
 check("«متى تنتهي الشهادة الضريبية» narrows to the VAT paper", composeAnswer(u("متى تنتهي الشهادة الضريبية"), docs, "ar", rowsText, "x") === "الشهادة الضريبية — PARKINZI Company", composeAnswer(u("متى تنتهي الشهادة الضريبية"), docs, "ar", rowsText, "x"));
-check("«كم مستند عندنا» counts", String(composeAnswer(u("كم مستند عندنا"), docs, "ar", rowsText, "x")).startsWith("المستندات: 2\n"), composeAnswer(u("كم مستند عندنا"), docs, "ar", rowsText, "x"));
+check("«كم مستند عندنا» counts and stops there", String(composeAnswer(u("كم مستند عندنا"), docs, "ar", rowsText, "x")) === "المستندات: 2", composeAnswer(u("كم مستند عندنا"), docs, "ar", rowsText, "x"));
 check("a keyword that matches nothing says so and still shows the list", String(composeAnswer(u("متى تنتهي الرخصة"), docs, "ar", rowsText, "x")).startsWith("لا شيء بهذه الكلمة ضمن المستندات (2)."), composeAnswer(u("متى تنتهي الرخصة"), docs, "ar", rowsText, "x"));
 const soon = new Date(Date.now() + 3 * 86400000).toISOString(), far = new Date(Date.now() + 40 * 86400000).toISOString();
 check("«وش عندي اليوم» with nothing today shows the nearest instead", /^لا مواعيد اليوم\.\nالأقرب:\n/.test(String(composeAnswer(u("وش عندي اليوم"), [{ title: "جلسة", due_at: soon }, { title: "بعيد", due_at: far }], "ar", rowsText, "x", "Asia/Riyadh"))));
