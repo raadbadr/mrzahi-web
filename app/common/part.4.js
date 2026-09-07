@@ -656,7 +656,9 @@
       }
       return "";
     }
-    var cur = (app.pack && app.pack.key) || "";
+    /* my_pack_config يعيد المفتاح باسم pack؛ قراءته باسم key كانت تترك القائمة
+       بلا خيار معلَّم فيظهر أول خيار («شخص») مهما كانت الواجهة الحقيقية. */
+    var cur = (app.pack && (app.pack.pack || app.pack.key)) || "";
     var opts = packsCache.map(function (pk) {
       var name = (pk.names && (pk.names[lang()] || pk.names.ar)) || pk.key;
       return '<option value="' + escapeHtml(pk.key) + '"' + (pk.key === cur ? " selected" : "") + ">" +
@@ -681,8 +683,8 @@
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg></button>' +
       '<nav class="app-topnav">' + nav + "</nav>" +
       '<div class="app-userbox">' +
-        orgBoxHtml() +
         packBoxHtml() +
+        orgBoxHtml() +
         '<a class="app-username" id="topUserName" href="/app/settings.html#profileCard" title="' + escapeHtml(userDisplayName()) + '">' + escapeHtml(userDisplayName()) + "</a>" +
         '<button type="button" class="app-iconbtn" id="topBellBtn" aria-label="' + escapeHtml(sidebarLabel(BELL_LABELS)) + '">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5S10.5 3.17 10.5 4v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>' +
@@ -750,7 +752,7 @@
 
     var packSel = document.getElementById("topPackSelect");
     if (packSel) packSel.addEventListener("change", function () {
-      var want = this.value, was = (app.pack && app.pack.key) || "";
+      var want = this.value, was = (app.pack && (app.pack.pack || app.pack.key)) || "";
       if (!want || want === was) return;
       var sel = this;
       sel.disabled = true;
