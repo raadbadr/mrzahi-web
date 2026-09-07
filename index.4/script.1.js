@@ -49,9 +49,9 @@
         ctaPlansDesc: "تجربة 14 يوما، ثم اشتراك شهري أو سنوي",
         ctaPlansBtn: "قارن الباقات",
         waitlistTitle: "لديك حساب؟",
-        waitlistDesc: "اكتب بريدك لنرسل لك رابط الدخول",
+        waitlistDesc: "الدخول بحساب جوجل وحده",
         waitlistPlaceholder: "بريدك الإلكتروني",
-        waitlistSubmit: "دخول",
+        waitlistSubmit: "المتابعة بحساب Google",
         waitlistSuccess: "سنحولك لصفحة الدخول...",
         waitlistError: "حدث خطأ، حاول مرة أخرى.",
         waitlistExists: "هذا البريد مسجل مسبقا.",
@@ -141,9 +141,9 @@
         ctaPlansDesc: "A 14-day trial, then a monthly or yearly subscription",
         ctaPlansBtn: "Compare plans",
         waitlistTitle: "Already have an account?",
-        waitlistDesc: "Enter your email and we'll send you a login link",
+        waitlistDesc: "Sign in with Google only",
         waitlistPlaceholder: "Your email",
-        waitlistSubmit: "Log in",
+        waitlistSubmit: "Continue with Google",
         waitlistSuccess: "Redirecting you to the login page...",
         waitlistError: "Something went wrong, please try again.",
         waitlistExists: "This email is already registered.",
@@ -233,9 +233,9 @@
         ctaPlansDesc: "Un essai de 14 jours, puis un abonnement mensuel ou annuel",
         ctaPlansBtn: "Comparer les forfaits",
         waitlistTitle: "Vous avez un compte ?",
-        waitlistDesc: "Saisissez votre e-mail pour recevoir le lien de connexion",
+        waitlistDesc: "Connexion avec Google uniquement",
         waitlistPlaceholder: "Votre adresse e-mail",
-        waitlistSubmit: "Connexion",
+        waitlistSubmit: "Continuer avec Google",
         waitlistSuccess: "Redirection vers la page de connexion...",
         waitlistError: "Une erreur est survenue, veuillez réessayer.",
         waitlistExists: "Cette adresse e-mail est déjà enregistrée.",
@@ -325,9 +325,9 @@
         ctaPlansDesc: "14 دن کی آزمائش، پھر ماہانہ یا سالانہ سبسکرپشن",
         ctaPlansBtn: "پیکجز کا موازنہ کریں",
         waitlistTitle: "پہلے سے اکاؤنٹ ہے؟",
-        waitlistDesc: "اپنا ای میل لکھیں، ہم آپ کو لاگ ان لنک بھیجیں گے",
+        waitlistDesc: "صرف گوگل اکاؤنٹ سے لاگ ان",
         waitlistPlaceholder: "آپ کا ای میل",
-        waitlistSubmit: "لاگ ان",
+        waitlistSubmit: "گوگل کے ساتھ جاری رکھیں",
         waitlistSuccess: "آپ کو لاگ ان صفحے پر لے جایا جا رہا ہے...",
         waitlistError: "ایک خرابی پیش آئی، دوبارہ کوشش کریں۔",
         waitlistExists: "یہ ای میل پہلے سے رجسٹرڈ ہے۔",
@@ -433,9 +433,6 @@
       document.getElementById("currentThemeDisplay").textContent = themeText;
 
       document.title = langTitles[l] || "MrZahi";
-
-      const wlInput = document.getElementById("waitlistEmail");
-      if (wlInput && translations[l]?.waitlistPlaceholder) wlInput.placeholder = translations[l].waitlistPlaceholder;
 
       if (typeof window.__trackerPlatformStatsRefresh === "function") window.__trackerPlatformStatsRefresh();
       if (typeof window.__trackerChatLangRefresh === "function") window.__trackerChatLangRefresh();

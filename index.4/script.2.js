@@ -132,23 +132,7 @@
       setInputPlaceholder(t.chatAssistantPlaceholder);
     }
     
-    const waitlistForm = document.getElementById("waitlistForm");
-    const waitlistEmail = document.getElementById("waitlistEmail");
-    const waitlistBtn = document.getElementById("waitlistBtn");
-    const waitlistMsg = document.getElementById("waitlistMsg");
-    if (waitlistForm && waitlistEmail && waitlistBtn && waitlistMsg) {
-      waitlistForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const email = waitlistEmail.value.trim().toLowerCase();
-        if (!email) return;
-        const t = translations[lang()];
-        waitlistBtn.disabled = true;
-        waitlistMsg.textContent = t.waitlistSuccess;
-        waitlistMsg.className = "waitlist-msg success";
-        waitlistMsg.style.display = "block";
-        window.location.href = "login.html?email=" + encodeURIComponent(email);
-      });
-    }
+    /* لا دخول بالبريد: الحساب بجوجل وحده، فالبطاقة صارت رابطا إلى صفحة الدخول */
 
     async function sendToSupabase() {
       chatSendBtn.disabled = true;
