@@ -70,8 +70,12 @@
             <button type="button" class="chat-option-btn is-icon" id="viewList" data-libview="list" title="قائمة" aria-label="قائمة"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg></button>
           </div>
           <button type="button" class="waitlist-btn" id="newBtn" data-i18n="newProcess">إجراء جديد</button>
+          <button type="button" class="chat-option-btn" id="tplBtn" data-i18n="getTemplate">تنزيل القالب</button>
+          <button type="button" class="chat-option-btn" id="importBtn" data-i18n="importCsv">استيراد CSV</button>
+          <input type="file" id="importFile" accept=".csv,text/csv" hidden>
         </div>
 
+        <div class="filter-pills" id="statusPills"></div>
         <div class="filter-pills" id="areaPills"></div>
 
         <div class="proc-grid" id="libGrid" hidden></div>
@@ -159,8 +163,16 @@
         </div>
 
         <div class="proc-panel">
-          <h3 data-i18n="flowTitle">المخطط الانسيابي</h3>
-          <div class="flow" id="flow"></div>
+          <div class="panel-head">
+            <h3 data-i18n="flowTitle">المخطط الانسيابي</h3>
+            <div class="zoom-bar" role="group" aria-label="تكبير المخطط">
+              <button type="button" class="zb" id="zoomOut" aria-label="تصغير">−</button>
+              <span class="zb-level" id="zoomLevel">100%</span>
+              <button type="button" class="zb" id="zoomIn" aria-label="تكبير">+</button>
+              <button type="button" class="zb zb-text" id="zoomReset" data-i18n="zoomReset">إعادة</button>
+            </div>
+          </div>
+          <div class="flow-viewport" id="flowViewport"><div class="flow" id="flow"></div></div>
         </div>
 
         <div class="proc-panel">

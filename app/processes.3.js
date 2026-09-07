@@ -5,7 +5,7 @@
       var STATUSES = ["draft","review","published","archived"];
       var WIZ = ["wizBasics", "wizContext", "wizSteps", "wizReview"];
       var state = { list: [], members: [], names: {}, draft: null, area: "", search: "",
-                    libView: "grid", wizStep: 0, current: null };
+                    libView: "grid", wizStep: 0, current: null, statusFilter: "", zoom: 1 };
       function isAdmin() {
         var org = app && app.org;
         if (!org || !app.user) return false;
@@ -41,7 +41,11 @@
       /* ---------- المكتبة: أرقامها، شرائحها، بطاقاتها أو جدولها ---------- */
       function visible() {
         var q = state.search.toLowerCase();
+        var me = app && app.user ? app.user.id : "";
         return state.list.filter(function (p) {
+          if (state.statusFilter === "published" && p.status !== "published") return false;
+          if (state.statusFilter === "review" && p.status !== "review") return false;
+          if (state.statusFilter === "mine" && !((p.status === "draft" || p.status === "changes") && p.created_by === me)) return false;
           if (state.area && p.area !== state.area) return false;
           if (!q) return true;
           var hay = ((p.name || "") + " " + (p.code || "") + " " + (p.description || "")).toLowerCase();
@@ -79,6 +83,14 @@
         if (app && app.paint) app.paint($("areaPills"), html); else $("areaPills").innerHTML = html;
       }
 
+      function renderStatusPills() {
+        var opts = [["", "allStatuses"], ["published", "libPublished"], ["review", "libReview"], ["mine", "myDrafts"]];
+        var html = opts.map(function (o) {
+          return '<button type="button" class="pill' + (state.statusFilter === o[0] ? " is-on" : "") + '" data-status="' + o[0] + '">' + esc(t(o[1])) + "</button>";
+        }).join("");
+        if (app && app.paint) app.paint($("statusPills"), html); else $("statusPills").innerHTML = html;
+      }
+
       function pcard(p) {
         return '<button type="button" class="pcard" data-open="' + esc(p.id) + '">' +
           '<span class="proc-code">' + esc(p.code || t("status_draft")) + "</span>" +
@@ -93,6 +105,7 @@
 
       function renderList() {
         renderStats();
+        renderStatusPills();
         renderPills();
         var rows = visible();
         var grid = state.libView !== "list";
@@ -341,6 +354,97 @@
           renderList();
         });
       }
+      /* أعمدة الملف كما في المرجع: صف لكل إجراء، وخطواته JSON في عمود واحد */
+      var CSV_COLS = ["code", "name", "area", "description", "trigger", "inputs", "outputs", "frequency", "status", "steps_json"];
+
+      function csvCell(v) {
+        var s2 = String(v == null ? "" : v);
+        return /[",\n\r]/.test(s2) ? '"' + s2.replace(/"/g, '""') + '"' : s2;
+      }
+
+      function downloadTemplate() {
+        var sample = ["LEG-01", t("templateName"), "lawsuits", t("templateDesc"), t("templateTrigger"),
+                      t("templateInputs"), t("templateOutputs"), t("templateFreq"), "draft",
+                      JSON.stringify([{ id: "s1", type: "task", title: t("templateStep1"), R: "", A: "", C: "", I: "" },
+                                      { id: "s2", type: "decision", title: t("templateStep2"), R: "", A: "", C: "", I: "", yesTarget: "", noTarget: "" }])];
+        var csv = "\ufeff" + CSV_COLS.join(",") + "\n" + sample.map(csvCell).join(",") + "\n";
+        var url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+        var a = document.createElement("a");
+        a.href = url; a.download = "mrzahi-processes-template.csv";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      }
+
+      /* قارئ CSV بسيط يحترم الاقتباس والفواصل والأسطر داخل الخلية */
+      function parseCsv(text) {
+        var rows = [], row = [], cell = "", quoted = false;
+        var src = String(text || "").replace(/^\ufeff/, "");
+        for (var i = 0; i < src.length; i++) {
+          var ch = src[i];
+          if (quoted) {
+            if (ch === '"' && src[i + 1] === '"') { cell += '"'; i++; }
+            else if (ch === '"') quoted = false;
+            else cell += ch;
+            continue;
+          }
+          if (ch === '"') { quoted = true; continue; }
+          if (ch === ",") { row.push(cell); cell = ""; continue; }
+          if (ch === "\n" || ch === "\r") {
+            if (ch === "\r" && src[i + 1] === "\n") i++;
+            row.push(cell); cell = "";
+            if (row.length > 1 || row[0] !== "") rows.push(row);
+            row = [];
+            continue;
+          }
+          cell += ch;
+        }
+        row.push(cell);
+        if (row.length > 1 || row[0] !== "") rows.push(row);
+        return rows;
+      }
+
+      function importCsv(file) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var rows = parseCsv(String(reader.result || ""));
+          if (rows.length < 2) { window.alert(t("importEmpty")); return; }
+          var head = rows[0].map(function (h) { return String(h || "").trim().toLowerCase(); });
+          var idx = {};
+          CSV_COLS.forEach(function (c) { idx[c] = head.indexOf(c); });
+          if (idx.name === -1) { window.alert(t("importNoName")); return; }
+          var jobs = [];
+          rows.slice(1).forEach(function (r) {
+            var name2 = String(r[idx.name] || "").trim();
+            if (!name2) return;
+            var steps = [];
+            if (idx.steps_json > -1) { try { steps = JSON.parse(r[idx.steps_json] || "[]") || []; } catch (e) { steps = []; } }
+            var existing = state.list.filter(function (x) {
+              return idx.code > -1 && x.code && x.code === String(r[idx.code] || "").trim();
+            })[0];
+            var row = {
+              id: existing ? existing.id : undefined,
+              code: idx.code > -1 ? String(r[idx.code] || "").trim() : "",
+              name: name2,
+              area: idx.area > -1 && AREAS.indexOf(String(r[idx.area] || "").trim()) !== -1 ? String(r[idx.area]).trim() : "other",
+              description: idx.description > -1 ? String(r[idx.description] || "").trim() : "",
+              trigger_text: idx.trigger > -1 ? String(r[idx.trigger] || "").trim() : "",
+              inputs: idx.inputs > -1 ? String(r[idx.inputs] || "").trim() : "",
+              outputs: idx.outputs > -1 ? String(r[idx.outputs] || "").trim() : "",
+              frequency: idx.frequency > -1 ? String(r[idx.frequency] || "").trim() : "",
+              status: idx.status > -1 && STATUSES.indexOf(String(r[idx.status] || "").trim()) !== -1 ? String(r[idx.status]).trim() : "draft",
+              steps: Array.isArray(steps) ? steps : []
+            };
+            jobs.push(row);
+          });
+          if (!jobs.length) { window.alert(t("importEmpty")); return; }
+          if (!window.confirm(t("importConfirm").replace("{n}", jobs.length))) return;
+          jobs.reduce(function (chain, row) {
+            return chain.then(function () { return app.saveProcess(row).catch(function () { return null; }); });
+          }, Promise.resolve()).then(load).then(function () { window.alert(t("importDone").replace("{n}", jobs.length)); });
+        };
+        reader.readAsText(file, "utf-8");
+      }
+
       function byId(id) { return state.list.filter(function (x) { return x.id === id; })[0]; }
 
       function setStatus(p, status, note) {
@@ -358,6 +462,28 @@
         $("search").addEventListener("input", function () { state.search = this.value.trim(); renderList(); });
         $("viewGrid").addEventListener("click", function () { state.libView = "grid"; renderList(); });
         $("viewList").addEventListener("click", function () { state.libView = "list"; renderList(); });
+        $("statusPills").addEventListener("click", function (e) {
+          var pill = e.target.closest("[data-status]");
+          if (!pill) return;
+          state.statusFilter = pill.getAttribute("data-status") || "";
+          renderList();
+        });
+        var zoomTo = function (z) {
+          state.zoom = Math.max(0.5, Math.min(2, z));
+          var flow = $("flow");
+          if (flow) { flow.style.transform = "scale(" + state.zoom + ")"; flow.style.transformOrigin = "top center"; }
+          $("zoomLevel").textContent = Math.round(state.zoom * 100) + "%";
+        };
+        $("zoomIn").addEventListener("click", function () { zoomTo(state.zoom + 0.15); });
+        $("zoomOut").addEventListener("click", function () { zoomTo(state.zoom - 0.15); });
+        $("zoomReset").addEventListener("click", function () { zoomTo(1); });
+        $("tplBtn").addEventListener("click", downloadTemplate);
+        $("importBtn").addEventListener("click", function () { $("importFile").click(); });
+        $("importFile").addEventListener("change", function () {
+          var file = this.files && this.files[0];
+          this.value = "";
+          if (file) importCsv(file);
+        });
         $("areaPills").addEventListener("click", function (e) {
           var pill = e.target.closest("[data-area]");
           if (!pill) return;
