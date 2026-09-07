@@ -240,6 +240,7 @@
     try { mountSidebar(); } catch (e) { /* تجاهل */ }
     try { mountTopbar(); } catch (e) { /* تجاهل */ }
     try { keepInsideApp(); } catch (e) { /* تجاهل */ }
+    try { if (typeof mountPrintStamp === "function") mountPrintStamp(); } catch (e) { /* تجاهل */ }
     try { bootWesternDigits(); } catch (e) { /* تجاهل */ }
     try { mountCloseX(); } catch (e) { /* تجاهل */ }
     var readyGate = app && app.ready && typeof app.ready.then === "function" ? app.ready : null;

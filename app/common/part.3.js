@@ -778,6 +778,22 @@
     ".content>:last-child{margin-bottom:0}",
     ".content .features-grid+h3,.content .user-list+h3,.content table+h3,.content .table-wrap+h3{margin-top:2rem}",
     ".content .features-grid+p,.content .user-list+p{margin-top:1rem}",
+    /* الطباعة: الورقة الخارجة من المنصة وثيقة رسمية، فتحمل الختم المعتمد.
+       لا شيء من هذا يظهر على الشاشة — قواعد وسائط الطباعة وحدها. */
+    "@media print{",
+    "  .app-sidebar,.app-topbar,.site-header,.footer,.app-bell-panel,.app-menu-panel,#toast,.chat-options,.row-actions,",
+    "  .waitlist-btn,.chat-option-btn,.filter-pills,.proc-toolbar,.zoom-bar,.tabs-row{display:none!important}",
+    "  body{background:#fff!important;color:#111!important;padding:0!important}",
+    "  body.has-app-topbar{padding-top:0!important}",
+    "  .container{padding:0!important;max-width:none!important}",
+    "  .content{background:#fff!important;border:0!important;box-shadow:none!important;padding:0 0 1rem!important;break-inside:avoid}",
+    "  .content h2,.content h3,.content p,.content td,.content th,.content li{color:#111!important}",
+    "  .items-table th,.items-table td{border-color:#bbb!important}",
+    "  .app-print-stamp{display:block!important;margin:2rem 0 0;text-align:start;break-inside:avoid}",
+    "  .app-print-stamp img{width:150px;height:150px}",
+    "  .app-print-stamp figcaption{margin-top:.35rem;font-size:11px;color:#333}",
+    "}",
+    ".app-print-stamp{display:none}",
   ].join("");
 
   function sidebarLabel(map) {
@@ -988,6 +1004,26 @@
       closeXify(btn, hostId ? document.getElementById(hostId) : null);
     });
   }
+
+  /* الختم الرسمي المعتمد: يوضع في نهاية كل صفحة تطبيق، ولا يُرى إلا على الورق.
+     الملف لا يُمس ولا يُعاد تصميمه (أمر المهندس رعد 2026-09-07). */
+  function mountPrintStamp() {
+    if (document.getElementById("appPrintStamp")) return;
+    if (!/^\/app\//.test(String(window.location.pathname || ""))) return;
+    var fig = document.createElement("figure");
+    fig.id = "appPrintStamp";
+    fig.className = "app-print-stamp";
+    fig.innerHTML = '<img src="/parkinzi-stamp.png" alt="" width="150" height="150">' +
+                    "<figcaption>" + escapeHtml(sidebarLabel(PRINT_STAMP_CAPTION)) + "</figcaption>";
+    document.body.appendChild(fig);
+  }
+
+  var PRINT_STAMP_CAPTION = {
+    ar: "شركة باركينزي — سجل تجاري 7055060102 — الرقم الضريبي 314983900200003",
+    en: "PARKINZI Company — CR 7055060102 — VAT 314983900200003",
+    fr: "PARKINZI Company — RC 7055060102 — TVA 314983900200003",
+    ur: "PARKINZI Company — CR 7055060102 — VAT 314983900200003"
+  };
 
   function mountSidebar() {
     if (document.getElementById("appSidebar")) return;
