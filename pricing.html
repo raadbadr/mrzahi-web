@@ -211,11 +211,25 @@
       gap: 1.5rem;
     }
 
-    /* الباقات الثلاث في صف واحد على الشاشات الكبيرة بدل صفين */
-    @media (min-width: 900px) {
-      .container { max-width: 1140px; }
-      .features-grid { grid-template-columns: repeat(3, 1fr); }
+    /* الشرائح الأربع في صف واحد على الشاشات الكبيرة، والتجربة شريط فوقها
+       بعرض الصفحة: هي مدة لا شريحة، فلا تقف في صف الأسعار. */
+    @media (min-width: 1000px) {
+      .container { max-width: 1220px; }
+      .features-grid { grid-template-columns: repeat(4, 1fr); }
     }
+    @media (min-width: 600px) and (max-width: 999px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .plan-trial { grid-column: 1 / -1; }
+    @media (min-width: 1000px) {
+      .features-grid .feature-card.plan-trial { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 1.5rem; }
+      .features-grid .feature-card.plan-trial h3,
+      .features-grid .feature-card.plan-trial > p { grid-column: 1; margin: 0 0 .35rem; }
+      .features-grid .feature-card.plan-trial ul { grid-column: 1; display: flex; flex-wrap: wrap; gap: .35rem 1.5rem; margin: .35rem 0 0; flex: 0 0 auto; }
+      .features-grid .feature-card.plan-trial .waitlist-btn { grid-column: 2; grid-row: 1 / -1; margin: 0; align-self: center; white-space: nowrap; }
+    }
+    /* الشريحة الموصى بها تُعرف بحدها لا بحجمها، فيبقى الصف على خط واحد */
+    .feature-card.is-pick { border-color: var(--primary); }
 
     /* ============================================
        Feature Cards - Neumorphic Glass Cards
@@ -228,10 +242,7 @@
       -webkit-backdrop-filter: blur(30px) saturate(180%);
       padding: 2rem; /* NeumorphicTheme.Spacing.cardPadding = 20px */
       border-radius: 24px; /* NeumorphicTheme.CornerRadius.xxxl */
-      box-shadow: 
-        0 8px 32px var(--shadow-dark),
-        0 0 0 1px var(--glass-border),
-        inset 0 0 0 1px rgba(255,255,255,0.1);
+      box-shadow: 0 8px 32px var(--shadow-dark);
       border: 1px solid var(--glass-border);
       transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
@@ -540,7 +551,7 @@
 
     <section class="features">
       <div class="features-grid">
-        <div class="feature-card">
+        <div class="feature-card plan-trial">
           <h3 data-i18n="planTrialName">التجريبية</h3>
           <p><span class="highlight"><span data-i18n="planTrialPrice">0</span> <span class="sar-symbol" aria-label="ريال سعودي"></span> <span data-i18n="planTrialPeriod">/ لمدة 14 يوما</span></span></p>
           <p data-i18n="planTrialNote">جرّب المنصة أربعة عشر يوما بلا بطاقة بنكية، ثم اختر الشريحة التي تناسب حسابك.</p>
@@ -585,7 +596,7 @@
           </ul>
           <a class="waitlist-btn" href="login.html" style="text-decoration:none" data-i18n="planPaidCta">اختر الباقة</a>
         </div>
-        <div class="feature-card">
+        <div class="feature-card is-pick">
           <h3 data-i18n="planStartupName">مؤسسة وشركة ناشئة</h3>
           <p><span class="highlight"><span data-i18n="planStartupPrice">500</span> <span class="sar-symbol" aria-label="ريال سعودي"></span> <span data-i18n="planStartupPeriod">/ شهريا</span></span></p>
           <p data-i18n="planStartupVat">السعر لا يشمل ضريبة القيمة المضافة.</p>
