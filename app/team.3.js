@@ -7,7 +7,7 @@
       var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       var app = null;
-      var state = { loaded: false, workLoaded: false, error: null, canManage: false, members: [], invitations: [], limits: {}, work: [], roles: {}, filterUser: null, matrixDirty: true };
+      var state = { loaded: false, workLoaded: false, error: null, canManage: false, members: [], invitations: [], limits: {}, work: [], roles: {}, filterUser: null, matrixDirty: true, packs: [] };
       /* بطاقة العمل الواحدة: صفوف مفتوحة، شرائح مشغولة، آخر ناتج للشريط والمصفوفة، والقائمة المعتمة الوحيدة */
       var openRows = {}, pending = {}, itemVer = {}, lastStripHtml = "", lastMatrixSig = "", roleMenu = null, menuAnchor = null, suppressClick = false, pressTimer = null;
       var SVG_MORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5 4.5 8l1.4-1.4L12 12.7l6.1-6.1L19.5 8z"/></svg>';
@@ -196,6 +196,14 @@
                   }).join("") +
                 "</select>" +
                 '<input type="text" class="waitlist-input" data-title-user="' + esc(m.user_id) + '" maxlength="80" value="' + esc(m.job_title || "") + '" placeholder="' + esc(t("jobTitleLabel")) + '" dir="auto">' +
+                /* صاحب الحساب يوزع الواجهات على فريقه: واجهة لكل عضو، ومن لا واجهة له يأخذ واجهة الحساب */
+                '<select class="waitlist-input" data-pack-user="' + esc(m.user_id) + '" aria-label="' + esc(t("packLabel")) + '">' +
+                  '<option value=""' + (!m.ui_pack ? " selected" : "") + ">" + esc(t("packUnset")) + "</option>" +
+                  (state.packs || []).map(function (pk) {
+                    var nm = (pk.names && (pk.names[app.lang()] || pk.names.ar)) || pk.key;
+                    return '<option value="' + esc(pk.key) + '"' + (m.ui_pack === pk.key ? " selected" : "") + ">" + esc(nm) + "</option>";
+                  }).join("") +
+                "</select>" +
               "</div>";
           }
           if (state.canManage && !isOwner && !isSelf) {
@@ -255,6 +263,22 @@
       }
 
       function onMembersChange(ev) {
+        /* توزيع الواجهات: المالك أو الإداري يسند لكل عضو واجهته */
+        var packSel = ev.target.closest("[data-pack-user]");
+        if (packSel) {
+          var pUser = packSel.getAttribute("data-pack-user"), pMember = findMember(pUser);
+          var prevPack = pMember ? (pMember.ui_pack || "") : "";
+          packSel.disabled = true;
+          app.setMemberPack(pUser, packSel.value || null).then(function () {
+            if (pMember) pMember.ui_pack = packSel.value || null;
+            packSel.disabled = false;
+            toast(t("packUpdated"), "success");
+          }).catch(function (err) {
+            packSel.value = prevPack; packSel.disabled = false;
+            toast(errorMessage(err), "error");
+          });
+          return;
+        }
         var deptSel = ev.target.closest("[data-dept-user]");
         if (deptSel) {
           var dUser = deptSel.getAttribute("data-dept-user"), dMember = findMember(dUser), prevDept = dMember ? (dMember.department || "") : "";
@@ -1022,11 +1046,13 @@
         return Promise.all([
           app.listMembers(),
           app.planLimits().catch(function () { return {}; }),
-          state.canManage ? app.listInvitations().catch(function () { return []; }) : Promise.resolve([])
+          state.canManage ? app.listInvitations().catch(function () { return []; }) : Promise.resolve([]),
+          state.canManage && app.listPacks ? app.listPacks().catch(function () { return []; }) : Promise.resolve([])
         ]).then(function (res) {
           state.members = res[0] || [];
           state.limits = res[1] || {};
           state.invitations = res[2] || [];
+          state.packs = res[3] || [];
           state.loaded = true;
           state.error = null;
           render();

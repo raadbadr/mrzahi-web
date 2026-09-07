@@ -140,6 +140,8 @@
   app.translateTexts = translateTexts;
   app.translateNodes = translateNodes;
   app.storageMode = storageMode;
+  app.setMyPack = setMyPack;
+  app.setMemberPack = setMemberPack;
   app.connectDrive = driveAccessToken;
   /* مجلد درايف الخاص بالشركة الحالية: ينشأ إن لم يوجد، ويعاد معرفه ورابطه لعرضه في الإعدادات */
   app.driveFolder = function () {
@@ -763,7 +765,7 @@
       if (!want || want === was) return;
       var sel = this;
       sel.disabled = true;
-      app.setOrgPack(want).then(function () { window.location.reload(); })
+      app.setMyPack(want).then(function () { window.location.reload(); })
         .catch(function () { sel.value = was; sel.disabled = false; });
     });
 

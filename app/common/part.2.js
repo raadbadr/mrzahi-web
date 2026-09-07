@@ -854,7 +854,7 @@
   function listMembers() {
     return run(function (client) {
       var orgId = requireOrg();
-      return client.from("org_members").select("org_id,user_id,role,status,invited_email,created_at,job_title,person_kind,department")
+      return client.from("org_members").select("org_id,user_id,role,status,invited_email,created_at,job_title,person_kind,department,ui_pack")
         .eq("org_id", orgId).order("created_at", { ascending: true })
         .then(unwrap)
         .then(function (members) {

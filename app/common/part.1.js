@@ -850,6 +850,22 @@
       .catch(function () { return []; });
   }
 
+  /* واجهتي أنا داخل هذا الحساب (المالك والإداري وحدهما، والقاعدة هي الحارس) */
+  function setMyPack(packKey) {
+    return run(function (client) {
+      var orgId = requireOrg();
+      return client.rpc("set_my_pack", { p_org: orgId, p_pack: packKey || null }).then(unwrap);
+    });
+  }
+
+  /* المالك يوزع الواجهات على فريقه: واجهة لكل عضو */
+  function setMemberPack(userId, packKey) {
+    return run(function (client) {
+      var orgId = requireOrg();
+      return client.rpc("set_member_pack", { p_org: orgId, p_user: userId, p_pack: packKey || null }).then(unwrap);
+    });
+  }
+
   function setOrgPack(packKey) {
     return run(function (client) {
       var orgId = requireOrg();
