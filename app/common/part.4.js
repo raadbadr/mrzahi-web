@@ -223,6 +223,12 @@
     ".app-topnav>a.is-active{background:var(--glass-border);color:var(--text-primary)}",
     ".app-topnav>a.is-active::after{content:'';position:absolute;inset-inline:1rem;bottom:-.65rem;height:3px;border-radius:3px;background:var(--primary)}",
     ".app-userbox{display:flex;align-items:center;gap:.75rem;flex:0 0 auto;max-height:40px}",
+    ".app-plantag{display:inline-flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:1px;",
+    "height:40px;box-sizing:border-box;padding:0 .85rem;border-radius:14px;",
+    "border:1px solid var(--glass-border);background:var(--glass);color:var(--text-secondary);",
+    "font-size:.78rem;font-weight:700;white-space:nowrap;line-height:1.15;flex:0 0 auto}",
+    ".app-plantag.is-trial{border-color:var(--warning);color:var(--warning)}",
+    ".app-plantag .app-planleft{font-size:.68rem;font-weight:600;color:var(--error)}",
     ".app-orgbox{display:flex;align-items:center;gap:.55rem;height:40px;box-sizing:border-box;padding:0 .55rem 0 .9rem;border-radius:14px;",
     "background:var(--glass);border:1px solid var(--glass-border);color:var(--text-primary)}",
     ".app-orgbox:hover{border-color:var(--primary)}",
@@ -640,6 +646,34 @@
   /* الواجهة تُبدَّل من جوار الحساب مباشرة، بالصندوق نفسه الذي يبدل الحساب.
      القائمة تُجلب مرة وتُحفظ، والقاعدة هي الحارس: set_org_pack للمالك والمدير وحدهما. */
   var packsCache = null, packsAsked = false;
+  var planCache = null, planAsked = false;
+
+  /* شارة الاشتراك: تقول على أي باقة هذا الحساب، والتجريبية بلون تنبيه
+     ليعرف صاحبها أنها مؤقتة. الاسم يأتي من جدول الباقات لا من الشيفرة. */
+  function planTagHtml() {
+    if (!app || !app.org) return "";
+    if (!planCache) {
+      if (!planAsked && app.effectivePlan && app.plans) {
+        planAsked = true;
+        Promise.all([app.effectivePlan(), app.plans()]).then(function (res) {
+          var code = res[0], list = res[1] || [], row = null;
+          for (var i = 0; i < list.length; i++) if (list[i].code === code) row = list[i];
+          planCache = { code: code, row: row };
+          renderTopbar();
+        }).catch(function () { /* لا شارة خير من شارة كاذبة */ });
+      }
+      return "";
+    }
+    var row = planCache.row, code = planCache.code;
+    var name = row ? (row["name_" + lang()] || row.name_en || code) : code;
+    /* المتبقي على التجربة تحت الاسم بالأحمر. النص يملؤه عدّاد المنصة نفسه
+       الذي يملأ كل [data-due]، ويتحدث وحده كل دقيقة. */
+    var ends = app.org && app.org.plan_expires_at;
+    var left = (code === "trial" && ends)
+      ? '<span class="app-planleft" data-due="' + escapeHtml(String(ends)) + '"></span>' : "";
+    return '<span class="app-plantag' + (code === "trial" ? " is-trial" : "") + '">' +
+             "<span>" + escapeHtml(name) + "</span>" + left + "</span>";
+  }
 
   function canChangePack() {
     var role = app && app.org && app.org.role;
@@ -692,6 +726,7 @@
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg></button>' +
       '<nav class="app-topnav">' + nav + "</nav>" +
       '<div class="app-userbox">' +
+        planTagHtml() +
         packBoxHtml() +
         orgBoxHtml() +
         '<a class="app-username" id="topUserName" href="/app/settings.html#profileCard" title="' + escapeHtml(userDisplayName()) + '">' + escapeHtml(userDisplayName()) + "</a>" +
