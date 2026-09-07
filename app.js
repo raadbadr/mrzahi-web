@@ -52,8 +52,8 @@
     session: null,
     unavailable: false,
     getSession: getSession,
-    signInWithGoogle: function () { return signInWithOAuth("google"); },
-    signInWithApple: function () { return signInWithOAuth("apple"); },
+    signInWithGoogle: function () { markAuthPending(); return signInWithOAuth("google"); },
+    signInWithApple: function () { markAuthPending(); return signInWithOAuth("apple"); },
     signInWithEmail: signInWithEmail,
     signInWithPhone: signInWithPhone,
     verifyOtp: verifyOtp,
@@ -98,6 +98,19 @@
 
   /* الوجهة بعد الدخول: المسار المطلوب في ?next= إن كان مسارا داخليا آمنا
      تحت /app/ (تضعه common.js عند حراسة الصفحات)، وإلا لوحة التحكم. */
+  var PENDING_KEY = "tracker_auth_pending";
+  /* الدخول بدأ من عندنا: نضع علامة قبل مغادرة الصفحة إلى المزود، فمهما أعادنا
+     المزود — إلى الرئيسية أو إلى صفحة الدخول — نعرف أن هذه عودة دخول ونكمل
+     إلى لوحة التحكم بدل أن يقف المستخدم على الصفحة العامة. */
+  function markAuthPending() { try { window.sessionStorage.setItem(PENDING_KEY, nextPath()); } catch (e) { /* بلا تخزين: المسار القديم */ } }
+  function takeAuthPending() {
+    try {
+      var v = window.sessionStorage.getItem(PENDING_KEY);
+      if (v) window.sessionStorage.removeItem(PENDING_KEY);
+      return v;
+    } catch (e) { return null; }
+  }
+
   function nextPath() {
     try {
       var n = new URLSearchParams(window.location.search).get("next") || "";
@@ -326,6 +339,7 @@
   /* يبدأ الدخول: nonce أصلي يحفظ محليا وبصمته ترسل لجوجل داخل الرمز. */
   function startGoogleSignIn() {
     if (!googleReady()) return auth.signInWithGoogle();
+    markAuthPending();
     var nonce = randomNonce();
     var state = randomNonce();
     return sha256Hex(nonce).then(function (hashed) {
@@ -533,6 +547,18 @@
     var here = String(window.location.pathname || "");
     if (/^\/app\//.test(here)) return;
     var h = String(window.location.hash || ""), q = String(window.location.search || "");
+    var pending = takeAuthPending();
+    /* مكتبة سوبابيس تنظف الرمز من العنوان بمجرد تحميلها، فقد لا نجد أثرا للعودة.
+       العلامة التي وضعناها قبل المغادرة تكفي: ننتظر الجلسة ثم ندخل. */
+    if (pending) {
+      auth.ready.then(function () {
+        if (auth.unavailable || !auth.client) return null;
+        return waitForSession(8).then(function (session) {
+          if (session) window.location.replace(pending || DASHBOARD_PATH);
+        });
+      }).catch(function () { /* لا يعطل الصفحة */ });
+      return;
+    }
     if (h.indexOf("access_token") === -1 && q.indexOf("code=") === -1) return;
     auth.ready.then(function () {
       if (auth.unavailable || !auth.client) return null;
