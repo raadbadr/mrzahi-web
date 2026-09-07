@@ -153,6 +153,10 @@
       function renderCalendar() {
         if (!state.month) return;
         var grid = $("calGrid");
+        /* مصاريف التشغيل بلا تقويم (السطر 816 في script.1.js يزيل calCard من
+           الصفحة)، فعنصر التقويم غير موجود هنا؛ بلا هذا الحارس كانت الكتابة
+           على null تُسقط الوعد وتُظهر «تعذر تحميل البيانات» في كل مرة. */
+        if (!grid) return;
         grid.innerHTML = "";
         $("calTitle").textContent = calendarIsHijri()
           ? hijriTitle(state.month)
