@@ -561,7 +561,7 @@
       return Promise.resolve({ unavailable: true });
     }
     setTimeout(function () { if (initStep !== "done" && initStep !== "redirect") reportClientError("init_slow", "15s and still at " + initStep); }, 15000);
-    return withTimeout(auth.ready, 20000, "auth").then(function () {
+    return withTimeout(auth.ready, 9000, "auth").then(function () {
       if (auth.unavailable || !auth.client) {
         app.unavailable = true;
         reportClientError("auth_unavailable", "");
@@ -569,11 +569,11 @@
       }
       app.client = auth.client;
       initStep = "session";
-      return withTimeout(auth.getSession(), 15000, "session").then(function (session) {
+      return withTimeout(auth.getSession(), 8000, "session").then(function (session) {
         if (!session || !session.user) { initStep = "redirect"; return redirectToLogin(); }
         app.user = session.user;
         initStep = "profile";
-        return withTimeout(loadProfile(app.client, app.user), 15000, "profile").then(function (profile) {
+        return withTimeout(loadProfile(app.client, app.user), 8000, "profile").then(function (profile) {
           app.profile = profile;
           /* لغة الملف الشخصي هي المرجع: واجهة واحدة بلغة واحدة على كل جهاز (لا «Account» وسط صفحة عربية) */
           try {
@@ -591,21 +591,21 @@
             }).catch(function () { /* ignore */ });
           }
           initStep = "invitations";
-          return withTimeout(acceptInvitations(app.client), 15000, "invitations");
+          return withTimeout(acceptInvitations(app.client), 8000, "invitations");
         }).then(function (joined) {
           app.joinedOrgs = joined;
           initStep = "orgs";
-          return withTimeout(loadOrgs(app.client, app.user), 15000, "orgs");
+          return withTimeout(loadOrgs(app.client, app.user), 8000, "orgs");
         }).then(function (orgs) {
           app.orgs = orgs;
           app.org = pickOrg(orgs);
           try { if (app.org) localStorage.setItem(ORG_KEY, app.org.id); } catch (e) { /* ignore */ }
           initStep = "services";
-          return withTimeout(loadServices(app.client, app.org), 15000, "services");
+          return withTimeout(loadServices(app.client, app.org), 8000, "services");
         }).then(function (services) {
           app.services = services; /* null = غير معروف (لا تصفية)، مصفوفة = المسموح فقط */
           initStep = "pack";
-          return withTimeout(loadPack(app.client, app.org), 15000, "pack");
+          return withTimeout(loadPack(app.client, app.org), 8000, "pack");
         }).then(function (pack) {
           app.pack = pack;   /* حزمة الواجهة: null = الافتراضية، فكل شيء كما هو */
           initStep = "done";
@@ -619,10 +619,38 @@
       if (window.console) console.error("trackerApp init failed at", initStep, err);
       app.unavailable = true;
       app.initError = detail;
+      /* قفل جلسة عالق في supabase-js بعد انتهاء صلاحية الرمز: يُكسر بتنظيف مفاتيحه
+         وإعادة تحميل واحدة تلقائية. مرة واحدة فقط لكل تبويب حتى لا تدور الصفحة. */
+      if (err && err.code === "boot_timeout" && (initStep === "session" || initStep === "auth")) {
+        var once = false;
+        try { once = window.sessionStorage.getItem("tracker_boot_retry") === "1"; } catch (e) { once = true; }
+        if (!once) {
+          try {
+            window.sessionStorage.setItem("tracker_boot_retry", "1");
+            for (var i = localStorage.length - 1; i >= 0; i--) {
+              var k = localStorage.key(i);
+              if (k && k.indexOf("sb-") === 0) localStorage.removeItem(k);
+            }
+          } catch (e) { /* ignore */ }
+          window.location.reload();
+          return { unavailable: true, error: detail, step: initStep };
+        }
+      }
       showBootFailure(detail);
       return { unavailable: true, error: detail, step: initStep };
     });
   }
+
+  /* حارس أخير مستقل عن كل ما سبق: إن بقيت بطاقة التحميل ظاهرة بعد اثنتي عشرة ثانية
+     فشيء ما لم يُحسم — تُخفى وتظهر بطاقة فيها زر إعادة. لا شاشة تحميل بلا نهاية. */
+  setTimeout(function () {
+    var card = document.getElementById("loadingCard");
+    if (!card || card.hidden || initStep === "done" || initStep === "redirect") return;
+    if (document.getElementById("appBootFail")) return;
+    card.hidden = true;
+    reportClientError("loading_stuck", "still at " + initStep);
+    showBootFailure("stuck at " + initStep);
+  }, 12000);
 
   app.ready = init();
 

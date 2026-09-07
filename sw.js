@@ -1,5 +1,5 @@
 /* MrZahi — تخزين مؤقت للتصفح دون اتصال (نفس أصل الموقع فقط) */
-const CACHE_NAME = "mrzahi-offline-v3-icons";
+const CACHE_NAME = "mrzahi-offline-v4";
 
 const PRECACHE_URLS = [
   "./index.html",
