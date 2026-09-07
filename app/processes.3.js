@@ -142,10 +142,45 @@
         $("fStatus").innerHTML = STATUSES.map(function (s) { return '<option value="' + s + '"' + (state.draft.status === s ? " selected" : "") + ">" + esc(t("status_" + s)) + "</option>"; }).join("");
         $("fFrequency").value = state.draft.frequency || ""; $("fTrigger").value = state.draft.trigger_text || "";
         $("fInputs").value = state.draft.inputs || ""; $("fOutputs").value = state.draft.outputs || ""; $("fDescription").value = state.draft.description || "";
+        $("fCode").value = state.draft.code || "";
         show("deleteBtn", !!p);
         renderSteps();
+        state.wizStep = 0;
+        renderWizard();
         show("listCard", false); show("detailCard", false); show("editorCard", true);
         window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      /* المعالج: أساسيات ← سياق ← خطوات ← مراجعة، كما في المرجع */
+      function renderWizard() {
+        var steps = WIZ.map(function (k, i) {
+          return '<span class="wiz-step' + (i === state.wizStep ? " is-on" : "") + (i < state.wizStep ? " is-done" : "") + '">' +
+                 '<span class="n">' + (i < state.wizStep ? "✓" : (i + 1)) + "</span>" +
+                 '<span class="t">' + esc(t(k)) + "</span></span>";
+        }).join("");
+        if (app && app.paint) app.paint($("wizSteps"), steps); else $("wizSteps").innerHTML = steps;
+        Array.prototype.forEach.call(document.querySelectorAll(".wiz-pane"), function (pane) {
+          pane.hidden = Number(pane.getAttribute("data-pane")) !== state.wizStep;
+        });
+        show("wizBack", state.wizStep > 0);
+        show("wizNext", state.wizStep < WIZ.length - 1);
+        show("saveBtn", state.wizStep === WIZ.length - 1);
+        if (state.wizStep === WIZ.length - 1) renderWizReview();
+      }
+
+      function renderWizReview() {
+        var d = readForm();
+        var rows = [
+          [t("fName"), d.name], [t("fCode"), d.code || "—"], [t("areaLabel"), t("area_" + (d.area || "other"))],
+          [t("ownerLabel"), name(d.owner_id)], [t("freqLabel"), d.frequency || "—"],
+          [t("fTrigger"), d.trigger_text || "—"], [t("fStatus"), statusLabel(d.status)],
+          [t("stepsCount"), String((d.steps || []).length)]
+        ];
+        var html = '<div class="detail-meta">' + rows.map(function (r) {
+          return '<div class="m"><div class="mk">' + esc(r[0]) + '</div><div class="mv">' + esc(r[1] || "—") + "</div></div>";
+        }).join("") + "</div>" + flowHtml(d) + raciHtml(d).table;
+        if (app && app.paint) app.paint($("wizReview"), html); else $("wizReview").innerHTML = html;
+        if (app && app.translateNodes) app.translateNodes($("wizReview"));
       }
       function renderSteps() {
         var box = $("steps"); box.innerHTML = "";
@@ -182,60 +217,201 @@
       }
       function readForm() {
         var d = state.draft;
-        d.name = $("fName").value.trim(); d.area = $("fArea").value; d.owner_id = $("fOwner").value || null; d.status = $("fStatus").value;
+        d.name = $("fName").value.trim(); d.code = $("fCode").value.trim(); d.area = $("fArea").value;
+        d.owner_id = $("fOwner").value || null; d.status = $("fStatus").value;
         d.frequency = $("fFrequency").value.trim(); d.trigger_text = $("fTrigger").value.trim(); d.inputs = $("fInputs").value.trim(); d.outputs = $("fOutputs").value.trim(); d.description = $("fDescription").value.trim();
         return d;
       }
 
-      /* ---------- التفاصيل: RACI + المخطط ---------- */
-      function openDetail(p) {
-        $("detailTitle").textContent = (p.code ? p.code + " · " : "") + p.name;
-        $("detailMeta").textContent = [t("area_" + (p.area || "other")), name(p.owner_id), p.trigger_text ? t("fTrigger") + ": " + p.trigger_text : ""].filter(Boolean).join(" · ");
+      /* ---------- صفحة الإجراء ---------- */
+      function flowHtml(p) {
+        var steps = p.steps || [];
+        if (!steps.length) return '<div class="flow"><p class="empty-note">' + esc(t("noSteps")) + "</p></div>";
+        var html = "";
+        steps.forEach(function (s2, i) {
+          var who = ["R", "A"].map(function (k) { return s2[k] ? t("raci_" + k) + ": " + name(s2[k]) : ""; }).filter(Boolean).join(" · ");
+          html += '<div class="flow-node ' + (s2.type === "decision" ? "decision" : "") + '">' +
+                    "<strong>" + (i + 1) + '. <span data-tr>' + esc(s2.title || "") + "</span></strong>" +
+                    (who ? '<span class="role">' + esc(who) + "</span>" : "") +
+                    (s2.type === "decision"
+                      ? '<span class="role flow-branch">' + esc(t("yes")) + " → " + esc(s2.yesTarget || "—") +
+                        " · " + esc(t("no")) + " → " + esc(s2.noTarget || "—") + "</span>"
+                      : "") +
+                  "</div>";
+          if (i < steps.length - 1) html += '<div class="flow-arrow"></div>';
+        });
+        return '<div class="flow">' + html + "</div>";
+      }
+
+      /* المصفوفة بشكل المرجع: رقم الخطوة ثم اسمها ثم أربعة أعمدة R A C I */
+      function raciHtml(p) {
+        var steps = p.steps || [];
+        var rows = steps.map(function (s2, i) {
+          return "<tr><td>" + (i + 1) + "</td>" +
+                 '<td class="step-name" data-tr>' + esc(s2.title || "") + "</td>" +
+                 ["R", "A", "C", "I"].map(function (k) {
+                   return '<td class="rc">' + (s2[k] ? '<span class="raci-badge raci-' + k + '" title="' + esc(name(s2[k])) + '">' + k + "</span>" : "") + "</td>";
+                 }).join("") + "</tr>";
+        }).join("");
         var people = {};
-        (p.steps || []).forEach(function (s) { ["R","A","C","I"].forEach(function (k) { if (s[k]) people[s[k]] = true; }); });
-        var ids = Object.keys(people);
-        var html = '<table class="raci-table"><thead><tr><th>' + esc(t("stepTitle")) + "</th>" + ids.map(function (id) { return "<th>" + esc(name(id)) + "</th>"; }).join("") + "</tr></thead><tbody>";
-        (p.steps || []).forEach(function (s, i) {
-          html += "<tr><td>" + (i + 1) + '. <span data-tr>' + esc(s.title) + "</span></td>" + ids.map(function (id) {
-            var letters = ["R","A","C","I"].filter(function (k) { return s[k] === id; });
-            return "<td>" + letters.map(function (k) { return '<span class="raci-badge raci-' + k + '">' + esc(t("raci_" + k)) + "</span>"; }).join(" ") + "</td>";
-          }).join("") + "</tr>";
-        });
-        $("raciWrap").innerHTML = html + "</tbody></table>";
-        var flow = "";
-        (p.steps || []).forEach(function (s, i) {
-          var who = ["R","A"].map(function (k) { return s[k] ? k + ": " + name(s[k]) : ""; }).filter(Boolean).join(" · ");
-          flow += '<div class="flow-node ' + (s.type === "decision" ? "decision" : "") + '"><strong>' + (i + 1) + '. <span data-tr>' + esc(s.title || "") + "</span></strong>" + (who ? '<span class="role">' + esc(who) + "</span>" : "") +
-                  (s.type === "decision" ? '<span class="role flow-branch">' + esc(t("yes")) + " → " + esc(s.yesTarget || "-") + " · " + esc(t("no")) + " → " + esc(s.noTarget || "-") + "</span>" : "") + "</div>";
-          if (i < p.steps.length - 1) flow += '<div class="flow-arrow"></div>';
-        });
-        $("flow").innerHTML = flow || '<p class="empty-note">' + esc(t("noSteps")) + "</p>";
-        /* نداء واحد للتفاصيل كلها: الخطوات نص حر يقرؤه كل عضو بلغته */
-        if (app && app.translateNodes) app.translateNodes($("detailCard") || $("flow"));
+        steps.forEach(function (s2) { ["R", "A", "C", "I"].forEach(function (k) { if (s2[k]) { people[s2[k]] = people[s2[k]] || {}; people[s2[k]][k] = true; } }); });
+        var legend = Object.keys(people).map(function (uid) {
+          return '<span class="li"><b>' + esc(name(uid)) + "</b>: " + Object.keys(people[uid]).join(" · ") + "</span>";
+        }).join("");
+        return {
+          table: '<table class="items-table raci-table"><thead><tr><th>#</th><th>' + esc(t("stepTitle")) + "</th>" +
+                 ["R", "A", "C", "I"].map(function (k) { return '<th class="rc" title="' + esc(t("raci_" + k)) + '">' + k + "</th>"; }).join("") +
+                 "</tr></thead><tbody>" + (rows || "") + "</tbody></table>",
+          legend: legend
+        };
+      }
+
+      function detailActions(p) {
+        var admin = isAdmin();
+        var out = [];
+        if (admin && p.status === "review") {
+          out.push('<button type="button" class="waitlist-btn" data-act="publish">' + esc(t("approvePublish")) + "</button>");
+          out.push('<button type="button" class="chat-option-btn" data-act="changes">' + esc(t("requestChanges")) + "</button>");
+          out.push('<button type="button" class="chat-option-btn is-danger" data-act="reject">' + esc(t("rejectProc")) + "</button>");
+        } else if (admin && p.status === "published") {
+          out.push('<button type="button" class="chat-option-btn" data-act="unpublish">' + esc(t("unpublish")) + "</button>");
+          out.push('<button type="button" class="chat-option-btn" data-act="edit">' + esc(t("edit")) + "</button>");
+        } else if (p.status === "draft" || p.status === "changes") {
+          out.push('<button type="button" class="waitlist-btn" data-act="review">' + esc(t("sendToReview")) + "</button>");
+          out.push('<button type="button" class="chat-option-btn" data-act="edit">' + esc(t("continueEditing")) + "</button>");
+        } else {
+          out.push('<button type="button" class="chat-option-btn" data-act="edit">' + esc(t("edit")) + "</button>");
+        }
+        out.push('<button type="button" class="chat-option-btn" data-act="back">' + esc(t("back")) + "</button>");
+        return out.join("");
+      }
+
+      function openDetail(p) {
         state.current = p;
+        $("detailCode").textContent = p.code || "";
+        $("detailTitle").textContent = p.name || "";
+        $("detailDesc").textContent = p.description || "";
+        $("detailStatus").textContent = statusLabel(p.status);
+        $("detailStatus").className = "proc-status " + (p.status || "draft");
+
+        var meta = [
+          [t("areaLabel"), t("area_" + (p.area || "other"))],
+          [t("ownerLabel"), name(p.owner_id)],
+          [t("freqLabel"), p.frequency || "—"],
+          [t("stepsCount"), String((p.steps || []).length)],
+          [t("authorLabel"), name(p.created_by)]
+        ];
+        $("detailMeta").innerHTML = meta.map(function (m) {
+          return '<div class="m"><div class="mk">' + esc(m[0]) + '</div><div class="mv">' + esc(m[1]) + "</div></div>";
+        }).join("");
+
+        var inputs = String(p.inputs || "").split("\n").filter(function (x) { return x.trim(); });
+        var outputs = String(p.outputs || "").split("\n").filter(function (x) { return x.trim(); });
+        var hasContext = !!(p.trigger_text || inputs.length || outputs.length);
+        show("contextPanel", hasContext);
+        if (hasContext) {
+          $("contextBody").innerHTML =
+            (p.trigger_text ? '<div class="ctx-block"><div class="mk">' + esc(t("fTrigger")) + '</div><div class="mv" data-tr>' + esc(p.trigger_text) + "</div></div>" : "") +
+            '<div class="ctx-grid">' +
+              (inputs.length ? '<div><div class="mk">' + esc(t("inputsTitle")) + "</div><ul class=\"ctx-list\">" + inputs.map(function (x) { return '<li data-tr>' + esc(x) + "</li>"; }).join("") + "</ul></div>" : "") +
+              (outputs.length ? '<div><div class="mk">' + esc(t("outputsTitle")) + "</div><ul class=\"ctx-list\">" + outputs.map(function (x) { return '<li data-tr>' + esc(x) + "</li>"; }).join("") + "</ul></div>" : "") +
+            "</div>";
+        }
+
+        $("flow").outerHTML = flowHtml(p).replace('<div class="flow">', '<div class="flow" id="flow">');
+        var raci = raciHtml(p);
+        $("raciWrap").innerHTML = raci.table;
+        $("raciLegend").innerHTML = raci.legend;
+
+        var bar = $("approvalBar");
+        if (p.status === "review" && isAdmin()) { bar.className = "approval-bar"; bar.textContent = t("awaitingYou"); bar.hidden = false; }
+        else if (p.status === "changes") { bar.className = "approval-bar is-warn"; bar.textContent = t("changesAsked") + (p.review_note ? " " + t("reviewNoteLabel") + ": " + p.review_note : ""); bar.hidden = false; }
+        else bar.hidden = true;
+
+        $("detailActions").innerHTML = detailActions(p);
+        if (app && app.translateNodes) app.translateNodes($("detailCard"));
         show("listCard", false); show("editorCard", false); show("detailCard", true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
       function load() {
         return Promise.all([app.listProcesses(), app.listMembers()]).then(function (res) {
           state.list = res[0] || []; state.members = res[1] || []; state.names = {};
           state.members.forEach(function (m) { var pr = m.profiles || {}; state.names[m.user_id] = pr.full_name || pr.email || ""; });
-          /* المرشح يبنى مرة، ويحتفظ باختيار المستخدم بعد كل حفظ أو حذف */
-          var filterHtml = '<option value="">' + esc(t("allAreas")) + "</option>" + AREAS.map(function (a) { return '<option value="' + a + '">' + esc(t("area_" + a)) + "</option>"; }).join("");
-          var asel = $("areaFilter");
-          if (asel.innerHTML !== filterHtml) asel.innerHTML = filterHtml;
-          asel.value = state.area || "";
           renderList();
         });
       }
+      function byId(id) { return state.list.filter(function (x) { return x.id === id; })[0]; }
+
+      function setStatus(p, status, note) {
+        var patch = JSON.parse(JSON.stringify(p));
+        patch.status = status;
+        if (note !== undefined) patch.review_note = note;
+        return app.saveProcess(patch).then(load).then(function () {
+          var fresh = byId(p.id);
+          if (fresh) openDetail(fresh);
+        });
+      }
+
       function wire() {
         $("newBtn").addEventListener("click", function () { openEditor(null); });
         $("search").addEventListener("input", function () { state.search = this.value.trim(); renderList(); });
-        $("areaFilter").addEventListener("change", function () { state.area = this.value; renderList(); });
+        $("viewGrid").addEventListener("click", function () { state.libView = "grid"; renderList(); });
+        $("viewList").addEventListener("click", function () { state.libView = "list"; renderList(); });
+        $("areaPills").addEventListener("click", function (e) {
+          var pill = e.target.closest("[data-area]");
+          if (!pill) return;
+          state.area = pill.getAttribute("data-area") || "";
+          renderList();
+        });
+        $("libGrid").addEventListener("click", function (e) {
+          var card = e.target.closest("[data-open]");
+          if (!card) return;
+          var p = byId(card.dataset.open);
+          if (p) openDetail(p);
+        });
+        $("wizNext").addEventListener("click", function () {
+          readForm();
+          if (state.wizStep === 0 && !$("fName").value.trim()) { $("fName").focus(); return; }
+          state.wizStep = Math.min(WIZ.length - 1, state.wizStep + 1);
+          renderWizard();
+        });
+        $("wizBack").addEventListener("click", function () {
+          readForm();
+          state.wizStep = Math.max(0, state.wizStep - 1);
+          renderWizard();
+        });
+        $("detailActions").addEventListener("click", function (e) {
+          var btn = e.target.closest("[data-act]");
+          if (!btn || !state.current) return;
+          var act = btn.getAttribute("data-act"), p = state.current;
+          if (act === "back") { show("detailCard", false); show("listCard", true); return; }
+          if (act === "edit") { openEditor(p); return; }
+          btn.disabled = true;
+          var done = function () { btn.disabled = false; };
+          if (act === "review") setStatus(p, "review", null).then(done, done);
+          else if (act === "publish") setStatus(p, "published", null).then(done, done);
+          else if (act === "unpublish") setStatus(p, "draft", null).then(done, done);
+          else if (act === "reject") setStatus(p, "archived", null).then(done, done);
+          else if (act === "changes") {
+            var note = window.prompt(t("askChangesPrompt"), p.review_note || "");
+            if (note === null) { done(); return; }
+            setStatus(p, "changes", note.trim()).then(done, done);
+          } else done();
+        });
         $("listBody").addEventListener("click", function (e) {
-          var o = e.target.closest("[data-open]"), ed = e.target.closest("[data-edit]");
-          if (o) { e.preventDefault(); var p = state.list.filter(function (x) { return x.id === o.dataset.open; })[0]; if (p) openDetail(p); }
-          else if (ed) { var q = state.list.filter(function (x) { return x.id === ed.dataset.edit; })[0]; if (q) openEditor(q); }
+          var o = e.target.closest("[data-open]"), ed = e.target.closest("[data-edit]"), tg = e.target.closest("[data-toggle]");
+          if (tg) {
+            var it = byId(tg.dataset.toggle);
+            if (!it) return;
+            var patch = JSON.parse(JSON.stringify(it));
+            patch.active = it.active === false;
+            tg.disabled = true;
+            app.saveProcess(patch).then(load).finally(function () { tg.disabled = false; });
+            return;
+          }
+          if (o) { e.preventDefault(); var p = byId(o.dataset.open); if (p) openDetail(p); }
+          else if (ed) { var q = byId(ed.dataset.edit); if (q) openEditor(q); }
         });
         $("addStep").addEventListener("click", function () { readForm(); state.draft.steps.push(newStep()); renderSteps(); });
         $("steps").addEventListener("change", function (e) {
@@ -279,8 +455,7 @@
           if (!state.draft.id || !window.confirm(t("deleteConfirm"))) return;
           app.deleteProcess(state.draft.id).then(load).then(function () { show("editorCard", false); show("listCard", true); });
         });
-        $("editBtn").addEventListener("click", function () { openEditor(state.current); });
-        $("backBtn").addEventListener("click", function () { show("detailCard", false); show("listCard", true); });
+
       }
       window.__processesRefresh = function () { renderList(); };
 
