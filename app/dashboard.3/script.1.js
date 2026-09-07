@@ -171,7 +171,11 @@
         violations: { titleKey: "viewViolations", defaultCategory: "مخالفة",
                       words: ["مخالفة", "مخالفات", "violation", "violations", "infraction", "خلاف ورزی"] },
         expenses: { titleKey: "viewExpenses", defaultCategory: "مصروف",
-                    words: ["مصروف", "مصاريف", "expense", "expenses", "dépense", "اخراجات"] }
+                    words: ["مصروف", "مصاريف", "expense", "expenses", "dépense", "اخراجات"] },
+        rulings: { titleKey: "viewRulings", defaultCategory: "حكم",
+                   words: ["حكم", "أحكام", "احكام", "ruling", "rulings", "judgment", "judgement", "jugement", "فیصلہ"] },
+        contracts: { titleKey: "viewContracts", defaultCategory: "عقد",
+                     words: ["عقد", "عقود", "contract", "contracts", "contrat", "معاہدہ"] }
       };
 
       function currentViewType() {

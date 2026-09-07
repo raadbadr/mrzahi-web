@@ -614,6 +614,12 @@
     { href: "/app/dashboard.html?type=cases", path: "type=cases", service: "cases",
       icon: '<path d="M20 6h-3V4a2 2 0 00-2-2H9a2 2 0 00-2 2v2H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2zM9 4h6v2H9V4zm11 15H4V8h16v11z"/><path d="M11 10h2v7h-2z"/>',
       labels: { ar: "القضايا", en: "Cases", fr: "Affaires", ur: "مقدمات" } },
+    { href: "/app/dashboard.html?type=rulings", path: "type=rulings", service: "rulings", packOnly: true,
+      icon: '<path d="M1 21h12v2H1zM5.245 8.07l2.83-2.827 14.14 14.142-2.828 2.828zM12.317 1l5.657 5.656-2.83 2.83-5.654-5.66zM3.825 9.485l5.657 5.657-2.828 2.828-5.657-5.657z"/>',
+      labels: { ar: "الأحكام", en: "Rulings", fr: "Jugements", ur: "فیصلے" } },
+    { href: "/app/dashboard.html?type=contracts", path: "type=contracts", service: "contracts", packOnly: true,
+      icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h5v-2H6V4h7v5h5v2h2V8l-6-6zM8 13h5v2H8v-2z"/><path d="M21.7 14.3l-1-1a1 1 0 00-1.4 0l-.9.9 2.4 2.4.9-.9a1 1 0 000-1.4zM13 19.9V22h2.1l6-6-2.4-2.4-5.7 5.7z"/>',
+      labels: { ar: "العقود", en: "Contracts", fr: "Contrats", ur: "معاہدے" } },
     { href: "/app/dashboard.html?type=violations", path: "type=violations", service: "violations",
       icon: '<path d="M12 2L1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/>',
       labels: { ar: "المخالفات", en: "Violations", fr: "Infractions", ur: "خلاف ورزیاں" } },
@@ -842,7 +848,8 @@
   }
   function packOrdered(items) {
     var list = packServices();
-    if (!list) return items;
+    /* packOnly: خدمة لا تظهر إلا حين تسميها الحزمة. الحساب بلا حزمة يبقى شريطه كما كان حرفيا. */
+    if (!list) return items.filter(function (item) { return !item.packOnly; });
     var order = {}, seen = {};
     list.forEach(function (row, i) { order[row.service] = i; });
     var out = [];
