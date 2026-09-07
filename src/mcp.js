@@ -5,7 +5,7 @@
 import { rpc, dmy, writeGate, describePending } from "./notify.js";
 
 const PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"];
-const SERVER_INFO = { name: "thetracker", version: "1.0.0" };
+const SERVER_INFO = { name: "mrzahi", version: "1.0.0" };
 const INSTRUCTIONS =
   "MrZahi: cases, violations and tasks for one company. Numbers/identifiers are never translated. " +
   "On Telegram ALWAYS pass telegram_user_id (the numeric id of the person you are talking to) to every tool so you act as that member with their permissions. " +

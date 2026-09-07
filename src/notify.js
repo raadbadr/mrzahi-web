@@ -28,12 +28,12 @@ export async function rpc(env, name, args) {
 }
 
 const TEXT = {
-  ar: { reminder: (t, due, tr) => `⏰ تذكير من MrZahi\n${t}\nالاستحقاق: ${due}${tr ? `\nالسجل: ${tr}` : ""}\nhttps://mrzahi.com/app/dashboard.html`,
+  ar: { reminder: (t, due, tr) => `⏰ تذكير من مستر زاهي\n${t}\nالاستحقاق: ${due}${tr ? `\nالسجل: ${tr}` : ""}\nhttps://mrzahi.com/app/dashboard.html`,
         linked: (name, org) => `مرحبا ${name || ""}${org ? "\nالشركة: " + org : ""}`,
-        badCode: "الرمز غير صحيح أو منته. افتح الإعدادات في MrZahi وانسخ الرمز الجديد.",
-        needCode: "لربط حسابك: افتح الإعدادات في MrZahi ← تيليجرام ← «توليد رمز»، ثم أرسل الرمز هنا أو امسح رمز QR.",
+        badCode: "الرمز غير صحيح أو منته. افتح الإعدادات في مستر زاهي وانسخ الرمز الجديد.",
+        needCode: "لربط حسابك: افتح الإعدادات في مستر زاهي ← تيليجرام ← «توليد رمز»، ثم أرسل الرمز هنا أو امسح رمز QR.",
         alreadyLinked: (name) => `أنت مرتبط${name ? " يا " + name : ""}.`,
-        test: "✅ رسالة تجريبية من MrZahi: هذه القناة تعمل." },
+        test: "✅ رسالة تجريبية من مستر زاهي: هذه القناة تعمل." },
   en: { reminder: (t, due, tr) => `⏰ MrZahi reminder\n${t}\nDue: ${due}${tr ? `\nTracker: ${tr}` : ""}\nhttps://mrzahi.com/app/dashboard.html`,
         linked: (name, org) => `Hello ${name || ""}${org ? "\nCompany: " + org : ""}`,
         badCode: "Invalid or expired code. Open Settings in MrZahi and copy a new code.",
@@ -59,7 +59,7 @@ export function t(lang) { return TEXT[lang] || TEXT.ar; }
 const BOT = {
   ar: { company: "🏢 الشركة", upcoming: "📅 مواعيدي القادمة", overdue: "⏰ المتأخرات", dashboard: "🌐 لوحة التحكم", help: "❓ مساعدة",
         linkBtn: "🔗 ربط حسابي", openDash: "فتح لوحة التحكم",
-        phoneBtn: "📱 ربط برقم جوالي", phoneHint: "أو شارك رقم جوالك المسجل في MrZahi بالزر بالأسفل فيتم الربط فورا.",
+        phoneBtn: "📱 ربط برقم جوالي", phoneHint: "أو شارك رقم جوالك المسجل في مستر زاهي بالزر بالأسفل فيتم الربط فورا.",
         phoneNotFound: "لم نجد حسابا بهذا الرقم. سجل الدخول إلى الموقع واضغط زر الربط أعلاه.",
         importFound: (file, n) => `📄 ${file}\nوجدت ${n} ${n === 1 ? "ورقة قابلة" : "أوراق قابلة"} للاستيراد:`, importSheet: (name, rows, skipped) => `• ${name}: ${rows} صفا${skipped ? ` (سيهمل ${skipped} بلا عنوان أو تاريخ)` : ""}`,
         importAsk: "أحفظها في شركتك الآن؟", importNothing: "لم أجد في الملف جدولا فيه عمود عنوان وعمود تاريخ (أو رقم مخالفة وتاريخها). استورده من صفحة الاستيراد لتضبط الأعمدة يدويا.", importDoneTitle: "✅ تم الحفظ:", importDoneLine: (tracker, n, isNew) => `• ${tracker}: ${n} عنصر${isNew ? " (متتبع جديد مع قاعدة تذكير قبل الاستحقاق بيوم)" : ""}`,
@@ -79,8 +79,8 @@ const BOT = {
         digestFooter: (n) => `المفتوح كله: ${n}. أرسل لي أي شيء لتسجيله أو اسألني.`,
         prepTitle: (n) => `🌙 ${n ? n + "، " : ""}تجهيز الغد:`, prepNone: "لا جلسات غدا.",
         needsParent: "لأي قضية أو مخالفة تتبع هذه المهمة؟ (لا مهمة بلا أصل) — اختر:", noParents: "لا توجد قضايا أو مخالفات مفتوحة لتتبعها هذه المهمة. سجل القضية أو المخالفة أولا.",
-        voiceHeard: "🎙 سمعتك: ", fileUnreadable: "تعذرت قراءة هذا الملف. أرسل PDF أو صورة أو إكسل أو CSV.", fileTooBig: "الملف أكبر من الحد المسموح (15 ميغابايت).", fileQuestion: "لخص هذا الملف باختصار، واذكر ما يمكن للمستخدم فعله به في MrZahi (مثلا استيراده من صفحة الاستيراد إن كان جدول مواعيد أو مخالفات أو قضايا).",
-        linkIntro: "أهلا بك في MrZahi 👋\nاضغط الزر لربط هذا البوت بحسابك: تفتح صفحة الإعدادات في الموقع ويتم الربط تلقائيا.",
+        voiceHeard: "🎙 سمعتك: ", fileUnreadable: "تعذرت قراءة هذا الملف. أرسل PDF أو صورة أو إكسل أو CSV.", fileTooBig: "الملف أكبر من الحد المسموح (15 ميغابايت).", fileQuestion: "لخص هذا الملف باختصار، واذكر ما يمكن للمستخدم فعله به في مستر زاهي (مثلا استيراده من صفحة الاستيراد إن كان جدول مواعيد أو مخالفات أو قضايا).",
+        linkIntro: "أهلا بك في مستر زاهي 👋\nاضغط الزر لربط هذا البوت بحسابك: تفتح صفحة الإعدادات في الموقع ويتم الربط تلقائيا.",
         menuHint: "اختر من الأزرار بالأسفل:",
         upcomingTitle: "📅 مواعيدك القادمة:", overdueTitle: "⏰ المواعيد المتأخرة:",
         noUpcoming: "لا مواعيد قادمة 👌", noOverdue: "لا مواعيد متأخرة 👌",

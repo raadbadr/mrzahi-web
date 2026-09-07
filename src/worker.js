@@ -312,7 +312,7 @@ async function telegramAssistantReply(env, chatId, userId, text, attachment) {
     import_url: "https://mrzahi.com/app/documents.html#importFlow",
   };
   if (attachment) facts.attachment = { name: attachment.name || "", kind: attachment.kind || "file", content: String(attachment.content || "").slice(0, 9000) };
-  const system = `أنت مساعد MrZahi داخل تلغرام، تخدم المستخدم ${facts.user.name || ""}${facts.user.company ? ` من شركة «${facts.user.company}»` : ""}.
+  const system = `أنت مساعد مستر زاهي داخل تلغرام، تخدم المستخدم ${facts.user.name || ""}${facts.user.company ? ` من شركة «${facts.user.company}»` : ""}.
 مستر زاهي منصة لتتبع القضايا والمخالفات والعقود والمواعيد من ملفات إكسل، مع تقويم وتنبيهات.
 قواعدك:
 - أجب بـ${TG_LANG_NAMES[lang] || "العربية الفصحى"} دائما، باختصار وود ومباشرة، والأرقام غربية (1234567890) والتواريخ بتوقيت الرياض.
