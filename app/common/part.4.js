@@ -198,6 +198,7 @@
   var BELL_LABELS = { ar: "التنبيهات", en: "Notifications", fr: "Notifications", ur: "اطلاعات" };
   var ORG_LABELS = { ar: "الحساب", en: "Account", fr: "Compte", ur: "اکاؤنٹ" };
   var NEW_ORG_LABELS = { ar: "＋ حساب جديد", en: "＋ New account", fr: "＋ Nouveau compte", ur: "＋ نیا اکاؤنٹ" };
+  var PACK_LABELS = { ar: "الواجهة", en: "Interface", fr: "Interface", ur: "انٹرفیس" };
   var BELL_DELETE = { ar: "حذف التنبيه", en: "Delete", fr: "Supprimer", ur: "حذف کریں" };
   var BELL_CLEAR = { ar: "حذف كل التنبيهات", en: "Clear all", fr: "Tout effacer", ur: "سب حذف کریں" };
   var BELL_EMPTY = { ar: "لا توجد تنبيهات بعد.", en: "No notifications yet.", fr: "Aucune notification pour le moment.", ur: "ابھی کوئی اطلاع نہیں۔" };
@@ -634,6 +635,39 @@
            "</div>";
   }
 
+  /* الواجهة تُبدَّل من جوار الحساب مباشرة، بالصندوق نفسه الذي يبدل الحساب.
+     القائمة تُجلب مرة وتُحفظ، والقاعدة هي الحارس: set_org_pack للمالك والمدير وحدهما. */
+  var packsCache = null, packsAsked = false;
+
+  function canChangePack() {
+    var role = app && app.org && app.org.role;
+    return role === "owner" || role === "admin";
+  }
+
+  function packBoxHtml() {
+    if (!canChangePack()) return "";
+    if (!packsCache) {
+      if (!packsAsked && app && typeof app.listPacks === "function") {
+        packsAsked = true;
+        app.listPacks().then(function (rows) {
+          packsCache = rows && rows.length ? rows : null;
+          if (packsCache) renderTopbar();
+        });
+      }
+      return "";
+    }
+    var cur = (app.pack && app.pack.key) || "";
+    var opts = packsCache.map(function (pk) {
+      var name = (pk.names && (pk.names[lang()] || pk.names.ar)) || pk.key;
+      return '<option value="' + escapeHtml(pk.key) + '"' + (pk.key === cur ? " selected" : "") + ">" +
+             escapeHtml(name) + "</option>";
+    }).join("");
+    return '<div class="app-orgbox" title="' + escapeHtml(sidebarLabel(PACK_LABELS)) + '">' +
+             '<span class="app-orglabel">' + escapeHtml(sidebarLabel(PACK_LABELS)) + "</span>" +
+             '<select class="app-orgselect" id="topPackSelect">' + opts + "</select>" +
+           "</div>";
+  }
+
   var topbarHtml = "";
 
   function renderTopbar() {
@@ -648,6 +682,7 @@
       '<nav class="app-topnav">' + nav + "</nav>" +
       '<div class="app-userbox">' +
         orgBoxHtml() +
+        packBoxHtml() +
         '<a class="app-username" id="topUserName" href="/app/settings.html#profileCard" title="' + escapeHtml(userDisplayName()) + '">' + escapeHtml(userDisplayName()) + "</a>" +
         '<button type="button" class="app-iconbtn" id="topBellBtn" aria-label="' + escapeHtml(sidebarLabel(BELL_LABELS)) + '">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5S10.5 3.17 10.5 4v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>' +
@@ -711,6 +746,16 @@
         return;
       }
       if (app.org && this.value !== app.org.id) setCurrentOrg(this.value);
+    });
+
+    var packSel = document.getElementById("topPackSelect");
+    if (packSel) packSel.addEventListener("change", function () {
+      var want = this.value, was = (app.pack && app.pack.key) || "";
+      if (!want || want === was) return;
+      var sel = this;
+      sel.disabled = true;
+      app.setOrgPack(want).then(function () { window.location.reload(); })
+        .catch(function () { sel.value = was; sel.disabled = false; });
     });
 
     var out = document.getElementById("topSignOut");
