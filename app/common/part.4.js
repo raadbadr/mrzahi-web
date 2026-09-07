@@ -659,14 +659,21 @@
     /* my_pack_config يعيد المفتاح باسم pack؛ قراءته باسم key كانت تترك القائمة
        بلا خيار معلَّم فيظهر أول خيار («شخص») مهما كانت الواجهة الحقيقية. */
     var cur = (app.pack && (app.pack.pack || app.pack.key)) || "";
-    var opts = packsCache.map(function (pk) {
+    /* الواجهة تتبع نوع الحساب: حساب الفرد واجهته شخصية وحدها، وحساب الكيان
+       لا تظهر فيه الشخصية أصلا. القاعدة ترفض ما سوى ذلك على أي حال. */
+    var personal = !!(app.isPersonType && app.isPersonType(app.org && app.org.entity_type));
+    var list = packsCache.filter(function (pk) {
+      return personal ? pk.key === "individual" : pk.key !== "individual";
+    });
+    if (!list.length) list = packsCache;
+    var opts = list.map(function (pk) {
       var name = (pk.names && (pk.names[lang()] || pk.names.ar)) || pk.key;
       return '<option value="' + escapeHtml(pk.key) + '"' + (pk.key === cur ? " selected" : "") + ">" +
              escapeHtml(name) + "</option>";
     }).join("");
     return '<div class="app-orgbox" title="' + escapeHtml(sidebarLabel(PACK_LABELS)) + '">' +
              '<span class="app-orglabel">' + escapeHtml(sidebarLabel(PACK_LABELS)) + "</span>" +
-             '<select class="app-orgselect" id="topPackSelect">' + opts + "</select>" +
+             '<select class="app-orgselect" id="topPackSelect"' + (list.length < 2 ? " disabled" : "") + ">" + opts + "</select>" +
            "</div>";
   }
 

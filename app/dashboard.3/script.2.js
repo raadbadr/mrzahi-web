@@ -21,6 +21,14 @@
         if (!box || !app || !app.listPacks) return;
         app.listPacks().then(function (rows) {
           if (!rows || rows.length < 2) { box.hidden = true; if (line) line.hidden = true; return; }
+          /* حساب الفرد لا يرى إلا الواجهة الشخصية، وحساب الكيان لا يراها إطلاقا:
+             من يريد ترتيب أوراقه وحده لا شأن له بشركة. */
+          var typeSel = $("createOrgType");
+          var personal = !!(app.isPersonType && typeSel && app.isPersonType(typeSel.value));
+          rows = rows.filter(function (p) { return personal ? p.key === "individual" : p.key !== "individual"; });
+          if (!rows.length) { box.hidden = true; if (line) line.hidden = true; return; }
+          if (rows.length === 1) window.__wantedPack = rows[0].key;
+          if (window.__wantedPack && !rows.some(function (p) { return p.key === window.__wantedPack; })) window.__wantedPack = null;
           var def = rows.filter(function (p) { return p.is_default; })[0] || rows[0];
           window.__wantedPack = window.__wantedPack || def.key;
           var html = rows.map(function (p) {
@@ -107,6 +115,8 @@
         if (input) input.placeholder = T(app.isPersonType(sel.value) ? "selfNamePlaceholder" : "newOrgPlaceholder");
       };
       $("createOrgType").addEventListener("change", function () {
+        /* تغيير النوع يعيد رسم بطاقات الواجهات، فلا تبقى واجهة لا تناسب النوع. */
+        if (typeof window.__renderPackCards === "function") window.__renderPackCards();
         var input = $("createOrgName");
         if (!input || !app || !app.isPersonType) return;
         input.placeholder = T(app.isPersonType(this.value) ? "selfNamePlaceholder" : "newOrgPlaceholder");
