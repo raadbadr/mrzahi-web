@@ -1,7 +1,24 @@
     (function () {
       "use strict";
       var app = null;
-      var AREAS = ["lawsuits","violations","contracts","licenses","documents","other"];
+      /* مجالات المكتبة تتبع واجهة الحساب. المحاماة لا تعلن شيئا في حزمتها، فتبقى مجالاتها الست كما هي حرفا بحرف. */
+      var LEGAL_AREAS = ["lawsuits","violations","contracts","licenses","documents","other"];
+      var AREAS = LEGAL_AREAS.slice();
+      var areaNames = null;   /* تسميات الحزمة إن أعلنتها */
+      function loadAreas() {
+        var cfg = app && app.packCfg ? app.packCfg("processes") : null;
+        if (!Array.isArray(cfg) || !cfg.length) { AREAS = LEGAL_AREAS.slice(); areaNames = null; return; }
+        AREAS = cfg.map(function (a) { return a.key; }).filter(Boolean);
+        areaNames = {};
+        cfg.forEach(function (a) { if (a && a.key) areaNames[a.key] = a.names || null; });
+      }
+      /* اسم المجال: من الحزمة بلغة الواجهة، وإلا من ترجمات الصفحة، وإلا المفتاح نفسه */
+      function areaLabel(key) {
+        var row = areaNames && areaNames[key];
+        if (row) return row[(app && app.lang ? app.lang() : "ar")] || row.ar || key;
+        var s = t("area_" + key);
+        return s === "area_" + key ? key : s;
+      }
       var STATUSES = ["draft","review","published","archived"];
       var WIZ = ["wizBasics", "wizContext", "wizSteps", "wizReview"];
       var state = { list: [], members: [], names: {}, draft: null, area: "", search: "",
@@ -78,7 +95,7 @@
         state.list.forEach(function (p) { if (p.area) present[p.area] = true; });
         var html = '<button type="button" class="pill' + (state.area ? "" : " is-on") + '" data-area="">' + esc(t("allAreas")) + "</button>" +
           AREAS.filter(function (a) { return present[a]; }).map(function (a) {
-            return '<button type="button" class="pill' + (state.area === a ? " is-on" : "") + '" data-area="' + a + '">' + esc(t("area_" + a)) + "</button>";
+            return '<button type="button" class="pill' + (state.area === a ? " is-on" : "") + '" data-area="' + a + '">' + esc(areaLabel(a)) + "</button>";
           }).join("");
         if (app && app.paint) app.paint($("areaPills"), html); else $("areaPills").innerHTML = html;
       }
@@ -146,11 +163,11 @@
 
       /* ---------- المحرر ---------- */
       function openEditor(p) {
-        state.draft = p ? JSON.parse(JSON.stringify(p)) : { name: "", area: "lawsuits", steps: [newStep()], status: "draft" };
+        state.draft = p ? JSON.parse(JSON.stringify(p)) : { name: "", area: AREAS[0] || "other", steps: [newStep()], status: "draft" };
         if (!Array.isArray(state.draft.steps) || !state.draft.steps.length) state.draft.steps = [newStep()];
         $("editorTitle").textContent = p ? t("editorEdit") + " — " + (p.code || "") : t("editorNew");
         $("fName").value = state.draft.name || "";
-        $("fArea").innerHTML = AREAS.map(function (a) { return '<option value="' + a + '"' + (state.draft.area === a ? " selected" : "") + ">" + esc(t("area_" + a)) + "</option>"; }).join("");
+        $("fArea").innerHTML = AREAS.map(function (a) { return '<option value="' + a + '"' + (state.draft.area === a ? " selected" : "") + ">" + esc(areaLabel(a)) + "</option>"; }).join("");
         $("fOwner").innerHTML = memberOptions(state.draft.owner_id, true);
         $("fStatus").innerHTML = STATUSES.map(function (s) { return '<option value="' + s + '"' + (state.draft.status === s ? " selected" : "") + ">" + esc(t("status_" + s)) + "</option>"; }).join("");
         $("fFrequency").value = state.draft.frequency || ""; $("fTrigger").value = state.draft.trigger_text || "";
@@ -363,7 +380,7 @@
       }
 
       function downloadTemplate() {
-        var sample = ["LEG-01", t("templateName"), "lawsuits", t("templateDesc"), t("templateTrigger"),
+        var sample = ["PRC-01", t("templateName"), AREAS[0] || "other", t("templateDesc"), t("templateTrigger"),
                       t("templateInputs"), t("templateOutputs"), t("templateFreq"), "draft",
                       JSON.stringify([{ id: "s1", type: "task", title: t("templateStep1"), R: "", A: "", C: "", I: "" },
                                       { id: "s2", type: "decision", title: t("templateStep2"), R: "", A: "", C: "", I: "", yesTarget: "", noTarget: "" }])];
@@ -600,6 +617,7 @@
           show("loadingCard", false);
           if (!res || res.unavailable || app.unavailable) { show("unavailableCard", true); return; }
           if (!app.org) { show("noOrgCard", true); return; }
+          loadAreas();   /* مجالات المكتبة بحسب واجهة الحساب قبل أول رسم */
           wire(); show("view", true); return load();
         }).catch(function () { show("loadingCard", false); show("unavailableCard", true); });
       }
