@@ -11,23 +11,23 @@
   "dir": "rtl",
   "icons": [
     {
-      "src": "favicon-16x16.png",
+      "src": "favicon-16x16.png?v=zahi3",
       "sizes": "16x16",
       "type": "image/png"
     },
     {
-      "src": "favicon-32x32.png",
+      "src": "favicon-32x32.png?v=zahi3",
       "sizes": "32x32",
       "type": "image/png"
     },
     {
-      "src": "apple-touch-icon.png",
+      "src": "apple-touch-icon.png?v=zahi3",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "mrzahi-logo-google-120.png",
+      "src": "mrzahi-logo-google-120.png?v=zahi3",
       "sizes": "120x120",
       "type": "image/png"
     }

@@ -1,5 +1,5 @@
 /* MrZahi — تخزين مؤقت للتصفح دون اتصال (نفس أصل الموقع فقط) */
-const CACHE_NAME = "tracker-offline-v2-mrzahi-b";
+const CACHE_NAME = "mrzahi-offline-v3-icons";
 
 const PRECACHE_URLS = [
   "./index.html",
@@ -72,7 +72,10 @@ self.addEventListener("fetch", (event) => {
   /* صفحات HTML + CSS/JS: الشبكة أولاً حتى تصل التحديثات فوراً —
      الكاش-أولا هنا جمّد تعديلات footer.css على أجهزة الزوار */
   const p = url.pathname;
-  const isFreshAsset = p.endsWith(".css") || p.endsWith(".js") || p.endsWith(".webmanifest");
+  /* الأيقونات مع الأنماط والسكربتات: الشبكة أولا. كانت الصور كاشا-أولا،
+     فبقيت أيقونة الاسم القديم على التبويبات بعد تغيير العلامة. */
+  const isIcon = /favicon|apple-touch-icon|logo/.test(p) && /\.(png|ico|svg)$/.test(p);
+  const isFreshAsset = p.endsWith(".css") || p.endsWith(".js") || p.endsWith(".webmanifest") || isIcon;
   if (isDocumentRequest(request, url) || isFreshAsset) {
     event.respondWith(
       fetch(request)
