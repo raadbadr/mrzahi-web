@@ -779,6 +779,12 @@
     const placeholderKeys = { fullName: "fullNamePlaceholder", fullNameEn: "fullNameEnPlaceholder", profilePhone: "phonePlaceholder", smsPhone: "smsPhonePlaceholder" };
     function applyPlaceholders(code) {
       const dict = translations[code] || translations.ar;
+      /* السمة data-i18n-placeholder في الترميز لم يكن يقرؤها أحد، فيبقى النص
+         العربي في كل اللغات. تُقرأ هنا مرة واحدة لكل من يحملها. */
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
+        var k = el.getAttribute("data-i18n-placeholder");
+        if (k && dict[k]) el.placeholder = dict[k];
+      });
       Object.keys(placeholderKeys).forEach(id => {
         const el = document.getElementById(id);
         if (el && dict[placeholderKeys[id]]) el.placeholder = dict[placeholderKeys[id]];

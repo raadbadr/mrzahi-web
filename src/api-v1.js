@@ -2,7 +2,7 @@
    نُقل من worker.js كي يبقى كل ملف تحت ألف سطر. */
 import * as XLSX from "xlsx";
 import { rpc } from "./notify.js";
-import { parseWorkbook, draftPayload } from "./telegram-import.js";
+import { ALLOWED_EXT, fileExt, parseWorkbook, draftPayload } from "./telegram-import.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {

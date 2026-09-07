@@ -244,7 +244,9 @@
         var userId = node.getAttribute(kindSel ? "data-person-user" : "data-title-user");
         var fields = kindSel ? { person_kind: node.value } : { job_title: node.value };
         node.disabled = true;
-        app.setMemberPerson(userId, fields).then(function () {
+        app.setMemberPerson(userId, fields).then(function (rows) {
+          /* سياسة الصفوف تُسقط التعديل صامتا لمن لا يملكه، فلا يُعلن حفظ لم يقع. */
+          if (!rows || !rows.length) throw new Error("not allowed");
           var m = state.members.filter(function (x) { return x.user_id === userId; })[0];
           if (m) { if (kindSel) m.person_kind = node.value || null; else m.job_title = node.value || null; }
           toast(t("saved"));

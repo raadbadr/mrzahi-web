@@ -438,9 +438,17 @@
           });
           if (!jobs.length) { window.alert(t("importEmpty")); return; }
           if (!window.confirm(t("importConfirm").replace("{n}", jobs.length))) return;
+          /* العدد المعلن هو المحفوظ فعلا لا المُحاول: كان يقول «تم استيراد 100»
+             ولو رفضت القاعدة المئة كلها، فيمضي صاحبها ويحذف ملفه الأصلي. */
+          var saved = 0;
           jobs.reduce(function (chain, row) {
-            return chain.then(function () { return app.saveProcess(row).catch(function () { return null; }); });
-          }, Promise.resolve()).then(load).then(function () { window.alert(t("importDone").replace("{n}", jobs.length)); });
+            return chain.then(function () {
+              return app.saveProcess(row).then(function () { saved += 1; }, function () { return null; });
+            });
+          }, Promise.resolve()).then(load).then(function () {
+            window.alert(t(saved === jobs.length ? "importDone" : "importPartial")
+              .replace("{n}", saved).replace("{total}", jobs.length));
+          });
         };
         reader.readAsText(file, "utf-8");
       }

@@ -944,10 +944,26 @@
       if (Object.prototype.hasOwnProperty.call(r, "code")) clean.code = r.code || null;
       if (Object.prototype.hasOwnProperty.call(r, "active")) clean.active = !!r.active;
       if (Object.prototype.hasOwnProperty.call(r, "review_note")) clean.review_note = r.review_note || null;
-      if (clean.status === "published") { clean.published_at = new Date().toISOString(); clean.published_by = app.user.id; }
       if (!clean.name) throw new Error("name required");
-      if (r.id) return client.from("processes").update(clean).eq("id", r.id).eq("org_id", orgId).select("*").single().then(unwrap);
+      if (r.id) {
+        /* الختم يقع مرة واحدة عند أول نشر: تجديده مع كل حفظ لصف منشور كان يمحو
+           تاريخ النشر الأصلي واسم ناشره، فيضيع أثر من نشر ومتى. */
+        var upd = client.from("processes").update(clean).eq("id", r.id).eq("org_id", orgId).select("*").single();
+        if (clean.status !== "published") return upd.then(unwrap);
+        return client.from("processes").select("published_at").eq("id", r.id).eq("org_id", orgId).maybeSingle()
+          .then(unwrap).then(function (cur) {
+            if (!cur || !cur.published_at) {
+              clean.published_at = new Date().toISOString();
+              clean.published_by = app.user.id;
+            }
+            return client.from("processes").update(clean).eq("id", r.id).eq("org_id", orgId).select("*").single().then(unwrap);
+          });
+      }
       clean.org_id = orgId; clean.created_by = app.user.id;
+      if (clean.status === "published") {
+        clean.published_at = new Date().toISOString();
+        clean.published_by = app.user.id;
+      }
       return client.from("processes").insert(clean).select("*").single().then(unwrap);
     });
   }

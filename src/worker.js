@@ -836,7 +836,8 @@ export default {
        تحول إليه بالمسار نفسه وبالمعاملات نفسها. تستثنى مسارات /api لأن خطاف تيليغرام
        وأي عميل يرسل POST لا يتبع التحويل — تحول بعد نقل الخطاف. */
     if (url.hostname === "appmails.net" || url.hostname === "www.appmails.net") {
-      if (!path.startsWith("/api/")) {
+      /* /mcp عميل POST كذلك، وملف توثيق جوجل يجب أن يبقى على النطاق القديم حتى يُقرأ. */
+      if (!path.startsWith("/api/") && !path.startsWith("/mcp") && !path.startsWith("/google")) {
         const to = new URL(url.toString());
         to.hostname = "mrzahi.com";
         return Response.redirect(to.toString(), 301);
