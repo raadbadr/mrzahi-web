@@ -158,7 +158,6 @@
               }
             });
           });
-          loadPlanRequests();
           try { wireApi(); } catch (e) { if (window.console) console.warn("api card:", e); }
           el("regenerateBtn").addEventListener("click", regenerateCalendar);
           var soBtn = el("signOutBtn");

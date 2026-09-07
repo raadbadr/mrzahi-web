@@ -821,28 +821,9 @@
         fillUpgradePeriod();
         renderUpgradePrice();
         el("upgradeForm").style.display = options ? "" : "none";
-        renderUpgradeHistory();
       }
 
-      function renderUpgradeHistory() {
-        var box = el("upgradeHistory");
-        if (!box) return;
-        var reqs = state.planRequests || [];
-        if (!reqs.length) { box.innerHTML = ""; return; }
-        var html = "";
-        reqs.slice(0, 3).forEach(function (r) {
-          html += "<li><span>" + esc(planLabel(r.plan_code)) + " · " + esc(fmtDate(r.created_at)) + "</span>" +
-                  "<span>" + esc(t("reqStatus_" + r.status)) + "</span></li>";
-        });
-        box.innerHTML = html;
-      }
 
-      function loadPlanRequests() {
-        return app.planRequests().then(function (rows) {
-          state.planRequests = rows || [];
-          renderUpgradeHistory();
-        }).catch(function () { /* الطلبات ليست حرجة */ });
-      }
 
       /* السعر يُقرأ من جدول الباقات لا من نص مكتوب، ويتبع المدة المختارة. */
       function planRow(code) {
@@ -875,12 +856,9 @@
         if (!app.org) { setMsg("upgradeMsg", t("noOrg"), "error"); return; }
         btn.disabled = true;
         if (!config.payEnabled) {
-          return app.requestPlan({ plan_code: sel.value }).then(function () {
-            setMsg("upgradeMsg", t("upgradeSent"), "success");
-            return loadPlanRequests();
-          }).catch(function () {
-            setMsg("upgradeMsg", t("genericError"), "error");
-          }).finally(function () { btn.disabled = false; });
+          btn.disabled = false;
+          setMsg("upgradeMsg", t("payNotReady"), "error");
+          return;
         }
         setMsg("upgradeMsg", t("payOpening"));
         window.trackerAuth.getSession().then(function (session) {

@@ -5,6 +5,7 @@
  */
 
 import { handleAssistantRequest, askAssistant } from "./assistant.js";
+import { payCreate, payReturn, payConfigured } from "./pay.js";
 import { handleTranslate } from "./translate.js";
 import { serveBundle } from "./bundles.js";
 import { handleMcp } from "./mcp.js";
@@ -84,6 +85,7 @@ function handleConfig(env) {
     googleDirect: String(env.GOOGLE_DIRECT_LOGIN || "") === "on",
     // معلومات عامة لربط القنوات (لا أسرار)
     telegramBot: env.TELEGRAM_BOT_USERNAME || null,
+    payEnabled: payConfigured(env),
     whatsappNumber: env.WHATSAPP_PUBLIC_NUMBER || null,
     smsEnabled: !!(env.SMS_PROVIDER),
   });
@@ -932,6 +934,21 @@ export default {
         const raw = (await request.text()).slice(0, 2000);
         console.log("client-error", raw, "ip:", request.headers.get("cf-connecting-ip") || "");
         return new Response(null, { status: 204 });
+      }
+      /* الدفع داخل النظام: إنشاء الطلب بجلسة صاحبه، وتحصيله عند عودته من PayPal */
+      if (path === "/api/pay/paypal/create" && request.method === "POST") {
+        if (!payConfigured(env)) return json({ error: "payment not configured" }, 503);
+        const payUser = await authedUser(request, env);
+        if (!payUser) return json({ error: "unauthorized" }, 401);
+        let payBody = {};
+        try { payBody = await request.json(); } catch (e) { payBody = {}; }
+        const out = await payCreate(env, payUser, payBody, url.origin);
+        if (out && out.error) return json({ error: out.error }, out.status || 400);
+        return json(out);
+      }
+      if (path === "/api/pay/paypal/return" && request.method === "GET") {
+        if (!payConfigured(env)) return json({ error: "payment not configured" }, 503);
+        return await payReturn(env, url, url.origin);
       }
       if (path === "/api/contact" && request.method === "POST") return await handleContact(request, env);
       if (path === "/api/notify/test" && request.method === "POST") return await handleNotifyTest(request, env);
