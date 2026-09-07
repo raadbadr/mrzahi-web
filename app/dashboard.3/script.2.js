@@ -54,14 +54,17 @@
         if (!box) return;
         /* هذا الجزء يعمل عند تحميل السكربت، وapp لا يُسند إلا في boot:
            قراءته هنا كانت ترمي فتتوقف الصفحة كلها على «جاري التحميل». */
+        /* لا يُحذف شيء: الإخفاء قابل للرجوع، والفحص يُنادى بعد جاهزية الطبقة المشتركة
+           من boot. النداء وقت تحميل السكربت كان يمحو بطاقة درايف نهائيا لأن
+           window.trackerApp لم يكن قد أُسند بعد، فيختفي السؤال كله عن كل حساب جديد. */
         window.__dashDriveCheck = function () {
           if (!box) return;
-          if (window.trackerApp && window.trackerApp.driveOAuthAvailable && window.trackerApp.driveOAuthAvailable()) return;
+          var ok = !!(window.trackerApp && window.trackerApp.driveOAuthAvailable && window.trackerApp.driveOAuthAvailable());
           var drive = box.querySelector('[data-store="drive"]');
-          if (drive) drive.remove();
-          if (box.children.length < 2) { box.hidden = true; if (line) line.hidden = true; }
+          if (drive) drive.hidden = !ok;
+          box.hidden = false;
+          if (line) line.hidden = false;
         };
-        window.__dashDriveCheck();
         function mark(pick) {
           box.querySelectorAll("[data-store]").forEach(function (card) {
             var on = card.getAttribute("data-store") === pick;
@@ -657,6 +660,7 @@
             "</div></td>";
           body.appendChild(tr);
         });
+        translateView();
       }
 
       /* حقول العقد تظهر في شاشة العقود وحدها، في نموذجي الإضافة والتعديل معا. */
@@ -1191,7 +1195,7 @@
       /* جدولا القائمة والمخالفات يتشاركان الأزرار نفسها، فالمستمع على المستند */
       document.addEventListener("click", function (ev) {
         var b = ev.target.closest("button[data-action]");
-        if (!b || !b.closest("#itemsBody, #violationsBody")) return;
+        if (!b || !b.closest("#itemsBody, #violationsBody, #contractsBody, #expensesBody")) return;
         var item = findItem(b.dataset.id);
         if (!item) return;
         var action = b.dataset.action;

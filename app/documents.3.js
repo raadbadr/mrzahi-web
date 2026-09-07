@@ -1,4 +1,9 @@
     (function () {
+      /* كانت تُستدعى ولا تُعرَّف في أي سكربت تحمّله الصفحة، فينكسر مسار الخطأ نفسه. */
+      function errorMessage(err) {
+        var m = err && (err.message || err.error_description || err.code);
+        return m ? String(m) : t("genericError");
+      }
       "use strict";
       var app = null;
       var state = { items: [], attachments: {}, file: null, fields: null, tracker: null, kind: "", search: "", papers: null, paperState: "", focused: "", details: null, detailLabels: null, profilePatch: null, pendingKind: null, wantedKind: null };

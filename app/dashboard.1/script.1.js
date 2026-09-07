@@ -55,7 +55,7 @@
         statDone: "مكتملة",
         tabList: "القائمة",
         timelineTitle: "إنجازاتك",
-        tlNow: "الان",
+        tlNow: "الآن",
         tlPrev: "المعلم السابق",
         tlNext: "المعلم التالي",
         tlEventOf: "الحدث {i} من {n}",

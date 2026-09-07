@@ -904,7 +904,9 @@
         if (k === "national_address") clean[k] = v && typeof v === "object" ? v : {};
         else clean[k] = (v === "" || v == null) ? null : String(v).trim();
       });
-      if (!clean.entity_type) clean.entity_type = "company";
+      /* لا يُكتب نوع الكيان إلا إن مرره المستدعي: الإسناد الافتراضي هنا كان يقلب
+         «عمل حر» أو «فرد» إلى «شركة» مع أي حفظ لأي حقل آخر، فتتبدل الأوراق
+         المطلوبة وواجهة الحساب بلا أن يطلب أحد. القاعدة نفسها تضع company افتراضا. */
       return client.from("org_profiles").upsert(clean, { onConflict: "org_id" }).select("*").single().then(unwrap);
     });
   }

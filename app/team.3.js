@@ -199,7 +199,9 @@
               "</div>";
           }
           if (state.canManage && !isOwner && !isSelf) {
-            controls =
+            /* += لا =: الإسناد كان يمحو أدوات القسم ونوع الشخص والمسمى الوظيفي،
+               فيبقى كل موظف بلا قسم، والقسم هو ما يحدد الخدمات التي يراها. */
+            controls +=
               '<div class="waitlist-form">' +
                 '<select class="waitlist-input" data-role-user="' + esc(m.user_id) + '" aria-label="' + esc(t("changeRoleLabel")) + '">' +
                   '<option value="member"' + (m.role === "member" ? " selected" : "") + ">" + esc(t("roleMember")) + "</option>" +

@@ -20,6 +20,9 @@
           status: $("editStatus").value || "open",
           remind_before: $("editRemind").value || null
         };
+        /* القائمة تعرض خمس مدد فقط. من ضبط تذكيره من البوت بمدة أخرى (يومين، ساعتين،
+           شهرين) كانت قيمته تسقط إلى فارغ فيُمحى تذكيره صامتا مع أي حفظ. */
+        if (!patch.remind_before && state.editing.remind_before) delete patch.remind_before;
         /* data تُستبدل كاملة عند الحفظ، فتُدمج بيانات العقد فوق ما كان لا بدلا منه. */
         var cdata = contractRowData("edit");
         if (cdata) patch.data = Object.assign({}, state.editing.data || {}, cdata);
