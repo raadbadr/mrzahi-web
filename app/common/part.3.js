@@ -364,7 +364,7 @@
     });
   }
 
-  /* إنشاء عنصر في متتبع نوعه وتوزيعه على المنفذ في خطوة واحدة */
+  /* إنشاء عنصر في سجل نوعه وتوزيعه على المنفذ في خطوة واحدة */
   function quickAddItem(item, assigneeId) {
     return run(function (client) {
       var orgId = requireOrg();

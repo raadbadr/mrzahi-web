@@ -80,7 +80,7 @@ function result(obj, summary) { return { content: [{ type: "text", text: summary
 function fail(msg, obj) { return { content: [{ type: "text", text: String(msg) }], isError: true, ...(obj ? { structuredContent: obj } : {}) }; }
 
 const KIND_AR = { case: "قضايا", session: "جلسات", violation: "مخالفات", task: "مهام", document: "مستندات", ruling: "أحكام", execution: "تنفيذ", license: "تراخيص", other: "أخرى" };
-/* نظرة عامة بلغة إنسان: كل متتبع بعدد المفتوح والمنجز وأقرب موعد، ثم الأنواع */
+/* نظرة عامة بلغة إنسان: كل سجل بعدد المفتوح والمنجز وأقرب موعد، ثم الأنواع */
 function overviewText(r) {
   const trackers = (r.trackers || []).map((t) => "• " + t.name + ": " + (t.open || 0) + " مفتوح" + (t.done ? "، " + t.done + " منجز" : "") + (t.next_due ? " — الأقرب " + dmy(t.next_due) : "")).join("\n");
   const kinds = (r.kinds || []).filter((k) => (k.open || 0) + (k.done || 0) > 0).map((k) => (KIND_AR[k.kind] || k.kind) + " " + (k.open || 0) + (k.done ? " (+" + k.done + " منجز)" : "")).join("، ");
