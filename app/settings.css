@@ -374,6 +374,9 @@
     .platform-stat-detail-row span:first-child { flex: 1; text-align: start; line-height: 1.9; }
     .platform-stat-detail-row code { font-size: 0.85rem; opacity: 0.9; }
     .platform-stat-detail-val { flex: 0 0 auto; text-align: end; }
+    /* هوية المفتاح سطر، وتواريخه سطر باهت تحته */
+    .api-key-id { display: flex; flex-direction: column; gap: 0.15rem; }
+    .api-key-id .settings-note { margin: 0; color: var(--text-secondary); opacity: 0.85; }
     /* الزر لا يمتد على عرض الصف ولا يلتصق بالنص */
     .platform-stat-detail-val .chat-option-btn { width: auto; padding: 0.3rem 0.9rem; font-size: 0.85rem; }
     @media (max-width: 600px) {

@@ -534,9 +534,13 @@
         box.hidden = !rows.length;
         if (!rows.length) { setMsg("apiMsg", t("apiNone")); return; }
         box.innerHTML = rows.map(function (k) {
-          return '<div class="platform-stat-detail-row"><span><b>' + esc(k.name) + '</b> <code dir="ltr">' + esc(k.prefix) + '…</code> · ' + esc(app.fmtDate(k.created_at)) +
-                 (k.last_used_at ? " · " + esc(t("apiLastUsed")) + " " + esc(app.fmtDate(k.last_used_at, { withTime: true })) : "") + "</span>" +
-                 '<span class="platform-stat-detail-val"><button type="button" class="chat-option-btn" data-revoke-key="' + esc(k.id) + '">' + esc(t("apiRevoke")) + "</button></span></div>";
+          /* سطر أول: اسم المنصة ومقدمة مفتاحها. سطر ثان باهت: التواريخ بصيغة واحدة يوم-شهر-سنة */
+          var meta = esc(t("apiCreatedOn")) + " " + esc(app.fmtDate(k.created_at)) +
+                     (k.last_used_at ? " · " + esc(t("apiLastUsed")) + " " + esc(app.fmtDate(k.last_used_at, { withTime: true })) : "");
+          return '<div class="platform-stat-detail-row">' +
+                 '<span class="api-key-id"><b>' + esc(k.name) + '</b> <code dir="ltr">' + esc(k.prefix) + '…</code>' +
+                 '<span class="settings-note">' + meta + "</span></span>" +
+                 '<span class="platform-stat-detail-val"><button type="button" class="chat-option-btn is-danger" data-revoke-key="' + esc(k.id) + '">' + esc(t("apiRevoke")) + "</button></span></div>";
         }).join("");
       }
       function loadApiKeys() {
