@@ -448,7 +448,8 @@
       }
 
       function tgThread(c) {
-        const rows = c.items.map((m) => {
+        /* الأحدث أولا دائما: من يفتح محادثة يريد آخر ما وصل، لا أول ما وصل. */
+        const rows = c.items.slice().reverse().map((m) => {
           const action = m.action && m.action !== "none"
             ? '<span class="tg-msg-action">' + esc(T("tgAction_" + m.action)) + "</span>" : "";
           return '<div class="tg-msg"><div class="tg-msg-body" dir="auto">' + esc(m.body || "") + "</div>" +

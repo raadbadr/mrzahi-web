@@ -291,10 +291,7 @@
       -webkit-backdrop-filter: blur(30px) saturate(180%);
       padding: 2rem; /* NeumorphicTheme.Spacing.cardPadding = 20px */
       border-radius: 24px; /* NeumorphicTheme.CornerRadius.xxxl */
-      box-shadow:
-        0 8px 32px var(--shadow-dark),
-        0 0 0 1px var(--glass-border),
-        inset 0 0 0 1px rgba(255,255,255,0.1);
+      box-shadow: 0 8px 32px var(--shadow-dark);
       border: 1px solid var(--glass-border);
       transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
@@ -303,28 +300,6 @@
     }
 
     /* Gradient Border Effect */
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 24px;
-      padding: 2px;
-      background: linear-gradient(
-        135deg,
-        var(--primary),
-        var(--primary-light),
-        var(--secondary),
-        var(--accent)
-      );
-      -webkit-mask:
-        linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-      z-index: -1;
-    }
 
     /* Shine Effect */
     .feature-card::after {
@@ -346,33 +321,21 @@
 
     .feature-card:hover {
       transform: translateY(-8px) scale(1.02) rotateX(2deg);
-      box-shadow:
-        0 20px 60px rgba(0,104,184,0.25),
-        0 0 40px rgba(0,104,184,0.15),
-        inset 0 0 0 1px rgba(255,255,255,0.2);
+      box-shadow: 0 20px 60px rgba(0, 104, 184, 0.25), 0 0 40px rgba(0, 104, 184, 0.15);
       border-color: var(--primary);
     }
 
-    .feature-card:hover::before {
-      opacity: 1;
-    }
 
     .feature-card:hover::after {
       transform: translateX(100%);
     }
 
     [data-theme="dark"] .feature-card {
-      box-shadow:
-        0 8px 32px rgba(0,0,0,0.6),
-        0 0 0 1px var(--glass-border),
-        inset 0 0 0 1px rgba(255,255,255,0.05);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
     }
 
     [data-theme="dark"] .feature-card:hover {
-      box-shadow:
-        0 20px 60px rgba(0,160,210,0.3),
-        0 0 50px rgba(0,160,210,0.2),
-        inset 0 0 0 1px rgba(255,255,255,0.15);
+      box-shadow: 0 20px 60px rgba(0, 160, 210, 0.3), 0 0 50px rgba(0, 160, 210, 0.2);
     }
 
     .feature-card h3 {
@@ -640,7 +603,7 @@
       -webkit-backdrop-filter: blur(30px) saturate(180%);
       border: 1.5px solid var(--glass-border);
       border-radius: 14px;
-      box-shadow: 0 8px 24px var(--shadow-dark), 0 3px 8px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.1);
+      box-shadow: 0 8px 24px var(--shadow-dark), 0 3px 8px rgba(0, 0, 0, 0.08);
       padding: 1.25rem;
       margin-bottom: 1.25rem;
     }
@@ -752,7 +715,7 @@
     .export-menu { position: absolute; inset-inline-end: 0; top: calc(100% + 6px); z-index: 200;
       display: grid; gap: .3rem; padding: .4rem; border-radius: 12px; min-width: 140px;
       background: var(--bg-mid); border: 1px solid var(--glass-border);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, .45), 0 0 0 1px var(--glass-border); }
+      box-shadow: 0 16px 40px rgba(0, 0, 0, .45); }
     .export-menu .chat-option-btn { width: 100%; justify-content: center; }
     .btn-ico { width: 16px; height: 16px; fill: currentColor; vertical-align: -3px; margin-inline-end: .35rem; }
     /* الرموز قبل الكلمات في أفعال الصفوف، والحذف أحمر دائما */
@@ -765,7 +728,7 @@
     .row-actions .icon-btn.is-danger:hover { border-color: var(--error, #e5484d); }
 
     /* زر إضافة إجراء معالجة: القاعدة نفسها في مكتبة الإجراءات (كان بلا تنسيق هنا فظهر مقصوصا) */
-    .add-step { width: 100%; padding: 0.8rem; border: 1.5px dashed var(--glass-border); border-radius: 12px; background: none; color: var(--primary); font: inherit; font-weight: 700; cursor: pointer; }
+    .add-step { width: 100%; padding: 0.8rem; border: 1.5px solid var(--glass-border); border-radius: 12px; background: none; color: var(--primary); font: inherit; font-weight: 700; cursor: pointer; }
     .add-step:hover { border-color: var(--primary); }
     /* حذف إجراء معالجة: سلة حمراء بحجم لمس، تسأل قبل التنفيذ */
     .st-tool { background: none; border: 1.5px solid transparent; color: var(--text-secondary); width: 36px; height: 36px; border-radius: 9px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }

@@ -128,8 +128,18 @@
     return result ? result.data : null;
   }
 
+  /* الإعدادات أول ما يُطلب، وطلب بلا مهلة يوقف الموقع كله عند «جاري التحميل…» */
+  function fetchWithTimeout(url, opts, ms) {
+    var o = Object.assign({}, opts || {});
+    var ctrl = window.AbortController ? new AbortController() : null;
+    if (ctrl) o.signal = ctrl.signal;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, ms || 12000);
+    return fetch(url, o).then(function (res) { clearTimeout(timer); return res; },
+      function (err) { clearTimeout(timer); throw err; });
+  }
+
   function loadConfig() {
-    return fetch(CONFIG_URL, { cache: "no-store", headers: { Accept: "application/json" } })
+    return fetchWithTimeout(CONFIG_URL, { cache: "no-store", headers: { Accept: "application/json" } }, 12000)
       .then(function (res) {
         if (!res.ok) throw new Error("config unavailable (" + res.status + ")");
         return res.json();

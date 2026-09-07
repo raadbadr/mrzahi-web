@@ -487,6 +487,72 @@
   window.addEventListener("error", function (ev) { if (reported++ < 3) reportClientError("window_error", (ev && ev.message) + " @" + (ev && ev.filename ? String(ev.filename).split("/").pop() + ":" + ev.lineno : "")); });
   window.addEventListener("unhandledrejection", function (ev) { var r = ev && ev.reason; if (reported++ < 3) reportClientError("unhandled_rejection", r && (r.message || r.code || JSON.stringify(r)) || r); });
 
+  /* لا شاشة تحميل أبدية: كل خطوة إقلاع لها مهلة. الطلب الذي لا يعود — قفل جلسة عالق
+     في سوبابيس بعد انتهاء صلاحية الرمز، أو شبكة تتوقف في منتصفها — كان يترك «جاري
+     التحميل…» إلى الأبد لأن الوعد لا يُحسم لا بنجاح ولا بفشل، فلا يمسه أي catch. */
+  function withTimeout(promise, ms, label) {
+    return new Promise(function (resolve, reject) {
+      var done = false;
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        var err = new Error("timeout at " + label);
+        err.code = "boot_timeout";
+        reject(err);
+      }, ms);
+      Promise.resolve(promise).then(function (v) {
+        if (done) return;
+        done = true; clearTimeout(timer); resolve(v);
+      }, function (e) {
+        if (done) return;
+        done = true; clearTimeout(timer); reject(e);
+      });
+    });
+  }
+
+  /* الإقلاع الذي تعثر يُقال للمستخدم مع زر إعادة، لا يُترك دوّامة تحميل. */
+  var BOOT_FAIL_TEXT = {
+    ar: { title: "تعذر تحميل الصفحة", hint: "انقطع الاتصال أثناء التحميل. أعد المحاولة.", retry: "إعادة المحاولة", login: "تسجيل الدخول من جديد" },
+    en: { title: "The page could not load", hint: "The connection stopped while loading. Try again.", retry: "Try again", login: "Sign in again" },
+    fr: { title: "Chargement impossible", hint: "La connexion s'est interrompue. Réessayez.", retry: "Réessayer", login: "Se reconnecter" },
+    ur: { title: "صفحہ لوڈ نہیں ہو سکا", hint: "لوڈنگ کے دوران رابطہ منقطع ہوا۔ دوبارہ کوشش کریں۔", retry: "دوبارہ کوشش", login: "دوبارہ سائن ان" }
+  };
+
+  function showBootFailure(detail) {
+    if (document.getElementById("appBootFail")) return;
+    var tx = BOOT_FAIL_TEXT[lang()] || BOOT_FAIL_TEXT.ar;
+    var box = document.createElement("div");
+    box.id = "appBootFail";
+    box.setAttribute("role", "alert");
+    box.style.cssText = "position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:1rem;" +
+      "background:rgba(10,20,30,.75);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)";
+    box.innerHTML = '<div style="width:min(100vw - 2rem,420px);padding:1.75rem;border-radius:20px;text-align:center;' +
+      'background:var(--glass-strong,#1e2a33);border:1px solid var(--glass-border,rgba(255,255,255,.12));color:var(--text-primary,#fff)">' +
+      '<h2 style="margin:0 0 .5rem;font-size:1.15rem">' + escapeHtml(tx.title) + "</h2>" +
+      '<p style="margin:0 0 1.25rem;font-size:.9rem;color:var(--text-secondary,#9fb3c0)">' + escapeHtml(tx.hint) + "</p>" +
+      '<button type="button" id="appBootRetry" style="width:100%;padding:.75rem 1rem;border:0;border-radius:12px;' +
+      'background:var(--primary,#00a0d2);color:#fff;font:inherit;font-weight:700;cursor:pointer">' + escapeHtml(tx.retry) + "</button>" +
+      '<button type="button" id="appBootLogin" style="width:100%;margin-top:.6rem;padding:.7rem 1rem;border:1px solid var(--glass-border,rgba(255,255,255,.12));' +
+      'border-radius:12px;background:transparent;color:var(--text-secondary,#9fb3c0);font:inherit;cursor:pointer">' + escapeHtml(tx.login) + "</button>" +
+      '<p style="margin:.9rem 0 0;font-size:.7rem;color:var(--text-secondary,#9fb3c0);opacity:.7" dir="ltr">' + escapeHtml(String(detail || "").slice(0, 80)) + "</p></div>";
+    var mount = function () {
+      document.body.appendChild(box);
+      document.getElementById("appBootRetry").addEventListener("click", function () { window.location.reload(); });
+      document.getElementById("appBootLogin").addEventListener("click", function () {
+        /* جلسة عالقة تُنظَّف قبل العودة لصفحة الدخول، وإلا تعلق مرة أخرى */
+        try {
+          for (var i = localStorage.length - 1; i >= 0; i--) {
+            var k = localStorage.key(i);
+            if (k && k.indexOf("sb-") === 0) localStorage.removeItem(k);
+          }
+        } catch (e) { /* ignore */ }
+        window.location.href = "/login";
+      });
+    };
+    if (document.body) mount();
+    else document.addEventListener("DOMContentLoaded", mount);
+  }
+
   function init() {
     var auth = window.trackerAuth;
     if (!auth || !auth.ready) {
@@ -495,7 +561,7 @@
       return Promise.resolve({ unavailable: true });
     }
     setTimeout(function () { if (initStep !== "done" && initStep !== "redirect") reportClientError("init_slow", "15s and still at " + initStep); }, 15000);
-    return auth.ready.then(function () {
+    return withTimeout(auth.ready, 20000, "auth").then(function () {
       if (auth.unavailable || !auth.client) {
         app.unavailable = true;
         reportClientError("auth_unavailable", "");
@@ -503,11 +569,11 @@
       }
       app.client = auth.client;
       initStep = "session";
-      return auth.getSession().then(function (session) {
+      return withTimeout(auth.getSession(), 15000, "session").then(function (session) {
         if (!session || !session.user) { initStep = "redirect"; return redirectToLogin(); }
         app.user = session.user;
         initStep = "profile";
-        return loadProfile(app.client, app.user).then(function (profile) {
+        return withTimeout(loadProfile(app.client, app.user), 15000, "profile").then(function (profile) {
           app.profile = profile;
           /* لغة الملف الشخصي هي المرجع: واجهة واحدة بلغة واحدة على كل جهاز (لا «Account» وسط صفحة عربية) */
           try {
@@ -525,21 +591,21 @@
             }).catch(function () { /* ignore */ });
           }
           initStep = "invitations";
-          return acceptInvitations(app.client);
+          return withTimeout(acceptInvitations(app.client), 15000, "invitations");
         }).then(function (joined) {
           app.joinedOrgs = joined;
           initStep = "orgs";
-          return loadOrgs(app.client, app.user);
+          return withTimeout(loadOrgs(app.client, app.user), 15000, "orgs");
         }).then(function (orgs) {
           app.orgs = orgs;
           app.org = pickOrg(orgs);
           try { if (app.org) localStorage.setItem(ORG_KEY, app.org.id); } catch (e) { /* ignore */ }
           initStep = "services";
-          return loadServices(app.client, app.org);
+          return withTimeout(loadServices(app.client, app.org), 15000, "services");
         }).then(function (services) {
           app.services = services; /* null = غير معروف (لا تصفية)، مصفوفة = المسموح فقط */
           initStep = "pack";
-          return loadPack(app.client, app.org);
+          return withTimeout(loadPack(app.client, app.org), 15000, "pack");
         }).then(function (pack) {
           app.pack = pack;   /* حزمة الواجهة: null = الافتراضية، فكل شيء كما هو */
           initStep = "done";
@@ -553,6 +619,7 @@
       if (window.console) console.error("trackerApp init failed at", initStep, err);
       app.unavailable = true;
       app.initError = detail;
+      showBootFailure(detail);
       return { unavailable: true, error: detail, step: initStep };
     });
   }
