@@ -437,6 +437,22 @@
     .rule-check input { accent-color: var(--primary); }
     .rule-check input:disabled + span { opacity: 0.5; }
     /* ــ التخزين: عدّاد الحصة، ثم بطاقة درايف بشعارها ومفتاحها ــ */
+    /* صف الاشتراك: القائمتان والسعر والزر على خط واحد وارتفاع واحد،
+       والسعر شارة لا نص عائم بينها. */
+    #upgradeForm { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+    #upgradeForm .waitlist-input { flex: 1 1 12rem; min-width: 0; height: 44px; }
+    #upgradeForm .waitlist-btn { height: 44px; flex: 0 0 auto; }
+    .upgrade-price {
+      display: inline-flex; align-items: center; gap: 0.35rem; height: 44px; padding: 0 0.9rem;
+      border-radius: 12px; border: 1px solid var(--glass-border); background: var(--glass);
+      color: var(--text-primary); font-weight: 700; white-space: nowrap; flex: 0 0 auto;
+    }
+    .upgrade-price:empty { display: none; }
+    @media (max-width: 600px) {
+      #upgradeForm .waitlist-input, #upgradeForm .waitlist-btn, .upgrade-price { flex: 1 1 100%; }
+      .upgrade-price { justify-content: center; }
+    }
+
     .storage-meter { margin-bottom: 1.25rem; }
     .storage-meter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
     .storage-meter-head span { color: var(--text-secondary); font-size: 0.95rem; }

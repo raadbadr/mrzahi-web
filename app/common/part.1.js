@@ -792,11 +792,13 @@
   /* ---------- بطاقة المنشأة وأوراقها الرسمية (نواة مشتركة لكل قطاع) ---------- */
 
   /* من يستعمل المنصة: منشأة تجارية أو شخص يرتب أوراقه. نفس القيم في القاعدة. */
+  /* الترتيب من الأرخص إلى الأغلى: شخص ثم وثيقة عمل حر ثم مؤسسة ثم شركة،
+     وما لا سعر له (جمعية، جهة حكومية) في الآخر. */
   var ENTITY_TYPES = [
-    { value: "company",       ar: "شركة",                     en: "Company",             fr: "Société",             ur: "کمپنی" },
-    { value: "establishment", ar: "مؤسسة",                    en: "Establishment",       fr: "Établissement",       ur: "ادارہ" },
-    { value: "freelance",     ar: "وثيقة عمل حر",             en: "Freelance permit",    fr: "Travail indépendant", ur: "فری لانس اجازت" },
     { value: "individual",    ar: "شخص",                      en: "Individual",          fr: "Particulier",         ur: "انفرادی" },
+    { value: "freelance",     ar: "وثيقة عمل حر",             en: "Freelance permit",    fr: "Travail indépendant", ur: "فری لانس اجازت" },
+    { value: "establishment", ar: "مؤسسة",                    en: "Establishment",       fr: "Établissement",       ur: "ادارہ" },
+    { value: "company",       ar: "شركة",                     en: "Company",             fr: "Société",             ur: "کمپنی" },
     { value: "nonprofit",     ar: "جمعية أو منظمة غير ربحية", en: "Nonprofit",           fr: "Association",         ur: "غیر منافع بخش" },
     { value: "government",    ar: "جهة حكومية",               en: "Government body",     fr: "Entité publique",     ur: "سرکاری ادارہ" }
   ];
