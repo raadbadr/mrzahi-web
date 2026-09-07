@@ -770,7 +770,15 @@
 
       /* ---------- طلب الترقية داخل الموقع ---------- */
 
-      var UPGRADE_PLANS = ["monthly", "yearly"];
+      /* الباقات المعروضة تأتي من الجدول لا من قائمة مكتوبة في الشيفرة:
+         أي شريحة جديدة تُضاف سطرا في plans فتظهر هنا بلا تعديل. */
+      function upgradeCodes() {
+        return (state.plans || [])
+          .filter(function (p) { return p.active !== false && p.code !== "trial" && p.code !== "expired"; })
+          .slice()
+          .sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0); })
+          .map(function (p) { return p.code; });
+      }
 
       function planLabel(code) {
         var p = null;
@@ -783,7 +791,7 @@
         var sel = el("upgradePlan");
         if (!sel) return;
         var options = "";
-        UPGRADE_PLANS.forEach(function (code) {
+        upgradeCodes().forEach(function (code) {
           if (code === state.planCode) return;
           options += '<option value="' + code + '">' + esc(planLabel(code)) + "</option>";
         });
