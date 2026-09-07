@@ -28,6 +28,7 @@ const DOC_KINDS = [
   "hearing_notice",        // إشعار جلسة
   "violation",             // مخالفة
   "invoice",               // فاتورة
+  "quotation",             // عرض سعر
   "power_of_attorney",     // وكالة شرعية
   "id_document",           // هوية / إقامة
   "passport",              // جواز سفر
@@ -525,6 +526,16 @@ export const KIND_FIELDS = {
     F("vat_amount", "number", "قيمة الضريبة", "VAT Amount", ["قيمة\\s*(?:ال)?ضريبة", "مبلغ\\s*(?:ال)?ضريبة", "ضريبة\\s*القيمة\\s*المضافة(?:\\s*\\(?\\d{1,2}\\s*%\\)?)?", "VAT\\s*Amount", "VAT\\s*\\(?\\d{1,2}\\s*%\\)?", "Tax\\s*Amount"]),
     F("total", "number", "الإجمالي", "Total", ["الإجمالي\\s*(?:شامل\\s*(?:ال)?ضريبة|النهائي|المستحق)?", "المجموع\\s*(?:الكلي|النهائي)?", "إجمالي\\s*(?:المبلغ|الفاتورة)", "Grand\\s*Total", "Total\\s*(?:Amount|Due|incl(?:uding|\\.)?\\s*VAT)?", "Amount\\s*Due"], { core: "amount" }),
   ],
+  quotation: [
+    F("quote_number", "id", "رقم العرض", "Quote No.", ["رقم\\s*(?:ال)?عرض", "رقم\\s*عرض\\s*(?:ال)?سعر", "Quot(?:e|ation)\\s*(?:No\\.?|Number|#)", "Ref(?:erence)?\\s*No\\.?"], { pattern: "[0-9A-Za-z\\-\\/]{3,25}", core: "number" }),
+    F("quote_date", "date", "تاريخ العرض", "Quote Date", ["تاريخ\\s*(?:ال)?عرض", "Quot(?:e|ation)\\s*Date", "Date"].concat(LB.issue), { core: "issue_date" }),
+    F("valid_until", "date", "صالح حتى", "Valid Until", ["صالح\\s*(?:حتى|لغاية)", "سريان\\s*(?:ال)?عرض", "Valid\\s*(?:Until|Till)", "Validity"], { core: "expiry_date" }),
+    F("client", "text", "العميل", "Client", ["اسم\\s*(?:ال)?عميل", "العميل", "مقدم\\s*(?:ال)?عرض\\s*(?:له|إليه)", "Client", "Customer", "To"], { core: "party" }),
+    F("supplier", "text", "مقدم العرض", "Supplier", ["مقدم\\s*(?:ال)?عرض", "اسم\\s*(?:ال)?(?:مورد|شركة)", "Supplier", "Vendor", "From"]),
+    F("subtotal", "number", "المجموع الفرعي", "Subtotal", ["المجموع\\s*(?:ال)?فرعي", "الإجمالي\\s*قبل\\s*(?:ال)?ضريبة", "Subtotal"]),
+    F("vat_amount", "number", "قيمة الضريبة", "VAT Amount", ["قيمة\\s*(?:ال)?ضريبة", "مبلغ\\s*(?:ال)?ضريبة", "VAT\\s*Amount"]),
+    F("total", "number", "الإجمالي", "Total", ["الإجمالي\\s*(?:شامل\\s*(?:ال)?ضريبة|النهائي)?", "المجموع\\s*(?:ال)?كلي", "إجمالي\\s*(?:ال)?عرض", "Grand\\s*Total", "Total"], { core: "amount" }),
+  ],
   lease_contract: [
     F("contract_number", "id", "رقم العقد", "Contract No.", LB.contractNo, { pattern: TOKEN_PAT, core: "number" }),
     F("landlord", "text", "المؤجر", "Landlord", ["اسم\\s*المؤجر", "المؤجر(?:ة)?", "المالك", "Landlord", "Lessor", "Owner"]),
@@ -692,6 +703,9 @@ const KIND_RULES = [
   { kind: "violation", test: new RegExp(wordBoundaryAr("مخالفة|المخالفة|غرامة|الغرامة") + "|violation|fine\\s*notice|ticket", "i"),
     number: ["رقم\\s*المخالفة", "رقم\\s*القرار", "رقم\\s*الإشعار"], numPat: "\\d{4,20}", party: ["اسم\\s*المنشأة", "اسم\\s*المخالف", "المخالف"],
     amount: /(?:مبلغ\s*(?:المخالفة|الغرامة)|قيمة\s*(?:المخالفة|الغرامة)|الغرامة|المبلغ)[^0-9]{0,25}([0-9][0-9,\.]{1,})/ },
+  { kind: "quotation", test: /عرض\s*(?:ال)?سعر|عروض\s*(?:ال)?أسعار|عرض\s*أسعار|\bquotation\b|\bquote\b|proforma/i,
+    number: ["رقم\\s*(?:ال)?عرض", "quot(?:e|ation)\\s*(?:No\\.?|#|Number)"], numPat: "[0-9A-Za-z\\-\\/]{3,25}", party: ["العميل", "اسم\\s*العميل", "مقدم\\s*العرض\\s*له", "client", "customer"],
+    amount: /(?:الإجمالي|المجموع|إجمالي\s*العرض|grand\s*total|total)[^0-9]{0,25}([0-9][0-9,\.]{1,})/i },
   { kind: "invoice", test: /فاتورة|invoice|tax\s*invoice/i,
     number: ["رقم\\s*الفاتورة", "invoice\\s*(?:No\\.?|#|Number)"], numPat: "[0-9A-Za-z\\-\\/]{3,25}", party: ["العميل", "اسم\\s*العميل", "المشتري", "bill\\s*to"],
     amount: /(?:الإجمالي|المجموع|الإجمالي\s*شامل|total\s*(?:amount)?|grand\s*total)[^0-9]{0,25}([0-9][0-9,\.]{1,})/i },
@@ -851,7 +865,7 @@ export const KIND_LABELS_AR = { commercial_register: "السجل التجاري"
   articles_of_association: "عقد التأسيس", bylaws: "النظام الأساسي", chamber_certificate: "شهادة الغرفة التجارية",
   gosi_certificate: "شهادة التأمينات الاجتماعية", zakat_certificate: "شهادة الزكاة", saudization_certificate: "شهادة السعودة", lease_contract: "عقد الإيجار",
   power_of_attorney: "الوكالة", court_ruling: "الحكم", case_filing: "صحيفة الدعوى", hearing_notice: "إشعار الجلسة", violation: "المخالفة", invoice: "الفاتورة", id_document: "الهوية", passport: "جواز السفر", driving_license: "رخصة القيادة",
-  vehicle_registration: "استمارة المركبة", insurance_policy: "وثيقة التأمين", employment_contract: "عقد العمل", contract: "العقد" };
+  vehicle_registration: "استمارة المركبة", insurance_policy: "وثيقة التأمين", employment_contract: "عقد العمل", contract: "العقد" , quotation: "عرض سعر"};
 
 /* التحليل بالقواعد وحدها بلا نموذج (بوت تيليغرام وكل من يملك النص جاهزا): يعيد كائن الحقول نفسه الذي
    يعيده المسار السريع في handleDocumentAnalyze؛ kind = "other" حين لا تعرف القواعد الورقة، و null لنص أقصر من أن يقرأ. */

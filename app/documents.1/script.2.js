@@ -247,6 +247,7 @@
         kind_hearing_notice: "سماعت کا نوٹس",
         kind_violation: "خلاف ورزی",
         kind_invoice: "انوائس",
+        kind_quotation: "قیمت کی پیشکش",
         kind_power_of_attorney: "مختار نامہ",
         kind_id_document: "شناختی دستاویز",
         kind_passport: "پاسپورٹ",
