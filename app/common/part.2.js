@@ -186,6 +186,11 @@
     });
   }
 
+  /* لا يفتح نافذة إذن أبدا: يعيد الرمز المخزن إن كان صالحا وحده، وإلا null بصمت */
+  function driveTokenIfFresh() {
+    return driveToken && driveToken.expires > Date.now() ? driveToken.token : null;
+  }
+
   function driveAccessToken() {
     if (driveToken && driveToken.expires > Date.now()) return Promise.resolve(driveToken.token);
     return loadScriptOnce("https://accounts.google.com/gsi/client", function () { return !!(window.google && window.google.accounts && window.google.accounts.oauth2); })

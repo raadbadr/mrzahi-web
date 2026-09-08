@@ -154,9 +154,13 @@
   app.driveFolderCached = function () {
     try { var id = localStorage.getItem("tracker_drive_folder:" + requireOrg()); return id ? { id: id, url: "https://drive.google.com/drive/folders/" + id, path: DRIVE_ROOT_NAME + "/" + ((app.org && app.org.name) || "Company") } : null; } catch (e) { return null; }
   };
-  /* عدد الملفات في مجلد درايف الحالي، لعرضه في بطاقة الإعدادات بلا فتح درايف */
+  /* عدد الملفات في مجلد درايف الحالي، لعرضه في بطاقة الإعدادات بلا فتح درايف.
+     لا يطلب إذنا جديدا أبدا: يستعمل رمزا سابقا صالحا فقط، وإلا يرفض بصمت
+     بدل أن يفرض نافذة تسجيل دخول جوجل في كل مرة تفتح فيها الإعدادات. */
   app.driveFolderFileCount = function (folderId) {
-    return driveAccessToken().then(function (token) { return driveFolderFileCount(token, folderId); });
+    var token = driveTokenIfFresh();
+    if (!token) return Promise.reject(new Error("no_fresh_token"));
+    return driveFolderFileCount(token, folderId);
   };
   app.readDocumentFile = readDocumentFile;
   app.pickFromDrive = pickFromDrive;
