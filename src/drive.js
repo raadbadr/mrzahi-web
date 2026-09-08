@@ -89,6 +89,7 @@ export async function driveOAuthCallback(env, url) {
     const saved = await rpc(env, "drive_conn_save", {
       p_secret: env.WORKER_SECRET, p_org: st.org, p_user: st.user, p_refresh: data.refresh_token,
     });
+    if (saved && saved.status === "not_admin") return back("not_admin");
     if (!saved || saved.status !== "saved") return back("failed");
     return back("done");
   } catch {
@@ -159,6 +160,6 @@ export async function driveForget(env, user, body) {
   const org = String((body && body.org) || "").trim();
   if (!org) return { error: "org required", status: 400 };
   const out = await rpc(env, "drive_conn_forget", { p_secret: env.WORKER_SECRET, p_org: org, p_user: user.id });
-  if (!out || out.status === "not_member") return { error: "not_member", status: 403 };
+  if (!out || out.status === "not_member" || out.status === "not_admin") return { error: out ? out.status : "not_member", status: 403 };
   return { ok: true };
 }
