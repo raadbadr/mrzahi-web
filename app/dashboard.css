@@ -778,6 +778,45 @@
     .cal-chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
     .cal-more { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; font-variant-numeric: tabular-nums; }
 
+    /* مدى الاسبوع واليوم: الشبكة نفسها بخلايا اطول، فيظهر كل موعد بوقته بلا «+2» */
+    .cal-grid--week { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .cal-grid--day { grid-template-columns: minmax(0, 1fr); }
+    .cal-grid--week .cal-cell { min-height: 240px; }
+    /* على الجوال سبعة اعمدة تخنق النص: الاسبوع يصير عمودا واحدا، واسم اليوم
+       داخل خليته اصلا فلا يفقد شيئا. */
+    @media (max-width: 720px) {
+      .cal-grid--week { grid-template-columns: minmax(0, 1fr); }
+      .cal-grid--week .cal-cell { min-height: 0; }
+    }
+    .cal-grid--day .cal-cell { min-height: 280px; }
+    .cal-grid--week .cal-cell, .cal-grid--day .cal-cell { overflow-y: auto; }
+    /* الوقت يعزل عن ترتيب bidi فيبقى «12:00» في كل لغة، ويرث اتجاه الصفحة
+       ليقع الهامش بينه وبين العنوان لا خلفه. */
+    .cal-chip-time {
+      display: inline-block;
+      margin-inline-end: 0.4rem;
+      opacity: 0.75;
+      unicode-bidi: isolate;
+      font-variant-numeric: tabular-nums;
+    }
+    .cal-empty { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; }
+
+    /* سحب الموعد الى يوم اخر: الخلية الهدف تعلم، والاصل يخفت، والشبح يتبع المؤشر */
+    .cal-chip[data-drag] { cursor: grab; touch-action: manipulation; }
+    body.cal-dragging .cal-chip[data-drag] { cursor: grabbing; }
+    body.cal-dragging { user-select: none; -webkit-user-select: none; touch-action: none; }
+    .cal-chip.is-dragging { opacity: 0.35; }
+    .cal-cell.is-drop { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 160, 210, 0.35); }
+    .cal-ghost {
+      position: fixed;
+      z-index: 60;
+      margin: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      background: var(--bg-mid);
+      box-shadow: 0 10px 30px var(--shadow-dark);
+    }
+
     /* ICS card */
 
     @media (max-width: 768px) {

@@ -27,6 +27,9 @@
         contractState: "",
         calMode: (function () { try { return localStorage.getItem("tracker_cal_mode") || "greg"; } catch (e) { return "greg"; } })(),
         calAnchor: new Date(),
+        /* مدى العرض: شهر او اسبوع او يوم. calDay هو اليوم المرساة في الاسبوع واليوم. */
+        calZoom: (function () { try { var z = localStorage.getItem("tracker_cal_zoom"); return z === "week" || z === "day" ? z : "month"; } catch (e) { return "month"; } })(),
+        calDay: new Date(),
         filters: { tracker: "", status: "", search: "" },
         tab: "list",
         month: null,
