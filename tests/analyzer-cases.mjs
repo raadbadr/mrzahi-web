@@ -43,28 +43,20 @@ const CASES = [
   { name: "insurance policy", text: "وثيقة تأمين مركبات\nاسم المؤمن له: أحمد محمد علي\nرقم الوثيقة: POL-77-2026\nتاريخ الانتهاء: 2027/01/15", kind: "insurance_policy", number: "POL-77-2026", expiry: "2027-01-15" },
   { name: "employment contract", text: "وزارة الموارد البشرية والتنمية الاجتماعية\nعقد عمل\nاسم الموظف: خالد سعيد\nرقم العقد: EMP-2026-77\nالراتب الأساسي: 9000\nتاريخ الانتهاء: 2028/09/01", kind: "employment_contract", expiry: "2028-09-01" },
   { name: "lease contract", text: "منصة إيجار\nعقد إيجار\nالمستأجر: شركة باركينزي\nرقم العقد: 88112233\nقيمة الإيجار: 120000\nتاريخ الانتهاء: 2027/04/01", kind: "lease_contract", number: "88112233", expiry: "2027-04-01" },
+  { name: "شهادة الحساب البنكي: الايبان رقمها وصاحب الحساب طرفها", kind: "bank_certificate", number: "SA4480000000608010167519", party: "شركة باركنزي",
+    text: "شهادة الحساب البنكي\nاسم البنك: مصرف الراجحي\nاسم صاحب الحساب: شركة باركنزي\nرقم الحساب الدولي IBAN: SA4480000000608010167519\nرقم الحساب: 608010167519",
+    details: { iban: "SA4480000000608010167519", bank_name: "مصرف الراجحي" }, profile: { iban: "SA4480000000608010167519" } },
+  { name: "فاتورة تذكر الايبان للسداد تبقى فاتورة", kind: "invoice", number: "INV-900",
+    text: "فاتورة ضريبية رقم INV-900\nالعميل: باركنزي\nالاجمالي: 300\nللسداد على الايبان: SA4480000000608010167519" },
+  { name: "عرض سعر: رقمه وتاريخه وصلاحيته", kind: "quotation", number: "Q-2026-118", issue: "2026-09-08", expiry: "2026-10-08",
+    text: "عرض سعر رقم Q-2026-118\nمقدم العرض: شركة لامدا تيك\nالعميل: باركنزي\nتاريخ العرض: 2026-09-08\nصالح حتى: 2026-10-08" },
 ];
 const same = (got, want) => (want instanceof RegExp ? want.test(String(got ?? "")) : String(got) === String(want));
 let failed = 0;
 for (const c of CASES) {
   const r = rulesExtract(normalizeArabicText(c.text));
   const fields = clean(mergeRules(null, r));
-  const problems = [  {
-    name: "شهادة الحساب البنكي: الايبان رقمها، وصاحب الحساب طرفها",
-    text: "شهادة الحساب البنكي\nاسم البنك: مصرف الراجحي\nاسم صاحب الحساب: شركة باركنزي\nرقم الحساب الدولي IBAN: SA4480000000608010167519\nرقم الحساب: 608010167519",
-    expect: { kind: "bank_certificate", number: "SA4480000000608010167519", party: "شركة باركنزي" },
-  },
-  {
-    name: "فاتورة تذكر الايبان للسداد تبقى فاتورة",
-    text: "فاتورة ضريبية رقم INV-900\nالعميل: باركنزي\nالاجمالي: 300\nللسداد على الايبان: SA4480000000608010167519",
-    expect: { kind: "invoice", number: "INV-900" },
-  },
-  {
-    name: "عرض سعر: رقمه وتاريخه وصلاحيته وعميله",
-    text: "عرض سعر رقم Q-2026-118\nمقدم العرض: شركة لامدا تيك\nالعميل: باركنزي\nتاريخ العرض: 2026-09-08\nصالح حتى: 2026-10-08",
-    expect: { kind: "quotation", number: "Q-2026-118", issue_date: "2026-09-08", expiry_date: "2026-10-08" },
-  },
-];
+  const problems = [];
   if (c.kind && r.kind !== c.kind) problems.push(`kind ${r.kind} ≠ ${c.kind}`);
   if (c.notKind && r.kind === c.notKind) problems.push(`kind must not be ${c.notKind}`);
   if (c.number && String(r.number) !== c.number) problems.push(`number ${r.number} ≠ ${c.number}`);
