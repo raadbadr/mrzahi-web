@@ -105,6 +105,9 @@ function hijriToGregorian(year, month, day) {
   }
   return null;
 }
+/* اوراق دائمة لا تحمل تاريخ انتهاء: لا يفترض لها انتهاء ولا تذكير */
+const NEVER_EXPIRES = ["bank_certificate", "articles_of_association", "bylaws"];
+
 function plusOneYear(iso) {
   if (!iso) return null;
   const parts = iso.split("-").map(Number);
@@ -174,9 +177,13 @@ export function clean(out) {
     issuer: str(source.issuer),
     party: str(source.party),
     issue_date: date(source.issue_date, source.issue_date_calendar),
-    expiry_date: date(source.expiry_date, source.expiry_date_calendar) || plusOneYear(date(source.issue_date, source.issue_date_calendar)),
-    /* لا تاريخ انتهاء في الورقة: يفترض سنة من الإصدار (قاعدة المهندس رعد) ويعلم أنه مفترض */
-    expiry_assumed: !date(source.expiry_date, source.expiry_date_calendar) && !!date(source.issue_date, source.issue_date_calendar),
+    expiry_date: date(source.expiry_date, source.expiry_date_calendar) ||
+                 (NEVER_EXPIRES.includes(kind) ? null : plusOneYear(date(source.issue_date, source.issue_date_calendar))),
+    /* لا تاريخ انتهاء في الورقة: يفترض سنة من الاصدار (قاعدة المهندس رعد) ويعلم انه مفترض.
+       الا الاوراق التي لا تنتهي اصلا: شهادة الايبان وعقد التاسيس والنظام الاساسي —
+       افتراض انتهاء لها يولد تذكيرا كاذبا بانتهاء ورقة دائمة. */
+    expiry_assumed: !NEVER_EXPIRES.includes(kind) &&
+                    !date(source.expiry_date, source.expiry_date_calendar) && !!date(source.issue_date, source.issue_date_calendar),
     amount: num(source.amount),
     case_number: str(source.case_number),
     court: str(source.court),
