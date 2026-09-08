@@ -50,6 +50,9 @@ const CASES = [
     text: "فاتورة ضريبية رقم INV-900\nالعميل: باركنزي\nالاجمالي: 300\nللسداد على الايبان: SA4480000000608010167519" },
   { name: "عرض سعر: رقمه وتاريخه وصلاحيته", kind: "quotation", number: "Q-2026-118", issue: "2026-09-08", expiry: "2026-10-08",
     text: "عرض سعر رقم Q-2026-118\nمقدم العرض: شركة لامدا تيك\nالعميل: باركنزي\nتاريخ العرض: 2026-09-08\nصالح حتى: 2026-10-08" },
+  { name: "شهادة الايبان بالانجليزية: البنك اسمه ولا يصير «Certificate»، والايبان ليس اسم صاحب حساب", kind: "bank_certificate", number: "SA7630100806641883306026",
+    text: "Bank Certificate\nBank Name: Arab National Bank\nAccount Name SA7630100806641883306026\nIBAN: SA7630100806641883306026",
+    details: { iban: "SA7630100806641883306026", bank_name: "Arab National Bank" } },
 ];
 const same = (got, want) => (want instanceof RegExp ? want.test(String(got ?? "")) : String(got) === String(want));
 let failed = 0;

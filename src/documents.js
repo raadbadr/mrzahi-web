@@ -484,9 +484,12 @@ export const KIND_FIELDS = {
     F("iban", "id", "رقم الحساب الدولي", "IBAN",
       ["رقم\\s*(?:ال)?حساب\\s*(?:ال)?دولي", "الآيبان", "الايبان", "\\bIBAN\\b", "International\\s*Bank\\s*Account\\s*Number"],
       { pattern: "SA[0-9 ]{20,34}", core: "number" }),
-    F("bank_name", "text", "اسم البنك", "Bank", ["اسم\\s*(?:ال)?(?:بنك|مصرف)", "\\bBank\\s*Name\\b", "\\bBank\\b"]),
+    /* «Bank» وحدها تلتقط «Bank Certificate»؛ الاسم يطلب تسمية صريحة */
+    F("bank_name", "text", "اسم البنك", "Bank", ["اسم\\s*(?:ال)?(?:بنك|مصرف)", "\\bBank\\s*Name\\b", "\\bBank\\s*(?=[:：])"]),
+    /* اسم صاحب الحساب اسم، لا ايبان ولا عنوان حقل: «Account Name SA76…» ليست اسما */
     F("account_name", "text", "اسم صاحب الحساب", "Account holder",
-      ["اسم\\s*(?:صاحب\\s*)?(?:ال)?حساب", "اسم\\s*(?:ال)?عميل", "Account\\s*(?:Holder|Name)", "Beneficiary\\s*Name"], { core: "party" }),
+      ["اسم\\s*(?:صاحب\\s*)?(?:ال)?حساب", "اسم\\s*(?:ال)?عميل", "Account\\s*(?:Holder|Name)", "Beneficiary\\s*Name"],
+      { core: "party", reject: /^(?:SA[0-9\s]{18,}|[0-9\s]+)$|SA[0-9]{20,}/i }),
     F("account_number", "id", "رقم الحساب", "Account No.", ["رقم\\s*(?:ال)?حساب", "Account\\s*(?:No\\.?|Number)"], { pattern: "[0-9]{6,25}" }),
     issueField(), expiryField(),
   ],
@@ -648,6 +651,8 @@ function detailValue(spec, segment, cuts, labelText) {
   if (spec.type === "id") { const match = head.slice(0, 80).match(new RegExp("(?<![0-9A-Za-z])(?:" + spec.pattern + ")(?![0-9A-Za-z])")); return match ? match[0] : null; }
   if (spec.pattern) { const match = head.slice(0, 80).match(new RegExp(spec.pattern, "i")); return match ? match[0].trim() : null; }
   const value = spec.long ? tidyLong(head) : tidyText(head, cuts);
+  /* قيمة ترفضها الحقل نفسه (اسم صاحب حساب لا يكون ايبانا) لا تسجل خطأ */
+  if (value && spec.reject && spec.reject.test(String(value))) return null;
   return value && spec.keepLabel ? labelText.trim() + " " + value : value;
 }
 
@@ -785,6 +790,8 @@ export function rulesExtract(rawText) {
     if (rule.number) out.number = findAfter(text, rule.number, rule.numPat || "[0-9A-Za-z\\-\\/]{3,25}") || null;
     if (!out.number && rule.numPat && /^\[?[0-9\\\\d]/.test(rule.numPat)) out.number = (text.match(new RegExp("\\b(?:" + rule.numPat + ")\\b")) || [])[0] || null;
     if (rule.party) out.party = findAfter(text, rule.party, "[^\\n:،,]{3,80}") || null;
+    /* اسم طرف لا يكون ايبانا ولا رقما مجردا مهما قال العنوان */
+    if (out.party && /^(?:SA[0-9\s]{18,}|[0-9\s.\-]{4,})$/i.test(String(out.party).trim())) out.party = null;
     if (rule.issuerTest) for (const [re, name] of rule.issuerTest) if (re.test(text)) { out.issuer = name; break; }
     if (!out.issuer && rule.issuer) out.issuer = rule.issuer;
     if (rule.entity) out.entity_hint = rule.entity;
