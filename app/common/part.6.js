@@ -73,7 +73,8 @@
     ".dp-day.is-today{box-shadow:inset 0 0 0 2px var(--primary)}",
     ".dp-day.is-selected,.dp-day.is-selected:hover{background:var(--primary);color:var(--btn-ink,#fff);opacity:1}",
     ".dp-day.is-selected small{color:inherit;opacity:.85}",
-    ".dp-time{display:flex;align-items:center;gap:.4rem}",
+    /* الساعة يسارا والدقائق يمينا دائما، في كل اللغات وكل الاتجاهات: الصف نفسه ltr ولو كانت الصفحة rtl */
+    ".dp-time{display:flex;align-items:center;gap:.4rem;direction:ltr}",
     ".dp-time select.waitlist-input{flex:1 1 0;min-width:0;padding-inline-start:.6rem}",
     ".dp-colon{font-weight:700;color:var(--text-secondary)}",
     ".dp-foot{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem}",

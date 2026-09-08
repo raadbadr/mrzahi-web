@@ -165,6 +165,20 @@ async function openPage(pagePath, width, height) {
   const afterTime = await page.evaluate(() => document.getElementById("addDue").value);
   check("desktop: hour/minute selects rewrite the time part", /T14:45$/.test(afterTime), afterTime);
 
+  /* معيار ثابت: الساعة يسارا والدقائق يمينا، مهما كانت لغة الصفحة واتجاهها */
+  const timeOrder = await page.evaluate(() => {
+    const pop = document.querySelector(".dp-pop");
+    const row = pop.querySelector(".dp-time");
+    const h = pop.querySelector(".dp-hour").getBoundingClientRect();
+    const m = pop.querySelector(".dp-min").getBoundingClientRect();
+    const c = pop.querySelector(".dp-colon").getBoundingClientRect();
+    return { pageDir: document.documentElement.getAttribute("dir") || getComputedStyle(document.documentElement).direction,
+             rowDir: getComputedStyle(row).direction,
+             hour: Math.round(h.left), colon: Math.round(c.left), minute: Math.round(m.left) };
+  });
+  check("desktop: the hour sits left of the colon and the minute right of it, even on an RTL page",
+        timeOrder.hour < timeOrder.colon && timeOrder.colon < timeOrder.minute && timeOrder.rowDir === "ltr", timeOrder);
+
   /* التبديل إلى الهجري */
   await page.click('.dp-pop .dp-pill[data-cal="h"]');
   const hijriView = await page.evaluate(() => {
