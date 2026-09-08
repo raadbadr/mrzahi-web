@@ -168,7 +168,7 @@
      يعمل عبر Google Picker بصلاحية drive.file (غير حساسة): المستخدم يختار الملف
      بنفسه، ونخزن رابطه واسمه فقط؛ الملف يبقى في Drive الخاص به. */
   var DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
-  var driveConfig = { clientId: null, apiKey: null };
+  var driveConfig = { clientId: null, apiKey: null, server: false };
   var driveToken = null;
 
   function driveAvailable() { return !!(driveConfig.clientId && driveConfig.apiKey); }
@@ -191,7 +191,48 @@
     return driveToken && driveToken.expires > Date.now() ? driveToken.token : null;
   }
 
+  /* الرمز من خادمنا: يولد من رمز تحديث دائم مخزن عندنا، فلا نافذة اذن
+     ولا تسجيل دخول جوجل مهما اعاد المستخدم تحميل الصفحة. يرفض بـ
+     not_connected حين لم تربط الشركة درايف بعد، فيتولى النداء الاول الربط. */
+  function driveServerToken() {
+    if (!driveConfig.server) return Promise.reject(new Error("no_server_drive"));
+    var orgId = app.org && app.org.id;
+    if (!orgId) return Promise.reject(new Error("no_org"));
+    if (!window.trackerAuth || !window.trackerAuth.getSession) return Promise.reject(new Error("no_auth"));
+    return window.trackerAuth.getSession().then(function (session) {
+      var jwt = session && session.access_token;
+      if (!jwt) throw new Error("no_session");
+      return fetch("/api/drive/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + jwt },
+        body: JSON.stringify({ org: orgId }),
+      });
+    }).then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (data) {
+        if (!res.ok || !data || !data.access_token) {
+          var err = new Error((data && data.error) || "drive_token_failed");
+          err.needsConnect = res.status === 409;
+          throw err;
+        }
+        driveToken = { token: data.access_token, expires: Date.now() + (Number(data.expires_in) || 3600) * 1000 - 60000 };
+        return data.access_token;
+      });
+    });
+  }
+
   function driveAccessToken() {
+    if (driveToken && driveToken.expires > Date.now()) return Promise.resolve(driveToken.token);
+    if (driveConfig.server) {
+      return driveServerToken().catch(function (err) {
+        /* لم يربط بعد (او سحب الاذن): المسار التفاعلي مرة واحدة فقط */
+        if (err && err.needsConnect) return driveInteractiveToken();
+        throw err;
+      });
+    }
+    return driveInteractiveToken();
+  }
+
+  function driveInteractiveToken() {
     if (driveToken && driveToken.expires > Date.now()) return Promise.resolve(driveToken.token);
     return loadScriptOnce("https://accounts.google.com/gsi/client", function () { return !!(window.google && window.google.accounts && window.google.accounts.oauth2); })
       .then(function () {

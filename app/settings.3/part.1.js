@@ -168,6 +168,7 @@
             cfg = cfg || {};
             config.telegramBot = cfg.telegramBot ? String(cfg.telegramBot).replace(/^@/, "") : null;
             config.payEnabled = !!cfg.payEnabled;
+            config.driveServer = !!cfg.driveServer;
             config.whatsappNumber = cfg.whatsappNumber ? String(cfg.whatsappNumber) : null;
             config.smsEnabled = !!cfg.smsEnabled;
           })
@@ -187,6 +188,25 @@
           else toast(t("tgLinkFailed"), "error");
           return reloadLinks();
         }).catch(function () { toast(t("tgLinkFailed"), "error"); });
+      }
+
+      /* العودة من موافقة جوجل: الرمز الدائم صار عندنا، فنفعل الوضع وننشئ المجلد
+         مرة واحدة، ثم ننظف الرابط. لا يطلب اذن جوجل بعدها ابدا. */
+      function finishDriveConnect() {
+        var params = new URLSearchParams(window.location.search);
+        var res = params.get("drive");
+        if (!res) return Promise.resolve();
+        params.delete("drive");
+        var clean = window.location.pathname + (params.toString() ? "?" + params.toString() : "") + window.location.hash;
+        try { window.history.replaceState(null, "", clean); } catch (e) { /* ignore */ }
+        if (res !== "done") {
+          setMsg("storageMsg", t("storageDriveDenied"), "error");
+          return Promise.resolve();
+        }
+        return app.updateProfile({ storage_mode: "drive" })
+          .then(function () { return app.driveFolder ? app.driveFolder().catch(function () { return null; }) : null; })
+          .then(function () { renderDriveSwitch(); })
+          .catch(function () { setMsg("storageMsg", t("genericError"), "error"); });
       }
 
       function reloadLinks() {
@@ -747,6 +767,15 @@
             .catch(function () { box.checked = true; setMsg("storageMsg", t("genericError"), "error"); });
         }
         box.disabled = true;
+        /* الربط من الخادم: موافقة واحدة تعطينا رمز تحديث دائم، فلا يطلب
+           الاذن مرة اخرى ابدا. المتصفح ينتقل بنفسه لان التصفح لا يحمل الجلسة. */
+        if (config.driveServer && app.driveServerConnect) {
+          return app.driveServerConnect().then(function (url) { window.location.href = url; })
+            .catch(function () {
+              box.checked = false; box.disabled = false; renderDriveSwitch();
+              setMsg("storageMsg", t("storageDriveDenied"), "error");
+            });
+        }
         /* بالإذن نفسه ينشأ المجلد فورا في Drive الخاص به ليرى أين تذهب ملفاته */
         return app.connectDrive().then(function () { return app.updateProfile({ storage_mode: "drive" }); })
           .then(function () { return app.driveFolder ? app.driveFolder().catch(function () { return null; }) : null; })

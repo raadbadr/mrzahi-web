@@ -154,6 +154,23 @@
   app.driveFolderCached = function () {
     try { var id = localStorage.getItem("tracker_drive_folder:" + requireOrg()); return id ? { id: id, url: "https://drive.google.com/drive/folders/" + id, path: DRIVE_ROOT_NAME + "/" + ((app.org && app.org.name) || "Company") } : null; } catch (e) { return null; }
   };
+  /* بداية ربط درايف من الخادم: يعيد عنوان شاشة موافقة جوجل لينتقل اليه المتصفح */
+  app.driveServerConnect = function () {
+    var orgId = requireOrg();
+    if (!window.trackerAuth || !window.trackerAuth.getSession) return Promise.reject(new Error("no_auth"));
+    return window.trackerAuth.getSession().then(function (session) {
+      var jwt = session && session.access_token;
+      if (!jwt) throw new Error("no_session");
+      return fetch("/api/drive/oauth/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + jwt },
+        body: JSON.stringify({ org: orgId }),
+      });
+    }).then(function (res) { return res.json(); }).then(function (out) {
+      if (!out || !out.url) throw new Error((out && out.error) || "start_failed");
+      return out.url;
+    });
+  };
   /* عدد الملفات في مجلد درايف الحالي، لعرضه في بطاقة الإعدادات بلا فتح درايف.
      لا يطلب إذنا جديدا أبدا: يستعمل رمزا سابقا صالحا فقط، وإلا يرفض بصمت
      بدل أن يفرض نافذة تسجيل دخول جوجل في كل مرة تفتح فيها الإعدادات. */

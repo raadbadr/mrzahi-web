@@ -77,6 +77,7 @@
         if (!cfg) return;
         driveConfig.clientId = cfg.googleClientId || null;
         driveConfig.apiKey = cfg.googleApiKey || null;
+        driveConfig.server = !!cfg.driveServer;
         document.documentElement.dataset.drive = driveAvailable() ? "1" : "0";
         document.dispatchEvent(new CustomEvent("tracker:drive", { detail: { available: driveAvailable() } }));
       }).catch(function () { /* بلا درايف */ });

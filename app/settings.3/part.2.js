@@ -168,7 +168,7 @@
           return loadSubscription().then(function () {
             renderStorage();
             return Promise.all([
-              loadConfig().then(function () { return reloadLinks(); }).then(linkFromBotToken),
+              loadConfig().then(function () { return reloadLinks(); }).then(linkFromBotToken).then(finishDriveConnect),
               loadRules(),
               loadCalendar()
             ]);

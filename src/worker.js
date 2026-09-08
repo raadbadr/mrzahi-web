@@ -6,6 +6,7 @@
 
 import { handleAssistantRequest, askAssistant } from "./assistant.js";
 import { payCreate, payReturn, payConfigured } from "./pay.js";
+import { driveServerConfigured, handleDrive } from "./drive.js";
 import { handleTranslate } from "./translate.js";
 import { serveBundle } from "./bundles.js";
 import { handleMcp } from "./mcp.js";
@@ -86,6 +87,8 @@ function handleConfig(env) {
     // معلومات عامة لربط القنوات (لا أسرار)
     telegramBot: env.TELEGRAM_BOT_USERNAME || null,
     payEnabled: payConfigured(env),
+    // تفويض درايف من الخادم متاح: المتصفح يطلب رمزه منا بدل نافذة اذن جوجل
+    driveServer: driveServerConfigured(env),
     whatsappNumber: env.WHATSAPP_PUBLIC_NUMBER || null,
     smsEnabled: !!(env.SMS_PROVIDER),
   });
@@ -949,6 +952,11 @@ export default {
       if (path === "/api/pay/paypal/return" && request.method === "GET") {
         if (!payConfigured(env)) return json({ error: "payment not configured" }, 503);
         return await payReturn(env, url, url.origin);
+      }
+      /* تفويض درايف من الخادم: موافقة واحدة، ثم رمز وصول يجدد صامتا بلا نافذة اذن */
+      if (path.startsWith("/api/drive/")) {
+        const driveRes = await handleDrive(request, env, url, authedUser, json);
+        if (driveRes) return driveRes;
       }
       if (path === "/api/contact" && request.method === "POST") return await handleContact(request, env);
       if (path === "/api/notify/test" && request.method === "POST") return await handleNotifyTest(request, env);
