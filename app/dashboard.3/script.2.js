@@ -1242,7 +1242,19 @@
         var items = state.items;
         $("emptyList").hidden = items.length > 0;
         $("tableWrap").hidden = items.length === 0;
-        items.forEach(function (item) {
+        /* القائمة قسمان بامره: قادمة وسابقة. السابق ما مضى موعده بمكتمله وغير مكتمله،
+           وصفوفه تحمل زر اعادة الجدولة. وما لا موعد له لم يمض، فهو في القادمة. */
+        var nowMs = Date.now();
+        var past = items.filter(function (it) { return it.due_at && new Date(it.due_at).getTime() < nowMs; });
+        var upcoming = items.filter(function (it) { return !(it.due_at && new Date(it.due_at).getTime() < nowMs); });
+        var groupRow = function (label, count) {
+          var row = document.createElement("tr");
+          row.className = "list-group";
+          row.innerHTML = '<td colspan="6"><span class="list-group-name">' + esc(label) + "</span>" +
+                          '<span class="list-group-count">' + count + "</span></td>";
+          return row;
+        };
+        var render = function (item) {
           var sk = statusKeyOf(item);
           var tr = document.createElement("tr");
           tr.innerHTML =
@@ -1250,7 +1262,7 @@
               (item.category ? '<span class="item-cat">' + esc(item.category) + "</span>" : "") + "</td>" +
             "<td>" + esc(trackerName(item)) + "</td>" +
             '<td class="col-due">' + (item.due_at
-              ? '<div class="cell-stack"><span>' + esc(app.fmtDate(item.due_at, { withTime: true })) + '</span><span class="item-cat due-left" data-due="' + esc(item.due_at) + '"></span></div>'
+              ? '<div class="cell-stack"><span>' + esc(app.fmtDate(item.due_at, { withTime: true })) + '</span><span class="item-cat due-left" data-due="' + esc(item.due_at) + '"' + (item.status === "done" ? ' data-due-done="1"' : "") + '></span></div>'
               : esc(T("noDue"))) + "</td>" +
             "<td>" + esc(assigneeName(item.assignee_id)) + "</td>" +
             '<td><span class="status-' + sk + '">' + esc(T(STATUS_KEYS[sk])) + "</span></td>" +
@@ -1259,12 +1271,15 @@
                 ? '<button type="button" class="chat-option-btn is-icon" data-case-file="' + esc(item.id) + '" title="' + esc(T("openCaseFile")) + '" aria-label="' + esc(T("openCaseFile")) + '">' +
                   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/></svg></button>'
                 : "") +
+              (item.due_at && new Date(item.due_at).getTime() < nowMs ? actionBtn(item, "reschedule", "actionReschedule") : "") +
               (item.status === "done" ? actionBtn(item, "reopen", "actionReopen") : actionBtn(item, "done", "actionDone")) +
               actionBtn(item, "edit", "actionEdit") +
               actionBtn(item, "delete", "actionDelete", "is-danger") +
             "</div></td>";
           body.appendChild(tr);
-        });
+        };
+        if (upcoming.length) { body.appendChild(groupRow(T("listUpcoming"), upcoming.length)); upcoming.forEach(render); }
+        if (past.length) { body.appendChild(groupRow(T("listPast"), past.length)); past.forEach(render); }
         translateView();
       }
 
@@ -1278,6 +1293,14 @@
         if (action === "done") setItemStatus(item, "done", "itemDone");
         else if (action === "reopen") setItemStatus(item, "open", "itemReopened");
         else if (action === "edit") openEdit(item);
+        else if (action === "reschedule") {
+          /* اعادة الجدولة: النموذج نفسه، والمؤشر في حقل الموعد مباشرة */
+          openEdit(item);
+          var due = $("editDue");
+          var wrap = due && due.closest ? due.closest(".dp-wrap, .date-field") : null;
+          var shown = wrap ? wrap.querySelector('input[type="text"]') : null;
+          if (shown || due) (shown || due).focus();
+        }
         else if (action === "delete") deleteItem(item);
       });
 

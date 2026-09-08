@@ -294,6 +294,12 @@
   /* عناصر الجداول: <span data-due="ISO"> يمتلئ بالنص ويتحدث كل دقيقة */
   function refreshDueLabels(root) {
     (root || document).querySelectorAll("[data-due]").forEach(function (el) {
+      /* المنجز لا يتاخر: الصف الذي يحمل data-due-done لا عد تنازلي له ولا لون احمر */
+      if (el.hasAttribute("data-due-done")) {
+        if (el.textContent !== "") el.textContent = "";
+        el.classList.remove("is-late");
+        return;
+      }
       var text = remainingText(el.getAttribute("data-due"));
       if (el.textContent !== text) el.textContent = text;
       el.classList.toggle("is-late", !!text && new Date(el.getAttribute("data-due")).getTime() < Date.now());
