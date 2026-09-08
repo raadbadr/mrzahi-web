@@ -30,3 +30,6 @@ wrangler.toml
 
 # لقطات جرد العناصر (tools/inventory.mjs) — محلية لا تُرفع
 .inv
+
+# لقطات القياس (tools/measure.mjs) — محلية لا ترفع
+.measure-shots

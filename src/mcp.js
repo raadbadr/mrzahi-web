@@ -128,7 +128,7 @@ export async function callTool(name, args, ctx) {
       const who = await ctx.rpc("channel_user_lookup", { p_secret: secret, p_channel: "telegram", p_external_id: tg });
       if (!who || !who.user_id) return fail("No account matched that code. Ask for a fresh link code from Settings → Telegram.", { status: "unlinked", raw: linkedUser });
       return result({ status: "linked", user_id: who.user_id, name: who.name, telegram_user_id: tg }, "Linked: " + (who.name || who.user_id) + " ↔ Telegram " + tg);
-    } catch (e) { return fail("Link failed: " + String(e && e.message || e).slice(0, 200)); }
+    } catch (e) { console.log("mcp link failed", String(e && e.message || e).slice(0, 200)); return fail("Link failed."); }
   }
   if (actor.tg && !actor.user && actor.notMember) return result({ status: "not_member", telegram_user_id: actor.tg }, "not_member: this Telegram user belongs to another company. Do not act for them.");
   if (actor.tg && !actor.user) return result({ status: "unlinked", telegram_user_id: actor.tg }, "unlinked: this Telegram user is not linked to a MrZahi account yet. Ask them for the 8-character link code from Settings → Telegram on the site and call tracker_link_telegram.");
@@ -302,7 +302,7 @@ async function dispatch(msg, ctx) {
       const name = String(params.name || "");
       if (!TOOLS.some((t) => t.name === name)) return rpcError(id, -32602, "Unknown tool: " + name);
       try { return rpcResult(id, await callTool(name, params.arguments || {}, ctx)); }
-      catch (e) { return rpcResult(id, fail("Tool failed: " + String(e && e.message || e).slice(0, 300))); }
+      catch (e) { console.log("mcp tool failed", name, String(e && e.message || e).slice(0, 300)); return rpcResult(id, fail("Tool failed.")); }
     }
     case "resources/list": return rpcResult(id, { resources: [] });
     case "resources/templates/list": return rpcResult(id, { resourceTemplates: [] });

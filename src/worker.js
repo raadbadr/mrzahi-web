@@ -120,6 +120,29 @@ function contactRateLimited(ip) {
   if (contactBuckets.size > 5000) contactBuckets.clear();
   return b.count > 5;
 }
+/* حد عام بالعنوان لاي مسار مفتوح او مكلف: دلو مستقل لكل مسار */
+const ipBuckets = new Map();
+function ipRateLimited(key, ip, max, windowMs) {
+  if (!ip) return false;
+  const now = Date.now();
+  const id = key + "|" + ip;
+  let b = ipBuckets.get(id);
+  if (!b || now - b.start >= windowMs) { b = { start: now, count: 0 }; ipBuckets.set(id, b); }
+  b.count += 1;
+  if (ipBuckets.size > 5000) ipBuckets.clear();
+  return b.count > max;
+}
+
+/* مقارنة الاسرار والتواقيع بزمن ثابت: لا يفرق قياس الزمن بين خطا في اول محرف وخطا في اخره */
+function safeEqual(a, b) {
+  const x = String(a == null ? "" : a);
+  const y = String(b == null ? "" : b);
+  if (x.length !== y.length) return false;
+  let diff = 0;
+  for (let i = 0; i < x.length; i++) diff |= x.charCodeAt(i) ^ y.charCodeAt(i);
+  return diff === 0;
+}
+
 async function handleContact(request, env) {
   const ip = request.headers.get("cf-connecting-ip") || "";
   if (contactRateLimited(ip)) return json({ error: "too many messages, try again later" }, 429);
@@ -189,7 +212,8 @@ async function handleNotifyTest(request, env) {
     }
     return json({ ok: true });
   } catch (e) {
-    return json({ error: "send_failed", detail: String((e && e.message) || e).slice(0, 200) }, 502);
+    console.log("notify-test failed", String((e && e.message) || e).slice(0, 200));
+    return json({ error: "send_failed" }, 502);
   }
 }
 
@@ -219,7 +243,7 @@ async function readLinkToken(env, token) {
   if (!m) return null;
   if (Number(m[2]) < Math.floor(Date.now() / 1000)) return null;
   const expect = await hmacHex(env.WORKER_SECRET, `${m[1]}.${m[2]}`);
-  return expect === m[3] ? m[1] : null;
+  return safeEqual(expect, m[3]) ? m[1] : null;
 }
 
 /** الترحيب بعد الربط: باسم المستخدم وشركته وبلغة ملفه، مع لوحة الأزرار */
@@ -401,7 +425,8 @@ function sanitizeIntentItem(item, text) {
 
 /* كل كتابة تمر من هنا: مسودة في القاعدة + وصف ما سيحدث + زرا تأكيد/إلغاء؛ التنفيذ في act:y فقط */
 async function askToConfirm(env, chatId, userId, intent, lang, pre, userTimeZone) {
-  const token = Math.random().toString(36).slice(2, 8); /* يربط الزر بمسودته: زر قديم لا ينفذ مسودة أحدث */
+  /* يربط الزر بمسودته: زر قديم لا ينفذ مسودة أحدث. من مولد تشفيري لا من Math.random */
+  const token = [...crypto.getRandomValues(new Uint8Array(6))].map((b) => b.toString(16).padStart(2, "0")).join("");
   try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_user_id: userId, p_payload: { type: "action", intent, token } }); }
   catch { return false; }
   const ask = humanize(describeAction(lang, intent, userTimeZone), lang);
@@ -518,7 +543,7 @@ async function logBotReply(env, chatId, userId, text) {
 async function handleTelegramWebhook(request, env) {
   if (env.TELEGRAM_WEBHOOK_SECRET) {
     const got = request.headers.get("x-telegram-bot-api-secret-token") || "";
-    if (got !== env.TELEGRAM_WEBHOOK_SECRET) return json({ ok: false }, 401);
+    if (!safeEqual(got, env.TELEGRAM_WEBHOOK_SECRET)) return json({ ok: false }, 401);
   }
   let update;
   try { update = await request.json(); } catch { return json({ ok: true }); }
@@ -783,7 +808,8 @@ async function handleTelegramLink(request, env) {
   const chatId = await readLinkToken(env, body && body.token);
   if (!chatId) return json({ error: "bad_token" }, 400);
   try { await linkChannelDirect(env, user.id, "telegram", chatId); } catch (e) {
-    return json({ error: "link_failed", detail: String((e && e.message) || e).slice(0, 200) }, 502);
+    console.log("telegram link failed", String((e && e.message) || e).slice(0, 200));
+    return json({ error: "link_failed" }, 502);
   }
   await greetLinked(env, chatId, user.id, "ar", "");
   return json({ ok: true });
@@ -791,17 +817,23 @@ async function handleTelegramLink(request, env) {
 
 /** GET/POST /api/whatsapp/webhook — تحقق Meta + رسالة تحتوي رمز الربط */
 async function handleWhatsappWebhook(request, env, url) {
+  /* لا يبقى مسار حيا بلا حارس: بلا سر التطبيق لا وجود لهذا المسار اصلا */
+  if (!env.WHATSAPP_APP_SECRET) return json({ error: "not found" }, 404);
   if (request.method === "GET") {
     const mode = url.searchParams.get("hub.mode");
     const token = url.searchParams.get("hub.verify_token");
     const challenge = url.searchParams.get("hub.challenge");
-    if (mode === "subscribe" && env.WHATSAPP_VERIFY_TOKEN && token === env.WHATSAPP_VERIFY_TOKEN) {
+    if (mode === "subscribe" && env.WHATSAPP_VERIFY_TOKEN && safeEqual(token, env.WHATSAPP_VERIFY_TOKEN)) {
       return new Response(challenge || "", { status: 200, headers: { "Content-Type": "text/plain" } });
     }
     return new Response("forbidden", { status: 403 });
   }
+  /* توقيع ميتا على الجسم الخام: بدونه لا يفتح الجسم ولا يربط رمز قناة */
+  const raw = await request.text();
+  const want = "sha256=" + (await hmacHex(env.WHATSAPP_APP_SECRET, raw));
+  if (!safeEqual(request.headers.get("x-hub-signature-256") || "", want)) return json({ ok: false }, 401);
   let body;
-  try { body = await request.json(); } catch { return json({ ok: true }); }
+  try { body = JSON.parse(raw); } catch { return json({ ok: true }); }
   try {
     const entries = (body && body.entry) || [];
     for (const e of entries) {
@@ -911,7 +943,13 @@ export default {
     }
 
     try {
-      if (path.startsWith("/api/v1/")) return await handleV1(request, env, url);
+      if (path.startsWith("/api/v1/")) {
+        /* واجهة المفاتيح مفتوحة لكل الاصول: حد بالعنوان كي لا يستنزفها احد */
+        if (ipRateLimited("v1", request.headers.get("cf-connecting-ip") || "", 120, 60_000)) {
+          return json({ error: "rate_limited" }, 429);
+        }
+        return await handleV1(request, env, url);
+      }
       if (path === "/api/config" && request.method === "GET") return handleConfig(env);
       if (path === "/api/stats" && request.method === "GET") return await handleStats(env);
       if (path === "/api/assistant" && request.method === "POST") return await handleAssistantRequest(request, env);
@@ -933,9 +971,18 @@ export default {
         return await handleTranslate(request, env);
       }
       if (path === "/api/client-error" && request.method === "POST") {
-        /* تقارير إقلاع الواجهة: تسجل في سجل الـ Worker فقط (wrangler tail)، لا تخزن ولا تحمل بيانات شخصية */
-        const raw = (await request.text()).slice(0, 2000);
-        console.log("client-error", raw, "ip:", request.headers.get("cf-connecting-ip") || "");
+        /* تقارير إقلاع الواجهة: حقول معلومة فقط، بلا جسم خام وبلا عنوان الزائر، وبحد لكل عنوان */
+        if (ipRateLimited("client-error", request.headers.get("cf-connecting-ip") || "", 20, 600_000)) {
+          return new Response(null, { status: 204 });
+        }
+        let rep = null;
+        try { rep = JSON.parse((await request.text()).slice(0, 2000)); } catch { rep = null; }
+        const cut = (v, n) => String(v == null ? "" : v).replace(/[\r\n]+/g, " ").slice(0, n);
+        console.log("client-error", JSON.stringify({
+          kind: cut(rep && rep.kind, 40), step: cut(rep && rep.step, 40), page: cut(rep && rep.page, 80),
+          detail: cut(rep && rep.detail, 400), ua: cut(rep && rep.ua, 100), lang: cut(rep && rep.lang, 8),
+          w: Number(rep && rep.w) || 0, sw: !!(rep && rep.sw),
+        }));
         return new Response(null, { status: 204 });
       }
       /* الدفع داخل النظام: إنشاء الطلب بجلسة صاحبه، وتحصيله عند عودته من PayPal */
@@ -959,7 +1006,13 @@ export default {
         if (driveRes) return driveRes;
       }
       if (path === "/api/contact" && request.method === "POST") return await handleContact(request, env);
-      if (path === "/api/notify/test" && request.method === "POST") return await handleNotifyTest(request, env);
+      if (path === "/api/notify/test" && request.method === "POST") {
+        /* كل نداء يرسل رسالة حقيقية: حد بالعنوان */
+        if (ipRateLimited("notify-test", request.headers.get("cf-connecting-ip") || "", 10, 600_000)) {
+          return json({ error: "rate_limited" }, 429);
+        }
+        return await handleNotifyTest(request, env);
+      }
       if (path === "/api/telegram/webhook" && request.method === "POST") return await handleTelegramWebhook(request, env);
       if (path === "/api/telegram/link" && request.method === "POST") return await handleTelegramLink(request, env);
       if (path === "/api/intent" && request.method === "POST") return await handleIntent(request, env);

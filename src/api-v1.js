@@ -52,14 +52,14 @@ export async function importRowsWithKey(env, hash, rows, trackerName) {
   if (!Array.isArray(rows) || !rows.length) return { ok: false, error: "no rows" };
   const filename = (trackerName || "api") + ".csv";
   let parsed;
-  try { parsed = parseWorkbook(rowsToCsvBytes(rows.slice(0, 500), trackerName), filename); } catch (e) { return { ok: false, error: "cannot parse: " + String(e.message || e).slice(0, 120) }; }
+  try { parsed = parseWorkbook(rowsToCsvBytes(rows.slice(0, 500), trackerName), filename); } catch (e) { console.log("api import parse failed", String(e.message || e).slice(0, 120)); return { ok: false, error: "cannot_parse" }; }
   const payload = draftPayload(parsed);
   const results = [], errors = [];
   for (const sh of payload.sheets) {
     try {
       results.push(await rpc(env, "api_import", { p_secret: env.WORKER_SECRET, p_hash: hash, p_filename: filename,
         p_tracker_name: trackerName || sh.tracker || sh.name, p_columns: sh.columns || [], p_mapping: sh.mapping || {}, p_rows: sh.rows || [] }));
-    } catch (e) { errors.push({ sheet: sh.name, message: String(e.message || e).slice(0, 200) }); }
+    } catch (e) { console.log("api import sheet failed", sh.name, String(e.message || e).slice(0, 200)); errors.push({ sheet: sh.name, message: "import_failed" }); }
   }
   const imported = results.reduce((n, r) => n + (Number(r && (r.inserted ?? r.imported ?? r.count)) || 0), 0);
   return { ok: errors.length === 0, imported, results, errors };
@@ -81,7 +81,7 @@ export async function handleV1(request, env, url) {
     const tracker = url.searchParams.get("tracker") || null;
     let rows = [];
     try { rows = (await rpc(env, "api_items_export", { p_secret: env.WORKER_SECRET, p_hash: hash, p_tracker: tracker })) || []; }
-    catch (e) { return v1Json({ error: String(e.message || e).slice(0, 200) }, 500); }
+    catch (e) { console.log("v1 export failed", String(e.message || e).slice(0, 200)); return v1Json({ error: "export_failed" }, 500); }
     if ((url.searchParams.get("format") || "").toLowerCase() === "csv") {
       return new Response(csvOf(rows), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": "attachment; filename=items.csv", "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" } });
     }
@@ -107,11 +107,11 @@ export async function handleV1(request, env, url) {
       } else {
         bytes = await request.arrayBuffer(); filename = (trackerName || "api") + (ct.includes("spreadsheet") || ct.includes("excel") ? ".xlsx" : ".csv");
       }
-    } catch (e) { return v1Json({ error: "unreadable body: " + String(e.message || e).slice(0, 120) }, 400); }
+    } catch (e) { console.log("v1 unreadable body", String(e.message || e).slice(0, 120)); return v1Json({ error: "unreadable_body" }, 400); }
     if (!ALLOWED_EXT.includes(fileExt(filename))) return v1Json({ error: "unsupported file type" }, 415);
 
     let parsed;
-    try { parsed = parseWorkbook(bytes, filename); } catch (e) { return v1Json({ error: "cannot parse: " + String(e.message || e).slice(0, 120) }, 422); }
+    try { parsed = parseWorkbook(bytes, filename); } catch (e) { console.log("v1 parse failed", String(e.message || e).slice(0, 120)); return v1Json({ error: "cannot_parse" }, 422); }
     const payload = draftPayload(parsed);
     const results = [], errors = [];
     for (const sh of payload.sheets) {
@@ -120,7 +120,7 @@ export async function handleV1(request, env, url) {
           p_secret: env.WORKER_SECRET, p_hash: hash, p_filename: filename,
           p_tracker_name: trackerName || sh.tracker || sh.name, p_columns: sh.columns || [], p_mapping: sh.mapping || {}, p_rows: sh.rows || [],
         }));
-      } catch (e) { errors.push({ sheet: sh.name, message: String(e.message || e).slice(0, 200) }); }
+      } catch (e) { console.log("v1 import sheet failed", sh.name, String(e.message || e).slice(0, 200)); errors.push({ sheet: sh.name, message: "import_failed" }); }
     }
     return v1Json({ ok: errors.length === 0, results, errors, unusable: (parsed.unusable || []).map((u) => ({ sheet: u.name, rows: u.skipped })) }, errors.length && !results.length ? 422 : 200);
   }
