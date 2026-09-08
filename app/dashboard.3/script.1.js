@@ -261,6 +261,15 @@
         if (document.title !== docTitle) document.title = docTitle;
       }
 
+      /* خدمة تسميها حزمة الواجهة أم لا. الحزمة غير المعروفة (تعذر تحميلها)
+         لا تخفي شيئا، كما في serviceAllowed بالشريط الجانبي. */
+      function packHasService(key) {
+        var list = app && app.pack && Array.isArray(app.pack.services) ? app.pack.services : null;
+        if (!list) return true;
+        for (var i = 0; i < list.length; i++) if (list[i].service === key) return true;
+        return false;
+      }
+
       /* ---------- مؤشر المخالفات ---------- */
 
       function violationMetrics(items) {
@@ -788,10 +797,13 @@
           week.hidden = true;   /* لا إطار فارغ قبل حسابه */
           dash.insertBefore(week, dash.firstChild);
         }
-        if (state.viewType === "violations") addChart("violationsChart");
+        /* مؤشر المخالفات والجلسات لواجهة المحاماة وحدها (أمر المهندس رعد):
+           الواجهة التي لا تسمي خدمة المخالفات لا مخالفات فيها، فلا مؤشر لها. */
+        var hasViolations = packHasService("violations");
+        if (state.viewType === "violations") { if (hasViolations) addChart("violationsChart"); }
         else if (state.viewType === "cases") addChart("casesChart");
         else if (state.viewType === "expenses") addChart("expensesChart");
-        else if (!state.viewType) { addChart("violationsChart"); addChart("casesChart"); }
+        else if (!state.viewType) { if (hasViolations) addChart("violationsChart"); addChart("casesChart"); }
 
         calCard.appendChild(calendar);
         /* التقويم أول اللوحة بعرض الصفحة كاملا (أمر المهندس رعد)، لا داخل عمود */
