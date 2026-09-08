@@ -48,6 +48,10 @@ async function readState(env, state) {
 export async function driveOAuthStart(env, user, body, origin) {
   const org = String((body && body.org) || "").trim();
   if (!org) return { error: "org required", status: 400 };
+  /* الدور يفحص قبل جوجل لا بعدها: بدونه يمنح العضو العادي المنصة اذنا
+     على درايفه الشخصي ثم يرفض حفظه، فيبقى في حسابه اذن لا يستعمله احد */
+  const may = await rpc(env, "drive_conn_can_connect", { p_secret: env.WORKER_SECRET, p_org: org, p_user: user.id });
+  if (!may || may.status !== "ok") return { error: (may && may.status) || "not_admin", status: 403 };
   const state = await signState(env, { org, user: user.id, at: Date.now() });
   const q = new URLSearchParams({
     client_id: env.GOOGLE_CLIENT_ID,
