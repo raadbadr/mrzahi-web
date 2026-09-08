@@ -179,7 +179,7 @@
         delete: "حذف",
         unavailable: "الخدمة غير متاحة الآن.",
         kind_commercial_register: "سجل تجاري",
-        kind_bank_certificate: "حساب بنكي",
+        kind_bank_certificate: "الحساب البنكي",
         kind_vat_certificate: "شهادة ضريبية",
         kind_license: "رخصة",
         kind_contract: "عقد",

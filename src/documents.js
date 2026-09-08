@@ -865,7 +865,7 @@ export const KIND_LABELS_AR = { commercial_register: "السجل التجاري"
   articles_of_association: "عقد التأسيس", bylaws: "النظام الأساسي", chamber_certificate: "شهادة الغرفة التجارية",
   gosi_certificate: "شهادة التأمينات الاجتماعية", zakat_certificate: "شهادة الزكاة", saudization_certificate: "شهادة السعودة", lease_contract: "عقد الإيجار",
   power_of_attorney: "الوكالة", court_ruling: "الحكم", case_filing: "صحيفة الدعوى", hearing_notice: "إشعار الجلسة", violation: "المخالفة", invoice: "الفاتورة", id_document: "الهوية", passport: "جواز السفر", driving_license: "رخصة القيادة",
-  vehicle_registration: "استمارة المركبة", insurance_policy: "وثيقة التأمين", employment_contract: "عقد العمل", contract: "العقد" , quotation: "عرض سعر"};
+  vehicle_registration: "استمارة المركبة", insurance_policy: "وثيقة التأمين", employment_contract: "عقد العمل", contract: "العقد", quotation: "عرض سعر", bank_certificate: "الحساب البنكي" };
 
 /* التحليل بالقواعد وحدها بلا نموذج (بوت تيليغرام وكل من يملك النص جاهزا): يعيد كائن الحقول نفسه الذي
    يعيده المسار السريع في handleDocumentAnalyze؛ kind = "other" حين لا تعرف القواعد الورقة، و null لنص أقصر من أن يقرأ. */
