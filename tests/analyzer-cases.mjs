@@ -49,7 +49,22 @@ let failed = 0;
 for (const c of CASES) {
   const r = rulesExtract(normalizeArabicText(c.text));
   const fields = clean(mergeRules(null, r));
-  const problems = [];
+  const problems = [  {
+    name: "شهادة الحساب البنكي: الايبان رقمها، وصاحب الحساب طرفها",
+    text: "شهادة الحساب البنكي\nاسم البنك: مصرف الراجحي\nاسم صاحب الحساب: شركة باركنزي\nرقم الحساب الدولي IBAN: SA4480000000608010167519\nرقم الحساب: 608010167519",
+    expect: { kind: "bank_certificate", number: "SA4480000000608010167519", party: "شركة باركنزي" },
+  },
+  {
+    name: "فاتورة تذكر الايبان للسداد تبقى فاتورة",
+    text: "فاتورة ضريبية رقم INV-900\nالعميل: باركنزي\nالاجمالي: 300\nللسداد على الايبان: SA4480000000608010167519",
+    expect: { kind: "invoice", number: "INV-900" },
+  },
+  {
+    name: "عرض سعر: رقمه وتاريخه وصلاحيته وعميله",
+    text: "عرض سعر رقم Q-2026-118\nمقدم العرض: شركة لامدا تيك\nالعميل: باركنزي\nتاريخ العرض: 2026-09-08\nصالح حتى: 2026-10-08",
+    expect: { kind: "quotation", number: "Q-2026-118", issue_date: "2026-09-08", expiry_date: "2026-10-08" },
+  },
+];
   if (c.kind && r.kind !== c.kind) problems.push(`kind ${r.kind} ≠ ${c.kind}`);
   if (c.notKind && r.kind === c.notKind) problems.push(`kind must not be ${c.notKind}`);
   if (c.number && String(r.number) !== c.number) problems.push(`number ${r.number} ≠ ${c.number}`);

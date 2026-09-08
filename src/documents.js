@@ -703,6 +703,12 @@ const KIND_RULES = [
   { kind: "violation", test: new RegExp(wordBoundaryAr("مخالفة|المخالفة|غرامة|الغرامة") + "|violation|fine\\s*notice|ticket", "i"),
     number: ["رقم\\s*المخالفة", "رقم\\s*القرار", "رقم\\s*الإشعار"], numPat: "\\d{4,20}", party: ["اسم\\s*المنشأة", "اسم\\s*المخالف", "المخالف"],
     amount: /(?:مبلغ\s*(?:المخالفة|الغرامة)|قيمة\s*(?:المخالفة|الغرامة)|الغرامة|المبلغ)[^0-9]{0,25}([0-9][0-9,\.]{1,})/ },
+  /* شهادة الحساب البنكي: الايبان هو رقمها. لا تخلط بفاتورة ولا عرض سعر يذكران الايبان للسداد */
+  { kind: "bank_certificate", entity: "company",
+    test: /^(?![\s\S]*(?:فاتورة|invoice|عرض\s*(?:ال)?سعر|quotation))[\s\S]*(?:شهادة\s*(?:رقم\s*)?(?:ال)?حساب|(?:ال)?حساب\s*(?:ال)?بنكي|رقم\s*(?:ال)?حساب\s*(?:ال)?دولي|الايبان|الآيبان|\bIBAN\b|bank\s*(?:account\s*)?certificate|account\s*details)/i,
+    number: ["رقم\\s*(?:ال)?حساب\\s*(?:ال)?دولي", "الايبان", "الآيبان", "\\bIBAN\\b"], numPat: "SA[0-9 ]{20,34}",
+    party: ["اسم\\s*(?:صاحب\\s*)?(?:ال)?حساب", "اسم\\s*(?:ال)?عميل", "account\\s*(?:holder|name)", "beneficiary"],
+    issuer: null },
   { kind: "quotation", test: /عرض\s*(?:ال)?سعر|عروض\s*(?:ال)?أسعار|عرض\s*أسعار|\bquotation\b|\bquote\b|proforma/i,
     number: ["رقم\\s*(?:ال)?عرض", "quot(?:e|ation)\\s*(?:No\\.?|#|Number)"], numPat: "[0-9A-Za-z\\-\\/]{3,25}", party: ["العميل", "اسم\\s*العميل", "مقدم\\s*العرض\\s*له", "client", "customer"],
     amount: /(?:الإجمالي|المجموع|إجمالي\s*العرض|grand\s*total|total)[^0-9]{0,25}([0-9][0-9,\.]{1,})/i },
