@@ -821,7 +821,7 @@
   function isPersonType(v) { return entityTypeValue(v) === "individual"; }
 
   var ORG_PROFILE_FIELDS = ["entity_type", "legal_name", "cr_number", "vat_number", "unified_number",
-    "license_number", "national_address", "phone", "email", "website", "iban", "bank_name", "account_name", "notes"];
+    "license_number", "national_address", "phone", "email", "website", "account_number", "iban", "bank_name", "account_name", "notes"];
 
   /* الأقسام: المالك/المشرف/الإدارة يرون كل شيء؛ الباقون بحسب خريطة department_services في القاعدة */
   var DEPARTMENTS = [

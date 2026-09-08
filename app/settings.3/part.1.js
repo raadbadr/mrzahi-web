@@ -964,5 +964,5 @@
       /* ---------- بطاقة المنشأة: بيانات تخدم كل القطاعات ---------- */
       var OP_FIELDS = { opLegalName: "legal_name", opCr: "cr_number", opVat: "vat_number", opUnified: "unified_number",
         opLicense: "license_number", opPhone: "phone", opEmail: "email", opWebsite: "website",
-        opBank: "bank_name", opIban: "iban", opAccountName: "account_name" };
+        opBank: "bank_name", opAccountNumber: "account_number", opIban: "iban", opAccountName: "account_name" };
 

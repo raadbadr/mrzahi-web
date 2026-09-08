@@ -151,6 +151,7 @@ function profileUpdates(kind, details, shortAddress) {
   if (details.iban) out.iban = String(details.iban).replace(/\s+/g, "");
   if (details.bank_name) out.bank_name = details.bank_name;
   if (details.account_name) out.account_name = details.account_name;
+  if (details.account_number) out.account_number = details.account_number;
   const legalName = details.taxpayer_name || details.company_name || details.establishment_name;
   if (legalName) out.legal_name = legalName;
   if (shortAddress) out.national_address_short = shortAddress;
@@ -169,6 +170,12 @@ export function clean(out) {
     detailLabels[spec.key] = { ar: spec.ar, en: spec.en };
     const value = sanitizeDetail(spec, rawDetails[spec.key]);
     if (value != null) details[spec.key] = value;
+  }
+  /* شهادة الحساب: رقم الحساب لم يقرا نصا لكن الآيبان بنيته الرسمية SA + رقمي تحقق
+     + رقم بنك رقمين + رقم حساب 18 رقما (ISO 13616) — يستخرج منه بدل تركه فارغا. */
+  if (kind === "bank_certificate" && !details.account_number && details.iban) {
+    const digits = String(details.iban).replace(/\s+/g, "").slice(2);
+    if (/^\d{22}$/.test(digits)) details.account_number = digits.slice(4);
   }
   return {
     kind,
