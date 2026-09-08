@@ -341,8 +341,12 @@
             ? esc(app.fmtAmount(Number(String(raw).replace(/[^0-9.\-]/g, "")))) +
               ' <span class="sar-symbol" aria-label="ريال سعودي"></span>'
             : esc(value);
-          return '<div class="detail-row"><span class="detail-key">' + esc(detailLabel(k, labels)) + "</span>" +
-                 '<span class="detail-val"' + (ltr ? ' dir="ltr"' : ' dir="auto"') + ">" + shown + "</span></div>";
+          /* الرقم الذي يقرؤه المحلل قابل للتصحيح بيده قبل الحفظ وبعده */
+          return '<div class="detail-row"><label class="detail-key" for="dtl_' + esc(k) + '">' + esc(detailLabel(k, labels)) + "</label>" +
+                 '<input class="detail-val detail-input" id="dtl_' + esc(k) + '" data-detail-key="' + esc(k) + '"' +
+                 (ltr ? ' dir="ltr" inputmode="' + (isDateValue(raw) ? "numeric" : "text") + '"' : ' dir="auto"') +
+                 ' value="' + esc(String(raw)) + '">' +
+                 (money ? ' <span class="sar-symbol" aria-label="ريال سعودي"></span>' : "") + "</div>";
         }).join("");
       }
 
@@ -871,6 +875,14 @@
           btn.setAttribute("aria-expanded", row.hidden ? "false" : "true");
         });
         $("filterKind").addEventListener("change", function () { state.kind = this.value; render(); });
+        /* تعديل اي رقم قرأه المحلل: يكتب في الورقة كما يكتبه صاحبها */
+        $("docDetailRows").addEventListener("input", function (ev) {
+          var el = ev.target.closest ? ev.target.closest("[data-detail-key]") : null;
+          if (!el) return;
+          var key = el.getAttribute("data-detail-key");
+          if (!state.details) state.details = {};
+          state.details[key] = String(el.value || "").trim();
+        });
         $("filterSearch").addEventListener("input", function () { state.search = this.value.trim(); render(); });
         $("papersBody").addEventListener("click", function (e) {
           var btn = e.target.closest("[data-paper-details]");

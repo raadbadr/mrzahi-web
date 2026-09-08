@@ -480,6 +480,14 @@
     .detail-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .6rem;
       padding: .45rem .6rem; border-radius: 10px; background: var(--glass); border: 1px solid var(--glass-border); }
     .detail-key { color: var(--text-secondary); font-size: .78rem; font-weight: 600; }
+    /* قيمة قابلة للتصحيح بمظهر النص لا بمظهر الحقل، فلا يتغير شكل البطاقة */
+    input.detail-input {
+      border: 1px solid transparent; border-radius: 8px; background: transparent; padding: .15rem .35rem;
+      font: inherit; font-size: .85rem; font-weight: 600; color: var(--text-primary);
+      min-width: 6rem; max-width: 100%; flex: 1 1 8rem; -webkit-appearance: none; appearance: none;
+    }
+    input.detail-input:hover { border-color: var(--glass-border); }
+    input.detail-input:focus { border-color: var(--primary); background: var(--glass); outline: none; }
     .detail-val { color: var(--text-primary); font-size: .85rem; font-weight: 600;
       overflow-wrap: anywhere; white-space: normal; min-width: 0; }
     .detail-val .was { color: var(--text-tertiary); font-weight: 600; }
