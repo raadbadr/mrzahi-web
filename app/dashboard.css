@@ -290,6 +290,12 @@
     .platform-stat-card:hover::after {
       transform: translateX(100%);
     }
+    /* المربع الذي ينقل إلى قائمته يقول ذلك بالمؤشر وحده: لا شكل جديد */
+    .platform-stat-card.is-link { cursor: pointer; }
+    .platform-stat-card.is-link:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 3px;
+    }
     [data-theme="dark"] .platform-stat-card:hover {
       box-shadow: 0 20px 60px rgba(0, 160, 210, 0.3), 0 0 50px rgba(0, 160, 210, 0.2);
     }

@@ -175,6 +175,7 @@
           var label = card.querySelector(".platform-stat-label");
           var word = tile.label && (tile.label[l] || tile.label.ar);
           if (label && word && label.textContent !== word) { label.textContent = word; label.removeAttribute("data-i18n"); }
+          if (tile.metric && card.getAttribute("data-metric") !== tile.metric) card.setAttribute("data-metric", tile.metric);
           var path = card.querySelector(".platform-stat-icon path");
           var d = TILE_ICONS[tile.icon];
           if (path && d && path.getAttribute("d") !== d) path.setAttribute("d", d);
@@ -366,6 +367,30 @@
       });
       $("filterTracker").addEventListener("change", function () { state.filters.tracker = this.value; loadItems(); });
       $("filterStatus").addEventListener("change", function () { state.filters.status = this.value; loadItems(); });
+
+      /* الضغط على مربع «العناصر المفتوحة» ينقل إلى قائمتها مفلترة (أمر المهندس رعد) */
+      function openTileGo() {
+        state.filters.status = "open";
+        var sel = $("filterStatus");
+        if (sel) sel.value = "open";
+        loadItems();
+        var panel = $("listPanel");
+        if (panel) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      var statsSection = document.querySelector(".stats-section");
+      if (statsSection) {
+        statsSection.addEventListener("click", function (ev) {
+          var card = ev.target.closest(".platform-stat-card.is-link");
+          if (card) openTileGo();
+        });
+        statsSection.addEventListener("keydown", function (ev) {
+          if (ev.key !== "Enter" && ev.key !== " ") return;
+          var card = ev.target.closest(".platform-stat-card.is-link");
+          if (!card) return;
+          ev.preventDefault();
+          openTileGo();
+        });
+      }
       $("filterSearch").addEventListener("input", function () {
         var v = this.value;
         if (searchTimer) clearTimeout(searchTimer);

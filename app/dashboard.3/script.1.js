@@ -729,7 +729,21 @@
 
       function statsReady() {
         var sec = document.querySelector(".stats-section");
-        if (sec) sec.hidden = false;
+        if (!sec) return;
+        /* مربع «العناصر المفتوحة» مدخل إلى قائمتها لا رقم صامت (أمر المهندس رعد):
+           يعلم هنا لأن مقياس المربع قد يتغير بتغير الواجهة. */
+        sec.querySelectorAll(".platform-stat-card").forEach(function (card) {
+          var on = card.getAttribute("data-metric") === "count.open";
+          card.classList.toggle("is-link", on);
+          if (on) {
+            card.setAttribute("role", "button");
+            card.setAttribute("tabindex", "0");
+          } else {
+            card.removeAttribute("role");
+            card.removeAttribute("tabindex");
+          }
+        });
+        sec.hidden = false;
       }
 
       function layoutDashboard() {
@@ -744,15 +758,13 @@
         grid.className = "dash-grid";
         var mainCol = document.createElement("div");
         mainCol.className = "dash-main";
-        var sideCol = document.createElement("aside");
-        sideCol.className = "dash-side";
 
         /* بطاقة الخدمات فوق القائمة */
         var services = document.createElement("div");
         services.className = "content";
         services.innerHTML = "<h2>" + esc(T("servicesTitle")) + '</h2><div class="svc-grid">' + buildServices() + "</div>";
 
-        /* التقويم يخرج من التبويبات ويظهر دائما في العمود الجانبي */
+        /* التقويم يخرج من التبويبات ويظهر دائما بعرض الصفحة تحت المربعات */
         var calCard = document.createElement("div");
         calCard.className = "content cal-card";
         /* بلا عنوان للبطاقة: التقويم يعرف نفسه (أمر المهندس رعد) */
@@ -782,26 +794,17 @@
         else if (!state.viewType) { addChart("violationsChart"); addChart("casesChart"); }
 
         calCard.appendChild(calendar);
-        if (!state.viewType) {
-          /* الرئيسية: التقويم بكامل العرض، ثم الخدمات متجاورة تحته، ثم القائمة */
-          grid.classList.add("dash-grid--single");
-          /* التقويم أول اللوحة بعرض الصفحة كاملا (أمر المهندس رعد)، لا داخل العمود */
-          calCard.classList.add("cal-card--top");
-          mainCol.appendChild(services);
-          mainCol.appendChild(main);
-        } else {
-          /* القضايا والمخالفات: التقويم نفسه الكبير أول الصفحة بعرضها (أمر المهندس رعد)، ثم القائمة */
-          calCard.classList.add("cal-card--top");
-          mainCol.appendChild(main);
-        }
-        /* لوحة التحكم الرئيسية: المربعات الأربعة أول شيء فوق بعرض الصفحة */
-        if (stats) {
-          if (!state.viewType) { stats.classList.add("stats-top"); dash.insertBefore(stats, dash.firstChild); }
-          else sideCol.appendChild(stats);
-        }
+        /* التقويم أول اللوحة بعرض الصفحة كاملا (أمر المهندس رعد)، لا داخل عمود */
+        calCard.classList.add("cal-card--top");
+        /* المربعات تتصدر كل الشاشات، فلم يبق للعمود الجانبي ساكن: عمود واحد */
+        grid.classList.add("dash-grid--single");
+        /* الرئيسية وحدها: الخدمات متجاورة فوق القائمة */
+        if (!state.viewType) mainCol.appendChild(services);
+        mainCol.appendChild(main);
+        /* المربعات الأربعة أول شيء فوق بعرض الصفحة، في كل شاشة (أمر المهندس رعد) */
+        if (stats) { stats.classList.add("stats-top"); dash.insertBefore(stats, dash.firstChild); }
 
         grid.appendChild(mainCol);
-        if (state.viewType) grid.appendChild(sideCol);
 
         /* الخط الزمني يتصدر اللوحة بعرض الصفحة (وبعد المؤشرات في لوحتي القضايا والمخالفات) */
         var timeline = document.createElement("div");
@@ -809,7 +812,7 @@
         timeline.id = "timelineCard";
         timeline.hidden = true;   /* يظهر مع أول رسم له */
         dash.insertBefore(timeline, grid);
-        /* الرئيسية: المربعات الأربعة أولا ثم التقويم تحتها مباشرة (أمر المهندس رعد)؛ بقية الصفحات: التقويم أولا */
+        /* المربعات أولا ثم التقويم تحتها مباشرة، في كل الشاشات (أمر المهندس رعد) */
         var statsTop = dash.querySelector(".stats-section.stats-top");
         /* الفلاتر للرئيسية وحدها: تخفى هنا لا عند تحميل السكربت، لأن viewType
            لا يعرف إلا بعد قراءة ?type= من الرابط. */
