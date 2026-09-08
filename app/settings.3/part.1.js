@@ -719,7 +719,7 @@
         var on = !!(app.profile && app.profile.storage_mode === "drive");
         box.checked = on && available;
         box.disabled = !available;
-        status.textContent = !available ? t("storageDriveUnavailable") : (on ? t("storageDriveOn") : t("storageDriveOff"));
+        status.textContent = !available ? t("storageDriveUnavailable") : (on ? "" : t("storageDriveOff"));
         var row = el("storageDriveRow");
         if (row) row.classList.toggle("is-on", box.checked);
         var link = el("storageDriveFolderLink");
