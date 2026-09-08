@@ -951,6 +951,35 @@
     });
   }
 
+  /* الانضمام الى حساب قائم: من لم تصله دعوة يكتب رقم الحساب فيصل صاحبه طلب.
+     كل شيء يمر بدوال القاعدة، فلا يقرا احد طلبات غيره ولا يدخل حسابا بلا اذن. */
+  function requestJoinOrg(code, note) {
+    return run(function (client) {
+      return client.rpc("request_join_org", { p_code: String(code || "").trim(), p_note: note || null }).then(unwrap);
+    });
+  }
+
+  function myJoinRequests() {
+    return run(function (client) {
+      return client.rpc("my_join_requests").then(unwrap);
+    });
+  }
+
+  function orgJoinRequests() {
+    return run(function (client) {
+      var orgId = requireOrg();
+      return client.rpc("org_join_requests", { p_org: orgId }).then(unwrap);
+    });
+  }
+
+  function decideJoinRequest(id, accept, memberRole) {
+    return run(function (client) {
+      return client.rpc("decide_join_request", {
+        p_id: id, p_accept: !!accept, p_role: memberRole === "admin" ? "admin" : "member"
+      }).then(unwrap);
+    });
+  }
+
   function cancelInvitation(id) {
     return run(function (client) {
       var orgId = requireOrg();

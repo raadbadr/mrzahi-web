@@ -759,6 +759,15 @@
     "body .dash-side .content,body .dash-main .content{margin-bottom:0}",
     "body .invite-block,body .attach-block{margin-top:var(--gap)}",
     "body .waitlist-form+.waitlist-form,body .waitlist-form+.chat-options,body .chat-options+.waitlist-form,body .waitlist-form+.platform-stat-detail,body .waitlist-form+details{margin-top:.75rem}",
+    /* القائمة المنسدلة يرسمها النظام لا الصفحة: بلا لون صريح يرث الخيار نص
+       الحقل الفاتح على خلفية النظام البيضاء، فتظهر اللائحة بيضاء فارغة ولا
+       يهتدي المستخدم إلا بتحريك الأسهم. الاصلاح على مستويين لان بعض المتصفحات
+       (Chrome و Safari على macOS) لا تلون option اطلاقا: color-scheme يخبر
+       النظام بسمة الصفحة فيرسم القائمة كلها بالوانها، والقاعدة الصريحة تكفي
+       من يلون option (Chrome و Firefox على Windows و Linux). */
+    ":root[data-theme=\"dark\"]{color-scheme:dark}",
+    ":root[data-theme=\"light\"]{color-scheme:light}",
+    "body select option,body select optgroup{color:var(--text-primary);background:var(--bg-mid)}",
     "body [hidden]{display:none!important}",
     "body .content>*+*{margin-top:.75rem}",
     "body .content>h2+*{margin-top:0}",

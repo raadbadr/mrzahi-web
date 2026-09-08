@@ -15,9 +15,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Monoton&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/header.css?v=51">
-  <link rel="stylesheet" href="/footer.css?v=51">
-  <link rel="stylesheet" href="/app/dashboard.css?v=51">
+  <link rel="stylesheet" href="/header.css?v=54">
+  <link rel="stylesheet" href="/footer.css?v=54">
+  <link rel="stylesheet" href="/app/dashboard.css?v=54">
 </head>
 <body class="has-site-header">
   <header class="site-header">
@@ -126,6 +126,15 @@
         <button type="submit" class="waitlist-btn" data-i18n="newOrgSubmit">إنشاء</button>
       </form>
       <p class="waitlist-msg" id="createOrgMsg" hidden role="status" aria-live="polite"></p>
+
+      <!-- من لم تصله دعوة له باب اخر: رقم الحساب يصل صاحبه طلبا يقبله او يرفضه -->
+      <h3 data-i18n="joinTitle">أو انضم إلى حساب قائم</h3>
+      <p class="inline-hint" data-i18n="joinIntro">إن كان لك عمل في شركة مسجلة هنا، اكتب رقم حسابها وسيصل صاحبه طلبك.</p>
+      <form class="waitlist-form" id="joinOrgForm" novalidate>
+        <input type="text" class="waitlist-input" id="joinOrgCode" maxlength="40" dir="ltr" autocomplete="off" data-i18n-placeholder="joinCodePlaceholder" placeholder="رقم الحساب">
+        <button type="submit" class="waitlist-btn" data-i18n="joinSubmit">إرسال الطلب</button>
+      </form>
+      <p class="waitlist-msg" id="joinOrgMsg" hidden role="status" aria-live="polite"></p>
     </div>
 
     <div id="dashboard" hidden>
@@ -419,12 +428,12 @@
   </div>
 
 
-  <script src="/app/dashboard.1.js?v=51"></script>
-  <script src="/app/dashboard.2.js?v=51"></script>
-  <script src="/app/dashboard.3.js?v=51"></script>
+  <script src="/app/dashboard.1.js?v=54"></script>
+  <script src="/app/dashboard.2.js?v=54"></script>
+  <script src="/app/dashboard.3.js?v=54"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="/app.js?v=51" defer></script>
-<script src="/app/common.js?v=51" defer></script>
-<script src="/brand-logo.js?v=51" defer></script>
+<script src="/app.js?v=54" defer></script>
+<script src="/app/common.js?v=54" defer></script>
+<script src="/brand-logo.js?v=54" defer></script>
 </body>
 </html>

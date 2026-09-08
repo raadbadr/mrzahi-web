@@ -859,6 +859,7 @@
             if (typeof window.__fillOrgTypes === "function") window.__fillOrgTypes();
             if (typeof window.__renderPackCards === "function") window.__renderPackCards();
             if (typeof window.__dashDriveCheck === "function") window.__dashDriveCheck();
+            if (typeof window.__showPendingJoin === "function") window.__showPendingJoin();
             return;
           }
           state.org = app.org;
@@ -935,6 +936,21 @@
         var clean = String(name || "").trim();
         if (!clean) { setMsg(msgId, T("orgNameRequired"), "error"); return; }
         clearMsg(msgId);
+        /* الشخص يدخل بنقرة واحدة (امر المهندس رعد: «ترى شخص»): لا حوار اوراق
+           ولا رقم هوية ولا تاريخ. اوراقه يضيفها متى شاء من صفحة المستندات. */
+        if (app.isPersonType && app.isPersonType(type)) {
+          guard(function () {
+            return app.createOrg(clean, type).then(function () {
+              var wanted = window.__wantedPack || null;
+              var after = wanted && app.setOrgPack ? app.setOrgPack(wanted).catch(function () { return null; }) : Promise.resolve(null);
+              return after.then(function () {
+                toast("orgCreated");
+                window.location.reload();
+              });
+            });
+          }).catch(function (err) { fail(err, msgId); });
+          return;
+        }
         /* لا جهة بلا مستندها الرسمي: الحوار المشترك يطلب رقم السجل/الرخصة/الهوية وتاريخ انتهائه ثم ينشئ */
         if (app.openNewOrgDialog) {
           app.openNewOrgDialog();

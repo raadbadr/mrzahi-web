@@ -425,7 +425,7 @@
   function loadOrgs(client, user) {
     /* كل جهة هو عضو نشط فيها: التي يملكها والتي دعي إليها سواء، ومعها نوعها */
     return client.from("org_members")
-      .select("org_id, role, status, organizations(id,name,name_en,plan_code,plan_expires_at,org_profiles(entity_type))")
+      .select("org_id, role, status, organizations(id,name,name_en,org_number,plan_code,plan_expires_at,org_profiles(entity_type))")
       .eq("user_id", user.id)
       .eq("status", "active")
       .then(unwrap)
@@ -434,19 +434,20 @@
           var o = r.organizations;
           var prof = o.org_profiles;
           if (Array.isArray(prof)) prof = prof[0];
-          return { id: o.id, name: o.name, name_en: o.name_en || null, plan_code: o.plan_code, plan_expires_at: o.plan_expires_at,
+          return { id: o.id, name: o.name, name_en: o.name_en || null, org_number: o.org_number || null,
+                   plan_code: o.plan_code, plan_expires_at: o.plan_expires_at,
                    role: r.role, entity_type: (prof && prof.entity_type) || null };
         });
       })
       .catch(function () {
         /* لو تعذر ضم بطاقة الجهة لا نفقد قائمة الحسابات */
         return client.from("org_members")
-          .select("org_id, role, status, organizations(id,name,name_en,plan_code,plan_expires_at)")
+          .select("org_id, role, status, organizations(id,name,name_en,org_number,plan_code,plan_expires_at)")
           .eq("user_id", user.id).eq("status", "active").then(unwrap)
           .then(function (rows) {
             return (rows || []).filter(function (r) { return r.organizations; }).map(function (r) {
               var o = r.organizations;
-              return { id: o.id, name: o.name, name_en: o.name_en || null, plan_code: o.plan_code, plan_expires_at: o.plan_expires_at, role: r.role, entity_type: null };
+              return { id: o.id, name: o.name, name_en: o.name_en || null, org_number: o.org_number || null, plan_code: o.plan_code, plan_expires_at: o.plan_expires_at, role: r.role, entity_type: null };
             });
           });
       });

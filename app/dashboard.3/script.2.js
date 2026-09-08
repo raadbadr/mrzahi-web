@@ -15,6 +15,38 @@
         createOrgFlow($("createOrgName").value, "createOrgMsg", sel ? sel.value : "company");
       });
 
+      /* الانضمام الى حساب قائم: رقم الحساب يصل صاحبه طلبا، وهو وحده من يقبل.
+         (امر المهندس رعد: «ممكن يكون حاب ينضم لشركة موجودة اصلا») */
+      $("joinOrgForm").addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var code = String($("joinOrgCode").value || "").trim();
+        if (!code) { setMsg("joinOrgMsg", T("joinCodeRequired"), "error"); return; }
+        clearMsg("joinOrgMsg");
+        var btn = this.querySelector('button[type="submit"]');
+        if (btn) btn.disabled = true;
+        app.requestJoinOrg(code).then(function (res) {
+          if (btn) btn.disabled = false;
+          $("joinOrgCode").value = "";
+          setMsg("joinOrgMsg", T("joinPending").replace("{org}", (res && res.org_name) || ""), "ok");
+        }).catch(function (err) {
+          if (btn) btn.disabled = false;
+          var m = String((err && err.message) || "");
+          if (/ORG_NOT_FOUND/.test(m)) setMsg("joinOrgMsg", T("joinNotFound"), "error");
+          else if (/ALREADY_MEMBER/.test(m)) setMsg("joinOrgMsg", T("joinAlready"), "error");
+          else if (/CODE_REQUIRED/.test(m)) setMsg("joinOrgMsg", T("joinCodeRequired"), "error");
+          else fail(err, "joinOrgMsg");
+        });
+      });
+
+      /* الطلب المعلق يظل معروضا حتى يبت فيه، فلا يعيد صاحبه ارساله كل مرة */
+      window.__showPendingJoin = function () {
+        if (!app || !app.myJoinRequests) return;
+        app.myJoinRequests().then(function (rows) {
+          var open = (rows || []).filter(function (r) { return r.status === "pending"; })[0];
+          if (open) setMsg("joinOrgMsg", T("joinPending").replace("{org}", open.org_name || ""), "ok");
+        }).catch(function () { /* لا طلب يعرض */ });
+      };
+
       /* بطاقات الواجهات: الاختيار يحدد نوع الحساب المقترح ويكتب على الحساب بعد إنشائه */
       window.__renderPackCards = function () {
         var box = $("createOrgPacks"), line = $("createOrgPackLine");
@@ -113,6 +145,10 @@
         if (keep) sel.value = keep;
         var input = $("createOrgName");
         if (input) input.placeholder = T(app.isPersonType(sel.value) ? "selfNamePlaceholder" : "newOrgPlaceholder");
+        /* النوع الاول شخص: اسمه من ملفه حاضر منذ اول رسم، فيبدا بنقرة لا بكتابة */
+        if (input && !String(input.value || "").trim() && app.isPersonType(sel.value) && app.profile && app.profile.full_name) {
+          input.value = app.profile.full_name;
+        }
       };
       $("createOrgType").addEventListener("change", function () {
         /* تغيير النوع يعيد رسم بطاقات الواجهات، فلا تبقى واجهة لا تناسب النوع. */

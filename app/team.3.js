@@ -7,7 +7,7 @@
       var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       var app = null;
-      var state = { loaded: false, workLoaded: false, error: null, canManage: false, members: [], invitations: [], limits: {}, work: [], roles: {}, filterUser: null, matrixDirty: true, packs: [] };
+      var state = { loaded: false, workLoaded: false, error: null, canManage: false, members: [], invitations: [], joinRequests: [], limits: {}, work: [], roles: {}, filterUser: null, matrixDirty: true, packs: [] };
       /* بطاقة العمل الواحدة: صفوف مفتوحة، شرائح مشغولة، آخر ناتج للشريط والمصفوفة، والقائمة المعتمة الوحيدة */
       var openRows = {}, pending = {}, itemVer = {}, lastStripHtml = "", lastMatrixSig = "", roleMenu = null, menuAnchor = null, suppressClick = false, pressTimer = null;
       var SVG_MORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5 4.5 8l1.4-1.4L12 12.7l6.1-6.1L19.5 8z"/></svg>';
@@ -338,6 +338,7 @@
           limitMsg.hidden = true;
         }
         renderInvitations();
+        renderJoinRequests();
       }
 
       function renderInvitations() {
@@ -352,6 +353,47 @@
         }).join("");
         list.hidden = !state.invitations.length;
         show("invitationsEmpty", !state.invitations.length);
+      }
+
+      /* طلبات الانضمام: صف لكل طالب باسمه وبريده، وقراره بيد المالك او المدير */
+      function renderJoinRequests() {
+        var list = $("joinReqList");
+        if (!list) return;
+        var line = $("orgCodeLine"), code = app && app.org ? app.org.org_number : null;
+        if (line) {
+          if (state.canManage && code) { line.textContent = tf("orgCodeLine", { code: code }); line.hidden = false; }
+          else line.hidden = true;
+        }
+        if (!state.canManage) { list.hidden = true; show("joinReqEmpty", false); return; }
+        list.innerHTML = state.joinRequests.map(function (r) {
+          var who = String(r.full_name || r.email || "");
+          return '<div class="platform-stat-detail-row">' +
+                   "<span>" + esc(who) + (r.email && r.full_name ? ' · <span dir="ltr">' + emailHtml(String(r.email)) + "</span>" : "") +
+                   " · " + esc(fmtDate(r.created_at) || "-") + "</span>" +
+                   '<span class="platform-stat-detail-val">' +
+                     '<button type="button" class="chat-option-btn" data-join-accept="' + esc(r.id) + '" data-name="' + esc(who) + '">' + esc(t("joinReqAccept")) + "</button> " +
+                     '<button type="button" class="chat-option-btn" data-join-reject="' + esc(r.id) + '" data-name="' + esc(who) + '">' + esc(t("joinReqReject")) + "</button>" +
+                   "</span></div>";
+        }).join("");
+        list.hidden = !state.joinRequests.length;
+        show("joinReqEmpty", !state.joinRequests.length);
+      }
+
+      function onJoinRequestsClick(ev) {
+        var btn = ev.target.closest("[data-join-accept], [data-join-reject]");
+        if (!btn) return;
+        var accept = btn.hasAttribute("data-join-accept");
+        var id = btn.getAttribute(accept ? "data-join-accept" : "data-join-reject");
+        var who = btn.getAttribute("data-name") || "";
+        if (!accept && !window.confirm(tf("joinReqConfirmReject", { name: who }))) return;
+        btn.disabled = true;
+        app.decideJoinRequest(id, accept).then(function () {
+          toast(t(accept ? "joinReqAccepted" : "joinReqRejected"), "success");
+          return loadAll();
+        }).catch(function (err) {
+          btn.disabled = false;
+          toast(errorMessage(err), "error");
+        });
       }
 
       function onInvitationsClick(ev) {
@@ -1047,12 +1089,14 @@
           app.listMembers(),
           app.planLimits().catch(function () { return {}; }),
           state.canManage ? app.listInvitations().catch(function () { return []; }) : Promise.resolve([]),
-          state.canManage && app.listPacks ? app.listPacks().catch(function () { return []; }) : Promise.resolve([])
+          state.canManage && app.listPacks ? app.listPacks().catch(function () { return []; }) : Promise.resolve([]),
+          state.canManage && app.orgJoinRequests ? app.orgJoinRequests().catch(function () { return []; }) : Promise.resolve([])
         ]).then(function (res) {
           state.members = res[0] || [];
           state.limits = res[1] || {};
           state.invitations = res[2] || [];
           state.packs = res[3] || [];
+          state.joinRequests = res[4] || [];
           state.loaded = true;
           state.error = null;
           render();
@@ -1089,6 +1133,7 @@
         $("membersGrid").addEventListener("change", onMembersChange);
         $("membersGrid").addEventListener("change", onPersonChange);
         $("invitationsList").addEventListener("click", onInvitationsClick);
+        if ($("joinReqList")) $("joinReqList").addEventListener("click", onJoinRequestsClick);
         function memberColumns() {
           return [
             { label: t("membersTitle"), get: memberName },

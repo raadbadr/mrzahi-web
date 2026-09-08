@@ -54,6 +54,10 @@
   app.listInvitations = listInvitations;
   app.inviteMember = inviteMember;
   app.cancelInvitation = cancelInvitation;
+  app.requestJoinOrg = requestJoinOrg;
+  app.myJoinRequests = myJoinRequests;
+  app.orgJoinRequests = orgJoinRequests;
+  app.decideJoinRequest = decideJoinRequest;
   app.teamWorkItems = teamWorkItems;
   app.assignItem = assignItem;
   app.listTeamMessages = listTeamMessages;
@@ -517,7 +521,7 @@
     gate.innerHTML =
       '<div class="app-gate-card" role="dialog" aria-modal="true">' +
         "<h2>" + escapeHtml(t.title) + "</h2><p>" + escapeHtml(t.hint) + "</p>" +
-        "<label>" + escapeHtml(rt.fileFirst) +
+        '<label id="newOrgFileLabel">' + escapeHtml(rt.fileFirst) +
           '<input type="file" id="newOrgFile" accept=".pdf,image/*"></label>' +
         '<div id="newOrgRead" style="font-size:.85rem;color:var(--text-secondary);margin:-.4rem 0 .8rem"></div>' +
         "<label>" + escapeHtml(t.type) +
@@ -529,10 +533,10 @@
         '<label id="newOrgLabelEn">' + escapeHtml(t.nameEn) +
           '<input type="text" id="newOrgInputEn" maxlength="120" dir="ltr" autocomplete="organization"></label>' +
         '<p class="app-gate-hint" style="font-size:.8rem;color:var(--text-secondary);margin:-.5rem 0 .6rem">' + escapeHtml(t.oneName) + "</p>" +
-        '<p class="app-gate-hint" style="font-size:.85rem;color:var(--text-secondary);margin:.25rem 0 .5rem">' + escapeHtml(rt.gate) + "</p>" +
+        '<p class="app-gate-hint" id="newOrgGateHint" style="font-size:.85rem;color:var(--text-secondary);margin:.25rem 0 .5rem">' + escapeHtml(rt.gate) + "</p>" +
         '<label id="newOrgRegLabel">' + escapeHtml(rt.commercial_register) +
           '<input type="text" id="newOrgReg" maxlength="40" dir="ltr" inputmode="numeric" autocomplete="off"></label>' +
-        "<label>" + escapeHtml(rt.expiry) +
+        '<label id="newOrgExpiryLabel">' + escapeHtml(rt.expiry) +
           '<input type="text" id="newOrgExpiry" dir="ltr" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="' + escapeHtml(rt.expiryHint) + '"></label>' +
         '<div id="newOrgExpiryEcho" style="font-size:.8rem;color:var(--text-secondary);margin:-.6rem 0 .8rem"></div>' +
 
@@ -550,9 +554,20 @@
     var nameLabel = document.getElementById("newOrgNameLabel");
     var regLabel = document.getElementById("newOrgRegLabel");
     var syncRegLabel = function () { if (regLabel) regLabel.childNodes[0].nodeValue = rt[registrationRule(typeSel ? typeSel.value : "company").kind]; };
+    /* الشخص يدخل بلا اوراق (امر المهندس رعد): لا رفع مستند ولا رقم هوية ولا
+       تاريخ انتهاء. الشركة والمؤسسة تبقى على قاعدتها: لا جهة بلا سجلها. */
+    var syncPersonFields = function () {
+      var person = isPersonType(typeSel ? typeSel.value : "company");
+      ["newOrgFileLabel", "newOrgRead", "newOrgGateHint", "newOrgRegLabel", "newOrgExpiryLabel", "newOrgExpiryEcho"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.hidden = person;
+      });
+    };
     syncRegLabel();
+    syncPersonFields();
     if (typeSel && nameLabel) typeSel.addEventListener("change", function () {
       syncRegLabel();
+      syncPersonFields();
       nameLabel.childNodes[0].nodeValue = isPersonType(typeSel.value) ? t.nameSelf : t.name;
       if (isPersonType(typeSel.value) && !String(input.value || "").trim() && app.profile && app.profile.full_name) {
         input.value = app.profile.full_name;
@@ -633,7 +648,10 @@
       if (expiryRaw && !expiry) { err.textContent = rt.expiryBad; document.getElementById("newOrgExpiry").focus(); return; }
       var fileEl = document.getElementById("newOrgFile");
       var file = fileEl && fileEl.files && fileEl.files[0];
-      if (!registrationRule(type).pattern.test(reg)) { err.textContent = rt.invalid; document.getElementById("newOrgReg").focus(); return; }
+      /* الشخص بلا رقم يمر؛ وان كتب رقما تحقق منه كما هو */
+      if (!(isPersonType(type) && !reg) && !registrationRule(type).pattern.test(reg)) {
+        err.textContent = rt.invalid; document.getElementById("newOrgReg").focus(); return;
+      }
       err.textContent = "";
       var btn = this;
       btn.disabled = true;
@@ -904,6 +922,14 @@
     assigned: {
       ar: "أسندت إليك: {item}", en: "Assigned to you: {item}",
       fr: "Qui vous est assigné : {item}", ur: "آپ کے سپرد: {item}"
+    },
+    join_request: {
+      ar: "{actor} يطلب الانضمام إلى {org}", en: "{actor} asks to join {org}",
+      fr: "{actor} demande à rejoindre {org}", ur: "{actor} {org} میں شامل ہونا چاہتے ہیں"
+    },
+    join_accepted: {
+      ar: "تم قبول انضمامك إلى {org}", en: "Your request to join {org} was accepted",
+      fr: "Votre demande pour rejoindre {org} est acceptée", ur: "{org} میں شمولیت منظور ہو گئی"
     }
   };
 
@@ -921,7 +947,7 @@
     var p = n.payload || {};
     var kind = p.kind || "";
     if (kind === "team_message") return "/app/team.html?chat=" + encodeURIComponent(p.author_id || "");
-    if (kind === "invite") return "/app/team.html";
+    if (kind === "invite" || kind === "join_request" || kind === "join_accepted") return "/app/team.html";
     if (p.item_id) {
       var cat = String(p.category || p.item_category || "");
       var view = /مخالف/.test(cat) ? "?type=violations&" : (/قض|دعو/.test(cat) ? "?type=cases&" : "?");
