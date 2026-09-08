@@ -936,8 +936,9 @@
         var btn = el("signOutBtn");
         btn.disabled = true;
         btn.textContent = t("signingOut");
-        var go = function () { window.location.href = "/login.html"; };
-        try { localStorage.removeItem("tracker_org"); } catch (e) { /* ignore */ }
+        var forget = function () { var f = window.trackerApp && window.trackerApp.forgetDevice; if (f) f(); };
+        var go = function () { forget(); window.location.href = "/login.html"; };
+        forget();
         window.trackerAuth.signOut().then(go).catch(go);
       }
 

@@ -4,13 +4,19 @@
       const div = document.createElement("div");
       div.className = "chat-msg " + (isBot ? "bot" : "user");
       const content = document.createElement("div");
-      if (text.includes("MrZahi")) {
-        const logoHtml = '<img src="mrzahi-logo-full-dark.png?v=2" alt="MrZahi" class="brand-logo-inline brand-logo-inline--xs">';
-        const parts = text.split("MrZahi");
-        content.innerHTML = parts.map((p, i) => p + (i < parts.length - 1 ? logoHtml : "")).join("");
-      } else {
-        content.textContent = text;
-      }
+      /* نص الرد يصل من الخادم، فلا يمر عبر innerHTML ابدا: تبنى الاجزاء نصا
+         بـ textContent وتدرج شارة العلامة بينها كعنصر img مستقل. الشكل نفسه. */
+      const parts = text.split("MrZahi");
+      parts.forEach((part, i) => {
+        if (part) content.appendChild(document.createTextNode(part));
+        if (i < parts.length - 1) {
+          const logo = document.createElement("img");
+          logo.src = "mrzahi-logo-full-dark.png?v=2";
+          logo.alt = "MrZahi";
+          logo.className = "brand-logo-inline brand-logo-inline--xs";
+          content.appendChild(logo);
+        }
+      });
       div.appendChild(content);
       if (options && isBot) {
         const opts = document.createElement("div");

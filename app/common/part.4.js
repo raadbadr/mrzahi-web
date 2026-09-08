@@ -757,6 +757,27 @@
            "</div>";
   }
 
+  /* الخروج لا يترك اثرا على الجهاز: النصوص المترجمة المخزنة تحمل عناوين عناصر
+     واسماء عملاء، ومعها معرف الحساب ومجلد Drive. تمسح كلها قبل انهاء الجلسة،
+     فجهاز مشترك في مكتب لا يبقى فيه اسم عميل بعد خروج صاحبه. */
+  /* يبقى تفضيلا العرض وحدهما: لا يحملان بيانات عميل، ومسحهما يقلب لغة
+     الشاشة وسمتها امام من يخرج، وهذا تغيير في السلوك لا علاقة له بالامان. */
+  var KEEP_ON_SIGNOUT = { tracker_lang: 1, tracker_theme: 1 };
+
+  function forgetDevice() {
+    try {
+      for (var i = localStorage.length - 1; i >= 0; i--) {
+        var k = localStorage.key(i);
+        if (!k || KEEP_ON_SIGNOUT[k]) continue;
+        if (k.indexOf("tracker_") === 0 || k.indexOf("mrzahi:") === 0 || k.indexOf("sb-") === 0) {
+          localStorage.removeItem(k);
+        }
+      }
+    } catch (e) { /* تخزين محجوب: لا شيء ليمسح */ }
+    try { sessionStorage.clear(); } catch (e) { /* تجاهل */ }
+  }
+  app.forgetDevice = forgetDevice;
+
   var topbarHtml = "";
 
   function renderTopbar() {
@@ -851,7 +872,8 @@
     var out = document.getElementById("topSignOut");
     if (out) out.addEventListener("click", function () {
       var auth = window.trackerAuth;
-      var done = function () { window.location.replace("/login"); };
+      var done = function () { forgetDevice(); window.location.replace("/login"); };
+      forgetDevice();
       if (auth && typeof auth.signOut === "function") auth.signOut().then(done, done);
       else done();
     });

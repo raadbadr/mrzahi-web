@@ -125,7 +125,9 @@
         }
       });
       $("signOutBtn").addEventListener("click", function () {
-        var go = function () { window.location.href = "/login.html"; };
+        var forget = function () { var f = window.trackerApp && window.trackerApp.forgetDevice; if (f) f(); };
+        var go = function () { forget(); window.location.href = "/login.html"; };
+        forget();
         if (window.trackerAuth && window.trackerAuth.signOut) window.trackerAuth.signOut().then(go, go);
         else go();
       });
