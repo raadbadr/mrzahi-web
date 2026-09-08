@@ -115,7 +115,8 @@
               window.history.replaceState(null, "", window.location.pathname + window.location.hash);
             }
           } catch (e) { /* تجاهل */ }
-          el("upgradePlan").addEventListener("change", renderUpgradePrice);
+          /* تغيير الباقة يعيد بناء المدد اولا: بعض الباقات سنوية فقط */
+          el("upgradePlan").addEventListener("change", function () { fillUpgradePeriod(); renderUpgradePrice(); });
           el("upgradePeriod").addEventListener("change", renderUpgradePrice);
           el("storageDriveToggle").addEventListener("change", onDriveToggle);
           document.addEventListener("tracker:drive", renderDriveSwitch);

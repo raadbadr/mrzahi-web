@@ -856,12 +856,20 @@
           : "";
       }
 
+      /* المدد المعروضة هي التي للباقة سعر فيها فعلا: باقة الشركات سنوية فقط،
+         فلو عرضنا لها «شهري» لظهر سعر فارغ ولانشا طلب بلا مبلغ. */
       function fillUpgradePeriod() {
-        var per = el("upgradePeriod");
-        if (!per || per.options.length) return;
-        per.innerHTML = '<option value="monthly">' + esc(t("periodMonthly")) + "</option>" +
-                        '<option value="yearly">' + esc(t("periodYearly")) + "</option>";
-        per.value = "yearly";
+        var per = el("upgradePeriod"), sel = el("upgradePlan");
+        if (!per) return;
+        var row = sel ? planRow(sel.value) : null;
+        var hasMonthly = !!(row && row.price_monthly_sar !== null && row.price_monthly_sar !== undefined);
+        var hasYearly = !!(row && row.price_yearly_sar !== null && row.price_yearly_sar !== undefined);
+        if (!row) { hasMonthly = true; hasYearly = true; }
+        var html = (hasMonthly ? '<option value="monthly">' + esc(t("periodMonthly")) + "</option>" : "") +
+                   (hasYearly ? '<option value="yearly">' + esc(t("periodYearly")) + "</option>" : "");
+        if (per.innerHTML !== html) per.innerHTML = html;
+        per.value = hasYearly ? "yearly" : "monthly";
+        per.disabled = !(hasMonthly && hasYearly);
       }
 
       /* الدفع داخل النظام: ينشأ الطلب في الوركر ثم يحول صاحبه إلى البوابة،

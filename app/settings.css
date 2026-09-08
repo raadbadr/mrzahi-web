@@ -480,6 +480,7 @@
     .drive-text { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
     .drive-title { font-weight: 600; line-height: 1.5; }
     .drive-note { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; }
+    .drive-note:empty { display: none; }   /* سطر فارغ لا يترك فجوة في الصف */
     .drive-folder {
       color: var(--primary); font-size: 0.9rem; text-decoration: none;
       white-space: normal; overflow-wrap: anywhere;
