@@ -423,6 +423,13 @@
       });
   }
 
+  /* عدد الملفات داخل مجلد الشركة في درايف، ليعرض في الإعدادات بلا خروج لدرايف */
+  function driveFolderFileCount(token, folderId) {
+    var q = "'" + driveEscape(folderId) + "' in parents and trashed=false";
+    return driveFetch(token, DRIVE_API + "/files?q=" + encodeURIComponent(q) + "&fields=files(id)&pageSize=1000&spaces=drive")
+      .then(function (data) { return (data && data.files ? data.files.length : 0); });
+  }
+
   /* مجلد «MrZahi/اسم الشركة» في درايف المستخدم، مع تخزين معرفه محليا */
   function driveFolderFor(token, orgId, orgName, fresh) {
     var key = "tracker_drive_folder:" + orgId;

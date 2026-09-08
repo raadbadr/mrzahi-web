@@ -154,6 +154,10 @@
   app.driveFolderCached = function () {
     try { var id = localStorage.getItem("tracker_drive_folder:" + requireOrg()); return id ? { id: id, url: "https://drive.google.com/drive/folders/" + id, path: DRIVE_ROOT_NAME + "/" + ((app.org && app.org.name) || "Company") } : null; } catch (e) { return null; }
   };
+  /* عدد الملفات في مجلد درايف الحالي، لعرضه في بطاقة الإعدادات بلا فتح درايف */
+  app.driveFolderFileCount = function (folderId) {
+    return driveAccessToken().then(function (token) { return driveFolderFileCount(token, folderId); });
+  };
   app.readDocumentFile = readDocumentFile;
   app.pickFromDrive = pickFromDrive;
   app.driveDownload = driveDownload;

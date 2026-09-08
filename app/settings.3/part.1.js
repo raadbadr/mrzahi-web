@@ -725,6 +725,17 @@
         var link = el("storageDriveFolderLink");
         var f = on && app.driveFolderCached ? app.driveFolderCached() : null;
         if (link) { link.hidden = !f; if (f) { link.href = f.url; link.textContent = f.path; link.title = t("storageDriveFolder"); } }
+        var countEl = el("storageDriveCount");
+        if (countEl) {
+          countEl.hidden = true;
+          if (f && app.driveFolderFileCount) {
+            app.driveFolderFileCount(f.id).then(function (n) {
+              if (!box.checked || el("storageDriveCount") !== countEl) return;
+              countEl.textContent = t("storageDriveCount").replace("{n}", String(n));
+              countEl.hidden = false;
+            }).catch(function () { /* المجلد فارغ أو تعذر العد: يبقى العدد مخفيا بلا رسالة خطأ */ });
+          }
+        }
       }
 
       /* التفويض يطلب بنقرة المستخدم نفسها، ولا يحفظ الخيار إلا بعد الإذن */
