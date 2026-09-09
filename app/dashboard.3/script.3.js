@@ -284,13 +284,14 @@
         box.textContent = "";
         box.hidden = assigneeHidden() || !state.members || state.members.length < 2;
         if (!box.hidden) {
+          /* لا كلمة داخل مجموعة الازرار: كل ما بداخلها زر ينقر ويفعل، تماما
+             كمجموعة الفلاتر بجانبها. معنى المجموعة في وصفها وتلميحها لا في
+             لافتة صماء يظنها المستخدم زرا (امر المهندس رعد 2026-09-09). */
           var list = document.createElement("div");
           list.className = "cal-modes";
           list.title = T("calAssignHint");
-          var label = document.createElement("span");
-          label.className = "cal-people-label";
-          label.textContent = T("fieldAssignee");
-          list.appendChild(label);
+          list.setAttribute("role", "group");
+          list.setAttribute("aria-label", T("fieldAssignee"));
           memberOptions().forEach(function (o) {
             var who = o.value || "none";
             var pill = document.createElement("button");
