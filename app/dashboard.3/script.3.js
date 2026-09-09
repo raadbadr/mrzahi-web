@@ -195,7 +195,8 @@
         return hp ? hp.day + " · " + d.getDate() : String(d.getDate());
       }
 
-      /* نصوص التنقل تتبع المدى، وزر المدى النشط يعلم */
+      /* «السابق» و«التالي» تبويبان جنب بعض بنص قصير ثابت، والمدى المقصود
+         يقوله تلميحهما: «الاسبوع السابق»، «اليوم التالي». */
       function syncCalNavLabels() {
         var z = calZoom();
         var pairs = [
@@ -204,9 +205,11 @@
         ];
         pairs.forEach(function (pair) {
           if (!pair[0]) return;
-          pair[0].setAttribute("data-i18n", pair[1]);
-          pair[0].textContent = T(pair[1]);
+          pair[0].title = T(pair[1]);
+          pair[0].setAttribute("aria-label", T(pair[1]));
         });
+        /* التبويب الضيق يقص كلمة طويلة في بعض اللغات، فالتلميح يحملها كاملة */
+        document.querySelectorAll(".cal-ctls .cal-mode").forEach(function (b) { b.title = b.textContent; });
         var box = $("calZoom");
         if (box) box.querySelectorAll("[data-cal-zoom]").forEach(function (b) {
           var on = b.getAttribute("data-cal-zoom") === z;
@@ -229,7 +232,7 @@
         return chip;
       }
 
-      /* في الاسبوع واليوم يتسع المكان للوقت، فيسبق العنوان */
+      /* في الاسبوع واليوم يتسع المكان للوقت، فيسبق العنوان، ويليه المسؤول */
       function calChipTimed(it) {
         var chip = calChip(it);
         var when = it.due_at && app.fmtDate ? app.fmtDate(it.due_at, { timeOnly: true }) : "";
@@ -239,7 +242,130 @@
           span.textContent = when;
           chip.insertBefore(span, chip.firstChild);
         }
+        var who = it.assignee_id && state.names ? state.names[it.assignee_id] : "";
+        if (who && !assigneeHidden()) {
+          var w = document.createElement("span");
+          w.className = "cal-chip-who";
+          w.textContent = who;
+          chip.appendChild(w);
+        }
         return chip;
+      }
+
+      /* واجهة تخفي حقل المسؤول (حزمة الشخص مثلا) لا شريط مسؤولين فيها */
+      function assigneeHidden() {
+        var cfg = app.packCfg ? app.packCfg("form") : null;
+        var h = cfg && Array.isArray(cfg.hide) ? cfg.hide : [];
+        return h.indexOf("assignee") !== -1;
+      }
+
+      /* شريط المسؤولين: امر المهندس رعد «نغير المسؤول عن المهمة او الكتلة
+         بطريقة السحب». اسماؤه من نفس قائمة النموذج، فلا يفترقان. */
+      function renderCalPeople() {
+        var box = $("calPeople");
+        if (!box) return;
+        box.textContent = "";
+        if (assigneeHidden() || !state.members || state.members.length < 2) { box.hidden = true; return; }
+        var hint = document.createElement("span");
+        hint.className = "cal-people-hint";
+        hint.textContent = T("calAssignHint");
+        box.appendChild(hint);
+        var list = document.createElement("div");
+        list.className = "cal-modes";
+        memberOptions().forEach(function (o) {
+          var pill = document.createElement("span");
+          pill.className = "cal-mode cal-person";
+          pill.dataset.user = o.value || "none";
+          pill.textContent = o.label;
+          pill.title = o.label;
+          list.appendChild(pill);
+        });
+        box.appendChild(list);
+        box.hidden = false;
+      }
+
+      /* ---------- محور الساعات ----------
+         عنوان الصف بنفس دالة وقت الشارة، فيتفق الصف مع ساعة الموعد في كل حال */
+      function hourLabel(ref, h) {
+        var d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate(), h, 0, 0, 0);
+        return app.fmtDate ? app.fmtDate(d, { timeOnly: true }) : pad(h) + ":00";
+      }
+
+      function calSlotTime(dayKey, hour, min) {
+        var p = String(dayKey).split("-");
+        return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]), hour || 0, min || 0, 0, 0);
+      }
+
+      /* نصف الساعة: اعلى الصف عند الدقيقة صفر، واسفله عند الثلاثين */
+      function slotMinutes(slot, y) {
+        var b = slot.getBoundingClientRect();
+        if (!b.height) return 0;
+        return (y - b.top) / b.height >= 0.5 ? 30 : 0;
+      }
+
+      function renderHourGrid(grid, r, todayKey) {
+        var byHour = {}, first = -1;
+        state.calItems.forEach(function (it) {
+          if (!it.due_at) return;
+          var d = new Date(it.due_at);
+          if (isNaN(d.getTime())) return;
+          (byHour[dateKey(d) + "#" + d.getHours()] = byHour[dateKey(d) + "#" + d.getHours()] || []).push(it);
+        });
+        Object.keys(byHour).forEach(function (k) {
+          byHour[k].sort(function (a, b) { return new Date(a.due_at) - new Date(b.due_at); });
+        });
+
+        var scroll = document.createElement("div");
+        scroll.className = "cal-hours";
+        var hg = document.createElement("div");
+        hg.className = "cal-hgrid" + (r.zoom === "week" ? " cal-hgrid--head" : "");
+        hg.style.setProperty("--cal-days", String(r.cells));
+
+        var days = [];
+        for (var i = 0; i < r.cells; i++) days.push(addDays(r.start, i));
+
+        if (r.zoom === "week") {
+          var corner = document.createElement("div");
+          corner.className = "cal-hcorner";
+          hg.appendChild(corner);
+          days.forEach(function (d) {
+            var head = document.createElement("div");
+            head.className = "cal-hhead" + (dateKey(d) === todayKey ? " is-today" : "");
+            head.textContent = T(DAY_KEYS[d.getDay()]) + " " + calDayNumber(d);
+            hg.appendChild(head);
+          });
+        }
+
+        for (var h = 0; h < 24; h++) {
+          var lab = document.createElement("div");
+          lab.className = "cal-htime";
+          lab.textContent = hourLabel(r.start, h);
+          hg.appendChild(lab);
+          for (var c = 0; c < days.length; c++) {
+            var key = dateKey(days[c]);
+            var slot = document.createElement("div");
+            slot.className = "cal-slot" + (key === todayKey ? " is-today" : "");
+            slot.dataset.day = key;
+            slot.dataset.hour = String(h);
+            var rows = byHour[key + "#" + h] || [];
+            if (rows.length && (first < 0 || h < first)) first = h;
+            rows.forEach(function (it) { slot.appendChild(calChipTimed(it)); });
+            hg.appendChild(slot);
+          }
+        }
+        scroll.appendChild(hg);
+        grid.appendChild(scroll);
+
+        /* التمرير الاول الى اول ساعة مشغولة (او السابعة صباحا): لا يعاد مع كل
+           تحديث فينتزع الشاشة من يد من يقرا، بل عند تغير المدى المعروض. */
+        var sig = r.zoom + "|" + dateKey(r.start) + "|" + (state.calFilter || "all");
+        if (state.calScrollSig === sig) { scroll.scrollTop = state.calScrollTop || 0; return; }
+        state.calScrollSig = sig;
+        var startHour = first >= 0 ? Math.max(0, first - 1) : 7;
+        var target = hg.querySelector('.cal-slot[data-hour="' + startHour + '"]');
+        var head = hg.querySelector(".cal-hhead");
+        if (target) scroll.scrollTop = Math.max(0, target.offsetTop - (head ? head.offsetHeight : 0));
+        state.calScrollTop = scroll.scrollTop;
       }
 
       function renderCalendar() {
@@ -250,8 +376,12 @@
            الوعد وتظهر «تعذر تحميل البيانات» في كل مرة. */
         if (!grid) return;
         var r = calRange();
+        /* موضع التمرير في محور الساعات يحفظ قبل المسح: التحديث بعد كل حفظ كان
+           يعيد الشبكة الى منتصف الليل تحت يد من يقرا. */
+        var keep = grid.querySelector(".cal-hours");
+        if (keep) state.calScrollTop = keep.scrollTop;
         grid.innerHTML = "";
-        grid.className = "cal-grid" + (r.zoom === "month" ? "" : " cal-grid--" + r.zoom);
+        grid.className = "cal-grid" + (r.zoom === "month" ? "" : " cal-grid--hours");
         $("calTitle").textContent = calHeadTitle(r);
         syncCalNavLabels();
 
@@ -269,34 +399,10 @@
         });
 
         var todayKey = dateKey(new Date());
+        renderCalPeople();
 
-        if (r.zoom !== "month") {
-          /* اسم اليوم داخل خليته لا في صف رؤوس منفصل: هكذا يصح العمود الواحد
-             على الجوال كما تصح السبعة على الحاسب. واليوم يقوله العنوان فوق. */
-          for (var j = 0; j < r.cells; j++) {
-            var dd = addDays(r.start, j);
-            var kk = dateKey(dd);
-            var wcell = document.createElement("div");
-            wcell.className = "cal-cell" + (kk === todayKey ? " is-today" : "");
-            wcell.dataset.day = kk;
-            if (r.zoom === "week") {
-              var wday = document.createElement("div");
-              wday.className = "cal-day";
-              wday.textContent = T(DAY_KEYS[dd.getDay()]) + " " + calDayNumber(dd);
-              wcell.appendChild(wday);
-            }
-            var rows = byDay[kk] || [];
-            rows.forEach(function (it) { wcell.appendChild(calChipTimed(it)); });
-            if (!rows.length && r.zoom === "day") {
-              var empty = document.createElement("div");
-              empty.className = "cal-empty";
-              empty.textContent = T("calDayEmpty");
-              wcell.appendChild(empty);
-            }
-            grid.appendChild(wcell);
-          }
-          return;
-        }
+        /* الاسبوع واليوم: محور ساعات، لا خلايا يوم طويلة */
+        if (r.zoom !== "month") { renderHourGrid(grid, r, todayKey); return; }
 
         DAY_KEYS.forEach(function (k) {
           var h = document.createElement("div");
@@ -378,26 +484,70 @@
       $("calGrid").addEventListener("click", function (ev) {
         if (suppressCalClick) return;   /* هذه نهاية سحب لا نقرة */
         var c = ev.target.closest(".cal-chip");
-        if (!c) return;
-        if (c.dataset.paper) { window.location.href = "/app/documents.html#" + encodeURIComponent(c.dataset.id); return; }
-        var it = findItem(c.dataset.id);
-        if (it) openEdit(it);
+        if (c) {
+          if (c.dataset.paper) { window.location.href = "/app/documents.html#" + encodeURIComponent(c.dataset.id); return; }
+          var it = findItem(c.dataset.id);
+          if (it) openEdit(it);
+          return;
+        }
+        /* ساعة فارغة: يفتح نموذج الاضافة وموعده مضبوط على تلك الساعة نفسها
+           (امر المهندس رعد: «عشان اقدر احط المهام») */
+        var slot = ev.target.closest(".cal-slot[data-day]");
+        if (slot) newItemAt(slot.dataset.day, Number(slot.dataset.hour), slotMinutes(slot, ev.clientY));
       });
 
-      /* ---------- سحب الموعد الى يوم اخر، كما في تقويم جوجل ----------
+      function newItemAt(dayKey, hour, min) {
+        var panel = $("addItemPanel"), due = $("addDue"), btn = $("addItemBtn");
+        if (!panel || !due || !btn) return;
+        if (panel.hidden) btn.click();           /* يفتح بمنطق الشاشة نفسه لا بنسخة منه */
+        due.value = toLocalInput(calSlotTime(dayKey, hour, min).toISOString());
+        panel.scrollIntoView({ block: "center", behavior: "smooth" });
+        var title = $("addTitle");
+        if (title) title.focus();
+      }
+
+      /* ---------- سحب الموعد، كما في تقويم جوجل ----------
          بالفارة يبدا السحب بعد 6 بكسل، وباللمس بعد ضغطة مطولة، فلا يختطف
-         تمرير الصفحة. الوقت يبقى كما هو ويتغير التاريخ وحده. */
+         تمرير الصفحة. في الشهر ينتقل اليوم ويبقى الوقت، وفي محور الساعات
+         ينتقل اليوم والساعة معا، وعلى شريط المسؤولين ينتقل المسؤول. */
       var calDrag = null, suppressCalClick = false;
 
-      function calCellAt(x, y) {
+      function calDropAt(x, y) {
         var el = document.elementFromPoint(x, y);
-        return el ? el.closest(".cal-cell[data-day]") : null;
+        if (!el || !el.closest) return null;
+        var person = el.closest(".cal-person[data-user]");
+        if (person) return { kind: "person", el: person, user: person.dataset.user === "none" ? null : person.dataset.user };
+        var slot = el.closest(".cal-slot[data-day]");
+        if (slot) return { kind: "slot", el: slot, day: slot.dataset.day, hour: Number(slot.dataset.hour), min: slotMinutes(slot, y) };
+        var cell = el.closest(".cal-cell[data-day]");
+        if (cell) return { kind: "cell", el: cell, day: cell.dataset.day };
+        return null;
       }
 
       function clearDropMark() {
-        var grid = $("calGrid");
-        if (!grid) return;
-        grid.querySelectorAll(".cal-cell.is-drop").forEach(function (c) { c.classList.remove("is-drop"); });
+        document.querySelectorAll(".cal-cell.is-drop, .cal-slot.is-drop, .cal-person.is-drop")
+          .forEach(function (c) { c.classList.remove("is-drop"); });
+      }
+
+      /* الشبح يقول وقت الهدف قبل الافلات: تراه 14:30 فتفلت عندها */
+      function ghostPreview(target) {
+        if (!calDrag || !calDrag.ghost) return;
+        var slot = calDrag.ghost.querySelector(".cal-chip-time");
+        if (!slot) return;
+        if (target && target.kind === "slot") {
+          slot.textContent = app.fmtDate
+            ? app.fmtDate(calSlotTime(target.day, target.hour, target.min), { timeOnly: true })
+            : pad(target.hour) + ":" + pad(target.min);
+        } else if (calDrag.timeText != null) slot.textContent = calDrag.timeText;
+      }
+
+      /* السحب قرب حافة محور الساعات يمرره، فيبلغ الموعد ساعة بعيدة */
+      function edgeScroll(y) {
+        var box = document.querySelector(".cal-hours");
+        if (!box) return;
+        var b = box.getBoundingClientRect();
+        if (y > b.top && y < b.top + 44) box.scrollTop -= 14;
+        else if (y < b.bottom && y > b.bottom - 44) box.scrollTop += 14;
       }
 
       function beginCalDrag() {
@@ -409,6 +559,8 @@
         ghost.classList.remove("is-dragging");
         ghost.classList.add("cal-ghost");
         ghost.style.width = calDrag.chip.getBoundingClientRect().width + "px";
+        var t = ghost.querySelector(".cal-chip-time");
+        calDrag.timeText = t ? t.textContent : null;
         document.body.appendChild(ghost);
         calDrag.ghost = ghost;
         try { calDrag.chip.setPointerCapture(calDrag.pointerId); } catch (e) { /* غير مدعوم */ }
@@ -428,10 +580,39 @@
         suppressCalClick = true;
         setTimeout(function () { suppressCalClick = false; }, 0);
         if (!commit) return;
-        var cell = calCellAt(x, y);
-        var to = cell && cell.dataset.day;
-        if (!to || to === d.fromDay) return;
-        moveItemToDay(d.id, to);
+        var target = calDropAt(x, y);
+        if (!target) return;
+        if (target.kind === "person") { assignItemTo(d.id, target.user); return; }
+        if (target.kind === "slot") { moveItemTo(d.id, target.day, target.hour, target.min); return; }
+        if (target.day !== d.fromDay) moveItemToDay(d.id, target.day);
+      }
+
+      /* الموعد الى يوم وساعة: في محور الساعات ينتقل الاثنان معا */
+      function moveItemTo(id, dayKey, hour, min) {
+        var it = findItem(id);
+        if (!it || !it.due_at) return;
+        var old = new Date(it.due_at);
+        var next = calSlotTime(dayKey, hour, min);
+        if (!isNaN(old.getTime()) && old.getTime() === next.getTime()) return;
+        guard(function () {
+          return app.updateItem(id, { due_at: next.toISOString() }).then(function () {
+            toast("calMoved");
+            return refresh();
+          });
+        }).catch(function (err) { fail(err); loadCalendar(); });
+      }
+
+      /* المسؤول بالسحب: الموعد يفلت على اسم الشخص فيصير عليه */
+      function assignItemTo(id, userId) {
+        var it = findItem(id);
+        if (!it) return;
+        if ((it.assignee_id || null) === (userId || null)) return;
+        guard(function () {
+          return app.updateItem(id, { assignee_id: userId || null }).then(function () {
+            toast("calAssigned");
+            return refresh();
+          });
+        }).catch(function (err) { fail(err); loadCalendar(); });
       }
 
       function moveItemToDay(id, dayKey) {
@@ -453,7 +634,7 @@
         if (ev.button != null && ev.button !== 0) return;
         var chip = ev.target.closest(".cal-chip[data-drag]");
         if (!chip) return;
-        var cell = chip.closest(".cal-cell[data-day]");
+        var cell = chip.closest(".cal-cell[data-day], .cal-slot[data-day]");   /* خلية شهر او صف ساعة */
         if (!cell) return;
         calDrag = { id: chip.dataset.id, chip: chip, fromDay: cell.dataset.day,
                     x0: ev.clientX, y0: ev.clientY, pointerId: ev.pointerId,
@@ -474,8 +655,10 @@
         calDrag.ghost.style.left = ev.clientX + "px";
         calDrag.ghost.style.top = ev.clientY + "px";
         clearDropMark();
-        var over = calCellAt(ev.clientX, ev.clientY);
-        if (over && over.dataset.day !== calDrag.fromDay) over.classList.add("is-drop");
+        edgeScroll(ev.clientY);
+        var over = calDropAt(ev.clientX, ev.clientY);
+        if (over && !(over.kind === "cell" && over.day === calDrag.fromDay)) over.el.classList.add("is-drop");
+        ghostPreview(over);
       }, { passive: false });
 
       document.addEventListener("pointerup", function (ev) { endCalDrag(true, ev.clientX, ev.clientY); });

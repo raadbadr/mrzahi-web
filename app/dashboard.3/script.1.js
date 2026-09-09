@@ -30,6 +30,8 @@
         /* مدى العرض: شهر او اسبوع او يوم. calDay هو اليوم المرساة في الاسبوع واليوم. */
         calZoom: (function () { try { var z = localStorage.getItem("tracker_cal_zoom"); return z === "week" || z === "day" ? z : "month"; } catch (e) { return "month"; } })(),
         calDay: new Date(),
+        calScrollSig: "",   /* المدى المعروض في محور الساعات: يمرر مرة عند تغيره لا مع كل تحديث */
+        calScrollTop: 0,
         filters: { tracker: "", status: "", search: "" },
         tab: "list",
         month: null,
