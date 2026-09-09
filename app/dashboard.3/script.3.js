@@ -203,13 +203,14 @@
           [$("calPrevBtn"), z === "week" ? "calPrevWeek" : z === "day" ? "calPrevDay" : "calPrev"],
           [$("calNextBtn"), z === "week" ? "calNextWeek" : z === "day" ? "calNextDay" : "calNext"]
         ];
+        /* التبويب الضيق يقص كلمة طويلة في بعض اللغات، فالتلميح يحملها كاملة.
+           يسبق تلميح السابق والتالي حتى لا يمحوه، فتلميحهما يقول المدى. */
+        document.querySelectorAll(".cal-ctls .cal-mode").forEach(function (b) { b.title = b.textContent; });
         pairs.forEach(function (pair) {
           if (!pair[0]) return;
           pair[0].title = T(pair[1]);
           pair[0].setAttribute("aria-label", T(pair[1]));
         });
-        /* التبويب الضيق يقص كلمة طويلة في بعض اللغات، فالتلميح يحملها كاملة */
-        document.querySelectorAll(".cal-ctls .cal-mode").forEach(function (b) { b.title = b.textContent; });
         var box = $("calZoom");
         if (box) box.querySelectorAll("[data-cal-zoom]").forEach(function (b) {
           var on = b.getAttribute("data-cal-zoom") === z;
@@ -659,6 +660,13 @@
         var over = calDropAt(ev.clientX, ev.clientY);
         if (over && !(over.kind === "cell" && over.day === calDrag.fromDay)) over.el.classList.add("is-drop");
         ghostPreview(over);
+      }, { passive: false });
+
+      /* اللمس: منع preventDefault على pointermove لا يمنع تمرير الصفحة، فيبدا
+         المتصفح التمرير ويلغي المؤشر فينقطع السحب. يمنع هنا على touchmove
+         وحده، واثناء سحب قائم فقط، فيبقى تمرير الشبكة بالاصبع كما هو. */
+      document.addEventListener("touchmove", function (ev) {
+        if (calDrag && calDrag.active) ev.preventDefault();
       }, { passive: false });
 
       document.addEventListener("pointerup", function (ev) { endCalDrag(true, ev.clientX, ev.clientY); });
