@@ -250,7 +250,7 @@
       border-radius: 24px;
       border: 1px solid var(--glass-border);
       box-shadow: 0 8px 32px var(--shadow-dark);
-      padding: 1.65rem 1.2rem 1.5rem;
+      padding: 1.1rem 0.9rem 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -307,9 +307,9 @@
       box-shadow: 0 8px 32px rgba(0, 100, 160, 0.08);
     }
     .platform-stat-icon {
-      width: 72px;
-      height: 72px;
-      border-radius: 22px;
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -345,8 +345,8 @@
       box-shadow: 0 6px 20px rgba(0, 80, 140, 0.07);
     }
     .platform-stat-icon svg {
-      width: 34px;
-      height: 34px;
+      width: 26px;
+      height: 26px;
       flex-shrink: 0;
       display: block;
       overflow: visible;
@@ -363,7 +363,7 @@
     [data-accent="cars"] .platform-stat-icon { color: rgb(52, 199, 89); }
     [data-accent="overdue"] .platform-stat-icon { color: var(--error); }
     .platform-stat-label {
-      font-size: 1.05rem;
+      font-size: 0.95rem;
       font-weight: 700;
       color: var(--text-primary);
       line-height: 1.35;
@@ -379,7 +379,7 @@
       color: var(--primary-light);
     }
     .platform-stat-value {
-      font-size: clamp(1.85rem, 4.5vw, 2.5rem);
+      font-size: clamp(1.6rem, 4vw, 2.1rem);
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       line-height: 1.15;
@@ -822,6 +822,9 @@
     }
     .cal-slot.is-today { background: rgba(0, 160, 210, 0.06); }
     .cal-slot .cal-chip { margin-top: 0; }
+    /* العنوان الطويل كان يكسر البطاقة ثلاثة اسطر فيتمدد الصف: سطران وحد،
+       والعنوان كامل في التلميح كما هو */
+    .cal-slot .cal-chip { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .cal-slot .cal-chip + .cal-chip { margin-top: 2px; }
     /* اسم المسؤول على الموعد نفسه، فيرى اثر السحب اليه */
     .cal-chip-who { margin-inline-start: 0.35rem; font-size: 0.62rem; opacity: 0.7; unicode-bidi: isolate; }
@@ -856,7 +859,7 @@
     .cal-people { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
     .cal-people[hidden] { display: none; }
     .cal-people .cal-modes { flex-wrap: wrap; height: auto; min-height: var(--field-h, 42px); }
-    .cal-people-label { padding-inline: 0.5rem; font-size: 0.72rem; font-weight: 700; color: var(--text-tertiary); white-space: nowrap; }
+    .cal-people-label { padding-inline: 0.5rem; font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap; }
     .cal-nav .cal-modes .cal-person { flex: 0 1 auto; width: auto; max-width: 10rem; cursor: default; padding-inline: 0.7rem; }
     .cal-person.is-drop { background: var(--primary); color: var(--btn-ink); }
     body.cal-dragging .cal-people .cal-modes { box-shadow: 0 0 0 1px var(--primary); }
@@ -985,16 +988,26 @@
       .content input, .content select, .content textarea { max-width: 100%; }
       /* الخط الزمني: شريط طويل بطبعه، يتمرر داخل حاويته ولا يمد الصفحة */
       #timelineCard, .tlx, .tlx-title, .tlx-ends { max-width: 100%; overflow-x: hidden; }
-      .tlx-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .tlx-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+      /* اليوم 56 بكسل يجعل الشهر 1680 بكسل: ستة عروض شاشة على الجوال.
+         36 بكسل تكفي علامة اليوم ورقمه، فيقطع الشهر في ثلث المسافة. */
+      .tlx-scroll .tlx-range-wrap { min-width: max(100%, calc(var(--tlx-days, 30) * 36px)); }
       .cal-grid, .cal-cell { min-width: 0; }
     }
     @media (max-width: 600px) {
       .content { padding: 1rem 0.85rem; }
       h1 { font-size: 1.6rem; }
       h2 { font-size: 1.25rem; }
+      /* مربعان في السطر لا واحد: العمود الواحد كان يأكل الشاشة كلها قبل
+         ان يرى صاحب الحساب موعدا واحدا (841 بكسل مقيسة على 375). */
       .stats-section .platform-stats-list,
       .stats-section.stats-top .platform-stats-list,
-      .dash-side .platform-stats-list { grid-template-columns: minmax(0, 1fr) !important; }
+      .dash-side .platform-stats-list { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.6rem; }
+      .platform-stat-card { padding: 0.8rem 0.5rem; border-radius: 18px; }
+      .platform-stat-icon { width: 40px; height: 40px; border-radius: 12px; margin-bottom: 0.2rem; }
+      .platform-stat-icon svg { width: 20px; height: 20px; }
+      .platform-stat-label { font-size: 0.78rem; line-height: 1.25; }
+      .platform-stat-value { font-size: 1.5rem; margin-top: 0.15rem; }
       /* الزر بعرض الشاشة: الإصبع لا يخطئه */
       .form-actions .waitlist-btn, .form-actions .chat-option-btn,
       .toolbar .waitlist-btn, .toolbar .chat-option-btn { width: 100%; }

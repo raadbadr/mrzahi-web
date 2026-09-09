@@ -51,7 +51,10 @@
     ".app-gate-card p{margin:0 0 1.1rem;font-size:.9rem;color:var(--text-secondary)}",
     ".app-gate-card label{display:block;margin-bottom:.9rem;font-size:.85rem;color:var(--text-secondary);min-width:0}",
     ".app-gate-card input,.app-gate-card select{width:100%;margin-top:.35rem;padding:.7rem .9rem;border-radius:12px;",
-    "border:1px solid var(--glass-border);background:var(--glass);color:var(--text-primary);font:inherit}",
+    "border:1px solid var(--glass-border);background:var(--glass);color:var(--text-primary);font:inherit;",
+    /* 16 بكسل لا اقل: iPhone يكبر الصفحة عند لمس اي حقل اصغر، وهذه اول
+       نافذة يراها صاحب حساب جديد */
+    "font-size:16px;min-height:44px}",
     ".app-gate-card select{appearance:none;-webkit-appearance:none}",
     ".app-gate-card button{width:100%;padding:.75rem 1rem;border:0;border-radius:12px;background:var(--primary);",
     "color:var(--btn-ink,#fff);font:inherit;font-weight:700;cursor:pointer}",
