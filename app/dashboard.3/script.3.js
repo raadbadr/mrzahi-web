@@ -144,6 +144,7 @@
         if (it && it.data && it.data.document_kind) return "documents";
         if (isCaseItem(it)) return "cases";
         if (isViolationItem(it)) return "violations";
+        if (isMeetingItem(it)) return "meetings";
         return "tasks";
       }
       function applyCalFilter(list) {
@@ -205,7 +206,7 @@
         ];
         /* التبويب الضيق يقص كلمة طويلة في بعض اللغات، فالتلميح يحملها كاملة.
            يسبق تلميح السابق والتالي حتى لا يمحوه، فتلميحهما يقول المدى. */
-        document.querySelectorAll(".cal-ctls .cal-mode").forEach(function (b) { b.title = b.textContent; });
+        document.querySelectorAll(".cal-nav .cal-mode").forEach(function (b) { b.title = b.textContent; });
         pairs.forEach(function (pair) {
           if (!pair[0]) return;
           pair[0].title = T(pair[1]);
@@ -266,23 +267,28 @@
         var box = $("calPeople");
         if (!box) return;
         box.textContent = "";
-        if (assigneeHidden() || !state.members || state.members.length < 2) { box.hidden = true; return; }
-        var hint = document.createElement("span");
-        hint.className = "cal-people-hint";
-        hint.textContent = T("calAssignHint");
-        box.appendChild(hint);
-        var list = document.createElement("div");
-        list.className = "cal-modes";
-        memberOptions().forEach(function (o) {
-          var pill = document.createElement("span");
-          pill.className = "cal-mode cal-person";
-          pill.dataset.user = o.value || "none";
-          pill.textContent = o.label;
-          pill.title = o.label;
-          list.appendChild(pill);
-        });
-        box.appendChild(list);
-        box.hidden = false;
+        box.hidden = assigneeHidden() || !state.members || state.members.length < 2;
+        if (!box.hidden) {
+          var list = document.createElement("div");
+          list.className = "cal-modes";
+          list.title = T("calAssignHint");
+          var label = document.createElement("span");
+          label.className = "cal-people-label";
+          label.textContent = T("fieldAssignee");
+          list.appendChild(label);
+          memberOptions().forEach(function (o) {
+            var pill = document.createElement("span");
+            pill.className = "cal-mode cal-person";
+            pill.dataset.user = o.value || "none";
+            pill.textContent = o.label;
+            pill.title = o.label;
+            list.appendChild(pill);
+          });
+          box.appendChild(list);
+        }
+        /* السطر الثاني لا يترك فراغا حين لا فلاتر ولا مسؤولين */
+        var sub = $("calSubLine"), filters = $("calFilters");
+        if (sub) sub.hidden = box.hidden && (!filters || filters.hidden);
       }
 
       /* ---------- محور الساعات ----------

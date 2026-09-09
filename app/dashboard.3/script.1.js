@@ -185,7 +185,10 @@
         rulings: { titleKey: "viewRulings", defaultCategory: "حكم",
                    words: ["حكم", "أحكام", "احكام", "ruling", "rulings", "judgment", "judgement", "jugement", "فیصلہ"] },
         contracts: { titleKey: "viewContracts", defaultCategory: "عقد",
-                     words: ["عقد", "عقود", "contract", "contracts", "contrat", "معاہدہ"] }
+                     words: ["عقد", "عقود", "contract", "contracts", "contrat", "معاہدہ"] },
+        meetings: { titleKey: "viewMeetings", defaultCategory: "اجتماع",
+                    /* «جلسة» في مكتب المحاماة جلسة محكمة لا اجتماعا، فلا تدخل هنا */
+                    words: ["اجتماع", "اجتماعات", "meeting", "meetings", "reunion", "réunion", "میٹنگ"] }
       };
 
       function currentViewType() {
@@ -236,6 +239,7 @@
 
       function isCaseItem(item) { return isOfType(item, "cases"); }
       function isViolationItem(item) { return isOfType(item, "violations"); }
+      function isMeetingItem(item) { return isOfType(item, "meetings"); }
 
       function matchesView(item) { return isOfType(item, state.viewType); }
 

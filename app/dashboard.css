@@ -687,28 +687,36 @@
     .empty-note { text-align: center; margin: 1rem 0 0; }
 
     /* Calendar (theme tokens only) */
-    /* شريط التقويم صفوف متمركزة: العنوان، ثم اربع مجموعات ازرار بعرض واحد
-       وارتفاع واحد، ثم الفلاتر ثم المسؤولون. امر المهندس رعد: «قادمة وسابقة
-       تكونوا تبويبين جنب بعض» و«نسق التصميم بحيث يكونوا بنفس العرض». */
-    .cal-nav {
-      display: grid; grid-template-columns: 1fr; justify-items: center;
-      row-gap: 0.6rem; margin-bottom: 1rem;
-    }
-    .cal-nav-group { display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; min-width: 0; }
-    .cal-nav > #calFilters[hidden] { display: none; }
-    /* تبقى في مكانها في كل المقاسات؛ إن ضاق الشريط تلتف الأزرار داخل مجموعتها ولا تنتقل */
+    /* شريط التقويم سطران بحواف واحدة: السهمان حول التاريخ في طرف وادوات العرض
+       في الطرف الاخر، ثم التصنيف والمسؤولون. كل تبويب بعرض واحد --cal-u، فتصطف
+       المجموعات على شبكة واحدة بلا صندوق منتفخ لكلمة واحدة. */
+    .cal-nav { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem; }
+    /* كل شيء يبدا من حافة واحدة: الصفوف تلتف تحت بعضها بلا فجوة في الوسط
+       ولا صف يبدا من مكان غير مكان اخيه */
+    .cal-line { display: flex; align-items: center; justify-content: flex-start; gap: 0.6rem 0.75rem; flex-wrap: wrap; }
+    .cal-line[hidden] { display: none; }
+    .cal-nav-group { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; min-width: 0; }
+    .cal-when { display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
+    .cal-ctls { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .cal-nav > .cal-line > #calFilters[hidden] { display: none; }
     #calFilters .cal-modes { flex-wrap: wrap; max-width: 100%; justify-content: center; height: auto; }
-    .cal-ctls { --cal-ctl: 11.5rem; }
-    .cal-ctls > * { flex: 0 0 var(--cal-ctl); width: var(--cal-ctl); max-width: 100%; }
-    .cal-ctls .cal-modes { display: flex; padding: 0.2rem; }
-    .cal-ctls .cal-mode { flex: 1 1 0; min-width: 0; justify-content: center; text-align: center; padding-inline: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cal-ctls .chat-option-btn { justify-content: center; }
+    /* السهم دائرة بحجم بقية الادوات، ورسمه ينعكس مع اتجاه الصفحة */
+    .cal-arrow {
+      flex: 0 0 auto; width: var(--field-h, 42px); height: var(--field-h, 42px);
+      display: inline-flex; align-items: center; justify-content: center; padding: 0;
+      border-radius: 50%; background: transparent; border: 1.5px solid var(--glass-border);
+      color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;
+    }
+    .cal-arrow:hover { color: var(--primary); border-color: var(--primary); }
+    .cal-arrow:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+    :root[dir="rtl"] .cal-arrow svg { transform: scaleX(-1); }
     /* المجموعات والزر على ارتفاع واحد: نفس ارتفاع كل حقل وزر في المنصة */
-    .cal-nav .chat-option-btn, .cal-nav .cal-modes { height: var(--field-h, 42px); min-height: var(--field-h, 42px); box-sizing: border-box; display: inline-flex; align-items: center; margin: 0; }
-    .cal-nav .cal-mode { height: 32px; display: inline-flex; align-items: center; }
+    .cal-nav .cal-modes { height: var(--field-h, 42px); min-height: var(--field-h, 42px); box-sizing: border-box; display: inline-flex; align-items: center; margin: 0; padding: 0.2rem; }
+    .cal-nav .cal-mode { height: 32px; display: inline-flex; align-items: center; justify-content: center; }
+    .cal-nav .cal-modes .cal-mode { flex: 0 0 var(--cal-u, 5rem); width: var(--cal-u, 5rem); min-width: 0; padding-inline: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cal-title {
       font-size: 1.15rem; font-weight: 700; color: var(--text-primary);
-      min-width: 10rem; text-align: center; line-height: 1.3;
+      min-width: 0; text-align: center; line-height: 1.3; white-space: nowrap;
     }
     .cal-modes { display: inline-flex; padding: 0.2rem; border-radius: 12px; background: var(--glass-border); gap: 0.15rem; }
     .cal-mode {
@@ -843,12 +851,13 @@
     }
 
     /* شريط المسؤولين: امر المهندس رعد «نغير المسؤول عن المهمة او الكتلة بطريقة
-       السحب». هدف افلات لا زر، فلا يركز ولا ينقر، ويعلم تحت المؤشر. */
-    .cal-people { display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; }
+       السحب». كتلة واحدة بنفس شكل التبويبات وعنوانها داخلها، والاسم هدف افلات
+       لا زر: لا يركز ولا ينقر، ويعلم تحت المؤشر. */
+    .cal-people { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
     .cal-people[hidden] { display: none; }
-    .cal-people-hint { font-size: 0.75rem; color: var(--text-secondary); }
-    .cal-people .cal-modes { flex-wrap: wrap; height: auto; padding: 0.2rem; }
-    .cal-person { cursor: default; max-width: 11rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cal-people .cal-modes { flex-wrap: wrap; height: auto; min-height: var(--field-h, 42px); }
+    .cal-people-label { padding-inline: 0.5rem; font-size: 0.72rem; font-weight: 700; color: var(--text-tertiary); white-space: nowrap; }
+    .cal-nav .cal-modes .cal-person { flex: 0 1 auto; width: auto; max-width: 10rem; cursor: default; padding-inline: 0.7rem; }
     .cal-person.is-drop { background: var(--primary); color: var(--btn-ink); }
     body.cal-dragging .cal-people .cal-modes { box-shadow: 0 0 0 1px var(--primary); }
 
@@ -863,8 +872,10 @@
       .cal-cell { min-height: 72px; padding: 0.25rem; }
       .cal-hgrid { --cal-col: 4.6rem; }
       .cal-hours { max-height: 56vh; }
-      .cal-ctls { --cal-ctl: 9rem; }   /* مجموعتان في السطر على الجوال لا واحدة */
-      .cal-ctls .cal-mode { font-size: 0.72rem; padding-inline: 0; }   /* «Semaine» تكتمل في تبويبها على اضيق جوال */
+      .cal-nav .cal-modes { --cal-u: 4.3rem; }
+      .cal-title { font-size: 0.95rem; }
+      .cal-nav .cal-modes .cal-mode { font-size: 0.72rem; }
+      .cal-line { justify-content: center; }
       .cal-chip { font-size: 0.65rem; padding: 0.1rem 0.3rem; }
       .cal-grid { gap: 0.25rem; }
     }

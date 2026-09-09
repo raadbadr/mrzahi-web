@@ -15,9 +15,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Monoton&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/header.css?v=58">
-  <link rel="stylesheet" href="/footer.css?v=58">
-  <link rel="stylesheet" href="/app/dashboard.css?v=58">
+  <link rel="stylesheet" href="/header.css?v=59">
+  <link rel="stylesheet" href="/footer.css?v=59">
+  <link rel="stylesheet" href="/app/dashboard.css?v=59">
 </head>
 <body class="has-site-header">
   <header class="site-header">
@@ -398,36 +398,43 @@
 
         <div id="calendarPanel">
           <div class="cal-nav">
-            <strong class="cal-title" id="calTitle" aria-live="polite"></strong>
-            <div class="cal-nav-group cal-ctls">
-              <!-- السابق والتالي تبويبان جنب بعض، بنفس عرض بقية المجموعات -->
-              <div class="cal-modes" role="group">
-                <button type="button" class="cal-mode" id="calPrevBtn" data-i18n="calPrevShort">السابق</button>
-                <button type="button" class="cal-mode" id="calNextBtn" data-i18n="calNextShort">التالي</button>
+            <!-- سطر واحد: السهمان حول التاريخ في طرف، وادوات العرض في الطرف الاخر.
+                 السهمان بلا data-i18n: مترجم النص يكتب فوق محتوى العنصر فيمحو الرسم،
+                 واسمهما يضبط في syncCalNavLabels بحسب المدى. -->
+            <div class="cal-line">
+              <div class="cal-when">
+                <button type="button" class="cal-arrow" id="calPrevBtn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
+                <strong class="cal-title" id="calTitle" aria-live="polite"></strong>
+                <button type="button" class="cal-arrow" id="calNextBtn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg></button>
               </div>
-              <div class="cal-modes" role="group">
-                <button type="button" class="cal-mode is-active" id="calGregBtn" data-cal-mode="greg" data-i18n="calGregorian">ميلادي</button>
-                <button type="button" class="cal-mode" id="calHijriBtn" data-cal-mode="hijri" data-i18n="calHijri">هجري</button>
-              </div>
-              <!-- مدى العرض: شهر أو أسبوع أو يوم، بنفس أزرار ميلادي/هجري -->
-              <div class="cal-modes" role="group" id="calZoom">
-                <button type="button" class="cal-mode is-active" data-cal-zoom="month" data-i18n="calZoomMonth">شهر</button>
-                <button type="button" class="cal-mode" data-cal-zoom="week" data-i18n="calZoomWeek">أسبوع</button>
-                <button type="button" class="cal-mode" data-cal-zoom="day" data-i18n="calZoomDay">يوم</button>
-              </div>
-              <button type="button" class="chat-option-btn" id="calTodayBtn" data-i18n="calToday">اليوم</button>
-            </div>
-            <!-- فلاتر التقويم الماستر (الرئيسية فقط): بنفس نمط أزرار ميلادي/هجري -->
-            <div class="cal-nav-group" id="calFilters" role="group" hidden>
-              <div class="cal-modes">
-                <button type="button" class="cal-mode is-active" data-cal-filter="all" data-i18n="calFilterAll">الكل</button>
-                <button type="button" class="cal-mode" data-cal-filter="cases" data-i18n="calFilterCases">قضايا</button>
-                <button type="button" class="cal-mode" data-cal-filter="violations" data-i18n="calFilterViolations">مخالفات</button>
-                <button type="button" class="cal-mode" data-cal-filter="tasks" data-i18n="calFilterTasks">مهام</button>
+              <div class="cal-ctls">
+                <div class="cal-modes" role="group">
+                  <button type="button" class="cal-mode" id="calTodayBtn" data-i18n="calToday">اليوم</button>
+                </div>
+                <div class="cal-modes" role="group" id="calZoom">
+                  <button type="button" class="cal-mode is-active" data-cal-zoom="month" data-i18n="calZoomMonth">شهر</button>
+                  <button type="button" class="cal-mode" data-cal-zoom="week" data-i18n="calZoomWeek">أسبوع</button>
+                  <button type="button" class="cal-mode" data-cal-zoom="day" data-i18n="calZoomDay">يوم</button>
+                </div>
+                <div class="cal-modes" role="group">
+                  <button type="button" class="cal-mode is-active" id="calGregBtn" data-cal-mode="greg" data-i18n="calGregorian">ميلادي</button>
+                  <button type="button" class="cal-mode" id="calHijriBtn" data-cal-mode="hijri" data-i18n="calHijri">هجري</button>
+                </div>
               </div>
             </div>
-            <!-- شريط المسؤولين: تسحب المهمة الى الشخص فتصير عليه -->
-            <div class="cal-people" id="calPeople" hidden></div>
+            <!-- سطر ثان بنفس الحواف وبنفس التبويبات: التصنيف في طرف والمسؤولون في الطرف الاخر -->
+            <div class="cal-line cal-line--sub" id="calSubLine">
+              <div class="cal-nav-group" id="calFilters" role="group" hidden>
+                <div class="cal-modes">
+                  <button type="button" class="cal-mode is-active" data-cal-filter="all" data-i18n="calFilterAll">الكل</button>
+                  <button type="button" class="cal-mode" data-cal-filter="cases" data-i18n="calFilterCases">قضايا</button>
+                  <button type="button" class="cal-mode" data-cal-filter="violations" data-i18n="calFilterViolations">مخالفات</button>
+                  <button type="button" class="cal-mode" data-cal-filter="tasks" data-i18n="calFilterTasks">مهام</button>
+                  <button type="button" class="cal-mode" data-cal-filter="meetings" data-i18n="calFilterMeetings">اجتماعات</button>
+                </div>
+              </div>
+              <div class="cal-people" id="calPeople" hidden></div>
+            </div>
           </div>
           <div class="cal-grid" id="calGrid"></div>
         </div>
@@ -437,12 +444,12 @@
   </div>
 
 
-  <script src="/app/dashboard.1.js?v=58"></script>
-  <script src="/app/dashboard.2.js?v=58"></script>
-  <script src="/app/dashboard.3.js?v=58"></script>
+  <script src="/app/dashboard.1.js?v=59"></script>
+  <script src="/app/dashboard.2.js?v=59"></script>
+  <script src="/app/dashboard.3.js?v=59"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="/app.js?v=58" defer></script>
-<script src="/app/common.js?v=58" defer></script>
-<script src="/brand-logo.js?v=58" defer></script>
+<script src="/app.js?v=59" defer></script>
+<script src="/app/common.js?v=59" defer></script>
+<script src="/brand-logo.js?v=59" defer></script>
 </body>
 </html>
