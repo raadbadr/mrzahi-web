@@ -148,8 +148,13 @@
         return "tasks";
       }
       function applyCalFilter(list) {
-        var f = state.calFilter || "all";
-        return f === "all" ? (list || []) : (list || []).filter(function (it) { return calKind(it) === f; });
+        var f = state.calFilter || "all", who = state.calWho || "";
+        var out = f === "all" ? (list || []) : (list || []).filter(function (it) { return calKind(it) === f; });
+        if (!who) return out;
+        /* «غير محدد» فلتر قائم بذاته: المواعيد التي لا مسؤول لها */
+        return out.filter(function (it) {
+          return who === "none" ? !it.assignee_id : it.assignee_id === who;
+        });
       }
       function wireCalFilters() {
         var box = $("calFilters");
@@ -212,6 +217,16 @@
           pair[0].title = T(pair[1]);
           pair[0].setAttribute("aria-label", T(pair[1]));
         });
+        /* «اليوم» يقول حاله: يعلم حين يكون اليوم داخل المدى المعروض، فلا يضغط
+           صاحبه زرا لا ينقله الى شيء */
+        var todayBtn = $("calTodayBtn");
+        if (todayBtn) {
+          var r = calRange();
+          var now = new Date();
+          var on = now >= r.start && now < r.end;
+          todayBtn.classList.toggle("is-active", on);
+          todayBtn.setAttribute("aria-pressed", on ? "true" : "false");
+        }
         var box = $("calZoom");
         if (box) box.querySelectorAll("[data-cal-zoom]").forEach(function (b) {
           var on = b.getAttribute("data-cal-zoom") === z;
@@ -277,11 +292,14 @@
           label.textContent = T("fieldAssignee");
           list.appendChild(label);
           memberOptions().forEach(function (o) {
-            var pill = document.createElement("span");
-            pill.className = "cal-mode cal-person";
-            pill.dataset.user = o.value || "none";
+            var who = o.value || "none";
+            var pill = document.createElement("button");
+            pill.type = "button";
+            pill.className = "cal-mode cal-person" + (state.calWho === who ? " is-active" : "");
+            pill.dataset.user = who;
             pill.textContent = o.label;
             pill.title = o.label;
+            pill.setAttribute("aria-pressed", state.calWho === who ? "true" : "false");
             list.appendChild(pill);
           });
           box.appendChild(list);
@@ -290,6 +308,22 @@
         var sub = $("calSubLine"), filters = $("calFilters");
         if (sub) sub.hidden = box.hidden && (!filters || filters.hidden);
       }
+
+      /* الاسم فعل لا لافتة: نقرة تفلتر التقويم عليه، ونقرة ثانية ترفع الفلتر،
+         وهو نفسه هدف الافلات لنقل المسؤولية. */
+      (function wireCalPeople() {
+        var box = $("calPeople");
+        if (!box) return;
+        box.addEventListener("click", function (ev) {
+          if (suppressCalClick) return;   /* هذه نهاية سحب لا نقرة */
+          var pill = ev.target.closest(".cal-person[data-user]");
+          if (!pill) return;
+          var who = pill.dataset.user;
+          state.calWho = state.calWho === who ? "" : who;
+          state.calItems = applyCalFilter(state.calAll || state.calItems);
+          renderCalendar();
+        });
+      })();
 
       /* ---------- محور الساعات ----------
          عنوان الصف بنفس دالة وقت الشارة، فيتفق الصف مع ساعة الموعد في كل حال */

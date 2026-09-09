@@ -32,6 +32,7 @@
         calDay: new Date(),
         calScrollSig: "",   /* المدى المعروض في محور الساعات: يمرر مرة عند تغيره لا مع كل تحديث */
         calScrollTop: 0,
+        calWho: "",   /* فلتر المسؤول في التقويم: فارغ = الكل */
         filters: { tracker: "", status: "", search: "" },
         tab: "list",
         month: null,

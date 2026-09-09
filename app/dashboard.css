@@ -860,7 +860,7 @@
     .cal-people[hidden] { display: none; }
     .cal-people .cal-modes { flex-wrap: wrap; height: auto; min-height: var(--field-h, 42px); }
     .cal-people-label { padding-inline: 0.5rem; font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap; }
-    .cal-nav .cal-modes .cal-person { flex: 0 1 auto; width: auto; max-width: 10rem; cursor: default; padding-inline: 0.7rem; }
+    .cal-nav .cal-modes .cal-person { flex: 0 1 auto; width: auto; max-width: 10rem; cursor: pointer; padding-inline: 0.7rem; }
     .cal-person.is-drop { background: var(--primary); color: var(--btn-ink); }
     body.cal-dragging .cal-people .cal-modes { box-shadow: 0 0 0 1px var(--primary); }
 
