@@ -713,10 +713,13 @@
     /* المجموعات والزر على ارتفاع واحد: نفس ارتفاع كل حقل وزر في المنصة */
     .cal-nav .cal-modes { height: var(--field-h, 42px); min-height: var(--field-h, 42px); box-sizing: border-box; display: inline-flex; align-items: center; margin: 0; padding: 0.2rem; }
     .cal-nav .cal-mode { height: 32px; display: inline-flex; align-items: center; justify-content: center; }
-    .cal-nav .cal-modes .cal-mode { flex: 0 0 var(--cal-u, 5rem); width: var(--cal-u, 5rem); min-width: 0; padding-inline: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cal-nav .cal-modes .cal-mode { flex: 0 0 var(--cal-u, 4.75rem); width: var(--cal-u, 4.75rem); min-width: 0; padding-inline: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* عرض محجوز ثابت للتاريخ: يتغير النص بتغير المدى ولا يتحرك السطر معه
+       (امر المهندس رعد: «خلي السطر ثابت في العرض بس يختلف الزمن»). */
     .cal-title {
       font-size: 1.15rem; font-weight: 700; color: var(--text-primary);
-      min-width: 0; text-align: center; line-height: 1.3; white-space: nowrap;
+      width: 15rem; flex: 0 0 15rem; text-align: center; line-height: 1.3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .cal-modes { display: inline-flex; padding: 0.2rem; border-radius: 12px; background: var(--glass-border); gap: 0.15rem; }
     .cal-mode {
@@ -875,7 +878,7 @@
       .cal-hgrid { --cal-col: 4.6rem; }
       .cal-hours { max-height: 56vh; }
       .cal-nav .cal-modes { --cal-u: 4.3rem; }
-      .cal-title { font-size: 0.95rem; }
+      .cal-title { font-size: 0.95rem; width: 12rem; flex-basis: 12rem; }
       .cal-nav .cal-modes .cal-mode { font-size: 0.72rem; }
       .cal-line { justify-content: center; }
       .cal-chip { font-size: 0.65rem; padding: 0.1rem 0.3rem; }

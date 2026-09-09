@@ -151,10 +151,7 @@
         var f = state.calFilter || "all", who = state.calWho || "";
         var out = f === "all" ? (list || []) : (list || []).filter(function (it) { return calKind(it) === f; });
         if (!who) return out;
-        /* «غير محدد» فلتر قائم بذاته: المواعيد التي لا مسؤول لها */
-        return out.filter(function (it) {
-          return who === "none" ? !it.assignee_id : it.assignee_id === who;
-        });
+        return out.filter(function (it) { return it.assignee_id === who; });
       }
       function wireCalFilters() {
         var box = $("calFilters");
@@ -178,7 +175,7 @@
         if (calendarIsHijri()) {
           try {
             return new Intl.DateTimeFormat(hijriLocale(), withWeekday
-              ? { weekday: "long", day: "numeric", month: "long", year: "numeric" }
+              ? { weekday: "short", day: "numeric", month: "long", year: "numeric" }
               : { day: "numeric", month: "long", year: "numeric" }).format(d);
           } catch (e) { /* يسقط الى الميلادي */ }
         }
@@ -186,9 +183,51 @@
         return withWeekday ? T(DAY_KEYS[d.getDay()]) + " " + base : base;
       }
 
+      /* عنوان المدى: الشهر «سبتمبر 2026»، والاسبوع مداه كاملا، واليوم يومه.
+         الاسبوع داخل شهر واحد لا يكرر الشهر والسنة مرتين: «6 — 12 سبتمبر 2026»،
+         فيبقى العنوان داخل عرضه المحجوز ولا يزيح السطر. */
+      /* طرف المدى: بلا سنة الا في اخره، والشهر الهجري بصيغته القصيرة لان اسمه
+         الطويل في الفرنسية والاردية يخرج عن العرض المحجوز. */
+      function calShortDate(d, withYear) {
+        if (calendarIsHijri()) {
+          try {
+            var opt = { day: "numeric", month: "short" };
+            if (withYear) opt.year = "numeric";
+            return new Intl.DateTimeFormat(hijriLocale(), opt).format(d);
+          } catch (e) { /* يسقط الى الميلادي */ }
+        }
+        var base = d.getDate() + " " + T("month" + (d.getMonth() + 1));
+        return withYear ? base + " " + d.getFullYear() : base;
+      }
+
+      /* العرض محجوز ثابت، فالنص هو من يتنازل: اسماء الشهور الهجرية طويلة في
+         بعض اللغات، فيصغر الخط درجة او درجتين بدل ان يقص التاريخ. */
+      function fitCalTitle(el) {
+        if (!el) return;
+        el.style.fontSize = "";
+        var base = parseFloat(getComputedStyle(el).fontSize) || 18;
+        var steps = [1, 0.92, 0.84, 0.76, 0.7];
+        for (var i = 0; i < steps.length; i++) {
+          el.style.fontSize = (base * steps[i]) + "px";
+          if (el.scrollWidth <= el.clientWidth + 1) return;
+        }
+      }
+
       function calHeadTitle(r) {
         if (r.zoom === "day") return calDayLabel(r.start, true);
-        if (r.zoom === "week") return calDayLabel(r.start) + " — " + calDayLabel(addDays(r.start, 6));
+        if (r.zoom === "week") {
+          var a = r.start, b = addDays(r.start, 6);
+          if (calendarIsHijri()) {
+            var pa = hijriParts(a), pb = hijriParts(b);
+            if (pa && pb && pa.year === pb.year) {
+              if (pa.month === pb.month) return pa.day + " — " + calDayLabel(b);
+              return calShortDate(a) + " — " + calShortDate(b, true);
+            }
+          } else if (a.getFullYear() === b.getFullYear()) {
+            return (a.getMonth() === b.getMonth() ? String(a.getDate()) : calShortDate(a)) + " — " + calDayLabel(b);
+          }
+          return calDayLabel(a) + " — " + calDayLabel(b);
+        }
         return calendarIsHijri()
           ? hijriTitle(state.month)
           : T("month" + (state.month.getMonth() + 1)) + " " + state.month.getFullYear();
@@ -292,15 +331,26 @@
           list.title = T("calAssignHint");
           list.setAttribute("role", "group");
           list.setAttribute("aria-label", T("fieldAssignee"));
+          /* «كامل الفريق» اول الكتلة كما «الكل» اول الفلاتر: يرفع الفلتر ويعلم
+             حين لا فلتر. لا يحمل data-user فلا يكون هدف افلات، فلا يضيء تحت
+             موعد مسحوب ولا يعد بشيء لا يفعله. */
+          var all = document.createElement("button");
+          all.type = "button";
+          all.className = "cal-mode cal-person" + (state.calWho ? "" : " is-active");
+          all.dataset.all = "1";
+          all.textContent = T("calWhoAll");
+          all.title = T("calWhoAll");
+          all.setAttribute("aria-pressed", state.calWho ? "false" : "true");
+          list.appendChild(all);
           memberOptions().forEach(function (o) {
-            var who = o.value || "none";
+            if (!o.value) return;   /* «غير محدد» لا مكان له هنا (امر المهندس رعد) */
             var pill = document.createElement("button");
             pill.type = "button";
-            pill.className = "cal-mode cal-person" + (state.calWho === who ? " is-active" : "");
-            pill.dataset.user = who;
+            pill.className = "cal-mode cal-person" + (state.calWho === o.value ? " is-active" : "");
+            pill.dataset.user = o.value;
             pill.textContent = o.label;
             pill.title = o.label;
-            pill.setAttribute("aria-pressed", state.calWho === who ? "true" : "false");
+            pill.setAttribute("aria-pressed", state.calWho === o.value ? "true" : "false");
             list.appendChild(pill);
           });
           box.appendChild(list);
@@ -317,10 +367,10 @@
         if (!box) return;
         box.addEventListener("click", function (ev) {
           if (suppressCalClick) return;   /* هذه نهاية سحب لا نقرة */
-          var pill = ev.target.closest(".cal-person[data-user]");
+          var pill = ev.target.closest(".cal-person");
           if (!pill) return;
-          var who = pill.dataset.user;
-          state.calWho = state.calWho === who ? "" : who;
+          var who = pill.dataset.all ? "" : (pill.dataset.user || "");
+          state.calWho = (who && state.calWho === who) ? "" : who;
           state.calItems = applyCalFilter(state.calAll || state.calItems);
           renderCalendar();
         });
@@ -424,7 +474,9 @@
         if (keep) state.calScrollTop = keep.scrollTop;
         grid.innerHTML = "";
         grid.className = "cal-grid" + (r.zoom === "month" ? "" : " cal-grid--hours");
-        $("calTitle").textContent = calHeadTitle(r);
+        var titleEl = $("calTitle");
+        titleEl.textContent = calHeadTitle(r);
+        fitCalTitle(titleEl);
         syncCalNavLabels();
 
         var byDay = {};
@@ -558,7 +610,7 @@
         var el = document.elementFromPoint(x, y);
         if (!el || !el.closest) return null;
         var person = el.closest(".cal-person[data-user]");
-        if (person) return { kind: "person", el: person, user: person.dataset.user === "none" ? null : person.dataset.user };
+        if (person) return { kind: "person", el: person, user: person.dataset.user };
         var slot = el.closest(".cal-slot[data-day]");
         if (slot) return { kind: "slot", el: slot, day: slot.dataset.day, hour: Number(slot.dataset.hour), min: slotMinutes(slot, y) };
         var cell = el.closest(".cal-cell[data-day]");
