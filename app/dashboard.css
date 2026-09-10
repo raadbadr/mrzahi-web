@@ -616,7 +616,9 @@
     .ind-total { text-align: center; padding: 0.25rem 1rem; border-inline-end: 1px solid var(--glass-border); }
     .ind-total:last-child { border-inline-end: 0; }
     .ind-total b { display: block; font-size: 1.9rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
-    .ind-total span { font-size: 0.82rem; color: var(--text-secondary); }
+    /* الابن المباشر وحده: كانت تصيب رمز الريال داخل <b> فتحسب حجمه من
+       0.82rem لا من 1.9rem فيقرا اصغر من الرقم (امر المهندس رعد). */
+    .ind-total > span { font-size: 0.82rem; color: var(--text-secondary); }
     .chart-bars { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; align-items: end; min-height: 210px; padding-top: 0.75rem; max-width: 900px; margin: 0 auto; }
     .chart-col { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; height: 100%; justify-content: flex-end; }
     .chart-val { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
