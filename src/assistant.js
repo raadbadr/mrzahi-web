@@ -100,7 +100,7 @@ const TOOLS = [
   },
   {
     name: "get_platform_stats",
-    description: "Live aggregate counts: organizations, trackers, tracked items, notifications sent.",
+    description: "Live aggregate counts: organizations, records, tracked items, notifications sent.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
 ];

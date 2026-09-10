@@ -82,7 +82,7 @@
         driveConfig.apiKey = cfg.googleApiKey || null;
         driveConfig.server = !!cfg.driveServer;
         document.documentElement.dataset.drive = driveAvailable() ? "1" : "0";
-        document.dispatchEvent(new CustomEvent("tracker:drive", { detail: { available: driveAvailable() } }));
+        document.dispatchEvent(new CustomEvent("record:drive", { detail: { available: driveAvailable() } }));
       }).catch(function () { /* بلا درايف */ });
     } catch (e) { /* ignore */ }
   })();

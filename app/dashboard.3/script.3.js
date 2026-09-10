@@ -4,12 +4,12 @@
         if (!state.editing) return;
         var title = $("editTitle").value.trim();
         if (!title) { setMsg("editMsg", T("titleRequired"), "error"); $("editTitle").focus(); return; }
-        var trackerId = $("editTracker").value;
-        if (!trackerId) { setMsg("editMsg", T("trackerRequired"), "error"); $("editTracker").focus(); return; }
+        var recordId = $("editRecord").value;
+        if (!recordId) { setMsg("editMsg", T("recordRequired"), "error"); $("editRecord").focus(); return; }
         clearMsg("editMsg");
         var patch = {
           title: title,
-          tracker_id: trackerId,
+          record_id: recordId,
           due_at: fromLocalInput($("editDue").value),
           category: $("editCategory").value.trim() || null,
           assignee_id: $("editAssignee").value || null,

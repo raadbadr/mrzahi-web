@@ -27,7 +27,7 @@ function stub(url) {
   if (p.includes("/rest/v1/organizations")) return [ORG];
   if (p.includes("/rest/v1/org_profiles")) return { org_id: ORG.id, entity_type: "company", legal_name: ORG.name };
   if (p.includes("/rest/v1/items")) return ITEMS;
-  if (p.includes("/rest/v1/trackers")) return [{ id: "66666666-6666-4666-8666-666666666666", org_id: ORG.id, name: "القضايا" }];
+  if (p.includes("/rest/v1/records")) return [{ id: "66666666-6666-4666-8666-666666666666", org_id: ORG.id, name: "القضايا" }];
   if (p.includes("/rest/v1/plans")) return [{ code: "trial", name_ar: "التجريبية", name_en: "Trial", limits: { items: 2000, members: 5, storage_mb: 50, channels: ["telegram"] }, sort_order: 1 }];
   if (p.includes("/rest/v1/")) return [];
   return null;

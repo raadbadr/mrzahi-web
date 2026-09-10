@@ -1,5 +1,5 @@
 /* migration: نقل مفاتيح التخزين من الاسم القديم الى mrzahi_ مرة واحدة لكل متصفح، فلا يفقد احد لغته ولا ثيمه ولا حسابه المختار */
-try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("tracker_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("tracker_"+k);}});}catch(e){}
+try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("record_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("record_"+k);}});}catch(e){}
 /**
  * app/common.js — MrZahi shared data layer for the app pages (plain script, no modules).
  *
@@ -8,10 +8,10 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
  *   ready, client, user, profile, orgs, org, role(),
  *   setCurrentOrg(orgId), createOrg(name, entityType),
  *   effectivePlan(), plans(), planLimits(), subscription(),
- *   listTrackers(), createTracker({name,color,columns}), deleteTracker(id),
- *   listItems({trackerId,status,from,to,search,limit}), countItems(), insertItems(rows),
+ *   listRecords(), createRecord({name,color,columns}), deleteRecord(id),
+ *   listItems({recordId,status,from,to,search,limit}), countItems(), insertItems(rows),
  *   updateItem(id, patch), deleteItem(id),
- *   listImports(), createImport({tracker_id,filename,rows_count,mapping}), importsThisMonth(),
+ *   listImports(), createImport({record_id,filename,rows_count,mapping}), importsThisMonth(),
  *   listMembers(), listInvitations(), inviteMember(email, role), cancelInvitation(id),
  *   removeMember(userId), setMemberRole(userId, role),
  *   listRules(), saveRule(rule), deleteRule(id),
@@ -38,7 +38,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
   var ORG_KEY = "mrzahi_org";
   var LANG_KEY = "mrzahi_lang";
   var TIME_ZONE = "Asia/Riyadh";
-  var ITEM_COLUMNS = "id,item_number,title,category,due_at,status,assignee_id,amount,client_name,client_name_en,case_number,data,tracker_id,trackers(name),remind_before,created_at,updated_at";
+  var ITEM_COLUMNS = "id,item_number,title,category,due_at,status,assignee_id,amount,client_name,client_name_en,case_number,data,record_id,records(name),remind_before,created_at,updated_at";
   var INSERT_CHUNK = 200;
 
   /* Fallback strings (used only when the page has no `translations` object or lacks the key). */
@@ -281,7 +281,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       ".waitlist-msg.success { color: var(--success); }\n" +
       ".waitlist-msg.error { color: var(--error); }\n" +
       /* glass panel — background/border/radius/shadow/transition copied from header.css .menu-dropdown */
-      ".tracker-toast {\n" +
+      ".record-toast {\n" +
       "  position: fixed;\n" +
       "  bottom: 1.5rem;\n" +
       "  left: 50%;\n" +
@@ -303,8 +303,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       "  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);\n" +
       "  overflow: hidden;\n" +
       "}\n" +
-      ".tracker-toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0) scale(1); }\n" +
-      ".tracker-toast .waitlist-msg { margin: 0; text-align: center; }\n";
+      ".record-toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0) scale(1); }\n" +
+      ".record-toast .waitlist-msg { margin: 0; text-align: center; }\n";
     document.head.appendChild(style);
   }
 
@@ -314,7 +314,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     if (!el) {
       el = document.createElement("div");
       el.id = "mrzahiToast";
-      el.className = "tracker-toast";
+      el.className = "record-toast";
       el.setAttribute("role", "status");
       el.setAttribute("aria-live", "polite");
       var p = document.createElement("p");

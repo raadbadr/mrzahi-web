@@ -13,7 +13,7 @@
       addCategory: "categoryPlaceholder",
       editTitle: "titlePlaceholder",
       editCategory: "categoryPlaceholder",
-      newTrackerName: "newTrackerPlaceholder"
+      newRecordName: "newRecordPlaceholder"
     };
     function applyPlaceholders(code) {
       const dict = translations[code] || translations.ar;

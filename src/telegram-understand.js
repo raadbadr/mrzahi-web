@@ -197,7 +197,7 @@ export function composeAnswer(u, rows, lang, rowsText, toolText, tz) {
   const L = LABELS[lang] || LABELS.ar;
   let list = Array.isArray(rows) ? rows : [];
   const total = list.length;
-  if (u.kindFilter && list.length) { const KF = { case: /قض|جلس|case|hearing|session/i, violation: /مخالف|violation|fine/i, task: /مهم|task/i, document: /مستند|document|سجل|شهاد/i }[u.kindFilter]; if (KF) { const f = list.filter((r) => KF.test(String(r.tracker_name || "") + " " + String(r.category || "") + " " + String(r.title || "")) || (u.kindFilter === "document" && (r.document_kind || r.doc_number))); if (f.length) list = f; } }
+  if (u.kindFilter && list.length) { const KF = { case: /قض|جلس|case|hearing|session/i, violation: /مخالف|violation|fine/i, task: /مهم|task/i, document: /مستند|document|سجل|شهاد/i }[u.kindFilter]; if (KF) { const f = list.filter((r) => KF.test(String(r.record_name || "") + " " + String(r.category || "") + " " + String(r.title || "")) || (u.kindFilter === "document" && (r.document_kind || r.doc_number))); if (f.length) list = f; } }
   if (u.filter && list.length) { const f = list.filter(u.filter); if (f.length) list = f; else return `${L.none_kw} ${u.label} (${total}).\n${rowsText(list)}`; }
   if (u.softFilter && list.length) { const f = list.filter(u.softFilter); if (f.length) list = f; }
   if (u.window && list.length) {

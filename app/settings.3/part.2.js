@@ -119,7 +119,7 @@
           el("upgradePlan").addEventListener("change", function () { fillUpgradePeriod(); renderUpgradePrice(); });
           el("upgradePeriod").addEventListener("change", renderUpgradePrice);
           el("storageDriveToggle").addEventListener("change", onDriveToggle);
-          document.addEventListener("tracker:drive", renderDriveSwitch);
+          document.addEventListener("record:drive", renderDriveSwitch);
 
           if (app.org && el("orgNameInput")) el("orgNameInput").value = app.org.name || "";
           el("orgSaveBtn").addEventListener("click", function () {

@@ -3,7 +3,7 @@
           var b = $("docDriveBtn");
           if (b) b.hidden = !(app && app.driveAvailable && app.driveAvailable());
         }
-        document.addEventListener("tracker:drive", syncDriveBtn);
+        document.addEventListener("record:drive", syncDriveBtn);
         syncDriveBtn();
         $("docDriveBtn").addEventListener("click", function () {
           var btn = this; btn.disabled = true;

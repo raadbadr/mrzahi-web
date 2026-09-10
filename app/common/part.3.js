@@ -130,7 +130,7 @@
   function listRules() {
     return run(function (client) {
       var orgId = requireOrg();
-      return client.from("reminder_rules").select("*, trackers(name), items(title)").eq("org_id", orgId)
+      return client.from("reminder_rules").select("*, records(name), items(title)").eq("org_id", orgId)
         .order("created_at", { ascending: false }).then(unwrap);
     });
   }
@@ -140,13 +140,13 @@
       var orgId = requireOrg();
       var r = rule || {};
       var row = {
-        tracker_id: r.tracker_id || null,
+        record_id: r.record_id || null,
         item_id: r.item_id || null,
         offset_minutes: Number(r.offset_minutes) || 1440,
         channels: (r.channels && r.channels.length) ? r.channels : ["telegram"],
         target: r.target === "all" ? "all" : "assignee"
       };
-      if (!row.tracker_id && !row.item_id) throw new Error("tracker_id or item_id required");
+      if (!row.record_id && !row.item_id) throw new Error("record_id or item_id required");
       if (r.id) {
         return client.from("reminder_rules").update(row).eq("org_id", orgId).eq("id", r.id).select("*").single().then(unwrap);
       }
@@ -963,7 +963,7 @@
     cancelBtn: "editorCard",
     renameOrgCancel: "",
     newOrgCancel: "",
-    newTrackerCancel: ""
+    newRecordCancel: ""
   };
   var CLOSE_X_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
     '<path d="M3.2 3.2 12.8 12.8M12.8 3.2 3.2 12.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';

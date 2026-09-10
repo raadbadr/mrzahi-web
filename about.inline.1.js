@@ -1,5 +1,5 @@
 /* migration: نقل مفاتيح التخزين من الاسم القديم الى mrzahi_ مرة واحدة لكل متصفح، فلا يفقد احد لغته ولا ثيمه ولا حسابه المختار */
-try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("tracker_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("tracker_"+k);}});}catch(e){}
+try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("record_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("record_"+k);}});}catch(e){}
 const translations = {
       ar: {
         title: "من نحن",

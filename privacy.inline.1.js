@@ -1,5 +1,5 @@
 /* migration: نقل مفاتيح التخزين من الاسم القديم الى mrzahi_ مرة واحدة لكل متصفح، فلا يفقد احد لغته ولا ثيمه ولا حسابه المختار */
-try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("tracker_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("tracker_"+k);}});}catch(e){}
+try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("record_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("record_"+k);}});}catch(e){}
 const t = {
       ar: {
         title: "سياسة الخصوصية",
@@ -170,7 +170,7 @@ const t = {
         p9: "We use only the following in your browser:",
         li9a: "Your language and theme preferences, stored locally in your browser",
         li9b: "The sign-in session needed to keep you connected to your account",
-        p9b: "We do not use any advertising cookies or third-party marketing trackers.",
+        p9b: "We do not use any advertising cookies or third-party marketing records.",
         p10: "The platform is intended for companies and professionals and is not directed at anyone under 18 years of age. We do not knowingly collect data from minors, and if we become aware of it we delete it immediately.",
         p11: "We may update this policy from time to time. For material changes we will notify you by your registered email or an in-platform notice before they take effect, and the effective date at the top of this page will be updated.",
         p12: "For any question or request regarding your privacy or your data:",

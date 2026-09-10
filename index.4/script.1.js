@@ -1,12 +1,12 @@
 /* migration: نقل مفاتيح التخزين من الاسم القديم الى mrzahi_ مرة واحدة لكل متصفح، فلا يفقد احد لغته ولا ثيمه ولا حسابه المختار */
-try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("tracker_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("tracker_"+k);}});}catch(e){}
+try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("record_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("record_"+k);}});}catch(e){}
     const translations = {
       ar: {
         tagline: "تتبع أعمالك في مكان واحد",
         statsSectionTitle: "أرقام المنصة",
         statUsers: "المستخدمون",
         statOrgs: "الشركات",
-        statTrackers: "السجلات",
+        statRecords: "السجلات",
         statItems: "العناصر المسجلة",
         statItemsUpcoming: "قادمة",
         statItemsOverdue: "متأخرة",
@@ -98,7 +98,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
         statsSectionTitle: "Platform stats",
         statUsers: "Users",
         statOrgs: "Companies",
-        statTrackers: "Trackers",
+        statRecords: "Records",
         statItems: "Tracked items",
         statItemsUpcoming: "Upcoming",
         statItemsOverdue: "Overdue",
@@ -124,7 +124,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
         whyPrefix: "Why ",
         whySuffix: "?",
         f1: "Upload an Excel file",
-        f1p: "Turn your existing spreadsheet into a tracker in a minute, without re-entering any data",
+        f1p: "Turn your existing spreadsheet into a record in a minute, without re-entering any data",
         f2: "A calendar for every due date",
         f2p: "Your tasks on your calendar",
         f3: "Alerts before the deadline",
@@ -190,7 +190,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
         statsSectionTitle: "Chiffres de la plateforme",
         statUsers: "Utilisateurs",
         statOrgs: "Entreprises",
-        statTrackers: "Trackers",
+        statRecords: "Records",
         statItems: "Éléments suivis",
         statItemsUpcoming: "À venir",
         statItemsOverdue: "En retard",
@@ -216,7 +216,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
         whyPrefix: "Pourquoi ",
         whySuffix: "?",
         f1: "Importez un fichier Excel",
-        f1p: "Transformez votre tableau actuel en tracker en une minute, sans ressaisir aucune donnée",
+        f1p: "Transformez votre tableau actuel en record en une minute, sans ressaisir aucune donnée",
         f2: "Un calendrier pour chaque échéance",
         f2p: "Vos tâches sur votre agenda",
         f3: "Alertes avant l'échéance",
@@ -282,7 +282,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
         statsSectionTitle: "پلیٹ فارم کے اعداد و شمار",
         statUsers: "صارفین",
         statOrgs: "کمپنیاں",
-        statTrackers: "ٹریکرز",
+        statRecords: "ٹریکرز",
         statItems: "ٹریک شدہ آئٹمز",
         statItemsUpcoming: "آنے والے",
         statItemsOverdue: "تاخیر شدہ",
@@ -629,7 +629,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       const pairs = [
         ["statValueUsers", "users"],
         ["statValueOrgs", "organizations"],
-        ["statValueTrackers", "trackers"],
+        ["statValueRecords", "records"],
         ["statValueItems", "items"],
         ["statItemsUpcoming", "itemsUpcoming"],
         ["statItemsOverdue", "itemsOverdue"],
@@ -675,7 +675,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       /* الأرقام كلها من platform_stats في القاعدة: عد حقيقي للمستخدمين والحسابات
          والسجلات والعناصر والتنبيهات. ما لا يصل لا يخترع له رقم. */
       const KEYS = [
-        "users", "organizations", "trackers",
+        "users", "organizations", "records",
         "items", "itemsUpcoming", "itemsOverdue", "itemsNoDue", "itemsDone",
         "notifications", "notifInapp", "notifEmail", "notifTelegram", "notifWhatsapp", "notifSms",
         "telegramMessages"

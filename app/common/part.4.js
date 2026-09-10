@@ -39,9 +39,9 @@
     }
   }
 
-  app.listTrackers = listTrackers;
-  app.createTracker = createTracker;
-  app.deleteTracker = deleteTracker;
+  app.listRecords = listRecords;
+  app.createRecord = createRecord;
+  app.deleteRecord = deleteRecord;
   app.listItems = listItems;
   app.countItems = countItems;
   app.insertItems = insertItems;
@@ -787,7 +787,7 @@
       for (var i = localStorage.length - 1; i >= 0; i--) {
         var k = localStorage.key(i);
         if (!k || KEEP_ON_SIGNOUT[k]) continue;
-        if (k.indexOf("tracker_") === 0 || k.indexOf("mrzahi:") === 0 || k.indexOf("sb-") === 0) {
+        if (k.indexOf("record_") === 0 || k.indexOf("mrzahi:") === 0 || k.indexOf("sb-") === 0) {
           localStorage.removeItem(k);
         }
       }

@@ -51,7 +51,7 @@
         headers: [],
         rows: [],
         mapping: { title: -1, due: -1, category: -1, assignee: -1, status: -1 },
-        trackers: [],
+        records: [],
         memberByEmail: {},
         limits: {},
         importsUsed: 0,
@@ -167,7 +167,7 @@
             state.workbook = wb;
             state.result = null;
             state.sheetName = wb.SheetNames[0];
-            els.trackerName.value = state.fileBase;
+            els.recordName.value = state.fileBase;
             renderSheetSelect();
             selectSheet(state.sheetName);
           } catch (e) {
@@ -282,7 +282,7 @@
         guessMapping();
         renderPreview();
         renderMapping();
-        renderTrackerSelect();
+        renderRecordSelect();
         analyzeAndRender();
         [els.step2, els.step3, els.step4, els.step5].forEach(function (s) { show(s, true); });
         show(els.summaryCard, false);
@@ -432,20 +432,20 @@
         });
       }
 
-      function renderTrackerSelect() {
-        const sel = els.trackerSelect;
+      function renderRecordSelect() {
+        const sel = els.recordSelect;
         const prev = sel.value;
         sel.innerHTML = "";
-        sel.appendChild(new Option(t("newTracker"), NEW_MrZahi));
-        state.trackers.forEach(function (tr) { sel.appendChild(new Option(tr.name, tr.id)); });
+        sel.appendChild(new Option(t("newRecord"), NEW_MrZahi));
+        state.records.forEach(function (tr) { sel.appendChild(new Option(tr.name, tr.id)); });
         let keep = NEW_MrZahi;
         for (let i = 0; i < sel.options.length; i++) if (sel.options[i].value === prev) { keep = prev; break; }
         sel.value = keep;
-        toggleTrackerName();
+        toggleRecordName();
       }
 
-      function toggleTrackerName() {
-        show(els.trackerNameField, els.trackerSelect.value === NEW_MrZahi);
+      function toggleRecordName() {
+        show(els.recordNameField, els.recordSelect.value === NEW_MrZahi);
       }
 
       function analyzeAndRender() {
@@ -519,7 +519,7 @@
           statCard(t("summaryInserted"), r.inserted) +
           statCard(t("summarySkipped"), r.skipped) +
           statCard(t("summaryUnmatched"), r.unmatched);
-        els.summaryTracker.textContent = fmt("summaryTracker", { name: r.trackerName });
+        els.summaryRecord.textContent = fmt("summaryRecord", { name: r.recordName });
         if (r.isNew) {
           els.summaryRule.textContent = t(r.ruleCreated ? "summaryRuleNote" : "summaryRuleFailed");
           show(els.summaryRule, true);
@@ -541,13 +541,13 @@
         if (state.headers.length && state.rows.length) {
           renderPreview();
           renderMapping();
-          renderTrackerSelect();
+          renderRecordSelect();
           analyzeAndRender();
           if (state.file) {
             setMsg(els.fileStatus, fmt("fileLoaded", { name: state.file.name, rows: state.rows.length, cols: state.headers.length }), "success");
           }
-        } else if (els.trackerSelect) {
-          renderTrackerSelect();
+        } else if (els.recordSelect) {
+          renderRecordSelect();
         }
         if (state.result) renderSummary();
       }
@@ -582,10 +582,10 @@
 
       function loadOrgData() {
         return Promise.all([
-          mrzahiApp.listTrackers(),
+          mrzahiApp.listRecords(),
           mrzahiApp.listMembers().catch(function () { return []; })
         ]).then(function (res) {
-          state.trackers = res[0] || [];
+          state.records = res[0] || [];
           buildMemberMap(res[1] || []);
           return refreshPlanData();
         });
@@ -597,8 +597,8 @@
         state.busy = on;
         els.importBtn.disabled = on;
         els.sheetSelect.disabled = on;
-        els.trackerSelect.disabled = on;
-        els.trackerName.disabled = on;
+        els.recordSelect.disabled = on;
+        els.recordName.disabled = on;
         els.chooseFileBtn.disabled = on;
         els.fileInput.disabled = on;
         els.mappingGrid.querySelectorAll("select").forEach(function (s) { s.disabled = on; });
@@ -615,9 +615,9 @@
           setMsg(els.importProgress, t(needsTitle ? "mappingRequired" : "mappingRequiredDue"), "error"); return;
         }
 
-        const isNew = els.trackerSelect.value === NEW_MrZahi;
-        const trackerName = String(els.trackerName.value || "").trim();
-        if (isNew && !trackerName) { setMsg(els.importProgress, t("trackerNameRequired"), "error"); els.trackerName.focus(); return; }
+        const isNew = els.recordSelect.value === NEW_MrZahi;
+        const recordName = String(els.recordName.value || "").trim();
+        if (isNew && !recordName) { setMsg(els.importProgress, t("recordNameRequired"), "error"); els.recordName.focus(); return; }
 
         state.analysis = analyze();
         const analysis = state.analysis;
@@ -632,19 +632,19 @@
           const check = planCheck();
           if (!check.ok) { setMsg(els.importProgress, fmt(check.key, check.vars), "error"); return; }
 
-          let tracker = null;
+          let record = null;
           if (isNew) {
-            progress(t("progressCreatingTracker"));
-            tracker = await mrzahiApp.createTracker({ name: trackerName, columns: state.headers.slice() });
+            progress(t("progressCreatingRecord"));
+            record = await mrzahiApp.createRecord({ name: recordName, columns: state.headers.slice() });
           } else {
-            const id = els.trackerSelect.value;
-            for (let i = 0; i < state.trackers.length; i++) if (state.trackers[i].id === id) { tracker = state.trackers[i]; break; }
-            if (!tracker) throw new Error(t("genericError"));
+            const id = els.recordSelect.value;
+            for (let i = 0; i < state.records.length; i++) if (state.records[i].id === id) { record = state.records[i]; break; }
+            if (!record) throw new Error(t("genericError"));
           }
 
           progress(t("progressImport"));
           const imp = await mrzahiApp.createImport({
-            tracker_id: tracker.id,
+            record_id: record.id,
             filename: state.file ? state.file.name : null,
             rows_count: analysis.records.length,
             mapping: mappingForDb()
@@ -655,7 +655,7 @@
             progress(fmt("progressInserting", { done: inserted, total: total }));
             const chunk = analysis.records.slice(i, i + CHUNK).map(function (r) {
               return {
-                tracker_id: tracker.id,
+                record_id: record.id,
                 import_id: imp.id,
                 title: r.title,
                 category: r.category,
@@ -677,12 +677,12 @@
           if (isNew) {
             progress(t("progressRule"));
             try {
-              await mrzahiApp.saveRule({ tracker_id: tracker.id, offset_minutes: 1440, channels: ["telegram"], target: "assignee" });
+              await mrzahiApp.saveRule({ record_id: record.id, offset_minutes: 1440, channels: ["telegram"], target: "assignee" });
               ruleCreated = true;
             } catch (e) {
               ruleCreated = false;
             }
-            state.trackers.push(tracker);
+            state.records.push(record);
           }
 
           state.result = {
@@ -690,7 +690,7 @@
             skipped: analysis.skipped,
             unmatched: analysis.unmatched,
             unmatchedEmails: analysis.unmatchedEmails,
-            trackerName: tracker.name,
+            recordName: record.name,
             isNew: isNew,
             ruleCreated: ruleCreated
           };
@@ -729,7 +729,7 @@
         state.analysis = null;
         state.result = null;
         els.fileInput.value = "";
-        els.trackerName.value = "";
+        els.recordName.value = "";
         els.previewTable.innerHTML = "";
         els.mappingGrid.innerHTML = "";
         setMsg(els.fileStatus, "");
@@ -739,7 +739,7 @@
         [els.step2, els.step3, els.step4, els.step5].forEach(function (s) { show(s, false); });
         show(els.step1, true);
         els.importBtn.disabled = false;
-        renderTrackerSelect();
+        renderRecordSelect();
         refreshPlanData().catch(function () { /* ignore */ });
         els.step1.scrollIntoView({ behavior: "smooth", block: "start" });
       }
@@ -803,7 +803,7 @@
           if (f) readFile(f);
         });
         els.sheetSelect.addEventListener("change", function () { if (state.workbook) selectSheet(els.sheetSelect.value); });
-        els.trackerSelect.addEventListener("change", toggleTrackerName);
+        els.recordSelect.addEventListener("change", toggleRecordName);
         els.importBtn.addEventListener("click", function () { runImport(); });
         els.importAnotherBtn.addEventListener("click", resetFlow);
       }
@@ -817,10 +817,10 @@
           sheetRow: $("sheetRow"), sheetSelect: $("sheetSelect"), previewNote: $("previewNote"), previewTable: $("previewTable"),
           mappingGrid: $("mappingGrid"), mappingStats: $("mappingStats"), unmatchedHint: $("unmatchedHint"),
           importMode: $("importMode"), graceField: $("graceField"), graceDays: $("graceDays"),
-          trackerSelect: $("trackerSelect"), trackerNameField: $("trackerNameField"), trackerName: $("trackerName"),
+          recordSelect: $("recordSelect"), recordNameField: $("recordNameField"), recordName: $("recordName"),
           planStats: $("planStats"), planMsg: $("planMsg"), planUpgrade: $("planUpgrade"),
           importBtn: $("importBtn"), importProgress: $("importProgress"),
-          summaryCard: $("summaryCard"), summaryStats: $("summaryStats"), summaryTracker: $("summaryTracker"),
+          summaryCard: $("summaryCard"), summaryStats: $("summaryStats"), summaryRecord: $("summaryRecord"),
           summaryRule: $("summaryRule"), summaryUnmatched: $("summaryUnmatched"), importAnotherBtn: $("importAnotherBtn")
         };
         wireEvents();
@@ -832,7 +832,7 @@
           if (!res || res.unavailable || app.unavailable) { showUnavailable(); return null; }
           if (!app.org) { showNoOrg(); return null; }
           return loadOrgData().then(function () {
-            renderTrackerSelect();
+            renderRecordSelect();
             show(els.loadingCard, false);
             show(els.importFlow, true);
           });
@@ -840,7 +840,7 @@
           show(els.loadingCard, false);
           if (err && err.code === "unavailable") { showUnavailable(); return; }
           show(els.importFlow, true);
-          renderTrackerSelect();
+          renderRecordSelect();
           toast((err && err.message) || t("genericError"), "error");
         });
       }

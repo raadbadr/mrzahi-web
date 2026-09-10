@@ -65,14 +65,14 @@ export const TOOLS = [
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string" } }, additionalProperties: false } },
   { name: "mrzahi_platform", description: "Platform-wide numbers for the platform administrator only: registered users, companies, items, paid subscriptions, sign-ups this week and the latest registrations. Anyone else gets status=forbidden. Use for 'how many are registered on the site', 'كم المسجلين في الموقع'.",
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string" } }, additionalProperties: false } },
-  { name: "mrzahi_overview", description: "Counts of everything in the user's company: total, open and done, per tracker with the nearest due date, and per kind. Use for 'what do we have', 'summary', 'status', 'everything'.",
+  { name: "mrzahi_overview", description: "Counts of everything in the user's company: total, open and done, per record with the nearest due date, and per kind. Use for 'what do we have', 'summary', 'status', 'everything'.",
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string" } }, additionalProperties: false } },
   { name: "mrzahi_expenses", description: "Operating expenses of the user's company for a period: total in SAR, count, top categories and the latest expenses. Use for 'how are my expenses', 'what did we spend this month/week/year'.",
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string" }, period: { type: "string", enum: ["month", "week", "year", "all"], default: "month", description: "month (default), week, year or all" } }, additionalProperties: false } },
   { name: "mrzahi_remind", description: "Set a personal reminder lead time for one item: remind before its due date by e.g. 'يوم', '3 أيام', 'أسبوع', '2 hours'. Identify the item by query (title, case number, violation number). Returns ambiguous candidates when several match.",
     inputSchema: { type: "object", properties: { user_message: { type: "string", description: "The person's exact words that ask for this action (required)" }, confirm: { type: "boolean", description: "true only after the person confirmed the needs_confirmation preview" }, telegram_user_id: { type: "string" }, query: { type: "string" }, before: { type: "string", description: "Lead time as written by the user" } }, required: ["query", "before"], additionalProperties: false } },
-  { name: "mrzahi_import_rows", description: "Bulk-import rows (objects with Arabic or English column names, e.g. title, client_name, case_number, due_at, amount, status) into a tracker of this company.",
-    inputSchema: { type: "object", properties: { confirm: { type: "boolean", description: "true only after the key owner confirmed the row count" }, telegram_user_id: { type: "string", description: "Telegram user id of the person talking (Telegram only)" }, rows: { type: "array", items: { type: "object" }, minItems: 1, maxItems: 500 }, tracker: { type: "string", description: "Tracker (sheet) name; default: the company's main tracker" } }, required: ["rows"], additionalProperties: false } },
+  { name: "mrzahi_import_rows", description: "Bulk-import rows (objects with Arabic or English column names, e.g. title, client_name, case_number, due_at, amount, status) into a record of this company.",
+    inputSchema: { type: "object", properties: { confirm: { type: "boolean", description: "true only after the key owner confirmed the row count" }, telegram_user_id: { type: "string", description: "Telegram user id of the person talking (Telegram only)" }, rows: { type: "array", items: { type: "object" }, minItems: 1, maxItems: 500 }, record: { type: "string", description: "Record (sheet) name; default: the company's main record" } }, required: ["rows"], additionalProperties: false } },
 ];
 
 function text(s) { return { content: [{ type: "text", text: String(s) }] }; }
@@ -82,9 +82,9 @@ function fail(msg, obj) { return { content: [{ type: "text", text: String(msg) }
 const KIND_AR = { case: "قضايا", session: "جلسات", violation: "مخالفات", task: "مهام", document: "مستندات", ruling: "أحكام", execution: "تنفيذ", license: "تراخيص", other: "أخرى" };
 /* نظرة عامة بلغة إنسان: كل سجل بعدد المفتوح والمنجز وأقرب موعد، ثم الأنواع */
 function overviewText(r) {
-  const trackers = (r.trackers || []).map((t) => "• " + t.name + ": " + (t.open || 0) + " مفتوح" + (t.done ? "، " + t.done + " منجز" : "") + (t.next_due ? " — الأقرب " + dmy(t.next_due) : "")).join("\n");
+  const records = (r.records || []).map((t) => "• " + t.name + ": " + (t.open || 0) + " مفتوح" + (t.done ? "، " + t.done + " منجز" : "") + (t.next_due ? " — الأقرب " + dmy(t.next_due) : "")).join("\n");
   const kinds = (r.kinds || []).filter((k) => (k.open || 0) + (k.done || 0) > 0).map((k) => (KIND_AR[k.kind] || k.kind) + " " + (k.open || 0) + (k.done ? " (+" + k.done + " منجز)" : "")).join("، ");
-  return (r.org_name ? r.org_name + ": " : "") + (r.total || 0) + " عنصر (" + (r.open || 0) + " مفتوح، " + (r.done || 0) + " منجز)" + (trackers ? "\n" + trackers : "") + (kinds ? "\nبحسب النوع: " + kinds : "");
+  return (r.org_name ? r.org_name + ": " : "") + (r.total || 0) + " عنصر (" + (r.open || 0) + " مفتوح، " + (r.done || 0) + " منجز)" + (records ? "\n" + records : "") + (kinds ? "\nبحسب النوع: " + kinds : "");
 }
 function describeRows(rows) {
   if (!rows || !rows.length) return "No items.";
@@ -141,11 +141,11 @@ export async function callTool(name, args, ctx) {
     if (gate.blocked) return fail(gate.reason, { status: "refused" });
     if (gate.pending && a.confirm !== true) return result({ status: "needs_confirmation", action: gate.pending }, "needs_confirmation: show the person exactly what will happen — " + describePending(gate.pending) + " — and only after they confirm call again with the same arguments plus confirm=true.");
   }
-  if (!ctx.trusted && name === "mrzahi_import_rows" && a.confirm !== true) return result({ status: "needs_confirmation", rows: Array.isArray(a.rows) ? a.rows.length : 0 }, "needs_confirmation: " + (Array.isArray(a.rows) ? a.rows.length : 0) + " rows would be imported" + (a.tracker ? " into " + a.tracker : "") + ". Confirm with the key owner, then call again with confirm=true.");
+  if (!ctx.trusted && name === "mrzahi_import_rows" && a.confirm !== true) return result({ status: "needs_confirmation", rows: Array.isArray(a.rows) ? a.rows.length : 0 }, "needs_confirmation: " + (Array.isArray(a.rows) ? a.rows.length : 0) + " rows would be imported" + (a.record ? " into " + a.record : "") + ". Confirm with the key owner, then call again with confirm=true.");
   switch (name) {
     case "mrzahi_whoami": {
       let counts = null;
-      try { const rows = await ctx.rpc("api_items_export", { p_secret: secret, p_hash: ctx.hash, p_tracker: null }); counts = { items: (rows || []).length, open: (rows || []).filter((r) => r.status === "open").length }; } catch (e) { counts = null; }
+      try { const rows = await ctx.rpc("api_items_export", { p_secret: secret, p_hash: ctx.hash, p_record: null }); counts = { items: (rows || []).length, open: (rows || []).filter((r) => r.status === "open").length }; } catch (e) { counts = null; }
       const info = { org: ctx.who.org_name, org_id: ctx.who.org_id, user_id: user, user_name: actor.name, telegram_user_id: actor.tg || null, counts };
       return result(info, (actor.name ? `You are ${actor.name}. ` : "") + `Company: ${ctx.who.org_name}` + (counts ? ` — ${counts.items} items, ${counts.open} open` : ""));
     }
@@ -197,11 +197,11 @@ export async function callTool(name, args, ctx) {
       let ov = null;
       try { ov = await ctx.rpc("telegram_overview", { p_secret: secret, p_user_id: user }); } catch (e) { ov = null; }
       let all = [];
-      if (ov && ov.status !== "no_org" && (ov.total || 0) > 0) { extra.overview = ov.trackers || []; parts.push("الموجود لديك — " + overviewText(ov)); }
+      if (ov && ov.status !== "no_org" && (ov.total || 0) > 0) { extra.overview = ov.records || []; parts.push("الموجود لديك — " + overviewText(ov)); }
       else if (!ov) { try { all = (await ctx.rpc("telegram_items_by_kind", { p_secret: secret, p_user_id: user, p_kind: "all", p_status: "all", p_limit: 30 })) || []; } catch (e) { all = []; } }
       if (all.length) {
         const by = new Map();
-        for (const r of all) { const g = r.tracker_name || r.category || "أخرى"; const c = by.get(g) || { open: 0, done: 0 }; c[r.status === "open" ? "open" : "done"] += 1; by.set(g, c); }
+        for (const r of all) { const g = r.record_name || r.category || "أخرى"; const c = by.get(g) || { open: 0, done: 0 }; c[r.status === "open" ? "open" : "done"] += 1; by.set(g, c); }
         const overview = [...by.entries()].sort((x, y) => (y[1].open + y[1].done) - (x[1].open + x[1].done)).map(([g, c]) => g + " " + (c.open + c.done) + (c.open ? " (مفتوح " + c.open + ")" : "")).join("، ");
         extra.overview = [...by.entries()].map(([name, c]) => ({ name, ...c }));
         parts.push("الموجود لديك" + (all.length >= 30 ? " (أول 30)" : "") + ": " + overview + ".");
@@ -278,7 +278,7 @@ export async function callTool(name, args, ctx) {
     }
     case "mrzahi_import_rows": {
       if (!ctx.importRows) return fail("import not available");
-      const r = await ctx.importRows(a.rows, a.tracker || null);
+      const r = await ctx.importRows(a.rows, a.record || null);
       return r.ok ? result(r, `Imported ${r.imported ?? ""} rows`.trim()) : fail("Import failed", r);
     }
     default:
@@ -299,8 +299,8 @@ async function dispatch(msg, ctx) {
     case "ping": return rpcResult(id, {});
     case "tools/list": return rpcResult(id, { tools: TOOLS });
     case "tools/call": {
-      // الاسم القديم tracker_* يقبل مرادفا للجديد mrzahi_* حتى يحدث كل عميل MCP اسماءه فلا ينكسر تكامل قائم
-      const name = String(params.name || "").replace(/^tracker_/, "mrzahi_");
+      // الاسم القديم record_* يقبل مرادفا للجديد mrzahi_* حتى يحدث كل عميل MCP اسماءه فلا ينكسر تكامل قائم
+      const name = String(params.name || "").replace(/^record_/, "mrzahi_");
       if (!TOOLS.some((t) => t.name === name)) return rpcError(id, -32602, "Unknown tool: " + name);
       try { return rpcResult(id, await callTool(name, params.arguments || {}, ctx)); }
       catch (e) { console.log("mcp tool failed", name, String(e && e.message || e).slice(0, 300)); return rpcResult(id, fail("Tool failed.")); }
@@ -329,7 +329,7 @@ export async function handleMcp(request, env, url, deps) {
 
   let body;
   try { body = await request.json(); } catch { return jsonResponse(rpcError(null, -32700, "Parse error"), 400); }
-  const ctx = { env, who: auth.who, hash: auth.hash, rpc: deps.rpc || ((name, args) => rpc(env, name, args)), importRows: deps.importRows ? (rows, tracker) => deps.importRows(env, auth.hash, rows, tracker) : null };
+  const ctx = { env, who: auth.who, hash: auth.hash, rpc: deps.rpc || ((name, args) => rpc(env, name, args)), importRows: deps.importRows ? (rows, record) => deps.importRows(env, auth.hash, rows, record) : null };
   const session = request.headers.get("Mcp-Session-Id") || crypto.randomUUID();
   const extra = { "Mcp-Session-Id": session, "MCP-Protocol-Version": PROTOCOL_VERSIONS[0] };
 

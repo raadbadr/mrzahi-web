@@ -11,7 +11,7 @@
       var app = null;
       var state = {
         org: null,
-        trackers: [],
+        records: [],
         members: [],
         names: {},
         items: [],
@@ -33,7 +33,7 @@
         calScrollSig: "",   /* المدى المعروض في محور الساعات: يمرر مرة عند تغيره لا مع كل تحديث */
         calScrollTop: 0,
         calWho: "",   /* فلتر المسؤول في التقويم: فارغ = الكل */
-        filters: { tracker: "", status: "", search: "" },
+        filters: { record: "", status: "", search: "" },
         tab: "list",
         month: null,
         editing: null,
@@ -95,9 +95,9 @@
       }
       function statusKeyOf(item) { return isOverdue(item) ? "overdue" : (STATUS_KEYS[item.status] ? item.status : "open"); }
 
-      function trackerName(item) {
-        if (item.trackers && item.trackers.name) return item.trackers.name;
-        for (var i = 0; i < state.trackers.length; i++) if (state.trackers[i].id === item.tracker_id) return state.trackers[i].name;
+      function recordName(item) {
+        if (item.records && item.records.name) return item.records.name;
+        for (var i = 0; i < state.records.length; i++) if (state.records[i].id === item.record_id) return state.records[i].name;
         return "";
       }
       function assigneeName(id) { return (id && state.names[id]) ? state.names[id] : T("noAssignee"); }
@@ -157,8 +157,8 @@
         if (sel.value !== (value || "") && sel.options.length) sel.selectedIndex = 0;
       }
 
-      function trackerOptions(firstKey) {
-        return [{ value: "", label: T(firstKey) }].concat(state.trackers.map(function (t) { return { value: t.id, label: t.name }; }));
+      function recordOptions(firstKey) {
+        return [{ value: "", label: T(firstKey) }].concat(state.records.map(function (t) { return { value: t.id, label: t.name }; }));
       }
       function memberOptions() {
         return [{ value: "", label: T("noAssignee") }].concat(state.members.map(function (m) {
@@ -935,8 +935,8 @@
       }
 
       function loadAll() {
-        return Promise.all([app.listTrackers(), app.listMembers()]).then(function (res) {
-          state.trackers = res[0] || [];
+        return Promise.all([app.listRecords(), app.listMembers()]).then(function (res) {
+          state.records = res[0] || [];
           state.members = res[1] || [];
           state.names = {};
           state.members.forEach(function (m) {

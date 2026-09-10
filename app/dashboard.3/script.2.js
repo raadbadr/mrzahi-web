@@ -331,14 +331,14 @@
       /* ---------- selects / filters ---------- */
 
       function renderSelects() {
-        fillSelect($("filterTracker"), trackerOptions("filterAllTrackers"), state.filters.tracker);
+        fillSelect($("filterRecord"), recordOptions("filterAllRecords"), state.filters.record);
         fillSelect($("filterStatus"), statusOptions(true), state.filters.status);
-        fillSelect($("addTracker"), trackerOptions("chooseTracker"), $("addTracker").value);
+        fillSelect($("addRecord"), recordOptions("chooseRecord"), $("addRecord").value);
         fillSelect($("addAssignee"), memberOptions(), $("addAssignee").value);
-        fillSelect($("editTracker"), trackerOptions("chooseTracker"), $("editTracker").value);
+        fillSelect($("editRecord"), recordOptions("chooseRecord"), $("editRecord").value);
         fillSelect($("editAssignee"), memberOptions(), $("editAssignee").value);
         fillSelect($("editStatus"), statusOptions(false), $("editStatus").value);
-        $("noTrackersHint").hidden = state.trackers.length > 0;
+        $("noRecordsHint").hidden = state.records.length > 0;
       }
 
       function exportColumns() {
@@ -351,7 +351,7 @@
               return String(r.case_number || d.number || d.violation_number || d["رقم المخالفة"] || "").trim(); } },
           { label: T("colTitle"), get: function (r) { return r.title; } },
           { label: "category", get: function (r) { return r.category; } },
-          { label: T("colTracker"), get: function (r) { return r.trackers && r.trackers.name || ""; } },
+          { label: T("colRecord"), get: function (r) { return r.records && r.records.name || ""; } },
           { label: T("colStatus"), get: function (r) { return r.status; } },
           { label: T("colDue"), get: function (r) { return r.due_at ? app.fmtDate(r.due_at, { withTime: true }) : ""; } },
           { label: T("colAssignee"), get: function (r) { return r.assignee_id ? assigneeName(r.assignee_id) : ""; } },
@@ -401,7 +401,7 @@
             .then(function () { btn.disabled = false; });
         });
       });
-      $("filterTracker").addEventListener("change", function () { state.filters.tracker = this.value; loadItems(); });
+      $("filterRecord").addEventListener("change", function () { state.filters.record = this.value; loadItems(); });
       $("filterStatus").addEventListener("change", function () { state.filters.status = this.value; loadItems(); });
 
       /* الضغط على مربع «العناصر المفتوحة» ينقل إلى قائمتها مفلترة (أمر المهندس رعد) */
@@ -457,7 +457,7 @@
 
       function loadItems() {
         var f = state.filters;
-        var q = { trackerId: f.tracker || undefined, search: f.search || undefined };
+        var q = { recordId: f.record || undefined, search: f.search || undefined };
         if (f.status === "overdue") { q.status = "open"; q.to = new Date().toISOString(); }
         else if (f.status) q.status = f.status;
         return app.listItems(q).then(function (items) {
@@ -989,7 +989,7 @@
         $("addCaseNumber").value = head.case_number || "";
         $("addAmount").value = "";
         $("addDue").value = "";
-        if ($("addTracker") && head.tracker_id) $("addTracker").value = head.tracker_id;
+        if ($("addRecord") && head.record_id) $("addRecord").value = head.record_id;
         try { panel.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) { /* تجاهل */ }
         /* حقل التاريخ صار منتقيا: المؤشر يذهب إلى الحقل الظاهر لا إلى حقل المتصفح المخفي */
         var due = $("addDue");
@@ -1017,7 +1017,7 @@
         $("addCaseNumber").value = head.case_number || "";
         $("addAmount").value = "";
         $("addDue").value = "";
-        if ($("addTracker") && head.tracker_id) $("addTracker").value = head.tracker_id;
+        if ($("addRecord") && head.record_id) $("addRecord").value = head.record_id;
         try { panel.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) { /* تجاهل */ }
         var due = $("addDue");
         var wrap = due && due.closest ? due.closest(".dp-wrap, .date-field") : null;
@@ -1150,7 +1150,7 @@
             return '<td><span class="item-title" data-tr>' + esc(item.title) + "</span>" +
                    (item.category ? '<span class="item-cat">' + esc(item.category) + "</span>" : "") + "</td>";
           case "title": return '<td><span class="item-title" data-tr>' + esc(item.title) + "</span></td>";
-          case "tracker": return "<td>" + esc(trackerName(item)) + "</td>";
+          case "record": return "<td>" + esc(recordName(item)) + "</td>";
           case "due": return '<td class="col-due">' + (item.due_at ? esc(app.fmtDate(item.due_at, { withTime: true })) : esc(T("noDue"))) + "</td>";
           case "due+left":
             return '<td class="col-due">' + (item.due_at
@@ -1260,7 +1260,7 @@
           tr.innerHTML =
             '<td><span class="item-title" data-tr>' + esc(item.title) + "</span>" +
               (item.category ? '<span class="item-cat">' + esc(item.category) + "</span>" : "") + "</td>" +
-            "<td>" + esc(trackerName(item)) + "</td>" +
+            "<td>" + esc(recordName(item)) + "</td>" +
             '<td class="col-due">' + (item.due_at
               ? '<div class="cell-stack"><span>' + esc(app.fmtDate(item.due_at, { withTime: true })) + '</span><span class="item-cat due-left" data-due="' + esc(item.due_at) + '"' + (item.status === "done" ? ' data-due-done="1"' : "") + '></span></div>'
               : esc(T("noDue"))) + "</td>" +
@@ -1324,7 +1324,7 @@
         }).catch(function (err) { fail(err, "listMsg"); });
       }
 
-      /* ---------- add item / new tracker ---------- */
+      /* ---------- add item / new record ---------- */
 
       $("addItemBtn").addEventListener("click", function () {
         if (state.viewType && VIEW_TYPES[state.viewType]) {
@@ -1344,11 +1344,11 @@
         ev.preventDefault();
         var title = $("addTitle").value.trim();
         if (!title) { setMsg("addMsg", T("titleRequired"), "error"); $("addTitle").focus(); return; }
-        var trackerId = $("addTracker").value;
-        if (!trackerId) { setMsg("addMsg", T("trackerRequired"), "error"); $("addTracker").focus(); return; }
+        var recordId = $("addRecord").value;
+        if (!recordId) { setMsg("addMsg", T("recordRequired"), "error"); $("addRecord").focus(); return; }
         clearMsg("addMsg");
         var row = {
-          tracker_id: trackerId,
+          record_id: recordId,
           title: title,
           due_at: fromLocalInput($("addDue").value),
           category: $("addCategory").value.trim() || null,
@@ -1383,28 +1383,28 @@
         });
       });
 
-      $("newTrackerBtn").addEventListener("click", function () {
-        var f = $("newTrackerForm");
+      $("newRecordBtn").addEventListener("click", function () {
+        var f = $("newRecordForm");
         f.hidden = !f.hidden;
-        clearMsg("newTrackerMsg");
-        if (!f.hidden) $("newTrackerName").focus();
+        clearMsg("newRecordMsg");
+        if (!f.hidden) $("newRecordName").focus();
       });
-      $("newTrackerCancel").addEventListener("click", function () { hide("newTrackerForm"); clearMsg("newTrackerMsg"); });
-      $("newTrackerForm").addEventListener("submit", function (ev) {
+      $("newRecordCancel").addEventListener("click", function () { hide("newRecordForm"); clearMsg("newRecordMsg"); });
+      $("newRecordForm").addEventListener("submit", function (ev) {
         ev.preventDefault();
-        var name = $("newTrackerName").value.trim();
-        if (!name) { setMsg("newTrackerMsg", T("trackerNameRequired"), "error"); return; }
-        clearMsg("newTrackerMsg");
+        var name = $("newRecordName").value.trim();
+        if (!name) { setMsg("newRecordMsg", T("recordNameRequired"), "error"); return; }
+        clearMsg("newRecordMsg");
         guard(function () {
-          return app.createTracker({ name: name }).then(function (t) {
-            state.trackers.push(t);
+          return app.createRecord({ name: name }).then(function (t) {
+            state.records.push(t);
             renderSelects();
-            $("addTracker").value = t.id;
-            $("newTrackerName").value = "";
-            hide("newTrackerForm");
-            toast("trackerCreated");
+            $("addRecord").value = t.id;
+            $("newRecordName").value = "";
+            hide("newRecordForm");
+            toast("recordCreated");
           });
-        }).catch(function (err) { fail(err, "newTrackerMsg"); });
+        }).catch(function (err) { fail(err, "newRecordMsg"); });
       });
 
       /* ---------- ملخص الأسبوع ----------
@@ -1512,7 +1512,7 @@
         state.editing = item;
         hide("addItemPanel");
         $("editTitle").value = item.title || "";
-        $("editTracker").value = item.tracker_id || "";
+        $("editRecord").value = item.record_id || "";
         $("editDue").value = toLocalInput(item.due_at);
         $("editCategory").value = item.category || "";
         $("editAssignee").value = item.assignee_id || "";
@@ -1583,7 +1583,7 @@
         var driveBtn = $("attachDriveBtn");
         function syncDriveBtn() { if (driveBtn) driveBtn.hidden = !(app.driveAvailable && app.driveAvailable()); }
         syncDriveBtn();
-        document.addEventListener("tracker:drive", syncDriveBtn);
+        document.addEventListener("record:drive", syncDriveBtn);
         if (driveBtn) driveBtn.addEventListener("click", function () {
           if (!state.editing) return;
           setMsg("attachMsg", T("attachUploading"));

@@ -181,8 +181,8 @@ async function authedUser(request, env) {
 
 /* ============================================================
  * /api/v1 — واجهة عامة بمفتاح: Authorization: Bearer tt_live_…
- * POST /api/v1/import  ← JSON (مصفوفة أو {rows,tracker}) أو CSV/Excel كملف
- * GET  /api/v1/items?tracker=&format=json|csv
+ * POST /api/v1/import  ← JSON (مصفوفة أو {rows,record}) أو CSV/Excel كملف
+ * GET  /api/v1/items?record=&format=json|csv
  * GET  /api/v1/ping
  * ============================================================ */
 async function handleNotifyTest(request, env) {
@@ -652,7 +652,7 @@ async function handleTelegramWebhook(request, env) {
       if (!parsed || !parsed.sheets.length) { try { await sendTelegram(env, chatId, b.importNothing, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
       try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_user_id: owner, p_payload: draftPayload(parsed) }); }
       catch (e) { try { await sendTelegram(env, chatId, b.importFailed, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
-      const lines = parsed.sheets.map((sh) => b.importSheet(sh.tracker || sh.name, sh.records.length, sh.skipped)).join("\n");
+      const lines = parsed.sheets.map((sh) => b.importSheet(sh.record || sh.name, sh.records.length, sh.skipped)).join("\n");
       let orgLine = ""; /* الشركة التي ستكتب فيها الصفوف (النشطة في البوت) تظهر قبل التأكيد */
       try { const orgs = await orgChoices(env, owner); const cur = orgs.find((o) => o && o.active) || orgs[0]; if (cur && cur.name) orgLine = "\n🏢 " + cur.name; } catch {}
       const summary = b.importFound(doc.file_name || "file", parsed.sheets.length) + "\n" + lines + orgLine + "\n\n" + b.importAsk;
@@ -777,7 +777,7 @@ async function handleTelegramCallback(env, cq) {
     await sendChatAction(env, chatId, "typing");
     const { results, errors } = await commitImport(env, owner, draft.payload);
     let text = "";
-    if (results.length) text += b.importDoneTitle + "\n" + results.map((r) => b.importDoneLine(r.tracker_name, r.inserted || 0, !!r.tracker_new)).join("\n");
+    if (results.length) text += b.importDoneTitle + "\n" + results.map((r) => b.importDoneLine(r.record_name, r.inserted || 0, !!r.record_new)).join("\n");
     if (errors.length) text += (text ? "\n\n" : "") + (errors.some((e) => e.limit) ? b.importLimit : b.importFailed);
     if (!text) text = b.importFailed;
     try { await sendTelegram(env, chatId, text, results.length ? urlButton(b.openDash, "https://mrzahi.com/app/dashboard.html") : menuKeyboard(lang)); } catch {}

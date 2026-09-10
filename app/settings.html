@@ -219,15 +219,15 @@ curl -H "Authorization: Bearer tt_live_..." https://mrzahi.com/api/v1/ping
 
 # import JSON
 curl -X POST -H "Authorization: Bearer tt_live_..." -H "Content-Type: application/json" \
-  -d '{"tracker":"القضايا","rows":[{"title":"جلسة","due":"2026-10-01","category":"قضية","amount":500}]}' \
+  -d '{"record":"القضايا","rows":[{"title":"جلسة","due":"2026-10-01","category":"قضية","amount":500}]}' \
   https://mrzahi.com/api/v1/import
 
 # import CSV / Excel file
-curl -X POST -H "Authorization: Bearer tt_live_..." -F "file=@items.xlsx" -F "tracker=القضايا" \
+curl -X POST -H "Authorization: Bearer tt_live_..." -F "file=@items.xlsx" -F "record=القضايا" \
   https://mrzahi.com/api/v1/import
 
 # export
-curl -H "Authorization: Bearer tt_live_..." "https://mrzahi.com/api/v1/items?tracker=&amp;format=csv"</pre>
+curl -H "Authorization: Bearer tt_live_..." "https://mrzahi.com/api/v1/items?record=&amp;format=csv"</pre>
         </details>
       </div>
 

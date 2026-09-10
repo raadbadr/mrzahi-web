@@ -5,7 +5,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-tracker-secret",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-record-secret",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -122,7 +122,7 @@ type ReminderPayload = {
   lang?: "ar" | "en" | "fr" | "ur";
   title: string;
   due_at: string;
-  tracker_name?: string;
+  record_name?: string;
   org_name?: string;
   link?: string;
   tz?: string;
@@ -150,11 +150,11 @@ function fmtDue(d: string, lang: string, userTimeZone?: string, userHour12?: boo
   } catch { return d; }
 }
 
-const REMINDER_TEXT: Record<string, { subject: string; heading: string; due: string; tracker: string; open: string; footer: string }> = {
-  ar: { subject: "تذكير: {title}", heading: "موعد استحقاق قريب", due: "تاريخ الاستحقاق", tracker: "السجل", open: "فتح لوحة التحكم", footer: "وصلك هذا التنبيه لأنك مسؤول عن هذا العنصر في Mr.Zahi." },
-  en: { subject: "Reminder: {title}", heading: "Upcoming due date", due: "Due", tracker: "Tracker", open: "Open dashboard", footer: "You received this reminder because you are assigned to this item in Mr.Zahi." },
-  fr: { subject: "Rappel : {title}", heading: "Échéance proche", due: "Échéance", tracker: "Suivi", open: "Ouvrir le tableau de bord", footer: "Vous recevez ce rappel car cet élément vous est assigné dans Mr.Zahi." },
-  ur: { subject: "یاد دہانی: {title}", heading: "قریب آنے والی آخری تاریخ", due: "آخری تاریخ", tracker: "رجسٹر", open: "ڈیش بورڈ کھولیں", footer: "یہ یاد دہانی آپ کو اس لیے ملی کیونکہ Mr.Zahi میں یہ آئٹم آپ کو تفویض ہے۔" },
+const REMINDER_TEXT: Record<string, { subject: string; heading: string; due: string; record: string; open: string; footer: string }> = {
+  ar: { subject: "تذكير: {title}", heading: "موعد استحقاق قريب", due: "تاريخ الاستحقاق", record: "السجل", open: "فتح لوحة التحكم", footer: "وصلك هذا التنبيه لأنك مسؤول عن هذا العنصر في Mr.Zahi." },
+  en: { subject: "Reminder: {title}", heading: "Upcoming due date", due: "Due", record: "Record", open: "Open dashboard", footer: "You received this reminder because you are assigned to this item in Mr.Zahi." },
+  fr: { subject: "Rappel : {title}", heading: "Échéance proche", due: "Échéance", record: "Suivi", open: "Ouvrir le tableau de bord", footer: "Vous recevez ce rappel car cet élément vous est assigné dans Mr.Zahi." },
+  ur: { subject: "یاد دہانی: {title}", heading: "قریب آنے والی آخری تاریخ", due: "آخری تاریخ", record: "رجسٹر", open: "ڈیش بورڈ کھولیں", footer: "یہ یاد دہانی آپ کو اس لیے ملی کیونکہ Mr.Zahi میں یہ آئٹم آپ کو تفویض ہے۔" },
 };
 
 function buildReminderHTML(p: ReminderPayload): { subject: string; html: string } {
@@ -174,7 +174,7 @@ function buildReminderHTML(p: ReminderPayload): { subject: string; html: string 
   <div style="font-size:18px;font-weight:700;color:#1a1a26;margin-bottom:12px;">${t.heading}</div>
   <div style="font-size:16px;color:#1a1a26;margin-bottom:6px;">${esc(p.title)}</div>
   <div style="font-size:13px;color:#4d4d59;margin-bottom:4px;">${t.due}: <b dir="ltr">${esc(fmtDue(p.due_at, lang, p.tz, p.hour12))}</b></div>
-  ${p.tracker_name ? `<div style="font-size:13px;color:#4d4d59;margin-bottom:4px;">${t.tracker}: ${esc(p.tracker_name)}</div>` : ""}
+  ${p.record_name ? `<div style="font-size:13px;color:#4d4d59;margin-bottom:4px;">${t.record}: ${esc(p.record_name)}</div>` : ""}
   ${p.org_name ? `<div style="font-size:13px;color:#4d4d59;margin-bottom:16px;">${esc(p.org_name)}</div>` : "<div style=\"height:12px\"></div>"}
   <a href="${esc(link)}" style="display:inline-block;background:#008cf2;color:#ffffff;text-decoration:none;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;">${t.open}</a>
 </td></tr>
@@ -218,8 +218,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return responseJson({ error: "Method not allowed" }, 405);
 
-  // يُستدعى من الـ Worker بسرّ مشترك (x-tracker-secret) تتحقق منه قاعدة البيانات
-  const secret = req.headers.get("x-tracker-secret") || "";
+  // يُستدعى من الـ Worker بسرّ مشترك (x-record-secret) تتحقق منه قاعدة البيانات
+  const secret = req.headers.get("x-record-secret") || "";
   if (!(await verifyWorkerSecret(secret))) return responseJson({ error: "Unauthorized" }, 401);
 
   try {

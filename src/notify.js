@@ -41,7 +41,7 @@ const TEXT = {
         missYouCall: "مواعيدك تحتاج تحديث.",
         trialLine: (n) => `${n === 0 ? "اليوم آخر يوم في تجربتك" : n === 1 ? "غدا تقفل تجربتك" : n === 2 ? "يومان ويقفل الباب" : `${n} أيام وتقفل تجربتك`}. اشترك الآن حتى لا تضيع مستنداتك.`,
         trialBtn: "الباقات والاشتراك" },
-  en: { reminder: (t, due, tr) => `⏰ MrZahi reminder\n${t}\nDue: ${due}${tr ? `\nTracker: ${tr}` : ""}\nhttps://mrzahi.com/app/dashboard.html`,
+  en: { reminder: (t, due, tr) => `⏰ MrZahi reminder\n${t}\nDue: ${due}${tr ? `\nRecord: ${tr}` : ""}\nhttps://mrzahi.com/app/dashboard.html`,
         linked: (name, org) => `Hello ${name || ""}${org ? "\nCompany: " + org : ""}`,
         badCode: "Invalid or expired code. Open Settings in MrZahi and copy a new code.",
         needCode: "To link your account: open Settings in MrZahi → Telegram → “Generate code”, then send the code here or scan the QR code.",
@@ -90,12 +90,12 @@ const BOT = {
         phoneBtn: "📱 ربط برقم جوالي", phoneHint: "أو شارك رقم جوالك المسجل في مستر زاهي بالزر بالأسفل فيتم الربط فورا.",
         phoneNotFound: "لم نجد حسابا بهذا الرقم. سجل الدخول إلى الموقع واضغط زر الربط أعلاه.",
         importFound: (file, n) => `📄 ${file}\nوجدت ${n} ${n === 1 ? "ورقة قابلة" : "أوراق قابلة"} للاستيراد:`, importSheet: (name, rows, skipped) => `• ${name}: ${rows} صفا${skipped ? ` (سيهمل ${skipped} بلا عنوان أو تاريخ)` : ""}`,
-        importAsk: "أحفظها في شركتك الآن؟", importNothing: "لم أجد في الملف جدولا فيه عمود عنوان وعمود تاريخ (أو رقم مخالفة وتاريخها). استورده من صفحة الاستيراد لتضبط الأعمدة يدويا.", importDoneTitle: "✅ تم الحفظ:", importDoneLine: (tracker, n, isNew) => `• ${tracker}: ${n} عنصر${isNew ? " (سجل جديد مع قاعدة تذكير قبل الاستحقاق بيوم)" : ""}`,
+        importAsk: "أحفظها في شركتك الآن؟", importNothing: "لم أجد في الملف جدولا فيه عمود عنوان وعمود تاريخ (أو رقم مخالفة وتاريخها). استورده من صفحة الاستيراد لتضبط الأعمدة يدويا.", importDoneTitle: "✅ تم الحفظ:", importDoneLine: (record, n, isNew) => `• ${record}: ${n} عنصر${isNew ? " (سجل جديد مع قاعدة تذكير قبل الاستحقاق بيوم)" : ""}`,
         importCancelled: "ألغي الاستيراد؛ لم يحفظ شيء.", importExpired: "انتهت صلاحية هذا الطلب. أرسل الملف مرة أخرى.", importLimit: "توقف الحفظ عند حد الباقة الحالية للعناصر — رق الباقة من الإعدادات ثم أعد الإرسال.", importFailed: "تعذر الحفظ. حاول مرة أخرى أو استورد من صفحة الاستيراد.",
         btnSave: "✅ حفظ", btnCancel: "❌ إلغاء",
         kindViolation: "مخالفة", kindSession: "جلسة", kindTask: "مهمة", fWhen: "الموعد", fClient: "العميل", fCase: "رقم الدعوى", fViolation: "رقم المخالفة", fAmount: "المبلغ", fPlace: "الجهة/المكان", fNotes: "ملاحظات",
         actAddTitle: "📝 سأسجل هذا:", actDoneTitle: "✔️ سأعلم كمنجز:", actAssignTitle: "👤 سأسند:", confirmAsk: "أؤكد؟",
-        actSaved: (num, title, tracker, isNew) => `✅ سجل${num ? ` (${num})` : ""}: ${title}\nفي «${tracker}»${isNew ? " — سجل جديد مع تذكير قبل الموعد بيوم" : ""}.`,
+        actSaved: (num, title, record, isNew) => `✅ سجل${num ? ` (${num})` : ""}: ${title}\nفي «${record}»${isNew ? " — سجل جديد مع تذكير قبل الموعد بيوم" : ""}.`,
         actDoneOk: (num, title) => `✅ أنجز${num ? ` (${num})` : ""}: ${title}`,
         actAssignOk: (title, member, notified) => `✅ أسند «${title}» إلى ${member}${notified ? " وأبلغ على تلغرام" : ""}.`,
         assignedToYou: (title, num) => `👤 أسند إليك${num ? ` (${num})` : ""}: ${title}`,
@@ -118,12 +118,12 @@ const BOT = {
         phoneBtn: "📱 Link with my phone number", phoneHint: "Or share the phone number registered in MrZahi with the button below — the link completes instantly.",
         phoneNotFound: "No account has this number. Sign in on the website and tap the link button above.",
         importFound: (file, n) => `📄 ${file}\nFound ${n} importable ${n === 1 ? "sheet" : "sheets"}:`, importSheet: (name, rows, skipped) => `• ${name}: ${rows} rows${skipped ? ` (${skipped} without a title or date will be skipped)` : ""}`,
-        importAsk: "Save them to your company now?", importNothing: "I found no table with a title column and a date column (or a violation number and date). Import it from the Import page to map the columns manually.", importDoneTitle: "✅ Saved:", importDoneLine: (tracker, n, isNew) => `• ${tracker}: ${n} items${isNew ? " (new tracker with a reminder rule one day before due)" : ""}`,
+        importAsk: "Save them to your company now?", importNothing: "I found no table with a title column and a date column (or a violation number and date). Import it from the Import page to map the columns manually.", importDoneTitle: "✅ Saved:", importDoneLine: (record, n, isNew) => `• ${record}: ${n} items${isNew ? " (new record with a reminder rule one day before due)" : ""}`,
         importCancelled: "Import cancelled; nothing was saved.", importExpired: "This request has expired. Send the file again.", importLimit: "Saving stopped at your plan’s item limit — upgrade from Settings and send the file again.", importFailed: "Saving failed. Try again or import from the Import page.",
         btnSave: "✅ Save", btnCancel: "❌ Cancel",
         kindViolation: "Violation", kindSession: "Session", kindTask: "Task", fWhen: "When", fClient: "Client", fCase: "Case no.", fViolation: "Violation no.", fAmount: "Amount", fPlace: "Authority/place", fNotes: "Notes",
         actAddTitle: "📝 I will record this:", actDoneTitle: "✔️ I will mark as done:", actAssignTitle: "👤 I will assign:", confirmAsk: "Confirm?",
-        actSaved: (num, title, tracker, isNew) => `✅ Saved${num ? ` (${num})` : ""}: ${title}\nin “${tracker}”${isNew ? " — new tracker with a reminder one day before" : ""}.`,
+        actSaved: (num, title, record, isNew) => `✅ Saved${num ? ` (${num})` : ""}: ${title}\nin “${record}”${isNew ? " — new record with a reminder one day before" : ""}.`,
         actDoneOk: (num, title) => `✅ Done${num ? ` (${num})` : ""}: ${title}`,
         actAssignOk: (title, member, notified) => `✅ “${title}” assigned to ${member}${notified ? " and notified on Telegram" : ""}.`,
         assignedToYou: (title, num) => `👤 Assigned to you${num ? ` (${num})` : ""}: ${title}`,
@@ -146,12 +146,12 @@ const BOT = {
         phoneBtn: "📱 Lier avec mon numéro", phoneHint: "Ou partagez le numéro enregistré dans MrZahi avec le bouton ci-dessous : la liaison est immédiate.",
         phoneNotFound: "Aucun compte avec ce numéro. Connectez-vous sur le site et appuyez sur le bouton de liaison ci-dessus.",
         importFound: (file, n) => `📄 ${file}\n${n} feuille(s) importable(s) trouvée(s) :`, importSheet: (name, rows, skipped) => `• ${name} : ${rows} lignes${skipped ? ` (${skipped} sans titre ou date seront ignorées)` : ""}`,
-        importAsk: "Les enregistrer dans votre société maintenant ?", importNothing: "Aucun tableau avec une colonne titre et une colonne date (ou numéro d’infraction et date). Importez-le depuis la page Import pour mapper les colonnes.", importDoneTitle: "✅ Enregistré :", importDoneLine: (tracker, n, isNew) => `• ${tracker} : ${n} éléments${isNew ? " (nouveau suivi avec rappel la veille)" : ""}`,
+        importAsk: "Les enregistrer dans votre société maintenant ?", importNothing: "Aucun tableau avec une colonne titre et une colonne date (ou numéro d’infraction et date). Importez-le depuis la page Import pour mapper les colonnes.", importDoneTitle: "✅ Enregistré :", importDoneLine: (record, n, isNew) => `• ${record} : ${n} éléments${isNew ? " (nouveau suivi avec rappel la veille)" : ""}`,
         importCancelled: "Import annulé ; rien n’a été enregistré.", importExpired: "Cette demande a expiré. Renvoyez le fichier.", importLimit: "Enregistrement arrêté à la limite d’éléments de votre forfait — passez au forfait supérieur puis renvoyez le fichier.", importFailed: "Échec de l’enregistrement. Réessayez ou importez depuis la page Import.",
         btnSave: "✅ Enregistrer", btnCancel: "❌ Annuler",
         kindViolation: "Infraction", kindSession: "Audience", kindTask: "Tâche", fWhen: "Quand", fClient: "Client", fCase: "N° d’affaire", fViolation: "N° d’infraction", fAmount: "Montant", fPlace: "Autorité/lieu", fNotes: "Notes",
         actAddTitle: "📝 Je vais enregistrer :", actDoneTitle: "✔️ Je vais marquer comme terminé :", actAssignTitle: "👤 Je vais attribuer :", confirmAsk: "Confirmer ?",
-        actSaved: (num, title, tracker, isNew) => `✅ Enregistré${num ? ` (${num})` : ""} : ${title}\ndans « ${tracker} »${isNew ? " — nouveau suivi avec rappel la veille" : ""}.`,
+        actSaved: (num, title, record, isNew) => `✅ Enregistré${num ? ` (${num})` : ""} : ${title}\ndans « ${record} »${isNew ? " — nouveau suivi avec rappel la veille" : ""}.`,
         actDoneOk: (num, title) => `✅ Terminé${num ? ` (${num})` : ""} : ${title}`,
         actAssignOk: (title, member, notified) => `✅ « ${title} » attribué à ${member}${notified ? " et notifié sur Telegram" : ""}.`,
         assignedToYou: (title, num) => `👤 Attribué à vous${num ? ` (${num})` : ""} : ${title}`,
@@ -174,12 +174,12 @@ const BOT = {
         phoneBtn: "📱 فون نمبر سے منسلک کریں", phoneHint: "یا نیچے دیے بٹن سے MrZahi میں رجسٹرڈ فون نمبر شیئر کریں — منسلکی فورا مکمل ہو جائے گی۔",
         phoneNotFound: "اس نمبر سے کوئی اکاؤنٹ نہیں ملا۔ ویب سائٹ پر سائن ان کر کے اوپر والا لنک بٹن دبائیں۔",
         importFound: (file, n) => `📄 ${file}\n${n} قابل درآمد شیٹ ملی:`, importSheet: (name, rows, skipped) => `• ${name}: ${rows} قطاریں${skipped ? ` (${skipped} بغیر عنوان یا تاریخ چھوڑ دی جائیں گی)` : ""}`,
-        importAsk: "ابھی اپنی کمپنی میں محفوظ کروں؟", importNothing: "فائل میں عنوان اور تاریخ کے کالم والا جدول نہیں ملا (یا خلاف ورزی نمبر اور تاریخ)۔ کالم خود ترتیب دینے کے لیے درآمد صفحے سے درآمد کریں۔", importDoneTitle: "✅ محفوظ ہو گیا:", importDoneLine: (tracker, n, isNew) => `• ${tracker}: ${n} آئٹمز${isNew ? " (نیا رجسٹر، یاد دہانی ایک دن پہلے)" : ""}`,
+        importAsk: "ابھی اپنی کمپنی میں محفوظ کروں؟", importNothing: "فائل میں عنوان اور تاریخ کے کالم والا جدول نہیں ملا (یا خلاف ورزی نمبر اور تاریخ)۔ کالم خود ترتیب دینے کے لیے درآمد صفحے سے درآمد کریں۔", importDoneTitle: "✅ محفوظ ہو گیا:", importDoneLine: (record, n, isNew) => `• ${record}: ${n} آئٹمز${isNew ? " (نیا رجسٹر، یاد دہانی ایک دن پہلے)" : ""}`,
         importCancelled: "درآمد منسوخ؛ کچھ محفوظ نہیں ہوا۔", importExpired: "یہ درخواست ختم ہو گئی۔ فائل دوبارہ بھیجیں۔", importLimit: "آپ کے پلان کی آئٹم حد پر محفوظ کرنا رک گیا — ترتیبات سے پلان اپ گریڈ کر کے دوبارہ بھیجیں۔", importFailed: "محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں یا درآمد صفحے سے درآمد کریں۔",
         btnSave: "✅ محفوظ کریں", btnCancel: "❌ منسوخ",
         kindViolation: "خلاف ورزی", kindSession: "سماعت", kindTask: "کام", fWhen: "کب", fClient: "کلائنٹ", fCase: "مقدمہ نمبر", fViolation: "خلاف ورزی نمبر", fAmount: "رقم", fPlace: "ادارہ/جگہ", fNotes: "نوٹس",
         actAddTitle: "📝 میں یہ درج کروں گا:", actDoneTitle: "✔️ مکمل کے طور پر نشان لگاؤں گا:", actAssignTitle: "👤 تفویض کروں گا:", confirmAsk: "تصدیق؟",
-        actSaved: (num, title, tracker, isNew) => `✅ محفوظ${num ? ` (${num})` : ""}: ${title}\n«${tracker}» میں${isNew ? " — نیا رجسٹر، یاد دہانی ایک دن پہلے" : ""}۔`,
+        actSaved: (num, title, record, isNew) => `✅ محفوظ${num ? ` (${num})` : ""}: ${title}\n«${record}» میں${isNew ? " — نیا رجسٹر، یاد دہانی ایک دن پہلے" : ""}۔`,
         actDoneOk: (num, title) => `✅ مکمل${num ? ` (${num})` : ""}: ${title}`,
         actAssignOk: (title, member, notified) => `✅ «${title}» ${member} کو تفویض${notified ? " اور ٹیلیگرام پر مطلع" : ""}۔`,
         assignedToYou: (title, num) => `👤 آپ کو تفویض${num ? ` (${num})` : ""}: ${title}`,
@@ -236,7 +236,7 @@ export function formatItems(lang, rows, title, emptyText, userTimeZone, userHour
     const who = r.client_name ? ` — ${r.client_name}` : "";
     const caseNo = String(r.case_number || "").trim();
     const num = /[\p{L}\p{N}]/u.test(caseNo) ? ` (${caseNo})` : ""; /* شرطة أو فراغ من الاستيراد ليست رقما */
-    const tr = r.tracker_name ? ` · ${r.tracker_name}` : "";
+    const tr = r.record_name ? ` · ${r.record_name}` : "";
     return `${i + 1}. ${r.title || ""}${who}${num}\n   ${r.due_at ? fmtDue(r.due_at, userTimeZone, userHour12) : "-"}${tr}`;
   });
   return `${title}\n\n${lines.join("\n")}`;
@@ -289,12 +289,12 @@ function fmtDue(iso, userTimeZone, userHour12) {
 }
 
 // ---------- القنوات ----------
-export async function sendEmail(env, { to, lang, title, due_at, tracker_name, org_name, tz: userTimeZone, hour12: userHour12 }) {
+export async function sendEmail(env, { to, lang, title, due_at, record_name, org_name, tz: userTimeZone, hour12: userHour12 }) {
   if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY || !env.WORKER_SECRET) throw new Error("email not configured");
   const res = await fetch(`${env.SUPABASE_URL}/functions/v1/send-zoho-email`, {
     method: "POST",
-    headers: { ...anonHeaders(env), "x-tracker-secret": env.WORKER_SECRET },
-    body: JSON.stringify({ action: "send-reminder", to, lang, title, due_at, tracker_name, org_name, tz: userTimeZone, hour12: userHour12 }),
+    headers: { ...anonHeaders(env), "x-record-secret": env.WORKER_SECRET },
+    body: JSON.stringify({ action: "send-reminder", to, lang, title, due_at, record_name, org_name, tz: userTimeZone, hour12: userHour12 }),
     cf: NO_CACHE,
   });
   if (!res.ok) throw new Error(`email ${res.status}: ${(await res.text()).slice(0, 200)}`);
@@ -484,12 +484,12 @@ export async function runNotificationCron(env) {
     const lang = n.lang || "ar";
     const userTimeZone = n.tz || "Asia/Riyadh";
     const userHour12 = n.time_format === "12";
-    const text = t(lang).reminder(n.title || "", n.due_at ? fmtDue(n.due_at, userTimeZone, userHour12) : "-", n.tracker_name);
+    const text = t(lang).reminder(n.title || "", n.due_at ? fmtDue(n.due_at, userTimeZone, userHour12) : "-", n.record_name);
     let status = "sent", error = null;
     try {
       if (n.channel === "email") {
         if (!n.email) throw new Error("no email");
-        await sendEmail(env, { to: n.email, lang, title: n.title, due_at: n.due_at, tracker_name: n.tracker_name, org_name: n.org_name, tz: userTimeZone, hour12: userHour12 });
+        await sendEmail(env, { to: n.email, lang, title: n.title, due_at: n.due_at, record_name: n.record_name, org_name: n.org_name, tz: userTimeZone, hour12: userHour12 });
       } else if (!n.external_id) {
         status = "skipped"; error = "channel not linked";
       } else if (n.channel === "telegram") await sendTelegram(env, n.external_id, text);

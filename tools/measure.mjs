@@ -159,7 +159,7 @@ for (const name of pages) {
     if (process.env.SHOT_SEL) { const el = await page.$(process.env.SHOT_SEL); if (el) { await el.evaluate((n) => n.scrollIntoView({ block: "center" })); await new Promise((r) => setTimeout(r, 200)); await el.screenshot({ path: `${OUT}/${name}-${label}-el.png` }); } }
     /* زر الإغلاق الدائري: يقاس بعد اللقطة بفتح اللوحات المخفية — دائرة 40 على بداية الاتجاه */
     const closeX = await page.evaluate(() => {
-      ["editPanel", "addItemPanel", "docForm", "editorCard", "renameOrgForm", "newOrgForm", "newTrackerForm"].forEach((id) => { const el = document.getElementById(id); if (el) el.hidden = false; });
+      ["editPanel", "addItemPanel", "docForm", "editorCard", "renameOrgForm", "newOrgForm", "newRecordForm"].forEach((id) => { const el = document.getElementById(id); if (el) el.hidden = false; });
       try { if (!document.getElementById("appNewOrg") && window.mrzahiApp && window.mrzahiApp.openNewOrgDialog) window.mrzahiApp.openNewOrgDialog(); } catch (e) { /* الصفحة بلا نافذة حساب */ }
       const rtl = getComputedStyle(document.documentElement).direction === "rtl";
       return [...document.querySelectorAll(".close-x")].map((b) => {

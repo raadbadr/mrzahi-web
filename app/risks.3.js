@@ -4,7 +4,7 @@
       var CATS = ["legal","procedural","financial","compliance","reputation","operational"];
       var STRATS = ["mitigate","accept","transfer","avoid"];
       var STATUSES = ["open","in_progress","monitoring","closed"];
-      var state = { list: [], members: [], names: {}, processes: [], draft: null, mode: "inherent", cell: null, search: "", status: "", tracker: null };
+      var state = { list: [], members: [], names: {}, processes: [], draft: null, mode: "inherent", cell: null, search: "", status: "", record: null };
       function $(id) { return document.getElementById(id); }
       function t(k) { if (app && app.t) return app.t(k); var d = translations[lang()] || translations.ar; return d[k] || translations.ar[k] || k; }
       function esc(v) { return app && app.escapeHtml ? app.escapeHtml(v) : String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
@@ -152,23 +152,23 @@
       }
 
       /* إجراءات المعالجة ذات التاريخ تضاف كعناصر متابعة (تنبيهات تلقائية) */
-      function ensureTracker() {
-        if (state.tracker) return Promise.resolve(state.tracker);
+      function ensureRecord() {
+        if (state.record) return Promise.resolve(state.record);
         var NAMES = { ar: "إدارة المخاطر", en: "Risk management", fr: "Gestion des risques", ur: "خطرات کا انتظام" };
-        return app.listTrackers().then(function (list) {
+        return app.listRecords().then(function (list) {
           var vals = Object.keys(NAMES).map(function (k) { return NAMES[k]; });
           var found = (list || []).filter(function (tr) { return vals.indexOf(tr.name) !== -1; })[0];
-          if (found) { state.tracker = found; return found; }
-          return app.createTracker({ name: NAMES[lang()] || NAMES.ar }).then(function (tr) { state.tracker = tr; return tr; });
+          if (found) { state.record = found; return found; }
+          return app.createRecord({ name: NAMES[lang()] || NAMES.ar }).then(function (tr) { state.record = tr; return tr; });
         });
       }
       function syncActionItems(risk) {
         var pending = (risk.actions || []).filter(function (a) { return a.title && a.due && !a.item_id && !a.done; });
         if (!pending.length) return Promise.resolve(risk);
-        return ensureTracker().then(function (tr) {
+        return ensureRecord().then(function (tr) {
           var rows = pending.map(function (a) {
             /* الرمز القياسي للخطر داخلي: يبقى في data لا في العنوان الظاهر */
-            return { tracker_id: tr.id, title: a.title, due_at: new Date(a.due + "T09:00:00").toISOString(),
+            return { record_id: tr.id, title: a.title, due_at: new Date(a.due + "T09:00:00").toISOString(),
                      status: "open", category: t("riskActionCategory"), assignee_id: a.owner_id || null, client_name: risk.client_name || null,
                      case_number: risk.case_number || null, data: { risk_id: risk.id, risk_title: risk.title, risk_code: risk.code || null } };
           });

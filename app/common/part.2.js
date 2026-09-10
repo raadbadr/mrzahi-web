@@ -487,7 +487,7 @@
   }
 
   function driveUploadFile(token, file, folderId) {
-    var boundary = "tracker" + randomCode(12);
+    var boundary = "record" + randomCode(12);
     var meta = { name: file.name || "file", parents: [folderId] };
     var body = new Blob([
       "--" + boundary + "\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n" + JSON.stringify(meta) + "\r\n",
@@ -744,36 +744,36 @@
   }
 
   /* ============================================================
-   * Trackers
+   * Records
    * ============================================================ */
 
-  function listTrackers() {
+  function listRecords() {
     return run(function (client) {
       var orgId = requireOrg();
-      return client.from("trackers").select("*").eq("org_id", orgId)
+      return client.from("records").select("*").eq("org_id", orgId)
         .order("created_at", { ascending: true }).then(unwrap);
     });
   }
 
-  function createTracker(tracker) {
+  function createRecord(record) {
     return run(function (client) {
       var orgId = requireOrg();
       var row = {
         org_id: orgId,
-        name: String((tracker && tracker.name) || "").trim(),
-        color: (tracker && tracker.color) || null,
-        columns: (tracker && tracker.columns) || [],
+        name: String((record && record.name) || "").trim(),
+        color: (record && record.color) || null,
+        columns: (record && record.columns) || [],
         created_by: app.user.id
       };
       if (!row.name) throw new Error("name required");
-      return client.from("trackers").insert(row).select("*").single().then(unwrap);
+      return client.from("records").insert(row).select("*").single().then(unwrap);
     });
   }
 
-  function deleteTracker(id) {
+  function deleteRecord(id) {
     return run(function (client) {
       var orgId = requireOrg();
-      return client.from("trackers").delete().eq("org_id", orgId).eq("id", id).then(unwrap);
+      return client.from("records").delete().eq("org_id", orgId).eq("id", id).then(unwrap);
     });
   }
 
@@ -789,7 +789,7 @@
          اللوحة محسوبا على أول خمسمئة عنصر والباقي يسقط بصمت. */
       function build() {
         var q = client.from("items").select(ITEM_COLUMNS).eq("org_id", orgId);
-        if (f.trackerId) q = q.eq("tracker_id", f.trackerId);
+        if (f.recordId) q = q.eq("record_id", f.recordId);
         if (f.status) q = q.eq("status", f.status);
         if (f.from) q = q.gte("due_at", f.from);
         if (f.to) q = q.lte("due_at", f.to);
@@ -818,7 +818,7 @@
     return run(function (client) {
       var orgId = requireOrg();
       var q = client.from("items").select("id", { count: "exact", head: true }).eq("org_id", orgId);
-      if (f.trackerId) q = q.eq("tracker_id", f.trackerId);
+      if (f.recordId) q = q.eq("record_id", f.recordId);
       if (f.status) q = q.eq("status", f.status);
       return q.then(unwrapCount);
     });
@@ -828,7 +828,7 @@
     return run(function (client) {
       var orgId = requireOrg();
       var list = (rows || []).map(function (r) {
-        if (!r || !r.tracker_id) throw new Error("tracker_id required on every item");
+        if (!r || !r.record_id) throw new Error("record_id required on every item");
         var row = {};
         for (var k in r) if (Object.prototype.hasOwnProperty.call(r, k)) row[k] = r[k];
         row.org_id = orgId;
@@ -872,7 +872,7 @@
   function listImports() {
     return run(function (client) {
       var orgId = requireOrg();
-      return client.from("imports").select("*, trackers(name)").eq("org_id", orgId)
+      return client.from("imports").select("*, records(name)").eq("org_id", orgId)
         .order("created_at", { ascending: false }).then(unwrap);
     });
   }
@@ -882,7 +882,7 @@
       var orgId = requireOrg();
       var row = {
         org_id: orgId,
-        tracker_id: (imp && imp.tracker_id) || null,
+        record_id: (imp && imp.record_id) || null,
         filename: (imp && imp.filename) || null,
         rows_count: (imp && imp.rows_count) || 0,
         mapping: (imp && imp.mapping) || {},

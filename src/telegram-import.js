@@ -213,11 +213,11 @@ export function parseWorkbook(bytes, filename) {
     const mode = profile.kind === "violations" ? "violations" : "general";
     const mapping = guessMapping(parsed.headers);
     const ok = mode === "violations" ? (mapping.vnumber >= 0 && mapping.due >= 0) : (mapping.title >= 0 && mapping.due >= 0);
-    if (!ok) { sheets.push({ name, tracker: null, kind: profile.kind, records: [], skipped: parsed.rows.length, unmapped: true }); return; }
+    if (!ok) { sheets.push({ name, record: null, kind: profile.kind, records: [], skipped: parsed.rows.length, unmapped: true }); return; }
     const a = analyze(parsed.headers, parsed.rows, mapping, mode, profile.client);
     const generic = /^(sheet|ورقة|feuil|feuille)\s*\d*$/i.test(name.trim());
     sheets.push({
-      name, kind: profile.kind, tracker: generic ? base : name,
+      name, kind: profile.kind, record: generic ? base : name,
       columns: parsed.headers, mapping: mappingForDb(name, parsed.headers, mapping),
       records: a.records, skipped: a.skipped, unmapped: false,
     });
@@ -227,7 +227,7 @@ export function parseWorkbook(bytes, filename) {
 
 /* المسودة المخزنة بين "وجدت…" و"حفظ" */
 export function draftPayload(parsed) {
-  return { filename: parsed.filename, sheets: parsed.sheets.map((s) => ({ name: s.name, tracker: s.tracker, columns: s.columns, mapping: s.mapping, rows: s.records })) };
+  return { filename: parsed.filename, sheets: parsed.sheets.map((s) => ({ name: s.name, record: s.record, columns: s.columns, mapping: s.mapping, rows: s.records })) };
 }
 
 /* الحفظ الفعلي: ورقة ← استدعاء واحد للدالة المحمية */
@@ -237,9 +237,9 @@ export async function commitImport(env, userId, payload) {
     try {
       const r = await rpc(env, "telegram_import", {
         p_secret: env.WORKER_SECRET, p_user_id: userId, p_filename: payload.filename || null, p_sheet: s.name,
-        p_tracker_name: s.tracker || s.name, p_columns: s.columns || [], p_mapping: s.mapping || {}, p_rows: s.rows || [],
+        p_record_name: s.record || s.name, p_columns: s.columns || [], p_mapping: s.mapping || {}, p_rows: s.rows || [],
       });
-      results.push(r || { tracker_name: s.tracker, inserted: 0 });
+      results.push(r || { record_name: s.record, inserted: 0 });
     } catch (e) {
       const msg = String((e && e.message) || e);
       errors.push({ sheet: s.name, limit: /PLAN_LIMIT/.test(msg), message: msg.slice(0, 200) });

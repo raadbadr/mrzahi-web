@@ -51,7 +51,7 @@ export function buildIcs(items, calName) {
     lines.push(`DTEND:${due}`);
     lines.push(foldLine(`SUMMARY:${icsEscape(it.title)}`));
     const descParts = [];
-    if (it.tracker_name) descParts.push(it.tracker_name);
+    if (it.record_name) descParts.push(it.record_name);
     if (it.category) descParts.push(it.category);
     if (it.status) descParts.push(it.status);
     if (descParts.length) lines.push(foldLine(`DESCRIPTION:${icsEscape(descParts.join(" · "))}`));

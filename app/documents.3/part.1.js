@@ -6,11 +6,11 @@
       }
       "use strict";
       var app = null;
-      var state = { items: [], attachments: {}, file: null, fields: null, tracker: null, kind: "", search: "", papers: null, paperState: "", focused: "", details: null, detailLabels: null, profilePatch: null, pendingKind: null, wantedKind: null };
+      var state = { items: [], attachments: {}, file: null, fields: null, record: null, kind: "", search: "", papers: null, paperState: "", focused: "", details: null, detailLabels: null, profilePatch: null, pendingKind: null, wantedKind: null };
       var PDF_SRC = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
       var PDF_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
       var KINDS = ["commercial_register","articles_of_association","bylaws","chamber_certificate","gosi_certificate","zakat_certificate","saudization_certificate","vat_certificate","license","lease_contract","contract","case_filing","court_ruling","hearing_notice","violation","invoice","power_of_attorney","id_document","passport","driving_license","vehicle_registration","insurance_policy","employment_contract","other","bank_certificate","quotation"];
-      var TRACKER_NAME = { ar: "المستندات", en: "Documents", fr: "Documents", ur: "دستاویزات" };
+      var RECORD_NAME = { ar: "المستندات", en: "Documents", fr: "Documents", ur: "دستاویزات" };
 
       function $(id) { return document.getElementById(id); }
       function t(key) { if (app && app.t) return app.t(key); var d = translations[lang()] || translations.ar; return d[key] || translations.ar[key] || key; }
@@ -476,18 +476,18 @@
       }
 
       /* ---------- الحفظ: عنصر متابع + مرفق ---------- */
-      function ensureTracker() {
-        if (state.tracker) return Promise.resolve(state.tracker);
-        return app.listTrackers().then(function (list) {
-          var names = Object.keys(TRACKER_NAME).map(function (k) { return TRACKER_NAME[k]; });
+      function ensureRecord() {
+        if (state.record) return Promise.resolve(state.record);
+        return app.listRecords().then(function (list) {
+          var names = Object.keys(RECORD_NAME).map(function (k) { return RECORD_NAME[k]; });
           var found = (list || []).filter(function (tr) { return names.indexOf(tr.name) !== -1; })[0];
-          if (found) { state.tracker = found; return found; }
-          return app.createTracker({ name: TRACKER_NAME[lang()] || TRACKER_NAME.ar }).then(function (tr) {
-            state.tracker = tr;
+          if (found) { state.record = found; return found; }
+          return app.createRecord({ name: RECORD_NAME[lang()] || RECORD_NAME.ar }).then(function (tr) {
+            state.record = tr;
             /* انتهاء الترخيص يجب أن ينبه قبل شهر وقبل أسبوع، لا قبل يوم واحد */
             return Promise.all([
-              app.saveRule({ tracker_id: tr.id, offset_minutes: 43200, channels: ["telegram"], target: "all" }),
-              app.saveRule({ tracker_id: tr.id, offset_minutes: 10080, channels: ["telegram"], target: "all" })
+              app.saveRule({ record_id: tr.id, offset_minutes: 43200, channels: ["telegram"], target: "all" }),
+              app.saveRule({ record_id: tr.id, offset_minutes: 10080, channels: ["telegram"], target: "all" })
             ]).catch(function () { return null; }).then(function () { return tr; });
           });
         });
@@ -501,9 +501,9 @@
         var kind = $("fKind").value;
         var expiry = $("fExpiry").value ? new Date($("fExpiry").value + "T09:00:00").toISOString() : null;
         var amount = parseFloat($("fAmount").value); if (!isFinite(amount)) amount = null;
-        ensureTracker().then(function (tr) {
+        ensureRecord().then(function (tr) {
           var row = {
-            tracker_id: tr.id,
+            record_id: tr.id,
             title: String($("fTitle").value || "").trim() || kindLabel(kind),
             due_at: expiry,
             remind_before: $("fRemind").value || null,

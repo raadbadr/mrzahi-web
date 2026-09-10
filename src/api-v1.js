@@ -33,7 +33,7 @@ async function v1Auth(request, env) {
   return { hash, who };
 }
 function csvOf(rows) {
-  const keys = ["number", "title", "category", "tracker", "status", "due_at", "assignee_email", "amount", "client_name", "case_number", "created_at"];
+  const keys = ["number", "title", "category", "record", "status", "due_at", "assignee_email", "amount", "client_name", "case_number", "created_at"];
   const extra = new Set();
   rows.forEach((r) => Object.keys(r.data || {}).forEach((k) => extra.add(k)));
   const cols = keys.concat([...extra]);
@@ -42,23 +42,23 @@ function csvOf(rows) {
   rows.forEach((r) => lines.push(cols.map((c) => q(c in r ? r[c] : (r.data || {})[c])).join(",")));
   return "\ufeff" + lines.join("\r\n");
 }
-function rowsToCsvBytes(rows, trackerName) {
+function rowsToCsvBytes(rows, recordName) {
   const ws = XLSX.utils.json_to_sheet(rows.map((r) => (r && typeof r === "object") ? r : { title: String(r) }));
-  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, trackerName || "data");
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, recordName || "data");
   return XLSX.write(wb, { type: "array", bookType: "csv" });
 }
 /* استيراد صفوف JSON بمفتاح API (يستعمله /api/v1/import وخادم MCP) */
-export async function importRowsWithKey(env, hash, rows, trackerName) {
+export async function importRowsWithKey(env, hash, rows, recordName) {
   if (!Array.isArray(rows) || !rows.length) return { ok: false, error: "no rows" };
-  const filename = (trackerName || "api") + ".csv";
+  const filename = (recordName || "api") + ".csv";
   let parsed;
-  try { parsed = parseWorkbook(rowsToCsvBytes(rows.slice(0, 500), trackerName), filename); } catch (e) { console.log("api import parse failed", String(e.message || e).slice(0, 120)); return { ok: false, error: "cannot_parse" }; }
+  try { parsed = parseWorkbook(rowsToCsvBytes(rows.slice(0, 500), recordName), filename); } catch (e) { console.log("api import parse failed", String(e.message || e).slice(0, 120)); return { ok: false, error: "cannot_parse" }; }
   const payload = draftPayload(parsed);
   const results = [], errors = [];
   for (const sh of payload.sheets) {
     try {
       results.push(await rpc(env, "api_import", { p_secret: env.WORKER_SECRET, p_hash: hash, p_filename: filename,
-        p_tracker_name: trackerName || sh.tracker || sh.name, p_columns: sh.columns || [], p_mapping: sh.mapping || {}, p_rows: sh.rows || [] }));
+        p_record_name: recordName || sh.record || sh.name, p_columns: sh.columns || [], p_mapping: sh.mapping || {}, p_rows: sh.rows || [] }));
     } catch (e) { console.log("api import sheet failed", sh.name, String(e.message || e).slice(0, 200)); errors.push({ sheet: sh.name, message: "import_failed" }); }
   }
   const imported = results.reduce((n, r) => n + (Number(r && (r.inserted ?? r.imported ?? r.count)) || 0), 0);
@@ -78,9 +78,9 @@ export async function handleV1(request, env, url) {
   if (path === "/api/v1/ping") return v1Json({ ok: true, org: who.org_name });
 
   if (path === "/api/v1/items" && request.method === "GET") {
-    const tracker = url.searchParams.get("tracker") || null;
+    const record = url.searchParams.get("record") || null;
     let rows = [];
-    try { rows = (await rpc(env, "api_items_export", { p_secret: env.WORKER_SECRET, p_hash: hash, p_tracker: tracker })) || []; }
+    try { rows = (await rpc(env, "api_items_export", { p_secret: env.WORKER_SECRET, p_hash: hash, p_record: record })) || []; }
     catch (e) { console.log("v1 export failed", String(e.message || e).slice(0, 200)); return v1Json({ error: "export_failed" }, 500); }
     if ((url.searchParams.get("format") || "").toLowerCase() === "csv") {
       return new Response(csvOf(rows), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": "attachment; filename=items.csv", "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" } });
@@ -90,22 +90,22 @@ export async function handleV1(request, env, url) {
 
   if (path === "/api/v1/import" && request.method === "POST") {
     const ct = (request.headers.get("Content-Type") || "").toLowerCase();
-    let bytes = null, filename = "api.csv", trackerName = url.searchParams.get("tracker") || null;
+    let bytes = null, filename = "api.csv", recordName = url.searchParams.get("record") || null;
     try {
       if (ct.includes("multipart/form-data")) {
         const form = await request.formData();
         const f = form.get("file");
         if (!f || typeof f.arrayBuffer !== "function") return v1Json({ error: "file field missing" }, 400);
-        trackerName = trackerName || form.get("tracker") || null;
+        recordName = recordName || form.get("record") || null;
         filename = f.name || filename; bytes = await f.arrayBuffer();
       } else if (ct.includes("application/json") || ct.includes("text/json")) {
         const body = await request.json();
         const rows = Array.isArray(body) ? body : (body.rows || body.items || body.data || []);
         if (!Array.isArray(rows) || !rows.length) return v1Json({ error: "no rows" }, 400);
-        trackerName = trackerName || body.tracker || null;
-        bytes = rowsToCsvBytes(rows, trackerName); filename = (trackerName || "api") + ".csv";
+        recordName = recordName || body.record || null;
+        bytes = rowsToCsvBytes(rows, recordName); filename = (recordName || "api") + ".csv";
       } else {
-        bytes = await request.arrayBuffer(); filename = (trackerName || "api") + (ct.includes("spreadsheet") || ct.includes("excel") ? ".xlsx" : ".csv");
+        bytes = await request.arrayBuffer(); filename = (recordName || "api") + (ct.includes("spreadsheet") || ct.includes("excel") ? ".xlsx" : ".csv");
       }
     } catch (e) { console.log("v1 unreadable body", String(e.message || e).slice(0, 120)); return v1Json({ error: "unreadable_body" }, 400); }
     if (!ALLOWED_EXT.includes(fileExt(filename))) return v1Json({ error: "unsupported file type" }, 415);
@@ -118,7 +118,7 @@ export async function handleV1(request, env, url) {
       try {
         results.push(await rpc(env, "api_import", {
           p_secret: env.WORKER_SECRET, p_hash: hash, p_filename: filename,
-          p_tracker_name: trackerName || sh.tracker || sh.name, p_columns: sh.columns || [], p_mapping: sh.mapping || {}, p_rows: sh.rows || [],
+          p_record_name: recordName || sh.record || sh.name, p_columns: sh.columns || [], p_mapping: sh.mapping || {}, p_rows: sh.rows || [],
         }));
       } catch (e) { console.log("v1 import sheet failed", sh.name, String(e.message || e).slice(0, 200)); errors.push({ sheet: sh.name, message: "import_failed" }); }
     }

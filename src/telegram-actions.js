@@ -233,7 +233,7 @@ export async function executeAction(env, userId, intent, lang) {
       const rows = cands.map((c) => [{ text: [c.title, c.client_name, c.case_number ? `${b.fCase} ${c.case_number}` : null].filter(Boolean).join(" — ").slice(0, 60), callback_data: "par:" + c.id }]);
       return { text: b.needsParent, extra: { reply_markup: { inline_keyboard: rows } }, keepDraft: true };
     }
-    return { text: b.actSaved(null, (intent.item && intent.item.title) || "", r && r.tracker_name, !!(r && r.tracker_new)), extra: urlButton(b.openDash, DASHBOARD_URL) };
+    return { text: b.actSaved(null, (intent.item && intent.item.title) || "", r && r.record_name, !!(r && r.record_new)), extra: urlButton(b.openDash, DASHBOARD_URL) };
   }
   if (intent.action === "done") {
     /* استعلام فارغ يطابق كل عنصر مفتوح في القاعدة؛ لا إنجاز بلا تحديد */

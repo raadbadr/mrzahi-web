@@ -175,8 +175,8 @@ try {
     const p2 = await callTool("mrzahi_platform", {}, { ...ctx, rpc: async () => ({ status: "forbidden" }) });
     check("a non-admin is told plainly, with no numbers", p2.content[0].text === "بيانات المنصة كلها متاحة لمدير المنصة وحده." && !/\d/.test(p2.content[0].text));
     /* «هل توجد مخالفات؟» with none of that kind: the tool looks wider instead of a bare no */
-    const rsk = { id: "r1", title: "RSK-05092026-0001 · عدم ارتكاب المخالفة والالتزام بالإجراءات", status: "open", tracker_name: "إدارة المخاطر", category: "معالجة خطر", due_at: "2026-09-07T06:00:00+00:00" };
-    const doc = { id: "d1", title: "السجل التجاري لشركة أبراج الكهرباء", status: "open", tracker_name: "المستندات", document_kind: "commercial_register", doc_number: "7012345678" };
+    const rsk = { id: "r1", title: "RSK-05092026-0001 · عدم ارتكاب المخالفة والالتزام بالإجراءات", status: "open", record_name: "إدارة المخاطر", category: "معالجة خطر", due_at: "2026-09-07T06:00:00+00:00" };
+    const doc = { id: "d1", title: "السجل التجاري لشركة أبراج الكهرباء", status: "open", record_name: "المستندات", document_kind: "commercial_register", doc_number: "7012345678" };
     const wide = async (name, args) => name === "telegram_items_by_kind" ? (args.p_kind === "violation" ? [] : [rsk, doc]) : name === "telegram_search" ? [rsk] : null;
     const none = await callTool("mrzahi_items", { kind: "violation", status: "open" }, { ...ctx, rpc: wide });
     const t = none.content[0].text;

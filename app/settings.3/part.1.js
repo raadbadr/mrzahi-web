@@ -17,7 +17,7 @@
         loaded: false,
         linksLoaded: false,
         links: [],
-        trackers: [],
+        records: [],
         rules: [],
         limits: null,
         planCode: "trial",
@@ -433,8 +433,8 @@
 
       function loadRules() {
         if (!app.org) { renderRules(); return Promise.resolve(); }
-        return Promise.all([app.listTrackers(), app.listRules()]).then(function (res) {
-          state.trackers = res[0] || [];
+        return Promise.all([app.listRecords(), app.listRules()]).then(function (res) {
+          state.records = res[0] || [];
           state.rules = res[1] || [];
           renderRules();
         }).catch(function (err) {
@@ -442,11 +442,11 @@
         });
       }
 
-      /* Tracker-level rule (item_id null); rules come newest first so the first match wins. */
-      function ruleForTracker(trackerId) {
+      /* Record-level rule (item_id null); rules come newest first so the first match wins. */
+      function ruleForRecord(recordId) {
         for (var i = 0; i < state.rules.length; i++) {
           var r = state.rules[i];
-          if (r.tracker_id === trackerId && !r.item_id) return r;
+          if (r.record_id === recordId && !r.item_id) return r;
         }
         return null;
       }
@@ -459,26 +459,26 @@
         var wrap = el("rulesWrap");
         if (!wrap) return;
         if (!app.org) { wrap.innerHTML = '<p class="waitlist-msg error">' + esc(t("noOrg")) + "</p>"; return; }
-        if (!state.trackers.length) { wrap.innerHTML = "<p>" + esc(t("noTrackers")) + "</p>"; return; }
+        if (!state.records.length) { wrap.innerHTML = "<p>" + esc(t("noRecords")) + "</p>"; return; }
         var allowed = allowedChannels();
         var html = '<div class="table-wrap"><table class="rules-table"><thead><tr>' +
-          "<th>" + esc(t("colTracker")) + "</th>" +
+          "<th>" + esc(t("colRecord")) + "</th>" +
           "<th>" + esc(t("colOffset")) + "</th>" +
           "<th>" + esc(t("colChannels")) + "</th>" +
           "<th>" + esc(t("colTarget")) + "</th>" +
           "<th>" + esc(t("colActions")) + "</th>" +
           "</tr></thead><tbody>";
 
-        state.trackers.forEach(function (tracker) {
-          var rule = ruleForTracker(tracker.id);
+        state.records.forEach(function (record) {
+          var rule = ruleForRecord(record.id);
           var offset = rule ? Number(rule.offset_minutes) || 1440 : 1440;
           var channels = rule && Array.isArray(rule.channels) ? rule.channels : ["telegram"];
           var target = rule && rule.target === "all" ? "all" : "assignee";
           var offsets = OFFSETS.slice();
           if (offsets.indexOf(offset) === -1) offsets.push(offset);
 
-          html += '<tr data-tracker="' + esc(tracker.id) + '"' + (rule ? ' data-rule="' + esc(rule.id) + '"' : "") + ">";
-          html += '<td><span class="highlight">' + esc(tracker.name) + "</span>" +
+          html += '<tr data-record="' + esc(record.id) + '"' + (rule ? ' data-rule="' + esc(rule.id) + '"' : "") + ">";
+          html += '<td><span class="highlight">' + esc(record.name) + "</span>" +
                   (rule ? ' <span class="settings-note" style="color:var(--success)">' + esc(t("ruleActive")) + "</span>" : "") + "</td>";
           html += '<td><select class="waitlist-input rule-offset">';
           offsets.forEach(function (o) {
@@ -511,10 +511,10 @@
       function onRuleAction(ev) {
         var btn = ev.target.closest("[data-rule-action]");
         if (!btn) return;
-        var row = btn.closest("tr[data-tracker]");
+        var row = btn.closest("tr[data-record]");
         if (!row) return;
         var action = btn.getAttribute("data-rule-action");
-        var trackerId = row.getAttribute("data-tracker");
+        var recordId = row.getAttribute("data-record");
         var ruleId = row.getAttribute("data-rule") || null;
         var allowed = allowedChannels();
 
@@ -527,7 +527,7 @@
           btn.disabled = true;
           app.saveRule({
             id: ruleId,
-            tracker_id: trackerId,
+            record_id: recordId,
             offset_minutes: Number(row.querySelector(".rule-offset").value) || 1440,
             channels: channels,
             target: row.querySelector(".rule-target").value
