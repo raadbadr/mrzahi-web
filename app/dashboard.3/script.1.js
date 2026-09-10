@@ -518,16 +518,37 @@
           return isNaN(ms) ? null : { ms: ms, kind: r.kind, title: r.title || "", meta: r.meta || {} };
         }).filter(Boolean).sort(function (a, b) { return a.ms - b.ms; });
 
-        /* شريط الشهر المعروض: من أول يوم فيه إلى آخر يوم */
-        var monthStart = tlState.month;
-        var monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1);
-        var minMs = monthStart.getTime(), maxMs = monthEnd.getTime() - 1;
+        /* المدى كشريط باركينزي: من اول شهر فيه حدث الى نهاية الشهر الحالي،
+           وكل شهر تقويمي ياخذ العرض نفسه مهما تفاوتت احداثه. */
         var nowMs = Date.now();
+        var nowD = new Date(nowMs);
+        var maxMs = new Date(nowD.getFullYear(), nowD.getMonth() + 1, 1).getTime() - 1;
+        var firstMs = events.length ? events[0].ms : new Date(nowD.getFullYear(), nowD.getMonth(), 1).getTime();
+        var firstD = new Date(Math.min(firstMs, maxMs));
+        var minMs = new Date(firstD.getFullYear(), firstD.getMonth(), 1).getTime();
+        var segs = [];
+        (function () {
+          var y = new Date(minMs).getFullYear(), mo = new Date(minMs).getMonth();
+          for (var g = 0; g < 240; g++) {
+            var a = new Date(y, mo, 1).getTime();
+            if (a > maxMs) break;
+            var b = new Date(y, mo + 1, 1).getTime() - 1;
+            segs.push({ a: Math.max(a, minMs), b: Math.min(b, maxMs) });
+            mo++; if (mo > 11) { mo = 0; y++; }
+          }
+          for (var i = 0; i < segs.length; i++) { segs[i].v0 = i / segs.length; segs[i].v1 = (i + 1) / segs.length; }
+        })();
         var isCurrent = nowMs >= minMs && nowMs <= maxMs;
         var todayMs = isCurrent ? nowMs : (nowMs > maxMs ? maxMs : minMs);
-        var spanMs = maxMs - minMs;
-        var daysInMonth = Math.round(spanMs / 86400000);
-        var ratioOf = function (ms) { return Math.max(0, Math.min(1, (ms - minMs) / spanMs)); };
+        var ratioOf = function (ms) {
+          if (!segs.length || ms <= minMs) return 0;
+          if (ms >= maxMs) return 1;
+          for (var i = 0; i < segs.length; i++) {
+            var s = segs[i];
+            if (ms <= s.b) { var t = (ms - s.a) / Math.max(1, s.b - s.a); return s.v0 + Math.max(0, Math.min(1, t)) * (s.v1 - s.v0); }
+          }
+          return 1;
+        };
         events = events.filter(function (ev) { return ev.ms >= minMs && ev.ms <= maxMs; });
         var fillPct = 100;
 
@@ -542,38 +563,40 @@
                 '<span class="tlx-ms-tick" aria-hidden="true"></span></div>';
         });
 
-        /* أيام الشهر */
+        /* فواصل الأشهر وأسماؤها تحت المسار */
         var months = "";
         var lo = app.lang(); var loc = lo === "ur" ? "ur-PK" : lo;
-        var todayKeyD = new Date(nowMs); var todayDay = isCurrent ? todayKeyD.getDate() : -1;
-        for (var day = 1; day <= daysInMonth; day++) {
-          var dms = new Date(monthStart.getFullYear(), monthStart.getMonth(), day).getTime();
-          var rr = ratioOf(dms);
-          months += '<span class="tlx-day-tick" style="left:' + tlxLeft(rr, isRtl) + '"></span>' +
-                    '<span class="tlx-day-label' + (day === todayDay ? " is-today" : "") + '" style="left:' + tlxLeft(rr, isRtl) + '">' + day + "</span>";
+        for (var si = 0; si < segs.length; si++) {
+          var sg = segs[si];
+          if (si > 0) months += '<span class="tlx-month-tick" style="left:' + tlxLeft(sg.v0, isRtl) + '"></span>';
+          months += '<span class="tlx-month-label" style="left:' + tlxLeft((sg.v0 + sg.v1) / 2, isRtl) + '">' +
+                    esc(new Date((sg.a + sg.b) / 2).toLocaleDateString(loc, { month: "short", numberingSystem: "latn" })) + "</span>";
         }
-        var monthTitle = monthStart.toLocaleDateString(loc, { month: "long", year: "numeric", numberingSystem: "latn" });
-        var nextMonthStart = monthEnd.getTime();
 
         var todayStep = Math.round(ratioOf(todayMs) * TLX_STEPS);
-        html += '<div class="tlx" id="tlx" dir="' + (isRtl ? "rtl" : "ltr") + '" style="--timeline-fill-pct:' + fillPct + '%;--tlx-days:' + daysInMonth + '" data-today-step="' + todayStep + '">' +
+        var navPrevSvg = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg>';
+        var navNextSvg = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg>';
+        var monPrevSvg = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg>';
+        var monNextSvg = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg>';
+        html += '<div class="tlx" id="tlx" dir="' + (isRtl ? "rtl" : "ltr") + '" style="--timeline-fill-pct:' + fillPct + '%" data-today-step="' + todayStep + '">' +
+          /* صف «تصفح الأشهر»: يمرر عرض الشريط أفقيا ولا يغير التاريخ المختار */
           '<div class="tlx-title">' +
-            '<button type="button" class="tlx-nav-btn" id="tlxMonthPrev" aria-label="' + esc(T("tlPrev")) + '"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>' +
-            "<span>" + esc(monthTitle) + "</span>" +
-            '<button type="button" class="tlx-nav-btn" id="tlxMonthNext"' + (nextMonthStart > nowMs ? " disabled" : "") + ' aria-label="' + esc(T("tlNext")) + '"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg></button>' +
+            '<span class="tlx-title-label">' + esc(T("tlMonths")) + "</span>" +
+            '<button type="button" class="tlx-month-btn" id="tlxMonthPrev" aria-label="' + esc(T("tlPrev")) + '">' + monPrevSvg + "</button>" +
+            '<button type="button" class="tlx-month-btn" id="tlxMonthNext" aria-label="' + esc(T("tlNext")) + '">' + monNextSvg + "</button>" +
           "</div>" +
           '<div class="tlx-nav-row">' +
-            '<div class="tlx-scroll" id="tlxScroll"><div class="tlx-range-wrap">' + ms + months +
+            '<button type="button" class="tlx-nav-btn" id="tlxPrev" aria-label="' + esc(T("tlPrev")) + '">' + navPrevSvg + "</button>" +
+            '<div class="tlx-scroll" id="tlxScroll"><div class="tlx-range-wrap" style="--tl-months:' + segs.length + '">' + ms + months +
               '<input type="range" id="tlxSlider" min="0" max="' + TLX_STEPS + '" value="' + todayStep + '" step="1" aria-label="' + esc(T("timelineTitle")) + '">' +
               (isCurrent ? '<div class="tlx-today is-at-today" id="tlxToday" style="left:' + tlxLeft(ratioOf(todayMs), isRtl) + '"><span class="tlx-today-label">' + esc(T("tlNow")) + "</span></div>" : "") +
             "</div></div>" +
+            '<button type="button" class="tlx-nav-btn" id="tlxNext" aria-label="' + esc(T("tlNext")) + '">' + navNextSvg + "</button>" +
           "</div>" +
           '<div class="tlx-ends">' +
-            '<button type="button" class="tlx-nav-btn" id="tlxPrev" aria-label="' + esc(T("tlPrev")) + '"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>' +
-            '<span class="tlx-ends-dates"><span>' + esc(tlxFmtDate(minMs)) + "</span><span>" + esc(tlxFmtDate(maxMs)) + "</span></span>" +
-            '<button type="button" class="tlx-nav-btn" id="tlxNext" aria-label="' + esc(T("tlNext")) + '"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg></button>' +
+            "<span>" + esc(tlxFmtDate(minMs)) + "</span><span>" + esc(tlxFmtDate(maxMs)) + "</span>" +
           "</div>" +
-          /* الحدث المختار بكلماته أسفل الصف الموجود لا فوقه: «الحدث 3 من 7 — استيراد ملف · 5 سبتمبر»؛ ارتفاعه محجوز لسطرين فلا يقفز شيء */
+          /* الحدث المختار بكلماته أسفل الصف الموجود: «الحدث 3 من 7 — استيراد ملف · 5 سبتمبر» */
           (events.length ? '<div class="tlx-current" id="tlxCurrent" aria-live="polite"></div>' : "") +
         "</div>";
         if (!events.length) html += '<p class="empty-note">' + esc(T("timelineEmpty")) + "</p>";
@@ -645,14 +668,17 @@
           m.addEventListener("click", function () { pick(m); });
           m.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pick(m); } });
         });
-        function shiftMonth(dir) {
-          var m = tlState.month;
-          tlState.month = new Date(m.getFullYear(), m.getMonth() + dir, 1);
-          renderTimeline(tlState.rows, tlState.stats);
+        /* «تصفح الأشهر» يمرر عرض الشريط افقيا ولا يغير التاريخ المختار */
+        function nudge(dir) {
+          var sc2 = document.getElementById("tlxScroll");
+          if (!sc2) return;
+          var step = Math.max(120, Math.round(sc2.clientWidth * 0.6));
+          var d = (bar.getAttribute("dir") === "rtl" ? -dir : dir) * step;
+          try { sc2.scrollBy({ left: d, behavior: "smooth" }); } catch (e) { sc2.scrollLeft += d; }
         }
         var mp = document.getElementById("tlxMonthPrev"), mn = document.getElementById("tlxMonthNext");
-        if (mp) mp.addEventListener("click", function () { shiftMonth(-1); });
-        if (mn) mn.addEventListener("click", function () { shiftMonth(1); });
+        if (mp) mp.addEventListener("click", function () { nudge(-1); });
+        if (mn) mn.addEventListener("click", function () { nudge(1); });
 
         var sc = document.getElementById("tlxScroll");
         var isRtl = bar.getAttribute("dir") === "rtl";
@@ -710,21 +736,10 @@
         }
         if (prev) prev.addEventListener("click", function () { jump(-1); });
         if (next) next.addEventListener("click", function () { jump(1); });
-        /* العنوان يظهر كاملا: الحشو العلوي للمسطرة يتسع لأطول عنوان (3 أسطر أو أكثر) وتاريخه */
-        if (sc) {
-          /* على الجوال لا عنوان عائم اصلا: الشاشة تريه حدثا واحدا فيبقى نصفه
-             معلقا بلا شرطة، ونصه كاملا في سطر «الحدث» تحت المسار. فيلغى العائم
-             ويلغى معه الفراغ المحجوز له. */
-          var narrow = window.innerWidth <= 600;
-          bar.classList.toggle("tlx--no-float", narrow);
-          var pad = "22px";
-          if (!narrow) {
-            var maxH = 0;
-            marks.forEach(function (m) { var l = m.querySelector(".tlx-ms-label"); if (l && l.offsetHeight > maxH) maxH = l.offsetHeight; });
-            pad = Math.max(46, Math.ceil(maxH + 36)) + "px";   /* قاعدة الشريحة تعلو مركز المسار 32px وهامش فوق اعلى سطر */
-          }
-          if (sc.style.paddingTop !== pad) sc.style.paddingTop = pad;
-        }
+        /* على الجوال لا عنوان عائم اصلا: الشاشة تريه حدثا واحدا فيبقى نصفه
+           معلقا بلا شرطة، ونصه كاملا في سطر «الحدث» تحت المسار. والفراغ فوق
+           المسطرة صار حشوا ثابتا على البطاقة كما في شريط باركينزي. */
+        bar.classList.toggle("tlx--no-float", window.innerWidth <= 600);
         apply(todayStep);
         scrollTo(todayStep);
       }
