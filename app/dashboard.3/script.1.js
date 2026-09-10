@@ -658,13 +658,30 @@
         var isRtl = bar.getAttribute("dir") === "rtl";
         /* عنوان يطفو بلا شرطته تحته نص ضائع في حافة الشاشة: يخفى ان خرجت
            شرطته عن نافذة التمرير، ونصه كاملا يبقى في سطر «الحدث» تحت المسار. */
+        /* وشريحة العنوان لا تقص في الحافة: تنزاح افقيا لتبقى كاملة داخل نافذة
+           التمرير، وتاريخها يبقى على شرطته فيدل عليها. */
+        function clampMarkLabel(m) {
+          var lab = m && m.querySelector(".tlx-ms-label");
+          if (!lab || !sc || bar.classList.contains("tlx--no-float")) return;
+          var pad = 8;
+          m.style.setProperty("--tlx-label-shift", "0px");
+          var avail = sc.clientWidth - pad * 2;
+          lab.style.maxWidth = avail > 60 ? avail + "px" : "";
+          var r = sc.getBoundingClientRect(), b = lab.getBoundingClientRect();
+          var shift = 0;
+          if (b.left < r.left + pad) shift = (r.left + pad) - b.left;
+          else if (b.right > r.right - pad) shift = (r.right - pad) - b.right;
+          if (shift) m.style.setProperty("--tlx-label-shift", Math.round(shift) + "px");
+        }
         function syncMarkLabels() {
           if (!sc) return;
           var r = sc.getBoundingClientRect();
           marks.forEach(function (m) {
             var b = m.getBoundingClientRect();
             m.classList.toggle("is-outside", b.left < r.left - 2 || b.right > r.right + 2);
+            if (!m.classList.contains("is-active")) m.style.setProperty("--tlx-label-shift", "0px");
           });
+          clampMarkLabel(bar.querySelector(".tlx-ms.is-active"));
         }
         if (sc) {
           var ticking = false;
@@ -704,7 +721,7 @@
           if (!narrow) {
             var maxH = 0;
             marks.forEach(function (m) { var l = m.querySelector(".tlx-ms-label"); if (l && l.offsetHeight > maxH) maxH = l.offsetHeight; });
-            pad = Math.max(52, Math.ceil(maxH + 40)) + "px";   /* قاعدة العنوان تعلو مركز المسار 36px وهامش فوق اعلى سطر */
+            pad = Math.max(52, Math.ceil(maxH + 40)) + "px";   /* قاعدة الشريحة تعلو مركز المسار 36px وهامش فوق اعلى سطر */
           }
           if (sc.style.paddingTop !== pad) sc.style.paddingTop = pad;
         }
