@@ -126,8 +126,8 @@ async function snapshot(pages, sizeName) {
     });
     await page.evaluateOnNewDocument((key, sess) => {
       localStorage.setItem(key, JSON.stringify(sess));
-      localStorage.setItem("tracker_lang", "ar");
-      localStorage.setItem("tracker_org", "22222222-2222-4222-8222-222222222222");
+      localStorage.setItem("mrzahi_lang", "ar");
+      localStorage.setItem("mrzahi_org", "22222222-2222-4222-8222-222222222222");
     }, "sb-" + REF + "-auth-token", { access_token: "stub", refresh_token: "r", token_type: "bearer", expires_in: 36000, expires_at: Math.floor(Date.now() / 1000) + 36000, user: USER });
     try { await page.goto(base + "/app/" + name + ".html", { waitUntil: "networkidle0", timeout: 45000 }); } catch (e) { /* تُسجَّل الصفحة بما ظهر */ }
     await new Promise((r) => setTimeout(r, 1200));

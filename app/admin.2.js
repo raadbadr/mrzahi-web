@@ -1,4 +1,4 @@
-    /* Platform admin console — data via window.trackerApp (app/common.js). */
+    /* Platform admin console — data via window.mrzahiApp (app/common.js). */
     (function () {
       "use strict";
 
@@ -640,7 +640,7 @@
       }
 
       function boot() {
-        app = window.trackerApp;
+        app = window.mrzahiApp;
         if (!app || !app.ready) { show("unavailableCard"); return; }
         app.ready.then(state => {
           if (app.unavailable || (state && state.unavailable)) { show("unavailableCard"); return; }

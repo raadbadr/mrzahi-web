@@ -1,3 +1,5 @@
+/* migration: نقل مفاتيح التخزين من الاسم القديم الى mrzahi_ مرة واحدة لكل متصفح، فلا يفقد احد لغته ولا ثيمه ولا حسابه المختار */
+try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("tracker_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("tracker_"+k);}});}catch(e){}
     const translations = {
       ar: {
         tagline: "تتبع أعمالك في مكان واحد",
@@ -388,8 +390,8 @@
       } catch { return null; }
     }
 
-    const lang = () => localStorage.getItem("tracker_lang") || "ar";
-    const theme = () => localStorage.getItem("tracker_theme") || "dark";
+    const lang = () => localStorage.getItem("mrzahi_lang") || "ar";
+    const theme = () => localStorage.getItem("mrzahi_theme") || "dark";
 
     const langNames = { ar: "العربية", en: "English", fr: "Français", ur: "اردو" };
     const langTitles = {
@@ -400,7 +402,7 @@
     };
 
     function setLang(l) {
-      localStorage.setItem("tracker_lang", l);
+      localStorage.setItem("mrzahi_lang", l);
       document.documentElement.lang = l;
       document.documentElement.dir = (l === "ar" || l === "ur") ? "rtl" : "ltr";
 
@@ -434,13 +436,13 @@
 
       document.title = langTitles[l] || "MrZahi";
 
-      if (typeof window.__trackerPlatformStatsRefresh === "function") window.__trackerPlatformStatsRefresh();
-      if (typeof window.__trackerChatLangRefresh === "function") window.__trackerChatLangRefresh();
-      if (typeof window.__trackerAuthRefresh === "function") window.__trackerAuthRefresh();
+      if (typeof window.__mrzahiPlatformStatsRefresh === "function") window.__mrzahiPlatformStatsRefresh();
+      if (typeof window.__mrzahiChatLangRefresh === "function") window.__mrzahiChatLangRefresh();
+      if (typeof window.__mrzahiAuthRefresh === "function") window.__mrzahiAuthRefresh();
     }
 
     function setTheme(t) {
-      localStorage.setItem("tracker_theme", t);
+      localStorage.setItem("mrzahi_theme", t);
       document.documentElement.dataset.theme = t;
       
       const themeColorMeta = document.getElementById("themeColorMeta");
@@ -665,7 +667,7 @@
       });
     }
 
-    window.__trackerPlatformStatsRefresh = function () {
+    window.__mrzahiPlatformStatsRefresh = function () {
       applyPlatformStatsToDom(cachedPlatformStats);
     };
 

@@ -19,7 +19,7 @@ returns setof uuid language sql stable security definer set search_path = public
   select m.org_id from public.org_members m where m.user_id = p_user_id and m.status = 'active'
 $$;
 
--- إضافة عنصر: المتتبع حسب النوع (مخالفة/جلسة/مهمة): موجود بالاسم المقارب وإلا ينشأ
+-- إضافة عنصر: السجل حسب النوع (مخالفة/جلسة/مهمة): موجود بالاسم المقارب وإلا ينشأ
 create or replace function public.telegram_add_item(p_secret text, p_user_id uuid, p_item jsonb)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare v_org uuid; v_kind text; v_tracker uuid; v_tracker_name text; v_id uuid; v_num text; v_new boolean := false;

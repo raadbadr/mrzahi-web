@@ -1,5 +1,5 @@
-    const lang = () => localStorage.getItem("tracker_lang") || "ar";
-    const theme = () => localStorage.getItem("tracker_theme") || "dark";
+    const lang = () => localStorage.getItem("mrzahi_lang") || "ar";
+    const theme = () => localStorage.getItem("mrzahi_theme") || "dark";
     const langNames = { ar: "العربية", en: "English", fr: "Français", ur: "اردو" };
     let l = lang();
     document.documentElement.lang = l;
@@ -30,7 +30,7 @@
     }
 
     function setLang(code) {
-      localStorage.setItem("tracker_lang", code);
+      localStorage.setItem("mrzahi_lang", code);
       l = code;
       document.documentElement.lang = code;
       document.documentElement.dir = (code === "ar" || code === "ur") ? "rtl" : "ltr";
@@ -48,12 +48,12 @@
       applyPlaceholders(code);
       if (typeof window.__fillOrgTypes === "function") window.__fillOrgTypes();
       document.title = (translations[code] && translations[code].title ? translations[code].title : "Dashboard") + " | MrZahi";
-      if (typeof window.__trackerAuthRefresh === "function") window.__trackerAuthRefresh();
+      if (typeof window.__mrzahiAuthRefresh === "function") window.__mrzahiAuthRefresh();
       if (typeof window.__dashboardRerender === "function") window.__dashboardRerender();
     }
 
     function setTheme(th) {
-      localStorage.setItem("tracker_theme", th);
+      localStorage.setItem("mrzahi_theme", th);
       document.documentElement.dataset.theme = th;
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = th === "dark" ? "#1a2933" : "#0068b8";

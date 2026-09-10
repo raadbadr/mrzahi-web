@@ -215,6 +215,8 @@
   </footer>
 
   <script>
+/* migration: نقل مفاتيح التخزين من الاسم القديم الى mrzahi_ مرة واحدة لكل متصفح، فلا يفقد احد لغته ولا ثيمه ولا حسابه المختار */
+try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("tracker_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("tracker_"+k);}});}catch(e){}
     const t = {
       ar: {
         title: "حذف الحساب",
@@ -377,14 +379,14 @@
         dark: "اندھیرا"
       }
     };
-    const lang = () => localStorage.getItem("tracker_lang") || "ar";
-    const theme = () => localStorage.getItem("tracker_theme") || "dark";
+    const lang = () => localStorage.getItem("mrzahi_lang") || "ar";
+    const theme = () => localStorage.getItem("mrzahi_theme") || "dark";
     const langNames = { ar: "العربية", en: "English", fr: "Français", ur: "اردو" };
     let l = lang();
     document.documentElement.lang = l;
     document.documentElement.dir = (l === "ar" || l === "ur") ? "rtl" : "ltr";
-    function setLang(c) { localStorage.setItem("tracker_lang", c); l = c; document.documentElement.lang = c; document.documentElement.dir = (c === "ar" || c === "ur") ? "rtl" : "ltr"; document.getElementById("currentLangDisplay").textContent = langNames[c] || c; ["ar","en","fr","ur"].forEach(x => { const e = document.getElementById("check-" + x); if (e) e.style.display = c === x ? "inline" : "none"; }); document.querySelectorAll("[data-i18n]").forEach(el => { const k = el.dataset.i18n; if (t[c] && t[c][k]) el.innerHTML = t[c][k]; }); document.getElementById("currentThemeDisplay").textContent = t[c][theme() === "dark" ? "dark" : "light"]; document.title = (t[c]?.title || "Delete account") + " | MrZahi"; }
-    function setTheme(th) { localStorage.setItem("tracker_theme", th); document.documentElement.dataset.theme = th; document.getElementById("themeColorMeta").content = th === "dark" ? "#1a2933" : "#0068b8"; document.getElementById("footerLogo").src = th === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2"; document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️"; document.getElementById("currentThemeDisplay").textContent = t[l][th === "dark" ? "dark" : "light"]; document.getElementById("check-light").style.display = th === "light" ? "inline" : "none"; document.getElementById("check-dark").style.display = th === "dark" ? "inline" : "none"; }
+    function setLang(c) { localStorage.setItem("mrzahi_lang", c); l = c; document.documentElement.lang = c; document.documentElement.dir = (c === "ar" || c === "ur") ? "rtl" : "ltr"; document.getElementById("currentLangDisplay").textContent = langNames[c] || c; ["ar","en","fr","ur"].forEach(x => { const e = document.getElementById("check-" + x); if (e) e.style.display = c === x ? "inline" : "none"; }); document.querySelectorAll("[data-i18n]").forEach(el => { const k = el.dataset.i18n; if (t[c] && t[c][k]) el.innerHTML = t[c][k]; }); document.getElementById("currentThemeDisplay").textContent = t[c][theme() === "dark" ? "dark" : "light"]; document.title = (t[c]?.title || "Delete account") + " | MrZahi"; }
+    function setTheme(th) { localStorage.setItem("mrzahi_theme", th); document.documentElement.dataset.theme = th; document.getElementById("themeColorMeta").content = th === "dark" ? "#1a2933" : "#0068b8"; document.getElementById("footerLogo").src = th === "dark" ? "mrzahi-logo-full-dark.png?v=2" : "mrzahi-logo-full-light.png?v=2"; document.getElementById("themeIcon").textContent = th === "dark" ? "🌙" : "☀️"; document.getElementById("currentThemeDisplay").textContent = t[l][th === "dark" ? "dark" : "light"]; document.getElementById("check-light").style.display = th === "light" ? "inline" : "none"; document.getElementById("check-dark").style.display = th === "dark" ? "inline" : "none"; }
     document.getElementById("langMenuBtn").onclick = e => { e.stopPropagation(); document.getElementById("langDropdown").classList.toggle("show"); document.getElementById("themeDropdown").classList.remove("show"); };
     document.getElementById("themeMenuBtn").onclick = e => { e.stopPropagation(); setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"); document.getElementById("langDropdown").classList.remove("show"); };
     document.addEventListener("click", () => { document.getElementById("langDropdown").classList.remove("show"); document.getElementById("themeDropdown").classList.remove("show"); });

@@ -6,7 +6,7 @@ import { understand, composeAnswer, normalize } from "./telegram-understand.js";
 
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const LANG_NAMES = { ar: "العربية الفصحى", en: "English", fr: "français", ur: "اردو" };
-const AGENT_TOOLS = TOOLS.filter((t) => ["tracker_company", "tracker_items", "tracker_search", "tracker_list", "tracker_add", "tracker_complete", "tracker_assign", "tracker_team", "tracker_remind", "tracker_expenses", "tracker_overview", "tracker_platform"].includes(t.name));
+const AGENT_TOOLS = TOOLS.filter((t) => ["mrzahi_company", "mrzahi_items", "mrzahi_search", "mrzahi_list", "mrzahi_add", "mrzahi_complete", "mrzahi_assign", "mrzahi_team", "mrzahi_remind", "mrzahi_expenses", "mrzahi_overview", "mrzahi_platform"].includes(t.name));
 
 export { VERBS, writeGate } from "./notify.js";
 
@@ -18,15 +18,15 @@ function systemPrompt(ctx) {
     `مستر زاهي منصة لتتبع القضايا والمخالفات والمهام والمستندات والمواعيد للشركات ومكاتب المحاماة.`,
     `قواعدك: أجب بلغة رسالة المستخدم نفسها (عربية، إنجليزية، فرنسية أو أردو)، وإن لم تتضح فبـ${LANG_NAMES[lang] || LANG_NAMES.ar}. بلا تشكيل، والأرقام غربية (1234567890)، بإيجاز ووضوح ومباشرة كزميل عمل محترف.`,
     `لا تحيي ولا تذكر اسمه أو شركته في كل رد؛ المحادثة مستمرة، فادخل في الجواب مباشرة. لا تكرر جملة قلتها قبل قليل، ولا تختم بعبارات مجاملة.`,
-    `أسئلة الفريق (من المسؤول عن…، ماذا على فلان، عبء الأعضاء) من tracker_team. طلب «ذكرني قبل … بـ يوم/3 أيام/أسبوع» = tracker_remind بالعنصر والمهلة كما كتبها.`,
-    `أسئلة بيانات الشركة (رقم السجل التجاري، الرقم الضريبي، الآيبان، العنوان، الباقة، الأوراق المرفوعة) تجاب من tracker_company بالرقم نفسه كما هو مسجل.`,
-    `كلمة واحدة تكفي: «قضايا» = tracker_items(case)، «مخالفات» = (violation)، «مهام» = (task)، «مستندات» = (document)، «المنجز» = (status done)، «مواعيد/القادم» = tracker_list(upcoming)، «متأخر» = tracker_list(overdue)، «الكل/ملخص/وضعنا» = tracker_overview، «مصاريف/المصاريف/كم صرفنا» = tracker_expenses(period)، أي اسم أو رقم = tracker_search. والكلام الطويل تفهم منه المطلوب نفسه.`,
+    `أسئلة الفريق (من المسؤول عن…، ماذا على فلان، عبء الأعضاء) من mrzahi_team. طلب «ذكرني قبل … بـ يوم/3 أيام/أسبوع» = mrzahi_remind بالعنصر والمهلة كما كتبها.`,
+    `أسئلة بيانات الشركة (رقم السجل التجاري، الرقم الضريبي، الآيبان، العنوان، الباقة، الأوراق المرفوعة) تجاب من mrzahi_company بالرقم نفسه كما هو مسجل.`,
+    `كلمة واحدة تكفي: «قضايا» = mrzahi_items(case)، «مخالفات» = (violation)، «مهام» = (task)، «مستندات» = (document)، «المنجز» = (status done)، «مواعيد/القادم» = mrzahi_list(upcoming)، «متأخر» = mrzahi_list(overdue)، «الكل/ملخص/وضعنا» = mrzahi_overview، «مصاريف/المصاريف/كم صرفنا» = mrzahi_expenses(period)، أي اسم أو رقم = mrzahi_search. والكلام الطويل تفهم منه المطلوب نفسه.`,
     `إن لم يوجد شيء من النوع المطلوب فلا تكرر النفي نفسه: انقل ما تقوله الأداة عن الموجود فعلا (المنجز سابقا، ما يحمل الكلمة في عنوانه، النظرة العامة على السجلات) لكي يفهم المستخدم صورة بياناته. «بشكل عام» أو «السابقة» أو «الكل» تعني status=all.`,
-    `لا تخترع شيئا أبدا: كل رقم وكل اسم في ردك يجب أن يكون قد جاء حرفيا من نتيجة أداة في هذه المحادثة. إن لم تعد الأداة المعلومة فقل إنك لا تملكها ولا تقدر عليها، ولا تخمن عددا ولا اسما ولا تاريخا. أسئلة المنصة كلها (عدد المسجلين في الموقع، كل المستخدمين، الاشتراكات) من tracker_platform، وهي لمدير المنصة وحده.`,
+    `لا تخترع شيئا أبدا: كل رقم وكل اسم في ردك يجب أن يكون قد جاء حرفيا من نتيجة أداة في هذه المحادثة. إن لم تعد الأداة المعلومة فقل إنك لا تملكها ولا تقدر عليها، ولا تخمن عددا ولا اسما ولا تاريخا. أسئلة المنصة كلها (عدد المسجلين في الموقع، كل المستخدمين، الاشتراكات) من mrzahi_platform، وهي لمدير المنصة وحده.`,
     `لا تذكر أبدا أسماء حقول أو مفاتيح تقنية (مثل due_at أو client_name) ولا JSON ولا معرفات داخلية ولا صيغ تقنية (ISO 8601)؛ تكلم بلغة إنسان عادي فقط.`,
     `لا تعرض الرقم القياسي الداخلي (ITM-…) للمستخدم أبدا؛ اعرض رقم السجل أو القضية أو المخالفة أو الورقة نفسه كما هو مسجل، وتواريخ الإصدار والانتهاء.`,
     `صيغة الرد: مختصرة جدا وبلغة إنسان. للقوائم سطر لكل عنصر بلا مقدمة ولا خاتمة، منسوخ من نص الأداة كما هو: الورقة الرسمية «نوعها — رقمها — إصدار يوم-شهر-سنة — ينتهي يوم-شهر-سنة»، والقضية أو المخالفة أو المهمة «العنوان — قضية/مخالفة رقم … — العميل — الموعد». الرقم الوحيد الذي يظهر هو رقم الورقة أو القضية أو المخالفة كما هو مسجل؛ أي رمز يبدأ بـ ITM أو ORG أو USR ممنوع. التواريخ يوم-شهر-سنة (مثل 31-10-2026) بلا وقت إلا إن كان موعدا بساعة. إن لم يوجد شيء فجملة واحدة. للأسئلة: الجواب فقط. لا شرح لما فعلت ولا ذكر لأسماء الأدوات.`,
-    `لكل سؤال عن بياناته (قضايا، مخالفات، مهام، مواعيد، متأخر، عميل، رقم) استعمل الأدوات ولا تخمن ولا تختلق. tracker_list للمواعيد القادمة والمتأخرة، tracker_search للبحث بأي كلمة أو رقم.`,
+    `لكل سؤال عن بياناته (قضايا، مخالفات، مهام، مواعيد، متأخر، عميل، رقم) استعمل الأدوات ولا تخمن ولا تختلق. mrzahi_list للمواعيد القادمة والمتأخرة، mrzahi_search للبحث بأي كلمة أو رقم.`,
     `حين يطلب إضافة أو إنجاز أو إسناد بصيغة واضحة نفذ بالأداة مباشرة ثم أخبره بما تم بعنوان العنصر (لا برقمه القياسي). إن كانت المهمة بلا قضية أو مخالفة تنتمي إليها فاعرض المرشحين الذين تعيدهم الأداة واطلب اختيار واحد. إن كان الطلب غامضا اسأل سؤالا واحدا قصيرا.`,
     `الإنجاز والإضافة والإسناد لا تكون إلا بطلب صريح في رسالة المستخدم الحالية (أنجزت، أقفل، أضف، أسند…)، ولا ينفذ شيء قبل أن يؤكد بزر. كلمات المجاملة والتعليق (أحسنت، شكرا، ممتاز، تمام) ليست أوامر: رد عليها بجملة قصيرة فقط ولا تلمس أي عنصر.`,
     `لا تقل أبدا إنك تنتظر تفعيل أدوات أو دمجا تقنيا: الأدوات متاحة لك الآن. لا تخرج عن مواضيع مستر زاهي إلا بتحية قصيرة أو توضيح.`,
@@ -108,7 +108,7 @@ function rowsText(rows) {
     return [r.title, r.case_number ? "قضية " + r.case_number : null, r.violation_number ? "مخالفة " + r.violation_number : null, r.client_name, r.due_at ? dmy(r.due_at) : null].filter(Boolean).join(" | ");
   }).join("\n");
 }
-const TEXT_TOOLS = new Set(["tracker_company", "tracker_team", "tracker_expenses", "tracker_overview", "tracker_platform"]);
+const TEXT_TOOLS = new Set(["mrzahi_company", "mrzahi_team", "mrzahi_expenses", "mrzahi_overview", "mrzahi_platform"]);
 /* الرسائل البديهية تفهم وتجاب من البيانات مباشرة بلا نموذج (telegram-understand.js) */
 async function oneWord(env, ctx) {
   const u = understand(ctx.text, ctx.lang);
@@ -123,8 +123,8 @@ async function oneWord(env, ctx) {
   if (!Array.isArray(rows)) return null;
   let text = composeAnswer(u, rows, ctx.lang, rowsText, toolText, ctx.userTimeZone);
   /* ورقة بعينها غير مرفوعة بعد: بطاقة الشركة تحمل رقمها كما سجل */
-  if (!text && u.tool === "tracker_items" && u.args.kind === "document" && u.keyword) {
-    const c = await callTool("tracker_company", {}, toolCtx);
+  if (!text && u.tool === "mrzahi_items" && u.args.kind === "document" && u.keyword) {
+    const c = await callTool("mrzahi_company", {}, toolCtx);
     text = c && !c.isError && c.content && c.content[0] ? c.content[0].text : null;
   }
   return text ? { text, tools: [u.tool] } : null;

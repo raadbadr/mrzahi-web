@@ -1,8 +1,10 @@
+/* migration: نقل مفاتيح التخزين من الاسم القديم الى mrzahi_ مرة واحدة لكل متصفح، فلا يفقد احد لغته ولا ثيمه ولا حسابه المختار */
+try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("tracker_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("tracker_"+k);}});}catch(e){}
 /**
  * app.js — MrZahi shared auth helper (plain script, no modules).
  *
  * Loads after the supabase-js UMD bundle (window.supabase) and exposes
- * window.trackerAuth = {
+ * window.mrzahiAuth = {
  *   ready, client, session, unavailable,
  *   getSession(), signInWithGoogle(), signInWithApple(),
  *   signInWithEmail(email), signInWithPhone(phone),
@@ -10,10 +12,10 @@
  * }
  *
  * - Fetches /api/config → { supabaseUrl, supabaseAnonKey }. If the endpoint
- *   is missing or not configured (503), trackerAuth.unavailable = true and
+ *   is missing or not configured (503), mrzahiAuth.unavailable = true and
  *   `ready` still resolves so pages keep working.
  * - On pages with the header login link (#loginMenuBtn) it switches the link
- *   to the dashboard when a session exists; window.__trackerAuthRefresh
+ *   to the dashboard when a session exists; window.__mrzahiAuthRefresh
  *   re-applies that after setLang().
  * - On login.html (#loginCard) it wires the sign-in buttons and forms.
  */
@@ -59,7 +61,7 @@
     verifyOtp: verifyOtp,
     signOut: signOut
   };
-  window.trackerAuth = auth;
+  window.mrzahiAuth = auth;
 
   /* ---------- i18n helpers (read the page's own translations) ---------- */
 
@@ -80,7 +82,7 @@
       }
     } catch (e) { /* page has no lang() helper */ }
     try {
-      return localStorage.getItem("tracker_lang") || "ar";
+      return localStorage.getItem("mrzahi_lang") || "ar";
     } catch (e) {
       return "ar";
     }
@@ -98,7 +100,7 @@
 
   /* الوجهة بعد الدخول: المسار المطلوب في ?next= إن كان مسارا داخليا آمنا
      تحت /app/ (تضعه common.js عند حراسة الصفحات)، وإلا لوحة التحكم. */
-  var PENDING_KEY = "tracker_auth_pending";
+  var PENDING_KEY = "mrzahi_auth_pending";
   /* الدخول بدأ من عندنا: نضع علامة قبل مغادرة الصفحة إلى المزود، فمهما أعادنا
      المزود — إلى الرئيسية أو إلى صفحة الدخول — نعرف أن هذه عودة دخول ونكمل
      إلى لوحة التحكم بدل أن يقف المستخدم على الصفحة العامة. */
@@ -269,7 +271,7 @@
       btn.setAttribute("href", LOGIN_PATH);
     }
   }
-  window.__trackerAuthRefresh = refreshLoginMenu;
+  window.__mrzahiAuthRefresh = refreshLoginMenu;
 
   /* ---------- login.html wiring (#loginCard) ---------- */
 
@@ -310,9 +312,9 @@
      لسوبابيس. تحويل كامل بلا نوافذ منبثقة ولا إطارات، فيعمل في سفاري وغيره. */
 
   var GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
-  var NONCE_KEY = "tracker_google_nonce";
-  var STATE_KEY = "tracker_google_state";
-  var NEXT_KEY = "tracker_google_next";
+  var NONCE_KEY = "mrzahi_google_nonce";
+  var STATE_KEY = "mrzahi_google_state";
+  var NEXT_KEY = "mrzahi_google_next";
 
   function randomNonce() {
     var bytes = new Uint8Array(32);

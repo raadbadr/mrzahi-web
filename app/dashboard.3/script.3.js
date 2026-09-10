@@ -796,7 +796,7 @@
         if (want !== "week" && want !== "day") want = "month";
         if (want === calZoom()) return;
         state.calZoom = want;
-        try { localStorage.setItem("tracker_cal_zoom", want); } catch (e) { /* تخزين محجوب */ }
+        try { localStorage.setItem("mrzahi_cal_zoom", want); } catch (e) { /* تخزين محجوب */ }
         if (want !== "month") {
           var now = new Date();
           var monthStart = calendarIsHijri() ? startOfHijriMonth(state.month) : startOfMonth(state.month);
@@ -810,7 +810,7 @@
         var btn = ev.target.closest("[data-cal-mode]");
         if (!btn) return;
         state.calMode = btn.dataset.calMode === "hijri" ? "hijri" : "greg";
-        try { localStorage.setItem("tracker_cal_mode", state.calMode); } catch (e) { /* ignore */ }
+        try { localStorage.setItem("mrzahi_cal_mode", state.calMode); } catch (e) { /* ignore */ }
         var g = $("calGregBtn"), h = $("calHijriBtn");
         if (g) g.classList.toggle("is-active", state.calMode === "greg");
         if (h) h.classList.toggle("is-active", state.calMode === "hijri");

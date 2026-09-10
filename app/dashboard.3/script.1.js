@@ -1,11 +1,11 @@
-    /* Dashboard logic — uses window.trackerApp (app/common.js) for all data access. */
+    /* Dashboard logic — uses window.mrzahiApp (app/common.js) for all data access. */
     (function () {
       "use strict";
 
       var DAY_KEYS = ["daySun", "dayMon", "dayTue", "dayWed", "dayThu", "dayFri", "daySat"];
       var STATUS_KEYS = { open: "statusOpen", overdue: "statusOverdue", done: "statusDone", cancelled: "statusCancelled" };
       var MAX_CHIPS = 3;
-      var TAB_KEY = "tracker_dash_tab";
+      var TAB_KEY = "mrzahi_dash_tab";
       var SEARCH_DELAY = 300;
 
       var app = null;
@@ -25,10 +25,10 @@
         contractParty: "",
         contractType: "",
         contractState: "",
-        calMode: (function () { try { return localStorage.getItem("tracker_cal_mode") || "greg"; } catch (e) { return "greg"; } })(),
+        calMode: (function () { try { return localStorage.getItem("mrzahi_cal_mode") || "greg"; } catch (e) { return "greg"; } })(),
         calAnchor: new Date(),
         /* مدى العرض: شهر او اسبوع او يوم. calDay هو اليوم المرساة في الاسبوع واليوم. */
-        calZoom: (function () { try { var z = localStorage.getItem("tracker_cal_zoom"); return z === "week" || z === "day" ? z : "month"; } catch (e) { return "month"; } })(),
+        calZoom: (function () { try { var z = localStorage.getItem("mrzahi_cal_zoom"); return z === "week" || z === "day" ? z : "month"; } catch (e) { return "month"; } })(),
         calDay: new Date(),
         calScrollSig: "",   /* المدى المعروض في محور الساعات: يمرر مرة عند تغيره لا مع كل تحديث */
         calScrollTop: 0,
@@ -896,7 +896,7 @@
       }
 
       function boot() {
-        app = window.trackerApp;
+        app = window.mrzahiApp;
         if (!app || !app.ready) { showUnavailable(); return; }
         app.ready.then(function (res) {
           if (!res || res.unavailable || app.unavailable || !app.client) { showUnavailable(); return; }

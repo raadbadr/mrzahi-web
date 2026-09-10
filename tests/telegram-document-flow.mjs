@@ -110,15 +110,15 @@ try {
   check("menu button: issue and expiry in day-month-year", menu.includes("إصدار 01-09-2026") && menu.includes("ينتهي 31-10-2026") && menu.includes("ينتهي 01-09-2027"), menu);
   check("menu button: case rows unchanged, no canonical number anywhere", menu.includes("جلسة — عميل (4471)") && clean(menu), menu);
   const ctx = { env: {}, who: { org_id: "o", org_name: "x", user_id: "u" }, hash: null, rpc: async (name) => name === "telegram_items_by_kind" ? [paper, cr] : name === "telegram_items" ? [paper, session] : null };
-  const items = await callTool("tracker_items", { kind: "document" }, ctx);
+  const items = await callTool("mrzahi_items", { kind: "document" }, ctx);
   check("tool text: papers read kind — number — issued — expires", items.content[0].text.includes("الشهادة الضريبية — PARKINZI Company — رقم 314983900200003 — إصدار 01-09-2026 — ينتهي 31-10-2026"), items.content[0].text);
   check("tool text: no canonical number, no ISO date", clean(items.content[0].text) && !/\d{4}-\d{2}-\d{2}/.test(items.content[0].text), items.content[0].text);
-  const list = await callTool("tracker_list", { mode: "upcoming" }, ctx);
+  const list = await callTool("mrzahi_list", { mode: "upcoming" }, ctx);
   check("upcoming list: same rule", clean(list.content[0].text) && list.content[0].text.includes("رقم 314983900200003"), list.content[0].text);
   const money = { status: "ok", period: "month", period_start: "2026-09-01", period_end: "2026-09-30", currency: "SAR", total: 1250.5, count: 3, by_category: [{ name: "إيجار", total: 1000, count: 1 }], latest: [{ title: "إيجار المكتب", amount: 1000, date: "2026-09-02", category: "إيجار" }] };
-  const exp = await callTool("tracker_expenses", { period: "month" }, { ...ctx, rpc: async () => money });
+  const exp = await callTool("mrzahi_expenses", { period: "month" }, { ...ctx, rpc: async () => money });
   check("expenses: total, count, categories and latest in plain words", exp.content[0].text.includes("1,250.5 ريال في 3 مصروف") && exp.content[0].text.includes("إيجار المكتب — 1,000 ريال — 02-09-2026") && clean(exp.content[0].text), exp.content[0].text);
-  const none = await callTool("tracker_expenses", {}, { ...ctx, rpc: async () => ({ status: "ok", total: 0, count: 0, by_category: [], latest: [] }) });
+  const none = await callTool("mrzahi_expenses", {}, { ...ctx, rpc: async () => ({ status: "ok", total: 0, count: 0, by_category: [], latest: [] }) });
   check("expenses: none recorded → one plain sentence with where to add them", none.content[0].text.startsWith("لا مصاريف مسجلة هذا الشهر") && clean(none.content[0].text), none.content[0].text);
 }
 
@@ -127,22 +127,22 @@ try {
   const { writeGate, VERBS } = await import("../src/telegram-agent.js");
   const { formatItems } = await import("../src/notify.js");
   const { heuristicIntent } = await import("../src/telegram-actions.js");
-  check("«احسنت» never completes anything", writeGate("tracker_complete", { query: "RSK-05092026-0001" }, "احسنت").blocked === true);
-  check("«شكرا» / «ممتاز» / «تمام» are not commands", !!writeGate("tracker_complete", { item_id: "x" }, "شكرا ممتاز").blocked && !!writeGate("tracker_add", { kind: "task", title: "x" }, "ممتاز").blocked && !!writeGate("tracker_assign", { query: "x", member: "y" }, "تمام").blocked);
+  check("«احسنت» never completes anything", writeGate("mrzahi_complete", { query: "RSK-05092026-0001" }, "احسنت").blocked === true);
+  check("«شكرا» / «ممتاز» / «تمام» are not commands", !!writeGate("mrzahi_complete", { item_id: "x" }, "شكرا ممتاز").blocked && !!writeGate("mrzahi_add", { kind: "task", title: "x" }, "ممتاز").blocked && !!writeGate("mrzahi_assign", { query: "x", member: "y" }, "تمام").blocked);
   check("the heuristic reader does not turn «احسنت» into done", !(heuristicIntent("احسنت") && heuristicIntent("احسنت").action === "done"), JSON.stringify(heuristicIntent("احسنت")));
-  const done = writeGate("tracker_complete", { query: "RSK-05092026-0001" }, "أنجزت المخالفة RSK-05092026-0001");
+  const done = writeGate("mrzahi_complete", { query: "RSK-05092026-0001" }, "أنجزت المخالفة RSK-05092026-0001");
   check("an explicit «أنجزت» becomes a pending confirmation, not an execution", !!done.pending && done.pending.action === "done" && done.pending.query === "RSK-05092026-0001", JSON.stringify(done));
-  const add = writeGate("tracker_add", { kind: "task", title: "مراجعة العقد", due_at: "2026-09-10T09:00:00+03:00", telegram_user_id: "1" }, "أضف مهمة مراجعة العقد غدا");
+  const add = writeGate("mrzahi_add", { kind: "task", title: "مراجعة العقد", due_at: "2026-09-10T09:00:00+03:00", telegram_user_id: "1" }, "أضف مهمة مراجعة العقد غدا");
   check("an explicit «أضف» becomes a pending add with item fields only", !!add.pending && add.pending.action === "add" && add.pending.item.title === "مراجعة العقد" && !("telegram_user_id" in add.pending.item), JSON.stringify(add));
-  const asg = writeGate("tracker_assign", { query: "4471", member: "أحمد" }, "كلف أحمد بالقضية 4471");
+  const asg = writeGate("mrzahi_assign", { query: "4471", member: "أحمد" }, "كلف أحمد بالقضية 4471");
   check("an explicit «كلف» becomes a pending assignment", !!asg.pending && asg.pending.action === "assign" && asg.pending.member === "أحمد", JSON.stringify(asg));
-  check("an empty query never reaches the database (it would match every open item)", !!writeGate("tracker_complete", { query: "  " }, "أنجزت").blocked && !!writeGate("tracker_assign", { query: "", member: "أحمد" }, "كلف أحمد").blocked && !!writeGate("tracker_assign", { query: "4471", member: "" }, "أسند 4471").blocked);
-  check("English words that merely contain a verb are not commands («address» is not «add»)", !!writeGate("tracker_add", { kind: "task", title: "x" }, "national address").blocked && !!writeGate("tracker_add", { kind: "task", title: "x" }, "what is our address").blocked);
-  check("«معين» (the court system) is not the verb «عيّن»", !!writeGate("tracker_assign", { query: "4471", member: "أحمد" }, "القضايا المقيدة في معين").blocked);
-  check("real English verbs still pass", !!writeGate("tracker_add", { kind: "task", title: "x" }, "add a task for tomorrow").pending && !!writeGate("tracker_assign", { query: "4471", member: "Ahmed" }, "assign 4471 to Ahmed").pending);
-  check("reading tools pass the gate untouched", writeGate("tracker_items", { kind: "case" }, "احسنت").allow === true && writeGate("tracker_company", {}, "شكرا").allow === true);
-  check("«ذكرني قبل يوم» may set a reminder directly; without the word it is blocked", writeGate("tracker_remind", { query: "الجلسة", before: "يوم" }, "ذكرني قبل يوم بالجلسة").allow === true && writeGate("tracker_remind", { query: "x", before: "يوم" }, "الجلسة قريبة").blocked === true);
-  check("cancelling, negating or asking about a reminder never writes one", ["ألغِ التنبيه عن قضية 55", "لا تذكرني بالمخالفة 77", "احذف التذكير", "هل يوجد تذكير على قضية 55؟", "تذكير"].every((m) => writeGate("tracker_remind", { query: "55", before: "1 day" }, m).blocked === true));
+  check("an empty query never reaches the database (it would match every open item)", !!writeGate("mrzahi_complete", { query: "  " }, "أنجزت").blocked && !!writeGate("mrzahi_assign", { query: "", member: "أحمد" }, "كلف أحمد").blocked && !!writeGate("mrzahi_assign", { query: "4471", member: "" }, "أسند 4471").blocked);
+  check("English words that merely contain a verb are not commands («address» is not «add»)", !!writeGate("mrzahi_add", { kind: "task", title: "x" }, "national address").blocked && !!writeGate("mrzahi_add", { kind: "task", title: "x" }, "what is our address").blocked);
+  check("«معين» (the court system) is not the verb «عيّن»", !!writeGate("mrzahi_assign", { query: "4471", member: "أحمد" }, "القضايا المقيدة في معين").blocked);
+  check("real English verbs still pass", !!writeGate("mrzahi_add", { kind: "task", title: "x" }, "add a task for tomorrow").pending && !!writeGate("mrzahi_assign", { query: "4471", member: "Ahmed" }, "assign 4471 to Ahmed").pending);
+  check("reading tools pass the gate untouched", writeGate("mrzahi_items", { kind: "case" }, "احسنت").allow === true && writeGate("mrzahi_company", {}, "شكرا").allow === true);
+  check("«ذكرني قبل يوم» may set a reminder directly; without the word it is blocked", writeGate("mrzahi_remind", { query: "الجلسة", before: "يوم" }, "ذكرني قبل يوم بالجلسة").allow === true && writeGate("mrzahi_remind", { query: "x", before: "يوم" }, "الجلسة قريبة").blocked === true);
+  check("cancelling, negating or asking about a reminder never writes one", ["ألغِ التنبيه عن قضية 55", "لا تذكرني بالمخالفة 77", "احذف التذكير", "هل يوجد تذكير على قضية 55؟", "تذكير"].every((m) => writeGate("mrzahi_remind", { query: "55", before: "1 day" }, m).blocked === true));
   check("English «done» / «close» are verbs, praise is not", VERBS.done.test("mark 4471 as done") && VERBS.done.test("close the case 4471") && !VERBS.done.test("great job") && !VERBS.done.test("well done".replace("done", "")));
   const { heuristicIntent: hi } = await import("../src/telegram-actions.js");
   check("«تم سداد المخالفة 778» is a done intent for the heuristic and passes the gate (one source of verbs)", hi("تم سداد المخالفة 778") && hi("تم سداد المخالفة 778").action === "done" && VERBS.done.test("تم سداد المخالفة 778"));
@@ -155,36 +155,36 @@ try {
     const calls = [];
     const rpcStub = async (name, args) => { calls.push(name); if (name === "telegram_complete") return { status: "done", title: "قضية 4521" }; if (name === "channel_user_lookup") return { user_id: "u2", name: "زميل" }; if (name === "telegram_org_choices") return [{ id: "other-org", name: "غيرها", role: "member" }]; return null; };
     const ctx = { env: { WORKER_SECRET: "s" }, who: { org_id: "org1", org_name: "x", user_id: "u1" }, hash: null, rpc: rpcStub };
-    const noMsg = await callTool("tracker_complete", { query: "4521" }, ctx);
+    const noMsg = await callTool("mrzahi_complete", { query: "4521" }, ctx);
     check("MCP: a write without the person's words is refused", noMsg.isError === true && !calls.includes("telegram_complete"));
-    const praise = await callTool("tracker_complete", { query: "4521", user_message: "احسنت" }, ctx);
+    const praise = await callTool("mrzahi_complete", { query: "4521", user_message: "احسنت" }, ctx);
     check("MCP: «احسنت» is refused, nothing written", praise.isError === true && !calls.includes("telegram_complete"));
-    const preview = await callTool("tracker_complete", { query: "4521", user_message: "أنجزت القضية 4521" }, ctx);
+    const preview = await callTool("mrzahi_complete", { query: "4521", user_message: "أنجزت القضية 4521" }, ctx);
     check("MCP: an explicit request first returns a preview, still nothing written", !preview.isError && preview.structuredContent.status === "needs_confirmation" && !calls.includes("telegram_complete"), JSON.stringify(preview.structuredContent));
-    const go = await callTool("tracker_complete", { query: "4521", user_message: "أنجزت القضية 4521", confirm: true }, ctx);
+    const go = await callTool("mrzahi_complete", { query: "4521", user_message: "أنجزت القضية 4521", confirm: true }, ctx);
     check("MCP: with confirm=true the write happens", !go.isError && calls.includes("telegram_complete"));
-    const imp = await callTool("tracker_import_rows", { rows: [{ title: "a" }, { title: "b" }] }, { ...ctx, importRows: async () => ({ ok: true, imported: 2 }) });
+    const imp = await callTool("mrzahi_import_rows", { rows: [{ title: "a" }, { title: "b" }] }, { ...ctx, importRows: async () => ({ ok: true, imported: 2 }) });
     check("MCP: import previews the row count before confirm", imp.structuredContent.status === "needs_confirmation" && imp.structuredContent.rows === 2);
-    const foreign = await callTool("tracker_items", { kind: "case", telegram_user_id: "999" }, ctx);
+    const foreign = await callTool("mrzahi_items", { kind: "case", telegram_user_id: "999" }, ctx);
     check("MCP: a Telegram user from another company is not acted for", foreign.structuredContent.status === "not_member" && !calls.includes("telegram_items_by_kind"), JSON.stringify(foreign.structuredContent));
-    const link = await callTool("tracker_link_telegram", { telegram_user_id: "999" }, ctx);
+    const link = await callTool("mrzahi_link_telegram", { telegram_user_id: "999" }, ctx);
     check("MCP: linking needs the site code — no phone, no key-owner fallback", link.isError === true && !calls.includes("link_channel_direct") && !calls.includes("link_channel_by_phone"));
     const plat = { status: "ok", users: 3, orgs: 3, items: 6, active_subscriptions: 0, signups_this_week: 0, latest_users: [{ name: "Ahdab Badr", email_masked: "hd***@gmail.com", created_at: "2026-09-05" }] };
-    const p1 = await callTool("tracker_platform", {}, { ...ctx, rpc: async () => plat });
+    const p1 = await callTool("mrzahi_platform", {}, { ...ctx, rpc: async () => plat });
     check("platform numbers read as a sentence with day-month-year", p1.content[0].text.startsWith("المنصة: 3 مسجل، 3 شركة، 6 عنصر، 0 اشتراك مدفوع، 0 تسجيل هذا الأسبوع.") && p1.content[0].text.includes("Ahdab Badr — hd***@gmail.com — 05-09-2026"), p1.content[0].text);
-    const p2 = await callTool("tracker_platform", {}, { ...ctx, rpc: async () => ({ status: "forbidden" }) });
+    const p2 = await callTool("mrzahi_platform", {}, { ...ctx, rpc: async () => ({ status: "forbidden" }) });
     check("a non-admin is told plainly, with no numbers", p2.content[0].text === "بيانات المنصة كلها متاحة لمدير المنصة وحده." && !/\d/.test(p2.content[0].text));
     /* «هل توجد مخالفات؟» with none of that kind: the tool looks wider instead of a bare no */
     const rsk = { id: "r1", title: "RSK-05092026-0001 · عدم ارتكاب المخالفة والالتزام بالإجراءات", status: "open", tracker_name: "إدارة المخاطر", category: "معالجة خطر", due_at: "2026-09-07T06:00:00+00:00" };
     const doc = { id: "d1", title: "السجل التجاري لشركة أبراج الكهرباء", status: "open", tracker_name: "المستندات", document_kind: "commercial_register", doc_number: "7012345678" };
     const wide = async (name, args) => name === "telegram_items_by_kind" ? (args.p_kind === "violation" ? [] : [rsk, doc]) : name === "telegram_search" ? [rsk] : null;
-    const none = await callTool("tracker_items", { kind: "violation", status: "open" }, { ...ctx, rpc: wide });
+    const none = await callTool("mrzahi_items", { kind: "violation", status: "open" }, { ...ctx, rpc: wide });
     const t = none.content[0].text;
     check("no violations → says so, names the near match and the overview", t.includes("لا مخالفات مسجلة إطلاقا") && t.includes("عدم ارتكاب المخالفة") && t.includes("إدارة المخاطر 1") && t.includes("المستندات 1") && clean(t), t);
     check("no violations → structured similar/overview for the model", Array.isArray(none.structuredContent.similar) && none.structuredContent.similar.length === 1 && none.structuredContent.overview.length === 2);
-    const some = await callTool("tracker_items", { kind: "document" }, { ...ctx, rpc: async (n, args) => n === "telegram_items_by_kind" ? [doc] : null });
+    const some = await callTool("mrzahi_items", { kind: "document" }, { ...ctx, rpc: async (n, args) => n === "telegram_items_by_kind" ? [doc] : null });
     check("when items exist the answer is the plain list", some.content[0].text.startsWith("1 items") && some.content[0].text.includes("رقم 7012345678"));
-    const trusted = await callTool("tracker_complete", { query: "4521" }, { ...ctx, trusted: true });
+    const trusted = await callTool("mrzahi_complete", { query: "4521" }, { ...ctx, trusted: true });
     check("the in-house bot (gate + button already applied) is trusted", !trusted.isError);
   }
   const dash = formatItems("ar", [{ title: "مخالفة", client_name: "ASKEC", case_number: "-", due_at: "2026-09-07T06:00:00+00:00" }], "📅", "لا يوجد", "Asia/Riyadh");
@@ -235,13 +235,13 @@ try {
     check("end to end: an invented number never reaches the user", !!lie && lie.text.startsWith("لا أملك هذه المعلومة") && !/\d/.test(lie.text), lie && lie.text);
     /* أسماء مخترعة بعد أداة حقيقية: تُمنع أيضا */
     const names = await agentReply(envOf([
-      { tool_calls: [{ function: { name: "tracker_items", arguments: JSON.stringify({ kind: "case" }) } }] },
+      { tool_calls: [{ function: { name: "mrzahi_items", arguments: JSON.stringify({ kind: "case" }) } }] },
       { response: "العملاء: شركة أبراج، محمد علي، سارة خالد" },
     ]), { chatId: "t2", userId: "u1", text: "مين العملاء", lang: "ar" });
     check("end to end: after a tool call the answer is the data itself, never the model's prose", !!names && names.text.includes("جلسة الاستئناف") && !/محمد علي|سارة خالد/.test(names.text), names && names.text);
     /* الحقيقة تمر: رقم القضية جاء من الأداة */
     const truth = await agentReply(envOf([
-      { tool_calls: [{ function: { name: "tracker_items", arguments: JSON.stringify({ kind: "case" }) } }] },
+      { tool_calls: [{ function: { name: "mrzahi_items", arguments: JSON.stringify({ kind: "case" }) } }] },
       { response: "لديك قضية واحدة: جلسة الاستئناف رقم 4471 لشركة أبراج." },
     ]), { chatId: "t3", userId: "u1", text: "ايش وضع القضايا عندي", lang: "ar" });
     check("end to end: the real row reaches the user, composed from the data", !!truth && truth.text.includes("4471") && truth.text.includes("جلسة الاستئناف") && !truth.text.startsWith("لا أملك"), truth && truth.text);
@@ -257,7 +257,7 @@ try {
     const brokenFetch = globalThis.fetch;
     globalThis.fetch = async (url) => String(url).includes("telegram_history") ? new Response("[]", { status: 200, headers: { "content-type": "application/json" } }) : new Response("boom", { status: 500 });
     const failed = await agentReply(envOf([
-      { tool_calls: [{ function: { name: "tracker_items", arguments: JSON.stringify({ kind: "case" }) } }] },
+      { tool_calls: [{ function: { name: "mrzahi_items", arguments: JSON.stringify({ kind: "case" }) } }] },
       { response: "لديك قضيتان مفتوحتان" },
     ]), { chatId: "t7", userId: "u1", text: "ايش وضع القضايا عندي", lang: "ar" });
     check("end to end: a failed tool call is not a licence to talk", !!failed && failed.text.startsWith("لا أملك هذه المعلومة"), failed && failed.text);

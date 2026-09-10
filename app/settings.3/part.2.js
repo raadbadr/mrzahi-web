@@ -82,7 +82,7 @@
       }
 
       function boot() {
-        app = window.trackerApp;
+        app = window.mrzahiApp;
         if (!app || !app.ready) { showUnavailable(); return; }
         app.ready.then(function (st) {
           if (!st || st.unavailable || app.unavailable) { showUnavailable(); return; }
@@ -145,9 +145,9 @@
             app.requestAccountDeletion().then(function () {
               setMsg("accountDeleteMsg", t("deleteAccountScheduled"), "success");
               setTimeout(function () {
-                try { localStorage.removeItem("tracker_org"); } catch (e) { /* ignore */ }
+                try { localStorage.removeItem("mrzahi_org"); } catch (e) { /* ignore */ }
                 var go = function () { window.location.href = "/login.html"; };
-                window.trackerAuth.signOut().then(go).catch(go);
+                window.mrzahiAuth.signOut().then(go).catch(go);
               }, 1500);
             }).catch(function (err) {
               adBtn.disabled = false;

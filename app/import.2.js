@@ -1,5 +1,5 @@
     /* ============================================================
-     * Excel import flow (uses window.trackerApp from /app/common.js
+     * Excel import flow (uses window.mrzahiApp from /app/common.js
      * and SheetJS from cdnjs). Runs after the deferred scripts.
      * ============================================================ */
     (function () {
@@ -83,7 +83,7 @@
       }
 
       function toast(message, kind) {
-        if (window.trackerApp && typeof trackerApp.toast === "function") trackerApp.toast(message, kind);
+        if (window.mrzahiApp && typeof mrzahiApp.toast === "function") mrzahiApp.toast(message, kind);
       }
 
       function nonEmpty(v) {
@@ -92,7 +92,7 @@
 
       function cellText(v) {
         if (v === null || v === undefined) return "";
-        if (v instanceof Date) return isNaN(v.getTime()) ? "" : trackerApp.fmtDate(v);
+        if (v instanceof Date) return isNaN(v.getTime()) ? "" : mrzahiApp.fmtDate(v);
         return String(v).trim();
       }
 
@@ -323,7 +323,7 @@
 
         state.rows.forEach(function (row) {
           let title = m.title >= 0 ? cellText(row[m.title]) : "";
-          let due = m.due >= 0 ? trackerApp.parseExcelDate(row[m.due]) : null;
+          let due = m.due >= 0 ? mrzahiApp.parseExcelDate(row[m.due]) : null;
           const vnumber = m.vnumber >= 0 ? cellText(row[m.vnumber]) : "";
           const place = m.location >= 0 ? cellText(row[m.location]) : "";
 
@@ -353,7 +353,7 @@
           if (clientName) rec.client_name = clientName;
           if (isViolations) {
             rec.data.violation_number = vnumber;
-            rec.data.violation_date = m.due >= 0 ? trackerApp.parseExcelDate(row[m.due]) : null;
+            rec.data.violation_date = m.due >= 0 ? mrzahiApp.parseExcelDate(row[m.due]) : null;
             if (place) rec.data.location = place;
             rec.data.grace_days = graceDays;
           }
@@ -570,9 +570,9 @@
 
       function refreshPlanData() {
         return Promise.all([
-          trackerApp.planLimits().catch(function () { return {}; }),
-          trackerApp.importsThisMonth().catch(function () { return 0; }),
-          trackerApp.countItems().catch(function () { return 0; })
+          mrzahiApp.planLimits().catch(function () { return {}; }),
+          mrzahiApp.importsThisMonth().catch(function () { return 0; }),
+          mrzahiApp.countItems().catch(function () { return 0; })
         ]).then(function (res) {
           state.limits = res[0] || {};
           state.importsUsed = Number(res[1]) || 0;
@@ -582,8 +582,8 @@
 
       function loadOrgData() {
         return Promise.all([
-          trackerApp.listTrackers(),
-          trackerApp.listMembers().catch(function () { return []; })
+          mrzahiApp.listTrackers(),
+          mrzahiApp.listMembers().catch(function () { return []; })
         ]).then(function (res) {
           state.trackers = res[0] || [];
           buildMemberMap(res[1] || []);
@@ -635,7 +635,7 @@
           let tracker = null;
           if (isNew) {
             progress(t("progressCreatingTracker"));
-            tracker = await trackerApp.createTracker({ name: trackerName, columns: state.headers.slice() });
+            tracker = await mrzahiApp.createTracker({ name: trackerName, columns: state.headers.slice() });
           } else {
             const id = els.trackerSelect.value;
             for (let i = 0; i < state.trackers.length; i++) if (state.trackers[i].id === id) { tracker = state.trackers[i]; break; }
@@ -643,7 +643,7 @@
           }
 
           progress(t("progressImport"));
-          const imp = await trackerApp.createImport({
+          const imp = await mrzahiApp.createImport({
             tracker_id: tracker.id,
             filename: state.file ? state.file.name : null,
             rows_count: analysis.records.length,
@@ -668,7 +668,7 @@
                 data: r.data
               };
             });
-            const res = await trackerApp.insertItems(chunk);
+            const res = await mrzahiApp.insertItems(chunk);
             inserted += (res && res.length) ? res.length : chunk.length;
             progress(fmt("progressInserting", { done: inserted, total: total }));
           }
@@ -677,7 +677,7 @@
           if (isNew) {
             progress(t("progressRule"));
             try {
-              await trackerApp.saveRule({ tracker_id: tracker.id, offset_minutes: 1440, channels: ["telegram"], target: "assignee" });
+              await mrzahiApp.saveRule({ tracker_id: tracker.id, offset_minutes: 1440, channels: ["telegram"], target: "assignee" });
               ruleCreated = true;
             } catch (e) {
               ruleCreated = false;
@@ -825,7 +825,7 @@
         };
         wireEvents();
 
-        const app = window.trackerApp;
+        const app = window.mrzahiApp;
         if (!app || !app.ready) { showUnavailable(); return; }
 
         app.ready.then(function (res) {

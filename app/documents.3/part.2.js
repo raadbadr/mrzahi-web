@@ -159,7 +159,7 @@
       window.__docsRefresh = function () { renderKindSelects(); render(); renderPapers(); };
 
       function boot() {
-        app = window.trackerApp;
+        app = window.mrzahiApp;
         if (!app || !app.ready) { show("loadingCard", false); show("unavailableCard", true); return; }
         app.ready.then(function (res) {
           show("loadingCard", false);

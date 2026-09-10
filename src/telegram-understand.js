@@ -154,9 +154,9 @@ export function understand(text, lang) {
   const companyPhrase = COMPANY_PHRASES.some((re) => re.test(n));
   const companyField = has(COMPANY_FIELDS);
   const wantsCompany = has(COMPANY);
-  const docs = (kw) => ({ tool: "tracker_items", args: { kind: "document", status: statusAll ? "all" : "open", limit: 30 }, label: L.document, count, window,
+  const docs = (kw) => ({ tool: "mrzahi_items", args: { kind: "document", status: statusAll ? "all" : "open", limit: 30 }, label: L.document, count, window,
     keyword: kw ? String(kw) : null, filter: kw ? (r) => kw.test(String(r.title || "") + " " + String(r.document_kind || "") + " " + String(r.category || "")) : null });
-  const company = { tool: "tracker_company", args: {}, label: "company" };
+  const company = { tool: "mrzahi_company", args: {}, label: "company" };
 
   /* عبارة صريحة عن رقم رسمي (رقم السجل، الرقم الضريبي، الحساب البنكي…) ← بطاقة الشركة */
   if (companyPhrase && !has(STRONG_PAPER) && !expiry) return company;
@@ -164,16 +164,16 @@ export function understand(text, lang) {
   if (kind === "document" || paper || docKeyword || (expiry && !wantsCompany && !companyField)) return docs(docKeyword);
   if (companyPhrase || companyField || (wantsCompany && !kind)) return company;
   /* «كم المسجلين في الموقع» ليست سؤال فريق: بيانات المنصة كلها */
-  if (has(PLATFORM_WHO) || (has(SITE) && (count || has(ALL)))) return { tool: "tracker_platform", args: {}, label: "platform" };
-  if (has(TEAM) && (!kind || /مسوول|مسؤول|مسئول|who/.test(n))) return { tool: "tracker_team", args: {}, label: "team" };
+  if (has(PLATFORM_WHO) || (has(SITE) && (count || has(ALL)))) return { tool: "mrzahi_platform", args: {}, label: "platform" };
+  if (has(TEAM) && (!kind || /مسوول|مسؤول|مسئول|who/.test(n))) return { tool: "mrzahi_team", args: {}, label: "team" };
   if (has(EXPENSES) && !kind) {
     const period = window === "week" ? "week" : window === "month" ? "month" : /سنه|سنوي|year|annual|annee/.test(spaced) ? "year" : statusAll ? "all" : "month";
-    return { tool: "tracker_expenses", args: { period }, label: "expenses" };
+    return { tool: "mrzahi_expenses", args: { period }, label: "expenses" };
   }
-  if (has(OVERDUE) || (past && (has(UPCOMING) || window))) return { tool: "tracker_list", args: { mode: "overdue", limit: 20 }, label: L.overdue, count, kindFilter: kind };
+  if (has(OVERDUE) || (past && (has(UPCOMING) || window))) return { tool: "mrzahi_list", args: { mode: "overdue", limit: 20 }, label: L.overdue, count, kindFilter: kind };
   /* أقرب موعد أو نافذة زمنية ← قائمة مرتبة بالموعد، مصفاة بالنوع إن ذكر */
   if (!wantsDone && (window || has(UPCOMING) || has(NEAREST))) {
-    return { tool: "tracker_list", args: { mode: "upcoming", limit: 20 }, label: window ? L.upcoming + " " + L[window] : L.upcoming, count, window, kindFilter: kind };
+    return { tool: "mrzahi_list", args: { mode: "upcoming", limit: 20 }, label: window ? L.upcoming + " " + L[window] : L.upcoming, count, window, kindFilter: kind };
   }
   if (kind) {
     const numFilter = numbers.length ? (r) => numbers.some((num) => [r.case_number, r.violation_number, r.doc_number, r.title].some((v) => String(v || "").includes(num))) : null;
@@ -181,13 +181,13 @@ export function understand(text, lang) {
     const leftover = [];
     all.forEach((fs) => { const b = fs[1] || fs[0]; if (b.length >= 3 && !fs.some((f) => FILLER.has(f) || KIND[kind].has(f) || DONE.has(f) || COUNT.has(f) || UPCOMING.has(f) || COMPANY.has(f) || COMPANY_FIELDS.has(f) || NEAREST.has(f)) && !/^\d+$/.test(b) && !ALL_STATUS.includes(b)) leftover.push(b); });
     const nameFilter = leftover.length ? (r) => leftover.some((w) => normalize(String(r.client_name || "") + " " + String(r.title || "")).includes(w)) : null;
-    return { tool: "tracker_items", args: { kind, status: wantsDone ? "done" : statusAll ? "all" : "open", limit: 30 }, label: wantsDone ? L.done + " — " + L[kind] : L[kind], count, filter: numFilter, softFilter: nameFilter };
+    return { tool: "mrzahi_items", args: { kind, status: wantsDone ? "done" : statusAll ? "all" : "open", limit: 30 }, label: wantsDone ? L.done + " — " + L[kind] : L[kind], count, filter: numFilter, softFilter: nameFilter };
   }
-  if (wantsDone) return { tool: "tracker_items", args: { kind: "all", status: "done", limit: 20 }, label: L.done, count };
-  if (has(ALL) && toks.length <= 4) return { tool: "tracker_overview", args: {}, label: "overview" };
+  if (wantsDone) return { tool: "mrzahi_items", args: { kind: "all", status: "done", limit: 20 }, label: L.done, count };
+  if (has(ALL) && toks.length <= 4) return { tool: "mrzahi_overview", args: {}, label: "overview" };
   /* رقم وحده (أو «رقم 4471») ← بحث في كل الأنواع */
   if (numbers.length === 1 && toks.every((t, i) => /^\d+$/.test(t) || FILLER.has(t) || FILLER.has(all[i][1]))) {
-    return { tool: "tracker_search", args: { query: numbers[0], limit: 10 }, label: L.search };
+    return { tool: "mrzahi_search", args: { query: numbers[0], limit: 10 }, label: L.search };
   }
   return null;
 }

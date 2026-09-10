@@ -89,7 +89,7 @@
       function errorText(code) { var d = ERROR_TEXT[lang()] || ERROR_TEXT.ar; return d[code] || (ERROR_TEXT.ar[code]) || ""; }
 
       function analyze(payload) {
-        return window.trackerAuth.getSession().then(function (session) {
+        return window.mrzahiAuth.getSession().then(function (session) {
           var jwt = session && session.access_token;
           var headers = { "Content-Type": "application/json" };
           if (jwt) headers.Authorization = "Bearer " + jwt;
@@ -99,7 +99,7 @@
 
       function isSheetFile(file) {
         var ext = String(file.name || "").split(".").pop().toLowerCase();
-        var known = (window.trackerImport && window.trackerImport.extensions) || ["xlsx", "xlsm", "xls", "csv", "tsv", "txt", "json"];
+        var known = (window.mrzahiImport && window.mrzahiImport.extensions) || ["xlsx", "xlsm", "xls", "csv", "tsv", "txt", "json"];
         return known.indexOf(ext) !== -1;
       }
 
@@ -110,8 +110,8 @@
           state.pendingKind = null;
           setStatus("");
           show("docForm", false);
-          if (window.trackerImport && window.trackerImport.accept) {
-            window.trackerImport.accept(file);
+          if (window.mrzahiImport && window.mrzahiImport.accept) {
+            window.mrzahiImport.accept(file);
             var flow = $("importFlow");
             if (flow) { flow.hidden = false; try { flow.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) { /* ignore */ } }
           } else {

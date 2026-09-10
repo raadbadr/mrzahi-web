@@ -140,7 +140,7 @@
 ## ⚠️ تعليمات ثابتة — لا تعدل
 
 ### طريقة النشر (GitHub → Cloudflare Workers)
-- **المستودع:** `github.com/raadbadr/thetracker-web`
+- **المستودع:** `github.com/raadbadr/mrzahi-web`
 - **الـ Worker:** `thetracker` — النطاقان `appmails.net` و `www.appmails.net` مربوطان كـ Custom Domains من `wrangler.toml`
 - **كل `git push` للفرع `main` ينشر تلقائيا** عبر GitHub Actions (`.github/workflows/deploy.yml`) الذي يشغل `wrangler deploy` بالسر `CLOUDFLARE_API_TOKEN` (نفس رمز Parkinzi).
 - **الرمز `CLOUDFLARE_API_TOKEN` يعيش في GitHub Secrets فقط** — لا يكتب في أي ملف.

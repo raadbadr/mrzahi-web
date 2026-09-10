@@ -1,5 +1,5 @@
 -- ============================================================
--- TheTracker — المخطط الأساسي (v1) — 2026-09-03
+-- Mr.Zahi — المخطط الأساسي (v1) — 2026-09-03
 -- كل الجداول محمية بـ RLS؛ العزل على مستوى الشركة (organization).
 -- ============================================================
 create extension if not exists pgcrypto;
@@ -95,7 +95,7 @@ create table if not exists public.invitations (
 );
 create index if not exists invitations_email_idx on public.invitations (lower(email));
 
--- ---------- المتتبعات والعناصر ----------
+-- ---------- السجلات والعناصر ----------
 create table if not exists public.trackers (
   id uuid primary key default gen_random_uuid(),
   org_id uuid not null references public.organizations(id) on delete cascade,

@@ -1126,7 +1126,7 @@
       }
 
       function boot() {
-        app = window.trackerApp || null;
+        app = window.mrzahiApp || null;
         window.__teamRender = render;
 
         $("membersGrid").addEventListener("click", onMembersClick);

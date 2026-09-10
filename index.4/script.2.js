@@ -229,7 +229,7 @@
 
     /* تبديل اللغة: أعد بناء الترحيب والاقتراحات باللغة الجديدة ما دامت
        المحادثة لم تبدأ فعليا؛ وإن كانت جارية فحدث حقل الإدخال فقط */
-    window.__trackerChatLangRefresh = function () {
+    window.__mrzahiChatLangRefresh = function () {
       const t = translations[lang()];
       if (!t) return;
       const untouched =

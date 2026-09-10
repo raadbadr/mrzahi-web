@@ -201,7 +201,7 @@
   function linkTelegramByToken(token) {
     return app.ready.then(function () {
       requireClient();
-      return window.trackerAuth.getSession();
+      return window.mrzahiAuth.getSession();
     }).then(function (session) {
       var jwt = session && session.access_token;
       if (!jwt) return redirectToLogin();
@@ -352,7 +352,7 @@
     if (fast) return Promise.resolve(fast);
     return app.ready.then(function () {
       requireClient();
-      return window.trackerAuth.getSession();
+      return window.mrzahiAuth.getSession();
     }).then(function (session) {
       var jwt = session && session.access_token;
       if (!jwt) return redirectToLogin();
@@ -383,7 +383,7 @@
   function testChannel(channel) {
     return app.ready.then(function () {
       requireClient();
-      return window.trackerAuth.getSession();
+      return window.mrzahiAuth.getSession();
     }).then(function (session) {
       var token = session && session.access_token;
       if (!token) return redirectToLogin();
@@ -811,7 +811,7 @@
   }
 
   var SIDEBAR_TOGGLE_LABELS = { ar: "إظهار الخدمات أو إخفاؤها", en: "Show or hide services", fr: "Afficher ou masquer les services", ur: "خدمات دکھائیں یا چھپائیں" };
-  var SIDEBAR_KEY = "tracker_sidebar";
+  var SIDEBAR_KEY = "mrzahi_sidebar";
 
   /* القائمة الجانبية تطوى وتفتح، وتبقى على اختيار المستخدم بين الصفحات. */
   function sidebarVisible() {

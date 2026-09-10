@@ -90,7 +90,7 @@
 
   var dp = { pop: null, backdrop: null, grid: null, active: null, view: null, cal: "g", hour: 9, minute: 0, gridHtml: "", timeKey: "", lastClose: 0 };
   var dpRecords = [];
-  var DP_CAL_KEY = "tracker_dp_cal";
+  var DP_CAL_KEY = "mrzahi_dp_cal";
   try { dp.cal = localStorage.getItem(DP_CAL_KEY) === "h" ? "h" : "g"; } catch (e) { /* ميلادي */ }
 
   function dpText() { return DP_TEXT[lang()] || DP_TEXT.ar; }

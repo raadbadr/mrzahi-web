@@ -96,10 +96,10 @@
            قراءته هنا كانت ترمي فتتوقف الصفحة كلها على «جاري التحميل». */
         /* لا يحذف شيء: الإخفاء قابل للرجوع، والفحص ينادى بعد جاهزية الطبقة المشتركة
            من boot. النداء وقت تحميل السكربت كان يمحو بطاقة درايف نهائيا لأن
-           window.trackerApp لم يكن قد أسند بعد، فيختفي السؤال كله عن كل حساب جديد. */
+           window.mrzahiApp لم يكن قد أسند بعد، فيختفي السؤال كله عن كل حساب جديد. */
         window.__dashDriveCheck = function () {
           if (!box) return;
-          var ok = !!(window.trackerApp && window.trackerApp.driveOAuthAvailable && window.trackerApp.driveOAuthAvailable());
+          var ok = !!(window.mrzahiApp && window.mrzahiApp.driveOAuthAvailable && window.mrzahiApp.driveOAuthAvailable());
           var drive = box.querySelector('[data-store="drive"]');
           if (drive) drive.hidden = !ok;
           box.hidden = false;
@@ -161,10 +161,10 @@
         }
       });
       $("signOutBtn").addEventListener("click", function () {
-        var forget = function () { var f = window.trackerApp && window.trackerApp.forgetDevice; if (f) f(); };
+        var forget = function () { var f = window.mrzahiApp && window.mrzahiApp.forgetDevice; if (f) f(); };
         var go = function () { forget(); window.location.href = "/login.html"; };
         forget();
-        if (window.trackerAuth && window.trackerAuth.signOut) window.trackerAuth.signOut().then(go, go);
+        if (window.mrzahiAuth && window.mrzahiAuth.signOut) window.mrzahiAuth.signOut().then(go, go);
         else go();
       });
 

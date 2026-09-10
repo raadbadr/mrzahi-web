@@ -108,8 +108,8 @@ page.on("request", (r) => {
 });
 await page.evaluateOnNewDocument((key, sess, orgId) => {
   localStorage.setItem(key, JSON.stringify(sess));
-  localStorage.setItem("tracker_lang", "ar");
-  localStorage.setItem("tracker_org", orgId);
+  localStorage.setItem("mrzahi_lang", "ar");
+  localStorage.setItem("mrzahi_org", orgId);
   window.__downloads = [];
   const create = document.createElement.bind(document);
   document.createElement = function (tag) {

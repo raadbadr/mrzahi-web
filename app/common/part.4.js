@@ -156,13 +156,13 @@
       .then(function (id) { return { id: id, url: "https://drive.google.com/drive/folders/" + id, path: DRIVE_ROOT_NAME + "/" + (orgName || "Company") }; });
   };
   app.driveFolderCached = function () {
-    try { var id = localStorage.getItem("tracker_drive_folder:" + requireOrg()); return id ? { id: id, url: "https://drive.google.com/drive/folders/" + id, path: DRIVE_ROOT_NAME + "/" + ((app.org && app.org.name) || "Company") } : null; } catch (e) { return null; }
+    try { var id = localStorage.getItem("mrzahi_drive_folder:" + requireOrg()); return id ? { id: id, url: "https://drive.google.com/drive/folders/" + id, path: DRIVE_ROOT_NAME + "/" + ((app.org && app.org.name) || "Company") } : null; } catch (e) { return null; }
   };
   /* بداية ربط درايف من الخادم: يعيد عنوان شاشة موافقة جوجل لينتقل اليه المتصفح */
   app.driveServerConnect = function () {
     var orgId = requireOrg();
-    if (!window.trackerAuth || !window.trackerAuth.getSession) return Promise.reject(new Error("no_auth"));
-    return window.trackerAuth.getSession().then(function (session) {
+    if (!window.mrzahiAuth || !window.mrzahiAuth.getSession) return Promise.reject(new Error("no_auth"));
+    return window.mrzahiAuth.getSession().then(function (session) {
       var jwt = session && session.access_token;
       if (!jwt) throw new Error("no_session");
       return fetch("/api/drive/oauth/start", {
@@ -235,7 +235,7 @@
   var BELL_DELETE = { ar: "حذف التنبيه", en: "Delete", fr: "Supprimer", ur: "حذف کریں" };
   var BELL_CLEAR = { ar: "حذف كل التنبيهات", en: "Clear all", fr: "Tout effacer", ur: "سب حذف کریں" };
   var BELL_EMPTY = { ar: "لا توجد تنبيهات بعد.", en: "No notifications yet.", fr: "Aucune notification pour le moment.", ur: "ابھی کوئی اطلاع نہیں۔" };
-  var BELL_SEEN_KEY = "tracker_bell_seen";
+  var BELL_SEEN_KEY = "mrzahi_bell_seen";
 
   var TOPBAR_CSS = [
     ".app-topbar{position:fixed;inset-block-start:var(--site-header-h,61px);inset-inline:0;height:64px;box-sizing:border-box;z-index:45;display:flex;align-items:center;",
@@ -780,7 +780,7 @@
      فجهاز مشترك في مكتب لا يبقى فيه اسم عميل بعد خروج صاحبه. */
   /* يبقى تفضيلا العرض وحدهما: لا يحملان بيانات عميل، ومسحهما يقلب لغة
      الشاشة وسمتها امام من يخرج، وهذا تغيير في السلوك لا علاقة له بالامان. */
-  var KEEP_ON_SIGNOUT = { tracker_lang: 1, tracker_theme: 1 };
+  var KEEP_ON_SIGNOUT = { mrzahi_lang: 1, mrzahi_theme: 1 };
 
   function forgetDevice() {
     try {
@@ -889,7 +889,7 @@
 
     var out = document.getElementById("topSignOut");
     if (out) out.addEventListener("click", function () {
-      var auth = window.trackerAuth;
+      var auth = window.mrzahiAuth;
       var done = function () { forgetDevice(); window.location.replace("/login"); };
       forgetDevice();
       if (auth && typeof auth.signOut === "function") auth.signOut().then(done, done);

@@ -135,7 +135,7 @@ for (const name of pages) {
     page.on("pageerror", (e) => errors.push((String(e.message) + " @ " + String(e.stack || "").split("\n").slice(1, 3).join(" > ").replace(/http:\/\/localhost:\d+/g, "")).slice(0, 260)));
     page.on("console", (m) => { if (m.type() === "error") errors.push("console: " + m.text().slice(0, 160)); });
     page.on("response", (res) => { if (res.status() >= 400) errors.push("http " + res.status() + ": " + res.url().replace(base, "").slice(0, 120)); });
-    await page.evaluateOnNewDocument((key, sess) => { localStorage.setItem(key, JSON.stringify(sess)); localStorage.setItem("tracker_lang", "ar"); localStorage.setItem("tracker_org", "22222222-2222-4222-8222-222222222222"); }, "sb-" + REF + "-auth-token", { access_token: "stub", refresh_token: "r", token_type: "bearer", expires_in: 36000, expires_at: Math.floor(Date.now() / 1000) + 36000, user: USER });
+    await page.evaluateOnNewDocument((key, sess) => { localStorage.setItem(key, JSON.stringify(sess)); localStorage.setItem("mrzahi_lang", "ar"); localStorage.setItem("mrzahi_org", "22222222-2222-4222-8222-222222222222"); }, "sb-" + REF + "-auth-token", { access_token: "stub", refresh_token: "r", token_type: "bearer", expires_in: 36000, expires_at: Math.floor(Date.now() / 1000) + 36000, user: USER });
     try { await page.goto(base + "/app/" + name + ".html" + (process.env.QS || ""), { waitUntil: "networkidle0", timeout: 45000 }); } catch (e) { errors.push("goto: " + e.message.slice(0, 120)); }
     await new Promise((r) => setTimeout(r, 1200));
     const m = await page.evaluate(() => {
@@ -160,7 +160,7 @@ for (const name of pages) {
     /* زر الإغلاق الدائري: يقاس بعد اللقطة بفتح اللوحات المخفية — دائرة 40 على بداية الاتجاه */
     const closeX = await page.evaluate(() => {
       ["editPanel", "addItemPanel", "docForm", "editorCard", "renameOrgForm", "newOrgForm", "newTrackerForm"].forEach((id) => { const el = document.getElementById(id); if (el) el.hidden = false; });
-      try { if (!document.getElementById("appNewOrg") && window.trackerApp && window.trackerApp.openNewOrgDialog) window.trackerApp.openNewOrgDialog(); } catch (e) { /* الصفحة بلا نافذة حساب */ }
+      try { if (!document.getElementById("appNewOrg") && window.mrzahiApp && window.mrzahiApp.openNewOrgDialog) window.mrzahiApp.openNewOrgDialog(); } catch (e) { /* الصفحة بلا نافذة حساب */ }
       const rtl = getComputedStyle(document.documentElement).direction === "rtl";
       return [...document.querySelectorAll(".close-x")].map((b) => {
         const r = b.getBoundingClientRect(); const cs = getComputedStyle(b); const host = b.closest(".has-close-x");

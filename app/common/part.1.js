@@ -1,8 +1,10 @@
+/* migration: نقل مفاتيح التخزين من الاسم القديم الى mrzahi_ مرة واحدة لكل متصفح، فلا يفقد احد لغته ولا ثيمه ولا حسابه المختار */
+try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode","cal_zoom","dp_cal","drive_folder","tr"].forEach(function(k){var o=localStorage.getItem("tracker_"+k);if(o!==null&&localStorage.getItem("mrzahi_"+k)===null){localStorage.setItem("mrzahi_"+k,o);localStorage.removeItem("tracker_"+k);}});}catch(e){}
 /**
  * app/common.js — MrZahi shared data layer for the app pages (plain script, no modules).
  *
- * Loads after supabase-js (window.supabase) and /app.js (window.trackerAuth) and exposes
- * window.trackerApp = {
+ * Loads after supabase-js (window.supabase) and /app.js (window.mrzahiAuth) and exposes
+ * window.mrzahiApp = {
  *   ready, client, user, profile, orgs, org, role(),
  *   setCurrentOrg(orgId), createOrg(name, entityType),
  *   effectivePlan(), plans(), planLimits(), subscription(),
@@ -23,7 +25,7 @@
  *   escapeHtml(s), randomCode(len), unavailableMessage()
  * }
  *
- * - `ready` waits for trackerAuth.ready. No session → redirect to /login.html?next=<path>
+ * - `ready` waits for mrzahiAuth.ready. No session → redirect to /login.html?next=<path>
  *   (the promise never resolves). Supabase not configured → resolves { unavailable: true }.
  * - Every Supabase result is checked for { error } and re-thrown as an Error(error.message).
  *   Plan-limit trigger errors (message contains "PLAN_LIMIT") get err.code = "PLAN_LIMIT".
@@ -33,8 +35,8 @@
   "use strict";
 
   var LOGIN_PATH = "/login.html";
-  var ORG_KEY = "tracker_org";
-  var LANG_KEY = "tracker_lang";
+  var ORG_KEY = "mrzahi_org";
+  var LANG_KEY = "mrzahi_lang";
   var TIME_ZONE = "Asia/Riyadh";
   var ITEM_COLUMNS = "id,item_number,title,category,due_at,status,assignee_id,amount,client_name,client_name_en,case_number,data,tracker_id,trackers(name),remind_before,created_at,updated_at";
   var INSERT_CHUNK = 200;
@@ -97,7 +99,7 @@
     joinedOrgs: [],
     unavailable: false
   };
-  window.trackerApp = app;
+  window.mrzahiApp = app;
 
   /* ============================================================
    * Generic helpers
@@ -270,9 +272,9 @@
   var toastTimer = null;
 
   function ensureToastStyles() {
-    if (document.getElementById("trackerToastStyles")) return;
+    if (document.getElementById("mrzahiToastStyles")) return;
     var style = document.createElement("style");
-    style.id = "trackerToastStyles";
+    style.id = "mrzahiToastStyles";
     style.textContent =
       /* .waitlist-msg — copied verbatim from index.html / login.html */
       ".waitlist-msg { margin-top: 0.5rem; font-size: 0.85rem; }\n" +
@@ -308,10 +310,10 @@
 
   function toast(message, kind) {
     ensureToastStyles();
-    var el = document.getElementById("trackerToast");
+    var el = document.getElementById("mrzahiToast");
     if (!el) {
       el = document.createElement("div");
-      el.id = "trackerToast";
+      el.id = "mrzahiToast";
       el.className = "tracker-toast";
       el.setAttribute("role", "status");
       el.setAttribute("aria-live", "polite");
@@ -415,7 +417,7 @@
           .then(unwrap)
           .catch(function (err) {
             /* RLS may forbid the insert (the auth trigger normally creates the row); keep going. */
-            if (window.console) console.warn("trackerApp: profile upsert failed:", err.message);
+            if (window.console) console.warn("mrzahiApp: profile upsert failed:", err.message);
             return { id: user.id, full_name: fallbackName, full_name_en: null, email: user.email || null, phone: user.phone || null,
                      lang: lang(), tz: TIME_ZONE, time_format: "24", is_platform_admin: false };
           });
@@ -459,7 +461,7 @@
     return client.rpc("accept_my_invitations").then(unwrap)
       .then(function (rows) { return Array.isArray(rows) ? rows : []; })
       .catch(function (err) {
-        if (window.console) console.warn("trackerApp: accepting invitations failed:", err.message);
+        if (window.console) console.warn("mrzahiApp: accepting invitations failed:", err.message);
         return [];
       });
   }
@@ -555,10 +557,10 @@
   }
 
   function init() {
-    var auth = window.trackerAuth;
+    var auth = window.mrzahiAuth;
     if (!auth || !auth.ready) {
       app.unavailable = true;
-      reportClientError("no_auth_module", "trackerAuth missing");
+      reportClientError("no_auth_module", "mrzahiAuth missing");
       return Promise.resolve({ unavailable: true });
     }
     setTimeout(function () { if (initStep !== "done" && initStep !== "redirect") reportClientError("init_slow", "15s and still at " + initStep); }, 15000);
@@ -617,17 +619,17 @@
       /* فشل الإقلاع لا يترك صامتا: يبلغ ويعرض بدل صفحة تحميل أبدية */
       var detail = err && (err.message || err.code || err.error_description) || String(err);
       reportClientError("init_failed", detail);
-      if (window.console) console.error("trackerApp init failed at", initStep, err);
+      if (window.console) console.error("mrzahiApp init failed at", initStep, err);
       app.unavailable = true;
       app.initError = detail;
       /* قفل جلسة عالق في supabase-js بعد انتهاء صلاحية الرمز: يكسر بتنظيف مفاتيحه
          وإعادة تحميل واحدة تلقائية. مرة واحدة فقط لكل تبويب حتى لا تدور الصفحة. */
       if (err && err.code === "boot_timeout" && (initStep === "session" || initStep === "auth")) {
         var once = false;
-        try { once = window.sessionStorage.getItem("tracker_boot_retry") === "1"; } catch (e) { once = true; }
+        try { once = window.sessionStorage.getItem("mrzahi_boot_retry") === "1"; } catch (e) { once = true; }
         if (!once) {
           try {
-            window.sessionStorage.setItem("tracker_boot_retry", "1");
+            window.sessionStorage.setItem("mrzahi_boot_retry", "1");
             for (var i = localStorage.length - 1; i >= 0; i--) {
               var k = localStorage.key(i);
               if (k && k.indexOf("sb-") === 0) localStorage.removeItem(k);

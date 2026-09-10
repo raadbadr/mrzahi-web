@@ -1,5 +1,5 @@
 {
-  "name": "thetracker-web",
+  "name": "mrzahi-web",
   "private": true,
   "description": "MrZahi — Cloudflare Worker + static site (mrzahi.com)",
   "dependencies": {

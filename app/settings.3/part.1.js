@@ -1,5 +1,5 @@
     /* ============================================================
-     * Settings page logic — uses window.trackerApp (app/common.js)
+     * Settings page logic — uses window.mrzahiApp (app/common.js)
      * ============================================================ */
     (function () {
       "use strict";
@@ -913,7 +913,7 @@
           return;
         }
         setMsg("upgradeMsg", t("payOpening"));
-        window.trackerAuth.getSession().then(function (session) {
+        window.mrzahiAuth.getSession().then(function (session) {
           var jwt = session && session.access_token;
           if (!jwt) throw new Error("no session");
           return swFetch("/api/pay/paypal/create", {
@@ -936,10 +936,10 @@
         var btn = el("signOutBtn");
         btn.disabled = true;
         btn.textContent = t("signingOut");
-        var forget = function () { var f = window.trackerApp && window.trackerApp.forgetDevice; if (f) f(); };
+        var forget = function () { var f = window.mrzahiApp && window.mrzahiApp.forgetDevice; if (f) f(); };
         var go = function () { forget(); window.location.href = "/login.html"; };
         forget();
-        window.trackerAuth.signOut().then(go).catch(go);
+        window.mrzahiAuth.signOut().then(go).catch(go);
       }
 
       /* ---------- boot ---------- */

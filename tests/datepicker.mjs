@@ -87,7 +87,7 @@ async function openPage(pagePath, width, height) {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e.message).slice(0, 160)));
   page.on("console", (m) => { if (m.type() === "error") errors.push("console: " + m.text().slice(0, 160)); });
-  await page.evaluateOnNewDocument((key, sess) => { localStorage.setItem(key, JSON.stringify(sess)); localStorage.setItem("tracker_lang", "ar"); localStorage.setItem("tracker_org", "22222222-2222-4222-8222-222222222222"); }, "sb-stubproj-auth-token", { access_token: "stub", refresh_token: "r", token_type: "bearer", expires_in: 36000, expires_at: Math.floor(Date.now() / 1000) + 36000, user: USER });
+  await page.evaluateOnNewDocument((key, sess) => { localStorage.setItem(key, JSON.stringify(sess)); localStorage.setItem("mrzahi_lang", "ar"); localStorage.setItem("mrzahi_org", "22222222-2222-4222-8222-222222222222"); }, "sb-stubproj-auth-token", { access_token: "stub", refresh_token: "r", token_type: "bearer", expires_in: 36000, expires_at: Math.floor(Date.now() / 1000) + 36000, user: USER });
   await page.goto(base + pagePath, { waitUntil: "networkidle0", timeout: 45000 });
   await page.waitForFunction(() => !document.documentElement.classList.contains("app-booting"), { timeout: 15000 });
   await new Promise((r) => setTimeout(r, 400));

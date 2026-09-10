@@ -382,7 +382,7 @@ export const VERBS = {
 /* التذكير ينفذ مباشرة، لذلك يشترط طلبا موجبا بمهلة، ولا إلغاء ولا نفي ولا سؤال في الرسالة */
 const REMIND_LEAD = /(\d+|يوم|أيام|ساعة|ساعات|أسبوع|أسبوعين|شهر|قبل|day|hour|week|month|before|jour|heure|semaine|دن|گھنٹ|ہفت)/i;
 const REMIND_NEG = /(ألغ|الغ|احذف|أزل|ازل|شيل|لا تذكر|لا تنبه|بدون|هل |؟|\?|cancel|remove|delete|stop|don't|do not|is there|annule|supprime)/i;
-const WRITE_TOOLS = { tracker_add: "add", tracker_complete: "done", tracker_assign: "assign", tracker_remind: "remind" };
+const WRITE_TOOLS = { mrzahi_add: "add", mrzahi_complete: "done", mrzahi_assign: "assign", mrzahi_remind: "remind" };
 /* يحكم نداء أداة كتابة: ممنوع بلا فعل صريح، وإلا يتحول إلى نية تنتظر تأكيد المستخدم (لا تنفيذ هنا) */
 export function writeGate(name, args, text) {
   const action = WRITE_TOOLS[name];

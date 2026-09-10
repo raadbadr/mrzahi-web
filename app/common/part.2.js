@@ -75,7 +75,7 @@
   }
 
   function analyzeDocument(payload) {
-    var auth = window.trackerAuth;
+    var auth = window.mrzahiAuth;
     var session = auth && auth.getSession ? auth.getSession() : Promise.resolve(null);
     return Promise.resolve(session).then(function (sess) {
       var headers = { "Content-Type": "application/json" };
@@ -198,8 +198,8 @@
     if (!driveConfig.server) return Promise.reject(new Error("no_server_drive"));
     var orgId = app.org && app.org.id;
     if (!orgId) return Promise.reject(new Error("no_org"));
-    if (!window.trackerAuth || !window.trackerAuth.getSession) return Promise.reject(new Error("no_auth"));
-    return window.trackerAuth.getSession().then(function (session) {
+    if (!window.mrzahiAuth || !window.mrzahiAuth.getSession) return Promise.reject(new Error("no_auth"));
+    return window.mrzahiAuth.getSession().then(function (session) {
       var jwt = session && session.access_token;
       if (!jwt) throw new Error("no_session");
       return fetch("/api/drive/token", {
@@ -320,7 +320,7 @@
    * لا يرسل شيء حين تتطابق لغة النص مع لغة الواجهة أو حين يكون النص أرقاما ورموزا فقط.
    * ------------------------------------------------------------ */
   var TR_MEM = {};
-  var TR_PREFIX = "tracker_tr:";
+  var TR_PREFIX = "mrzahi_tr:";
   var TR_MAX_LOCAL = 400;
   function trScript(text) {
     var t = String(text || "");
@@ -364,7 +364,7 @@
       askIdx.push(i);
     });
     if (!ask.length) return Promise.resolve(out);
-    var auth = window.trackerAuth;
+    var auth = window.mrzahiAuth;
     var session = auth && auth.getSession ? auth.getSession() : Promise.resolve(null);
     var chunks = []; for (var c = 0; c < ask.length; c += 40) chunks.push(ask.slice(c, c + 40));
     return Promise.resolve(session).then(function (sess) {
@@ -455,7 +455,7 @@
 
   function driveFindOrCreateFolder(token, name, parentId, props) {
     var q = "mimeType='" + DRIVE_FOLDER_MIME + "' and trashed=false and '" + (parentId || "root") + "' in parents";
-    if (props && props.tracker_org) q += " and appProperties has { key='tracker_org' and value='" + driveEscape(props.tracker_org) + "' }";
+    if (props && props.mrzahi_org) q += " and appProperties has { key='mrzahi_org' and value='" + driveEscape(props.mrzahi_org) + "' }";
     else q += " and name='" + driveEscape(name) + "'";
     return driveFetch(token, DRIVE_API + "/files?q=" + encodeURIComponent(q) + "&fields=files(id,name)&pageSize=1&spaces=drive")
       .then(function (data) {
@@ -478,11 +478,11 @@
 
   /* مجلد «MrZahi/اسم الشركة» في درايف المستخدم، مع تخزين معرفه محليا */
   function driveFolderFor(token, orgId, orgName, fresh) {
-    var key = "tracker_drive_folder:" + orgId;
+    var key = "mrzahi_drive_folder:" + orgId;
     var cached = !fresh && localStorage.getItem(key);
     if (cached) return Promise.resolve(cached);
     return driveFindOrCreateFolder(token, DRIVE_ROOT_NAME, "root", null)
-      .then(function (rootId) { return driveFindOrCreateFolder(token, orgName || "Company", rootId, { tracker_org: orgId }); })
+      .then(function (rootId) { return driveFindOrCreateFolder(token, orgName || "Company", rootId, { mrzahi_org: orgId }); })
       .then(function (id) { localStorage.setItem(key, id); return id; });
   }
 

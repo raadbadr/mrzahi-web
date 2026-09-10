@@ -3,14 +3,14 @@
       "use strict";
 
       var TEAM = "";                       /* معرف محادثة الفريق كله */
-      var SEEN_KEY = "tracker_chat_seen";  /* آخر وقت قراءة لكل محادثة، في هذا المتصفح */
+      var SEEN_KEY = "mrzahi_chat_seen";  /* آخر وقت قراءة لكل محادثة، في هذا المتصفح */
       var POLL_MS = 15000;                 /* استقصاء احتياطي إن انقطع البث الحي */
 
       var app = null;
       var state = { members: [], messages: [], thread: TEAM, live: false, channel: null, poll: null, seen: {} };
 
       function $(id) { return document.getElementById(id); }
-      function lang() { try { return localStorage.getItem("tracker_lang") || "ar"; } catch (e) { return "ar"; } }
+      function lang() { try { return localStorage.getItem("mrzahi_lang") || "ar"; } catch (e) { return "ar"; } }
       function t(key) { var d = translations[lang()] || translations.ar; return d[key] || translations.ar[key] || key; }
       function tf(key, vars) { var s = t(key); Object.keys(vars || {}).forEach(function (k) { s = s.split("{" + k + "}").join(String(vars[k])); }); return s; }
       function esc(s) {
@@ -350,7 +350,7 @@
       function autosize(el) { el.style.height = "auto"; el.style.height = Math.min(160, el.scrollHeight) + "px"; }
 
       function boot() {
-        app = window.trackerApp || null;
+        app = window.mrzahiApp || null;
         loadSeen();
         $("attachBtn").addEventListener("click", function () { $("chatFile").click(); });
         $("chatFile").addEventListener("change", function () { pickFile(this.files && this.files[0]); });
