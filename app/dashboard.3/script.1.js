@@ -630,6 +630,7 @@
             }
             if (current.textContent !== text) current.textContent = text;
           }
+          syncMarkLabels();
         }
         slider.addEventListener("input", function () {
           var v = Number(this.value);
@@ -655,6 +656,24 @@
 
         var sc = document.getElementById("tlxScroll");
         var isRtl = bar.getAttribute("dir") === "rtl";
+        /* عنوان يطفو بلا شرطته تحته نص ضائع في حافة الشاشة: يخفى ان خرجت
+           شرطته عن نافذة التمرير، ونصه كاملا يبقى في سطر «الحدث» تحت المسار. */
+        function syncMarkLabels() {
+          if (!sc) return;
+          var r = sc.getBoundingClientRect();
+          marks.forEach(function (m) {
+            var b = m.getBoundingClientRect();
+            m.classList.toggle("is-outside", b.left < r.left - 2 || b.right > r.right + 2);
+          });
+        }
+        if (sc) {
+          var ticking = false;
+          sc.addEventListener("scroll", function () {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function () { ticking = false; syncMarkLabels(); });
+          }, { passive: true });
+        }
         function scrollTo(step) {
           if (!sc) return;
           var ratio = step / TLX_STEPS;
@@ -676,10 +695,17 @@
         if (next) next.addEventListener("click", function () { jump(1); });
         /* العنوان يظهر كاملا: الحشو العلوي للمسطرة يتسع لأطول عنوان (3 أسطر أو أكثر) وتاريخه */
         if (sc) {
-          var maxH = 0;
-          marks.forEach(function (m) { var l = m.querySelector(".tlx-ms-label"); if (l && l.offsetHeight > maxH) maxH = l.offsetHeight; });
-          var need = Math.ceil(maxH + 28);   /* قاعدة العنوان تعلو مركز المسار 30px، وهامش 4px فوق أعلى سطر */
-          var pad = Math.max(61, need) + "px";
+          /* على الجوال لا عنوان عائم اصلا: الشاشة تريه حدثا واحدا فيبقى نصفه
+             معلقا بلا شرطة، ونصه كاملا في سطر «الحدث» تحت المسار. فيلغى العائم
+             ويلغى معه الفراغ المحجوز له. */
+          var narrow = window.innerWidth <= 600;
+          bar.classList.toggle("tlx--no-float", narrow);
+          var pad = "22px";
+          if (!narrow) {
+            var maxH = 0;
+            marks.forEach(function (m) { var l = m.querySelector(".tlx-ms-label"); if (l && l.offsetHeight > maxH) maxH = l.offsetHeight; });
+            pad = Math.max(52, Math.ceil(maxH + 40)) + "px";   /* قاعدة العنوان تعلو مركز المسار 36px وهامش فوق اعلى سطر */
+          }
           if (sc.style.paddingTop !== pad) sc.style.paddingTop = pad;
         }
         apply(todayStep);

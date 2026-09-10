@@ -499,10 +499,10 @@
     .tlx input[type="range"]:focus { outline: none; }
     .tlx[dir="rtl"] input[type="range"] { direction: rtl; }
     .tlx input[type="range"]::-webkit-slider-runnable-track { height: 32px; border-radius: 999px; background: transparent; border: none; }
-    .tlx input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 36px; height: 20px; margin-top: 6px; border-radius: 10px;
+    .tlx input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 34px; height: 16px; margin-top: 8px; border-radius: 9px;
       background: linear-gradient(180deg, #ffffff 0%, #f0f4f8 100%); border: none; box-shadow: 0 2px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.4) inset; }
     .tlx input[type="range"]::-moz-range-track { height: 32px; border-radius: 999px; background: transparent; border: none; }
-    .tlx input[type="range"]::-moz-range-thumb { width: 36px; height: 20px; border: none; border-radius: 10px;
+    .tlx input[type="range"]::-moz-range-thumb { width: 34px; height: 16px; border: none; border-radius: 9px;
       background: linear-gradient(180deg, #ffffff 0%, #f0f4f8 100%); box-shadow: 0 2px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.4) inset; }
     .tlx-title, .tlx-ends { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; align-items: center; gap: 0.6rem; }
     .tlx-title > span { text-align: center; }
@@ -510,7 +510,7 @@
     .tlx-ends { margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.02em; }
     .tlx-today { position: absolute; left: 0; top: 0; bottom: 0; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 10; opacity: 0; transition: opacity .18s ease; }
     .tlx-today.is-at-today { opacity: 1; }
-    .tlx-today-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); white-space: nowrap; font-size: 0.46rem; font-weight: 800; line-height: 1; color: rgba(0,100,180,0.9); letter-spacing: 0.06em; text-transform: uppercase; }
+    .tlx-today-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); white-space: nowrap; font-size: 0.52rem; font-weight: 800; line-height: 1; color: rgba(0,100,180,0.9); letter-spacing: 0.06em; text-transform: uppercase; }
     .tlx-ms { position: absolute; left: 0; top: 0; bottom: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2;
       /* العلامة تنقر: مساحة لمس 24 بكسل حول الشرطة، والعنوان فوقها لا يعترض المقبض */
       pointer-events: auto; cursor: pointer; width: 32px; top: -12px; bottom: -12px; }   /* هدف لمس 32×44 والشرطة في مركزه */
@@ -520,12 +520,17 @@
     .tlx-ms:hover .tlx-ms-tick { opacity: 1; }
     .tlx-ms.is-under-thumb { pointer-events: none; }   /* المقبض فوقها يبقى قابلا للسحب */
     .tlx-current { min-height: 3.6em; line-height: 1.8; margin-top: 0.35rem; text-align: center; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); overflow-wrap: anywhere; }
-    .tlx-ms-tick { width: 3px; height: 26px; border-radius: 2px; opacity: 0.5; transition: opacity .16s ease, transform .16s ease;
+    /* الشرطة تغرس في المسار من فوقه ولا تتدلى تحته: كانت تنزل 18 بكسل فتقطع
+       صف ارقام الايام وتزاحم المقبض (امر المهندس رعد 2026-09-10). */
+    .tlx-ms-tick { position: absolute; bottom: calc(50% - 2px); width: 3px; height: 20px; border-radius: 2px; opacity: 0.5; transform-origin: bottom center; transition: opacity .16s ease, transform .16s ease;
       background: linear-gradient(180deg, #ffd180 0%, #ff9100 45%, #e65100 100%); box-shadow: 0 0 10px rgba(255,145,0,0.5), 0 0 3px rgba(255,180,80,0.8), inset 0 1px 0 rgba(255,255,255,0.45); }
-    .tlx-ms.is-active .tlx-ms-tick { opacity: 1; transform: scaleY(1.35); }
-    .tlx-ms-label { position: absolute; bottom: calc(50% + 30px); left: 50%; transform: translateX(-50%); white-space: normal; width: max-content; max-width: min(22rem, 70vw); text-align: center; font-size: 0.68rem; font-weight: 700; line-height: 1.2; color: #ffb347; letter-spacing: 0.03em; text-shadow: 0 1px 3px rgba(0,0,0,0.55); opacity: 0; transition: opacity .16s ease; }
-    .tlx-ms-date { position: absolute; bottom: calc(50% + 16px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.58rem; font-weight: 600; line-height: 1; color: rgba(255,179,71,0.7); opacity: 0; transition: opacity .16s ease; }
+    .tlx-ms.is-active .tlx-ms-tick { opacity: 1; transform: scaleX(1.6); }
+    .tlx-ms-label { position: absolute; bottom: calc(50% + 36px); left: 50%; transform: translateX(-50%); white-space: normal; width: max-content; max-width: min(22rem, 70vw); text-align: center; font-size: 0.68rem; font-weight: 700; line-height: 1.2; color: #ffb347; letter-spacing: 0.03em; text-shadow: 0 1px 3px rgba(0,0,0,0.55); opacity: 0; transition: opacity .16s ease; }
+    .tlx-ms-date { position: absolute; bottom: calc(50% + 24px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.58rem; font-weight: 600; line-height: 1; color: rgba(255,179,71,0.7); opacity: 0; transition: opacity .16s ease; }
     .tlx-ms.is-active .tlx-ms-label, .tlx-ms.is-active .tlx-ms-date { opacity: 1; }
+    .tlx--no-float .tlx-ms-label, .tlx--no-float .tlx-ms-date { display: none; }
+    /* شرطته خارج نافذة التمرير: لا يترك عنوانه معلقا في الحافة بلا مرجع */
+    .tlx-ms.is-outside .tlx-ms-label, .tlx-ms.is-outside .tlx-ms-date { opacity: 0; }
     [data-theme="light"] .tlx-ms-label { color: #c2410c; text-shadow: 0 1px 0 rgba(255,255,255,0.9); }
     [data-theme="light"] .tlx-ms-date { color: rgba(194,65,12,0.65); }
     /* ألوان الأنواع كما في معالم باركينزي: أخضر، أزرق، ذهبي، بنفسجي */
