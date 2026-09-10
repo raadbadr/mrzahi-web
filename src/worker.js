@@ -180,7 +180,7 @@ async function authedUser(request, env) {
 }
 
 /* ============================================================
- * /api/v1 — واجهة عامة بمفتاح: Authorization: Bearer tt_live_…
+ * /api/v1 — واجهة عامة بمفتاح: Authorization: Bearer mz_live_…
  * POST /api/v1/import  ← JSON (مصفوفة أو {rows,record}) أو CSV/Excel كملف
  * GET  /api/v1/items?record=&format=json|csv
  * GET  /api/v1/ping
@@ -909,8 +909,8 @@ export default {
 
     // Only handle /api/* routes — everything else is static assets
     if (path === "/mcp" || path === "/mcp/") return await handleMcp(request, env, url, { authenticate: mcpAuthenticate, importRows: importRowsWithKey });
-    /* الشكل نفسه الذي ربط به خادم باركينزي في هرمس (رابط فقط بلا ترويسة): المفتاح داخل المسار /mcp/tt_live_… */
-    const mcpKeyInPath = path.match(/^\/mcp\/(tt_live_[a-f0-9]{48})\/?$/i);
+    /* الشكل نفسه الذي ربط به خادم باركينزي في هرمس (رابط فقط بلا ترويسة): المفتاح داخل المسار /mcp/mz_live_… */
+    const mcpKeyInPath = path.match(/^\/mcp\/(mz_live_[a-f0-9]{48})\/?$/i);
     if (mcpKeyInPath) {
       const withKey = new Request(request, { headers: new Headers(request.headers) });
       withKey.headers.set("Authorization", "Bearer " + mcpKeyInPath[1]);

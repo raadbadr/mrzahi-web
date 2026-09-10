@@ -1,4 +1,4 @@
-/* /api/v1 بمفتاح API (tt_live_…): تصدير CSV/JSON، استيراد صفوف، وتوثيق خادم MCP.
+/* /api/v1 بمفتاح API (mz_live_…): تصدير CSV/JSON، استيراد صفوف، وتوثيق خادم MCP.
    نقل من worker.js كي يبقى كل ملف تحت ألف سطر. */
 import * as XLSX from "xlsx";
 import { rpc } from "./notify.js";
@@ -24,7 +24,7 @@ function v1Json(data, status = 200) {
 }
 async function v1Auth(request, env) {
   if (!env.WORKER_SECRET) return { error: v1Json({ error: "not configured" }, 503) };
-  const m = (request.headers.get("Authorization") || "").match(/^Bearer\s+(tt_live_[a-f0-9]{48})$/i);
+  const m = (request.headers.get("Authorization") || "").match(/^Bearer\s+(mz_live_[a-f0-9]{48})$/i);
   if (!m) return { error: v1Json({ error: "missing or malformed API key" }, 401) };
   const hash = await sha256Hex(m[1]);
   let who = null;
@@ -66,7 +66,7 @@ export async function importRowsWithKey(env, hash, rows, recordName) {
 }
 export async function mcpAuthenticate(request, env) {
   const a = await v1Auth(request, env);
-  if (a.error) return { error: true, status: a.error.status, message: a.error.status === 503 ? "not configured" : "invalid or missing API key (Authorization: Bearer tt_live_…)" };
+  if (a.error) return { error: true, status: a.error.status, message: a.error.status === 503 ? "not configured" : "invalid or missing API key (Authorization: Bearer mz_live_…)" };
   return a;
 }
 export async function handleV1(request, env, url) {

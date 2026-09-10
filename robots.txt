@@ -1,4 +1,4 @@
-# TRACKER — robots.txt
+# Mr.Zahi — robots.txt
 # Last updated: 2026-09-03
 
 # Default: allow everything for everyone.

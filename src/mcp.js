@@ -1,5 +1,5 @@
 /* خادم MCP لمستر زاهي (نقل HTTP القياسي، JSON-RPC 2.0) — يربط أي وكيل ذكاء اصطناعي (هرمس على تيليغرام مثلا) بأدوات مستر زاهي.
-   المصادقة: Authorization: Bearer tt_live_… (مفتاح API من الإعدادات ← API)؛ المفتاح يحدد الشركة والمستخدم صاحب المفتاح،
+   المصادقة: Authorization: Bearer mz_live_… (مفتاح API من الإعدادات ← API)؛ المفتاح يحدد الشركة والمستخدم صاحب المفتاح،
    وكل أداة تمر عبر دوال القاعدة المحمية بسر الـ Worker نفسها التي يستعملها بوت تيليغرام، فالصلاحيات واحدة.
    بلا حالة: كل طلب مستقل (Mcp-Session-Id يقبل ويعاد إن أرسله العميل). */
 import { rpc, dmy, writeGate, describePending } from "./notify.js";
@@ -324,7 +324,7 @@ export async function handleMcp(request, env, url, deps) {
   if (request.method !== "POST") return jsonResponse({ error: "method not allowed" }, 405, { Allow: "POST, DELETE, OPTIONS" });
 
   const auth = await deps.authenticate(request, env);
-  if (auth.error) return jsonResponse({ jsonrpc: "2.0", id: null, error: { code: -32001, message: auth.message || "unauthorized" } }, auth.status || 401, { "WWW-Authenticate": 'Bearer realm="thetracker-mcp"' });
+  if (auth.error) return jsonResponse({ jsonrpc: "2.0", id: null, error: { code: -32001, message: auth.message || "unauthorized" } }, auth.status || 401, { "WWW-Authenticate": 'Bearer realm="mrzahi-mcp"' });
   if (rateLimited("mcp:" + auth.who.org_id, 120)) return jsonResponse({ jsonrpc: "2.0", id: null, error: { code: -32029, message: "rate limited" } }, 429);
 
   let body;
