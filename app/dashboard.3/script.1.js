@@ -721,7 +721,7 @@
           if (!narrow) {
             var maxH = 0;
             marks.forEach(function (m) { var l = m.querySelector(".tlx-ms-label"); if (l && l.offsetHeight > maxH) maxH = l.offsetHeight; });
-            pad = Math.max(52, Math.ceil(maxH + 40)) + "px";   /* قاعدة الشريحة تعلو مركز المسار 36px وهامش فوق اعلى سطر */
+            pad = Math.max(46, Math.ceil(maxH + 36)) + "px";   /* قاعدة الشريحة تعلو مركز المسار 32px وهامش فوق اعلى سطر */
           }
           if (sc.style.paddingTop !== pad) sc.style.paddingTop = pad;
         }

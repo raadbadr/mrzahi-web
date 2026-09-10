@@ -460,7 +460,7 @@
     .case-bundle th, .case-bundle td { padding: 0.6rem 0.75rem; text-align: start; font-size: 0.85rem; border-bottom: 1px solid var(--glass-border); }
 
     /* الخط الزمني للإنجازات — نسخة شريط باركينزي (Liquid Glass) */
-    .tlx { --timeline-fill-pct: 100%; position: relative; isolation: isolate; margin-top: 0.75rem; padding: 1.2rem 1.2rem 1rem; border-radius: 20px;
+    .tlx { --timeline-fill-pct: 100%; position: relative; isolation: isolate; margin-top: 0.75rem; padding: 1rem 1.1rem 0.85rem; border-radius: 24px;
       backdrop-filter: blur(22px) saturate(1.65); -webkit-backdrop-filter: blur(22px) saturate(1.65);
       background: linear-gradient(165deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.055) 42%, rgba(255,255,255,0.03) 100%);
       border: 1px solid rgba(255,255,255,0.16);
@@ -469,11 +469,11 @@
       border: 1px solid rgba(255,255,255,0.72); box-shadow: 0 14px 40px rgba(0,80,140,0.09), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(0,60,100,0.05); }
     .tlx-nav-row { display: flex; align-items: center; gap: 0.6rem; }
     /* اسم الشهر عنوان الشريط: أظهر من صف الأزرار حوله ولا يزاحمه */
-    .tlx-title { margin: 0 0 0.5rem; font-weight: 700; color: var(--text-primary); font-size: 1.05rem; letter-spacing: 0.01em; font-variant-numeric: tabular-nums; }
+    .tlx-title { margin: 0 0 0.4rem; font-weight: 700; color: var(--text-primary); font-size: 1rem; letter-spacing: 0.01em; font-variant-numeric: tabular-nums; }
     /* المسطرة تتمرر أفقيا فتقص عموديا أيضا؛ الحشو العلوي يسع اسم الإنجاز على سطرين وتاريخه (كان النص يقص من أعلاه) */
-    .tlx-scroll { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: visible; padding: 3.8rem 0 1.4rem; scrollbar-width: thin; }
+    .tlx-scroll { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: visible; padding: 3.4rem 0 1.15rem; scrollbar-width: thin; }
     .tlx-scroll .tlx-range-wrap { min-width: max(100%, calc(var(--tlx-days, 30) * 56px)); }
-    .tlx-day-tick { position: absolute; top: calc(50% - 5px); width: 1px; height: 10px; background: rgba(255,255,255,0.24); transform: translateX(-50%); pointer-events: none; z-index: 1; }
+    .tlx-day-tick { position: absolute; top: calc(50% - 4px); width: 1px; height: 8px; background: rgba(255,255,255,0.24); transform: translateX(-50%); pointer-events: none; z-index: 1; }
     [data-theme="light"] .tlx-day-tick { background: rgba(0,60,100,0.18); }
     /* أرقام الأيام تقرأ من بعد: كانت 0.6rem بشفافية 0.8 فتذوب في الزجاج */
     .tlx-day-label { position: absolute; top: calc(50% + 13px); transform: translateX(-50%); padding: 1px 4px; border-radius: 999px; font-size: 0.64rem; font-weight: 700; color: var(--text-secondary); opacity: .92; pointer-events: none; z-index: 1; font-variant-numeric: tabular-nums; line-height: 1.25; }
@@ -491,12 +491,12 @@
     .tlx-range-wrap { position: relative; flex: 1 1 auto; min-width: 0; height: 20px; z-index: 0; user-select: none; -webkit-user-select: none; }
     /* المقطوع من الشهر يعلم: أقوى لونا عند المقبض وأخف كلما بعد عنه — والاتجاه
        يعكس التدرج فرأس الشريط عند المقبض في العربية والإنجليزية سواء. */
-    .tlx-range-wrap::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 14px; border-radius: 999px;
+    .tlx-range-wrap::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 11px; border-radius: 999px;
       width: var(--timeline-fill-pct, 100%); max-width: 100%; pointer-events: none; z-index: 0; transition: width .14s cubic-bezier(.25,.8,.25,1);
       background: linear-gradient(to left, rgba(0,170,235,0.34) 0%, rgba(70,165,235,0.19) 55%, rgba(120,190,240,0.09) 100%); }
     .tlx[dir="rtl"] .tlx-range-wrap::before { left: auto; right: 0;
       background: linear-gradient(to right, rgba(0,170,235,0.34) 0%, rgba(70,165,235,0.19) 55%, rgba(120,190,240,0.09) 100%); }
-    .tlx-range-wrap::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); height: 14px; border-radius: 999px;
+    .tlx-range-wrap::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); height: 11px; border-radius: 999px;
       pointer-events: none; z-index: -1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.16);
       box-shadow: inset 0 2px 4px rgba(0,0,0,0.18), inset 0 -1px 1px rgba(255,255,255,0.1); }
     [data-theme="light"] .tlx-range-wrap::after { background: rgba(0,60,100,0.07); border: 1px solid rgba(255,255,255,0.85); box-shadow: inset 0 2px 4px rgba(0,60,100,0.08); }
@@ -508,17 +508,17 @@
     .tlx[dir="rtl"] input[type="range"] { direction: rtl; }
     .tlx input[type="range"]::-webkit-slider-runnable-track { height: 32px; border-radius: 999px; background: transparent; border: none; }
     /* المقبض حبة زجاج بحلقة من لون المنصة: كان لوحا أبيض يذوب في المسار الفاتح */
-    .tlx input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 34px; height: 16px; margin-top: 8px; border-radius: 9px;
+    .tlx input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 34px; height: 14px; margin-top: 9px; border-radius: 8px;
       background: linear-gradient(180deg, #ffffff 0%, #e9f1f7 100%); border: none;
       box-shadow: 0 3px 12px rgba(0,0,0,0.34), 0 0 0 1px rgba(0,150,215,0.45), 0 0 0 4px rgba(0,150,215,0.14), inset 0 1px 0 rgba(255,255,255,0.9); }
     .tlx input[type="range"]::-moz-range-track { height: 32px; border-radius: 999px; background: transparent; border: none; }
-    .tlx input[type="range"]::-moz-range-thumb { width: 34px; height: 16px; border: none; border-radius: 9px;
+    .tlx input[type="range"]::-moz-range-thumb { width: 34px; height: 14px; border: none; border-radius: 8px;
       background: linear-gradient(180deg, #ffffff 0%, #e9f1f7 100%);
       box-shadow: 0 3px 12px rgba(0,0,0,0.34), 0 0 0 1px rgba(0,150,215,0.45), 0 0 0 4px rgba(0,150,215,0.14), inset 0 1px 0 rgba(255,255,255,0.9); }
     .tlx-title, .tlx-ends { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; align-items: center; gap: 0.6rem; }
     .tlx-title > span { text-align: center; }
     .tlx-ends-dates { display: flex; justify-content: space-between; min-width: 0; }
-    .tlx-ends { margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
+    .tlx-ends { margin-top: 0.45rem; font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
     .tlx-today { position: absolute; left: 0; top: 0; bottom: 0; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 10; opacity: 0; transition: opacity .18s ease; }
     .tlx-today.is-at-today { opacity: 1; }
     /* «الآن» داخل المقبض: تباعد الحروف كان يوسعه على مقبض 34 بكسلا فيضيق نصه */
@@ -541,7 +541,7 @@
     .tlx-ms { --tick-top: #ffd180; --tick-mid: #ff9100; --tick-low: #e65100; --tick-glow: rgba(255,145,0,0.5); --tick-halo: rgba(255,180,80,0.8); --label-color: #ffb347; --label-color-light: #c2410c; }
     /* الشرطة رأسها حبة تراها من بعد، وجذعها يغرس في المسار ولا يتدلى تحته
        (امر المهندس رعد 2026-09-10: كانت تنزل 18 بكسل فتقطع صف ارقام الايام). */
-    .tlx-ms-tick { position: absolute; bottom: calc(50% - 2px); width: 3px; height: 16px; border-radius: 2px; opacity: 0.72; transform-origin: bottom center; transition: opacity .16s ease, transform .16s ease;
+    .tlx-ms-tick { position: absolute; bottom: calc(50% - 2px); width: 3px; height: 14px; border-radius: 2px; opacity: 0.72; transform-origin: bottom center; transition: opacity .16s ease, transform .16s ease;
       background: linear-gradient(180deg, var(--tick-top) 0%, var(--tick-mid) 45%, var(--tick-low) 100%); box-shadow: 0 0 10px var(--tick-glow), 0 0 3px var(--tick-halo), inset 0 1px 0 rgba(255,255,255,0.45); }
     .tlx-ms-tick::after { content: ""; position: absolute; top: -4px; left: 50%; margin-left: -3.5px; width: 7px; height: 7px; border-radius: 50%;
       background: var(--tick-mid); box-shadow: 0 0 8px var(--tick-glow), 0 0 0 1px rgba(255,255,255,0.35) inset; transition: transform .16s ease; }
@@ -551,10 +551,10 @@
     .tlx-ms.is-active .tlx-ms-tick { opacity: 1; transform: scaleX(1.6); }
     .tlx-ms.is-active .tlx-ms-tick::after { transform: scale(0.7, 1.12); }   /* الشرطة النشطة تعرض 1.6، فرأسها يكبر ويبقى دائرة لا بيضة */
     /* العنوان شريحة لا نص عائم: كان يذوب في زجاج البطاقة وما خلفها */
-    .tlx-ms-label { position: absolute; bottom: calc(50% + 36px); left: 50%; transform: translateX(calc(-50% + var(--tlx-label-shift, 0px))); white-space: normal; width: max-content; max-width: min(22rem, 70vw); text-align: center; padding: 0.3rem 0.5rem; border-radius: 10px; font-size: 0.68rem; font-weight: 700; line-height: 1.25; color: var(--label-color); letter-spacing: 0.03em; opacity: 0; transition: opacity .16s ease;
+    .tlx-ms-label { position: absolute; bottom: calc(50% + 32px); left: 50%; transform: translateX(calc(-50% + var(--tlx-label-shift, 0px))); white-space: normal; width: max-content; max-width: min(22rem, 70vw); text-align: center; padding: 0.3rem 0.5rem; border-radius: 10px; font-size: 0.68rem; font-weight: 700; line-height: 1.25; color: var(--label-color); letter-spacing: 0.03em; opacity: 0; transition: opacity .16s ease;
       background: rgba(11,24,38,0.88); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 24px rgba(0,0,0,0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
     /* التاريخ يبقى على شرطته مهما انزاحت الشريحة فوقه، فهو من يعلمها */
-    .tlx-ms-date { position: absolute; bottom: calc(50% + 24px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.58rem; font-weight: 700; line-height: 1; color: var(--label-color); opacity: 0; transition: opacity .16s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+    .tlx-ms-date { position: absolute; bottom: calc(50% + 21px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.58rem; font-weight: 700; line-height: 1; color: var(--label-color); opacity: 0; transition: opacity .16s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
     .tlx-ms.is-active .tlx-ms-label, .tlx-ms.is-active .tlx-ms-date { opacity: 1; }
     .tlx--no-float .tlx-ms-label, .tlx--no-float .tlx-ms-date { display: none; }
     /* شرطته خارج نافذة التمرير: لا يترك عنوانه معلقا في الحافة بلا مرجع */
@@ -571,7 +571,7 @@
     .tlx-month-tick { position: absolute; top: calc(50% - 7px); width: 1px; height: 14px; background: rgba(255,255,255,0.3); transform: translateX(-50%); pointer-events: none; z-index: 1; }
     [data-theme="light"] .tlx-month-tick { background: rgba(0,60,100,0.24); }
     .tlx-month-label { position: absolute; top: calc(50% + 13px); transform: translateX(-50%); white-space: nowrap; font-size: 0.58rem; font-weight: 700; line-height: 1; color: var(--text-secondary); opacity: 0.85; pointer-events: none; z-index: 1; }
-    @media (max-width: 768px) { .tlx-month-label { display: none; } .tlx input[type="range"]::-webkit-slider-thumb { width: 26px; height: 16px; border-radius: 8px; }
+    @media (max-width: 768px) { .tlx-month-label { display: none; } .tlx input[type="range"]::-webkit-slider-thumb { width: 26px; height: 14px; border-radius: 7px; }
       /* طرفا الشهر كانا يتلاصقان على الجوال فيقرآن تاريخا واحدا: خط أصغر وفرجة بينهما */
       .tlx-ends { font-size: 0.75rem; } .tlx-ends-dates { gap: 0.75rem; } }
     .ach-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.7rem; margin-bottom: 0.5rem; }
