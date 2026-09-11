@@ -295,22 +295,24 @@ html[data-season="nd96"] .tagline {
 }
 /* شريط الهوية: نقوش السدو الهندسية باخضر الهوية والذهبي، وشعارها اللفظي */
 html[data-season="nd96"]::after {
-  content: "عزنا بطبعنا · اليوم الوطني السعودي 96";
-  position: fixed; inset-block-start: 0; inset-inline: 0; height: 30px;
+  content: "";
+  background-color: rgb(6, 27, 32);
+  background-image:
+    url("/nd96-logo.png"),
+    repeating-linear-gradient(135deg, rgba(90,185,28,0.16) 0 5px, transparent 5px 12px);
+  background-repeat: no-repeat, repeat;
+  background-position: center, 0 0;
+  background-size: auto 26px, auto;
+  position: fixed; inset-block-start: 0; inset-inline: 0; height: 40px;
   display: flex; align-items: center; justify-content: center;
-  font: 700 0.78rem/1 "Saudi", "IBM Plex Sans Arabic", system-ui, sans-serif;
-  letter-spacing: 0.02em; color: rgb(244, 238, 221);
-  background:
-    repeating-linear-gradient(135deg, rgba(123,93,32,0.28) 0 6px, transparent 6px 14px),
-    linear-gradient(90deg, rgb(0, 37, 40) 0%, rgb(0, 136, 73) 45%, rgb(90, 185, 28) 100%);
   border-block-end: 1px solid rgba(123, 93, 32, 0.6);
   z-index: 9999; pointer-events: none;
 }
 /* الشريط يسكن فوق الراس نفسه: يزاد حشو ‎.site-header‎ العلوي بقدره، فتقيس
    ‎syncSiteHeaderHeight‎ الارتفاع الجديد وتنزل معه ‎.app-topbar‎ والشريط الجانبي
    وحشو الصفحة تلقائيا — بلا لمس اي شيفرة ولا قيمة ثابتة تتعارض معها. */
-html[data-season="nd96"] .site-header { padding-block-start: calc(0.4rem + 30px); }
-html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 30px; }
+html[data-season="nd96"] .site-header { padding-block-start: calc(0.4rem + 40px); }
+html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 40px; }
 /* شبكة معينات هندسية خافتة خلف المحتوى، مستوحاة من النسيج التقليدي كما في الهوية.
    بلا صور ولا طلبات شبكة، وتزول بحذف هذه القاعدة. */
 html[data-season="nd96"]::before {
@@ -323,10 +325,7 @@ html[data-season="nd96"]::before {
 }
 html[data-season="nd96"][data-theme="light"]::before { opacity: 0.06; }
 @media (max-width: 600px) {
-  html[data-season="nd96"]::after { height: 26px; font-size: 0.68rem; }
-  html[data-season="nd96"] .site-header { padding-block-start: calc(0.4rem + 26px); }
-  html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 26px; }
+  html[data-season="nd96"]::after { height: 32px; background-size: auto 20px, auto; }
+  html[data-season="nd96"] .site-header { padding-block-start: calc(0.4rem + 32px); }
+  html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 32px; }
 }
-html[data-season="nd96"][lang="en"]::after { content: "Saudi National Day 96"; }
-html[data-season="nd96"][lang="fr"]::after { content: "Fete nationale saoudienne 96"; }
-html[data-season="nd96"][lang="ur"]::after { content: "سعودی قومی دن 96"; }
