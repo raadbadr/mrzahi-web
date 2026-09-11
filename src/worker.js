@@ -72,10 +72,30 @@ function handleImportTemplate(url) {
   });
 }
 
+const SUPABASE_PROXY_PREFIXES = ["/auth/v1/", "/rest/v1/", "/storage/v1/", "/realtime/v1/", "/functions/v1/", "/rpc/"];
+
+/* يمرر الطلب كما هو الى القاعدة ويعيد الرد كما هو. redirect: "manual" شرط
+   لتدفق جوجل: الرد 302 يجب ان يصل المتصفح لا ان يتبعه الـ Worker. */
+async function proxySupabase(request, env, url) {
+  if (!env.SUPABASE_URL) return json({ error: "not configured" }, 503);
+  const upstream = new URL(url.pathname + url.search, new URL(env.SUPABASE_URL).origin);
+  const headers = new Headers(request.headers);
+  headers.delete("host");
+  const init = { method: request.method, headers, redirect: "manual" };
+  if (!["GET", "HEAD"].includes(request.method)) init.body = request.body;
+  const res = await fetch(upstream, init);
+  const out = new Headers(res.headers);
+  out.set("access-control-allow-origin", request.headers.get("origin") || "*");
+  out.set("access-control-allow-credentials", "true");
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers: out });
+}
+
 function handleConfig(env) {
   if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return json({ error: "not configured" }, 503);
   return json({
-    supabaseUrl: env.SUPABASE_URL,
+    /* الواجهة تنادي نطاقنا نفسه، والـ Worker يمرر الى القاعدة: عنوان ثابت
+       لا يتغير بتغير مكان القاعدة، فعنوان رجوع جوجل يسجل مرة واحدة الى الابد */
+    supabaseUrl: env.SUPABASE_PUBLIC_URL || env.SUPABASE_URL,
     supabaseAnonKey: env.SUPABASE_ANON_KEY,
     // معرف عميل جوجل معلومة عامة (يظهر في المتصفح) ويلزم زر الدخول بجوجل
     googleClientId: env.GOOGLE_CLIENT_ID || null,
@@ -915,6 +935,11 @@ export default {
       const withKey = new Request(request, { headers: new Headers(request.headers) });
       withKey.headers.set("Authorization", "Bearer " + mcpKeyInPath[1]);
       return await handleMcp(withKey, env, url, { authenticate: mcpAuthenticate, importRows: importRowsWithKey });
+    }
+    /* وكيل القاعدة: كل مسارات سوبابيس تمر عبر نطاقنا فيبقى العنوان ثابتا
+       مهما انتقلت القاعدة (لندن، جدة، او غيرهما) */
+    if (SUPABASE_PROXY_PREFIXES.some((prefix) => path.startsWith(prefix))) {
+      return await proxySupabase(request, env, url);
     }
     if (!path.startsWith("/api/")) {
       /* ملف مقسم أجزاء؟ يجمع كما هو؛ وإلا يخدم من الأصول الثابتة */
