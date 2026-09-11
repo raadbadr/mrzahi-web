@@ -9,6 +9,7 @@ import { payCreate, payReturn, payConfigured } from "./pay.js";
 import { driveServerConfigured, handleDrive } from "./drive.js";
 import { handleTranslate } from "./translate.js";
 import { serveBundle } from "./bundles.js";
+import { driveStandardSweep } from "./drive-standard.js";
 import { handleMcp } from "./mcp.js";
 import { handleV1, mcpAuthenticate, importRowsWithKey } from "./api-v1.js";
 import { agentReply, quickAnswer, VERBS, ungrounded, NO_DATA } from "./telegram-agent.js";
@@ -1004,6 +1005,7 @@ export default {
       if (path === "/api/config" && (request.method === "GET" || request.method === "HEAD")) return handleConfig(env);
       if (path === "/api/ops/backup" && request.method === "POST") return await handleOpsBackup(request, env);
       if (path === "/api/ops/telegram-webhook") return await handleOpsTelegramWebhook(request, env);
+      if (path === "/api/ops/drive-sweep" && request.method === "POST") { if (!env.OPS_SECRET || request.headers.get("x-ops-secret") !== env.OPS_SECRET) return json({ error: "forbidden" }, 403); return json(await driveStandardSweep(env)); }
       if (path === "/api/stats" && (request.method === "GET" || request.method === "HEAD")) return await handleStats(env);
       if (path === "/api/assistant" && request.method === "POST") return await handleAssistantRequest(request, env);
       if (path === "/api/documents/template" && request.method === "GET") {
@@ -1085,6 +1087,8 @@ export default {
     ctx.waitUntil(runAbsenceNudges(env).then((r) => console.log("[nudge]", JSON.stringify(r))).catch((e) => console.error("[nudge]", String(e))));
     // الفترة التجريبية: كم بقي منها، كل يوم التاسعة بتوقيت صاحب الحساب
     ctx.waitUntil(runTrialCountdown(env).then((r) => console.log("[trial]", JSON.stringify(r))).catch((e) => console.error("[trial]", String(e))));
+    // معيار Google Drive لكل الحسابات المرتبطة: مرة يوميا 04:00 بتوقيت الرياض (الكرون كل 5 دقائق، فتؤخذ اول نافذة)
+    { const d = new Date(); if (d.getUTCHours() === 1 && d.getUTCMinutes() < 5) ctx.waitUntil(driveStandardSweep(env).then((r) => console.log("[drive-standard]", JSON.stringify(r))).catch((e) => console.error("[drive-standard]", String(e && e.message || e)))); }
     // حذف الحسابات التي انتهت فترة سماحها (30 يوما بلا دخول)
     ctx.waitUntil(purgeExpiredAccountDeletions(env).then((r) => console.log("[account-purge]", JSON.stringify(r))).catch((e) => console.error("[account-purge]", String(e))));
   },
