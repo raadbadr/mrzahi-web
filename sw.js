@@ -1,5 +1,5 @@
 /* MrZahi — تخزين مؤقت للتصفح دون اتصال (نفس أصل الموقع فقط) */
-const CACHE_NAME = "mrzahi-offline-v7";
+const CACHE_NAME = "mrzahi-offline-v8";
 
 /* المسارات كما يخدمها الموقع فعلا: صفحة بلاحقة .html تحول إلى المسار النظيف،
    والاستجابة المحفوظة عن تحويل يرفض المتصفح إعادة تشغيلها في تنقل، فيموت
@@ -98,6 +98,11 @@ self.addEventListener("fetch", (event) => {
   /* بيانات حية (خريطة النمو، أرقام المنصة): لا تعترض إطلاقا.
      الكاش-أولا هنا كان يجمد البيانات الجديدة على أجهزة الزوار. */
   if (url.pathname.startsWith("/api/")) return;
+
+  /* القاعدة خلف نطاقنا منذ 2026-09-11 (/auth /rest /storage /realtime /functions /rpc):
+     بيانات حية لا تعترض ولا تخزن ابدا؛ الكاش-اولا هنا اظهر «مرتبط» لقناة فكت قبل ساعة. */
+  if (/^\/(auth|rest|storage|realtime|functions|rpc)\//.test(url.pathname)) return;
+  if (request.headers.get("authorization") || request.headers.get("apikey")) return;
 
   /* صفحات HTML + CSS/JS: الشبكة أولا حتى تصل التحديثات فورا —
      الكاش-أولا هنا جمد تعديلات footer.css على أجهزة الزوار */
