@@ -11,17 +11,17 @@
   "dir": "rtl",
   "icons": [
     {
-      "src": "mrzahi-icon-16.png?v=1",
+      "src": "mrzahi-icon-16.png?v=2",
       "sizes": "16x16",
       "type": "image/png"
     },
     {
-      "src": "mrzahi-icon-32.png?v=1",
+      "src": "mrzahi-icon-32.png?v=2",
       "sizes": "32x32",
       "type": "image/png"
     },
     {
-      "src": "mrzahi-icon-180.png?v=1",
+      "src": "mrzahi-icon-180.png?v=2",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any maskable"
