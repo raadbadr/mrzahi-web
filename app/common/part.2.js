@@ -419,8 +419,9 @@
   var DRIVE_API = "https://www.googleapis.com/drive/v3";
   var DRIVE_UPLOAD = "https://www.googleapis.com/upload/drive/v3/files";
   var DRIVE_FOLDER_MIME = "application/vnd.google-apps.folder";
-  var DRIVE_ROOT_NAME = "MrZahi";
-  var DRIVE_LEGACY_ROOT_NAMES = ["TheTracker"]; /* اسماء الجذر قبل اعادة التسمية، للعثور على مجلدات قديمة */
+  /* اسم الجذر يبدا بـ 00- كي يتصدر قائمة مجلدات المستخدم في درايف (امر المهندس رعد 2026-09-11) */
+  var DRIVE_ROOT_NAME = "00-MrZahi";
+  var DRIVE_LEGACY_ROOT_NAMES = ["MrZahi", "TheTracker"]; /* اسماء الجذر السابقة، للعثور على مجلدات قديمة واعادة تسميتها */
   var DRIVE_FALLBACK_TEXT = {
     ar: "لم يتم الحفظ في Google Drive، فحفظ الملف في تخزين المنصة.",
     en: "Google Drive was unavailable, so the file was saved to platform storage.",
@@ -481,7 +482,7 @@
      «يشيك اذا فيه ربط سابق او لا، مو ينشئ جديد»). ترتيب البحث:
      1) المجلد الذي فيه مرفق سابق للشركة على درايف (الاوثق: لا يعتمد على اسم ولا خاصية)،
      2) المجلد الموسوم بالخاصية الحالية mrzahi_org، 3) الموسوم بخاصية الاسم القديم tracker_org،
-     4) الانشاء تحت «MrZahi». مفتاح الذاكرة المحلية v2 كي يسقط مجلد فارغ حفظ قبل هذا الاصلاح. */
+     4) الانشاء تحت «00-MrZahi». مفتاح الذاكرة المحلية v2 كي يسقط مجلد فارغ حفظ قبل هذا الاصلاح. */
   function driveFolderFromAttachments(token, orgId) {
     return run(function (client) {
       return client.from("attachments").select("drive_file_id").eq("org_id", orgId)
@@ -554,14 +555,42 @@
       });
   }
 
+  /* جذر المنصة القائم باسم سابق (MrZahi او TheTracker) يعاد تسميته الى الاسم الحالي كي يتصدر
+     قائمة المستخدم، مرة واحدة لكل متصفح، ولا يلمس شيئا ان وجد الجذر الحالي اصلا. الفشل لا يوقف الرفع. */
+  function driveEnsureRootName(token) {
+    var flag = "mrzahi_drive_root_name:" + DRIVE_ROOT_NAME;
+    if (localStorage.getItem(flag)) return Promise.resolve(null);
+    var base = "mimeType='" + DRIVE_FOLDER_MIME + "' and trashed=false and 'root' in parents and name='";
+    function byName(name) {
+      return driveFetch(token, DRIVE_API + "/files?q=" + encodeURIComponent(base + driveEscape(name) + "'") + "&fields=files(id)&pageSize=5&spaces=drive")
+        .then(function (d) { return ((d && d.files) || []).map(function (f) { return f.id; }); });
+    }
+    return byName(DRIVE_ROOT_NAME).then(function (current) {
+      if (current.length) return null;
+      return DRIVE_LEGACY_ROOT_NAMES.reduce(function (p, legacy) {
+        return p.then(function (done) {
+          if (done) return done;
+          return byName(legacy).then(function (ids) {
+            if (!ids.length) return null;
+            return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(ids[0]) + "?fields=id,name", {
+              method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: DRIVE_ROOT_NAME })
+            }).then(function (f) { return f && f.id; });
+          });
+        });
+      }, Promise.resolve(null));
+    }).then(function () { localStorage.setItem(flag, "1"); return null; })
+      .catch(function () { return null; });
+  }
+
   /* مجلد الشركة: يبحث عن ربط سابق قبل اي انشاء (امر المهندس رعد: «يشيك اذا فيه ربط سابق، مو ينشئ جديد»)،
      ويحسم التكرار بـ driveChooseFolder، ولا ينشئ الا ان لم يوجد شيء. مفتاح الذاكرة v2 يسقط ما حفظ قبل الاصلاح. */
   function driveFolderFor(token, orgId, orgName, fresh) {
     var key = "mrzahi_drive_folder:v2:" + orgId;
     var cached = !fresh && localStorage.getItem(key);
-    if (cached) return Promise.resolve(cached);
+    if (cached) return driveEnsureRootName(token).then(function () { return cached; });
     var anchored = null;
-    return driveFolderFromAttachments(token, orgId)
+    return driveEnsureRootName(token)
+      .then(function () { return driveFolderFromAttachments(token, orgId); })
       .then(function (a) { anchored = a; return driveCandidateFolders(token, orgId, orgName, a); })
       .then(function (cands) { return driveChooseFolder(token, cands, anchored); })
       .then(function (id) {
