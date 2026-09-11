@@ -11,23 +11,28 @@
     }
     .platform-stats-list {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      align-items: start;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      align-items: stretch;
       gap: 1.25rem;
       max-width: 820px;
       margin: 0 auto;
+    }
+    /* المربعات البسيطة صف واحد متساوي، والبطاقتان ذواتا القوائم تنزلان تحته
+       بالسطر كاملا مهما كان ترتيبهما في الصفحة — فلا يبقى مربع يتيم في الاخر
+       ولا مربع واحد ممدود على عرض الشبكة بلا محتوى يملؤه. */
+    .platform-stats-list .platform-stat-card--expandable {
+      grid-column: 1 / -1;
+      order: 2;
+    }
+    @media (max-width: 860px) {
+      .platform-stats-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
     @media (max-width: 560px) {
       .platform-stats-list {
         grid-template-columns: 1fr;
         max-width: 420px;
-      }
-    }
-    @media (min-width: 561px) {
-      .platform-stats-list .platform-stat-card:nth-child(3),
-      .platform-stats-list .platform-stat-card:nth-child(4),
-      .platform-stats-list .platform-stat-card:nth-child(5) {
-        grid-column: 1 / -1;
       }
     }
     .platform-stat-card {

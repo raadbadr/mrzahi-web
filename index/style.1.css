@@ -867,18 +867,73 @@ html[data-season="nd96"] .hero::after {
   background-image:
     url("/nd96-sadu.svg"),
     radial-gradient(ellipse 70% 55% at 50% 50%, rgba(0, 137, 74, 0.22), transparent 70%);
-  background-size: 210px auto, cover;
+  /* بلاطة كبيرة فيقرا النقش نقشا لا ضجيجا، وقناع يحصره في الاطراف البعيدة */
+  background-size: 340px auto, cover;
   background-repeat: repeat, no-repeat;
-  opacity: 0.5;
-  -webkit-mask-image: radial-gradient(ellipse 62% 55% at 50% 50%, transparent 22%, #000 82%);
-  mask-image: radial-gradient(ellipse 62% 55% at 50% 50%, transparent 22%, #000 82%);
+  opacity: 0.22;
+  -webkit-mask-image: radial-gradient(ellipse 58% 52% at 50% 50%, transparent 40%, #000 98%);
+  mask-image: radial-gradient(ellipse 58% 52% at 50% 50%, transparent 40%, #000 98%);
 }
 html[data-season="nd96"][data-theme="light"] .hero::after {
   background-image:
     url("/nd96-sadu.svg"),
     radial-gradient(ellipse 70% 55% at 50% 50%, rgba(0, 137, 74, 0.12), transparent 70%);
-  opacity: 0.28;
+  opacity: 0.16;
 }
 /* التاغلاين بالخط السعودي وبلون الهوية: نبرة الموسم في اول ما تقع عليه العين */
 html[data-season="nd96"] .tagline { color: rgb(90, 186, 28); }
 html[data-season="nd96"][data-theme="light"] .tagline { color: rgb(0, 137, 74); }
+
+/* ══ فواصل الاقسام: شريط الحدود الرسمي من عناصر هوية الموسم ══════════════════
+   مستخرج من الشريط النباتي في لوح «الكرم» بالوان الهوية. يفصل الترحيب عن
+   الارقام، والارقام عن المزايا، والمزايا عن التذييل — فلا تلتصق الاقسام بلا
+   نبرة. بلاطة SVG تتكرر افقيا، بلا صور نقطية ولا طلبات اضافية. */
+html[data-season="nd96"] .platform-stats,
+html[data-season="nd96"] .features { padding-block-start: 2.6rem; }
+html[data-season="nd96"] .features { padding-block-end: 3.4rem; }
+html[data-season="nd96"] .platform-stats::before,
+html[data-season="nd96"] .features::before,
+html[data-season="nd96"] .features::after {
+  content: ""; position: absolute; inset-inline: 2rem; height: 14px;
+  background: url("/nd96-border.svg") repeat-x center / auto 14px;
+  opacity: 0.85; pointer-events: none; z-index: 0;
+}
+html[data-season="nd96"] .platform-stats::before,
+html[data-season="nd96"] .features::before { inset-block-start: 0.9rem; }
+html[data-season="nd96"] .features::after { inset-block-end: 1.4rem; }
+html[data-season="nd96"][data-theme="light"] .platform-stats::before,
+html[data-season="nd96"][data-theme="light"] .features::before,
+html[data-season="nd96"][data-theme="light"] .features::after { opacity: 0.7; }
+@media (max-width: 600px) {
+  html[data-season="nd96"] .platform-stats,
+  html[data-season="nd96"] .features { padding-block-start: 2.1rem; }
+  html[data-season="nd96"] .platform-stats::before,
+  html[data-season="nd96"] .features::before,
+  html[data-season="nd96"] .features::after {
+    inset-inline: 1rem; height: 10px; background-size: auto 10px;
+  }
+  html[data-season="nd96"] .platform-stats::before,
+  html[data-season="nd96"] .features::before { inset-block-start: 0.7rem; }
+}
+
+/* ختم الموسم تحت سطر الثقة: بلاطة واحدة من شريط الحدود لا تتكرر، فتقرأ زخرفة
+   مقصودة لا نسيجا. عنصر فليكس في ذيل ‎.hero-content‎ فلا يزاحم شيئا. */
+html[data-season="nd96"] .hero-content::after {
+  content: ""; display: block; align-self: center;
+  width: min(300px, 78%); height: 16px; margin-block-start: 1.7rem;
+  background: url("/nd96-border.svg") no-repeat center / auto 16px;
+  opacity: 0.9;
+}
+html[data-season="nd96"][data-theme="light"] .hero-content::after { opacity: 0.72; }
+@media (max-width: 600px) {
+  html[data-season="nd96"] .hero-content::after {
+    height: 12px; background-size: auto 12px; margin-block-start: 1.3rem;
+  }
+  /* الشاشة الضيقة تكبر خلايا النقش نسبة اليها فتصير مربعات فجة: تصغر البلاطة
+     ويخفت الحبر حتى يبقى نسيجا خلف المحتوى لا شبكة فوقه. */
+  html[data-season="nd96"] .hero::after {
+    background-size: 190px auto, cover; opacity: 0.15;
+  }
+  html[data-season="nd96"][data-theme="light"] .hero::after { opacity: 0.12; }
+  html[data-season="nd96"]::before { background-size: 128px auto; }
+}
