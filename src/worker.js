@@ -304,6 +304,18 @@ async function notifyAdminsText(env, text) {
   return sent;
 }
 
+/* تشخيص ويب هوك تيليغرام واعادة ضبطه: GET يعيد getWebhookInfo، وPOST يثبته على mrzahi.com بالسر الحالي */
+async function handleOpsTelegramWebhook(request, env) {
+  if (!env.OPS_SECRET || request.headers.get("x-ops-secret") !== env.OPS_SECRET) return json({ error: "forbidden" }, 403);
+  if (!env.TELEGRAM_BOT_TOKEN) return json({ error: "telegram not configured" }, 503);
+  const api = (m, body) => fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/${m}`, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : undefined).then((r) => r.json());
+  if (request.method === "POST") {
+    const set = await api("setWebhook", { url: "https://mrzahi.com/api/telegram/webhook", secret_token: env.TELEGRAM_WEBHOOK_SECRET || undefined, allowed_updates: ["message", "edited_message", "callback_query"] });
+    return json({ set, info: await api("getWebhookInfo") });
+  }
+  return json({ info: await api("getWebhookInfo") });
+}
+
 /* حالة النسخة الاحتياطية الليلية من خادم جدة (/usr/local/bin/mrzahi-backup.sh):
    تصل المديرين نجاحا وفشلا، فغياب رسالة الصباح نفسه انذار بان الخادم او النسخ توقف */
 async function handleOpsBackup(request, env) {
@@ -1003,6 +1015,7 @@ export default {
       }
       if (path === "/api/config" && request.method === "GET") return handleConfig(env);
       if (path === "/api/ops/backup" && request.method === "POST") return await handleOpsBackup(request, env);
+      if (path === "/api/ops/telegram-webhook") return await handleOpsTelegramWebhook(request, env);
       if (path === "/api/stats" && request.method === "GET") return await handleStats(env);
       if (path === "/api/assistant" && request.method === "POST") return await handleAssistantRequest(request, env);
       if (path === "/api/documents/template" && request.method === "GET") {
