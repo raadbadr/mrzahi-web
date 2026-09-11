@@ -148,3 +148,4 @@
 #	-	0081_process_areas_follow_pack.sql	orphan
 #	-	0082_trial_countdown.sql	orphan
 20260911120000	drive_standard_sweep	0123_drive_standard_sweep.sql	added
+20260911123000	storage_quotas_local_server	0124_storage_quotas_local_server.sql	added
