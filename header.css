@@ -361,6 +361,8 @@ html[data-season="nd96"] .footer::before {
   inset-block-start: 1.1rem; inset-inline: 1.6rem; height: 12px;
   background: url("/nd96-border.svg") repeat-x center / auto 12px;
   opacity: 0.6;
+  /* الشريط ساكن: لا يرث حركة من قاعدة اخرى على العنصر نفسه */
+  animation: none; transform: none;
 }
 @media (max-width: 600px) {
   html[data-season="nd96"]::after {
