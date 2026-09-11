@@ -85,7 +85,7 @@ export function t(lang) { return TEXT[lang] || TEXT.ar; }
 
 // ---------- بوت تلغرام: قائمة الأزرار ونصوصها ----------
 const BOT = {
-  ar: { company: "🏢 الشركة", upcoming: "📅 مواعيدي القادمة", overdue: "⏰ المتأخرات", dashboard: "🌐 لوحة التحكم", help: "❓ مساعدة",
+  ar: { company: "🏢 الشركة", upcoming: "📅 مواعيدي القادمة", overdue: "⏰ المتأخرات", dashboard: "🌐 لوحة التحكم",
         linkBtn: "🔗 ربط حسابي", openDash: "فتح لوحة التحكم",
         phoneBtn: "📱 ربط برقم جوالي", phoneHint: "أو شارك رقم جوالك المسجل في مستر زاهي بالزر بالأسفل فيتم الربط فورا.",
         phoneNotFound: "لم نجد حسابا بهذا الرقم. سجل الدخول إلى الموقع واضغط زر الربط أعلاه.",
@@ -113,7 +113,7 @@ const BOT = {
         upcomingTitle: "📅 مواعيدك القادمة:", overdueTitle: "⏰ المواعيد المتأخرة:",
         noUpcoming: "لا مواعيد قادمة 👌", noOverdue: "لا مواعيد متأخرة 👌",
         help: "اكتب طلبك بكلامك: ابحث، مواعيدي، أضف مهمة، أنجز، أسند. أو استعمل الأزرار." },
-  en: { company: "🏢 Company", upcoming: "📅 Upcoming", overdue: "⏰ Overdue", dashboard: "🌐 Dashboard", help: "❓ Help",
+  en: { company: "🏢 Company", upcoming: "📅 Upcoming", overdue: "⏰ Overdue", dashboard: "🌐 Dashboard",
         linkBtn: "🔗 Link my account", openDash: "Open dashboard",
         phoneBtn: "📱 Link with my phone number", phoneHint: "Or share the phone number registered in MrZahi with the button below — the link completes instantly.",
         phoneNotFound: "No account has this number. Sign in on the website and tap the link button above.",
@@ -141,7 +141,7 @@ const BOT = {
         upcomingTitle: "📅 Your upcoming due dates:", overdueTitle: "⏰ Overdue items:",
         noUpcoming: "Nothing upcoming 👌", noOverdue: "Nothing overdue 👌",
         help: "Just type: search, my dates, add a task, done, assign. Or use the buttons." },
-  fr: { company: "🏢 Societe", upcoming: "📅 À venir", overdue: "⏰ En retard", dashboard: "🌐 Tableau de bord", help: "❓ Aide",
+  fr: { company: "🏢 Societe", upcoming: "📅 À venir", overdue: "⏰ En retard", dashboard: "🌐 Tableau de bord",
         linkBtn: "🔗 Lier mon compte", openDash: "Ouvrir le tableau de bord",
         phoneBtn: "📱 Lier avec mon numéro", phoneHint: "Ou partagez le numéro enregistré dans MrZahi avec le bouton ci-dessous : la liaison est immédiate.",
         phoneNotFound: "Aucun compte avec ce numéro. Connectez-vous sur le site et appuyez sur le bouton de liaison ci-dessus.",
