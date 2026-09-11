@@ -30,10 +30,10 @@
    * ============================================================ */
 
   var PROFILE_TEXT = {
-    ar: { title: "أكمل بياناتك", intro: "نحتاج اسمك الكامل ورقم جوالك قبل استخدام المنصة.", name: "الاسم الكامل", phone: "رقم الجوال", save: "حفظ ومتابعة", error: "تعذر الحفظ، حاول مرة أخرى.", invalid: "أدخل اسما كاملا ورقم جوال بالصيغة الدولية مثل +9665xxxxxxx" },
-    en: { title: "Complete your details", intro: "We need your full name and mobile number before you use the platform.", name: "Full name", phone: "Mobile number", save: "Save and continue", error: "Could not save, try again.", invalid: "Enter a full name and a mobile number in international format, e.g. +9665xxxxxxx" },
-    fr: { title: "Complétez vos informations", intro: "Nous avons besoin de votre nom complet et de votre numéro de mobile.", name: "Nom complet", phone: "Numéro de mobile", save: "Enregistrer et continuer", error: "Enregistrement impossible, réessayez.", invalid: "Saisissez un nom complet et un numéro au format international, ex. +9665xxxxxxx" },
-    ur: { title: "اپنی تفصیلات مکمل کریں", intro: "پلیٹ فارم استعمال کرنے سے پہلے ہمیں آپ کا پورا نام اور موبائل نمبر درکار ہے۔", name: "پورا نام", phone: "موبائل نمبر", save: "محفوظ کریں اور جاری رکھیں", error: "محفوظ نہیں ہو سکا، دوبارہ کوشش کریں۔", invalid: "پورا نام اور بین الاقوامی فارمیٹ میں نمبر درج کریں، مثلا +9665xxxxxxx" }
+    ar: { title: "أكمل بياناتك", intro: "نحتاج اسمك الكامل ورقم جوالك قبل استخدام المنصة.", name: "الاسم الكامل", phone: "رقم الجوال", save: "حفظ ومتابعة", error: "تعذر الحفظ، حاول مرة أخرى.", offlineTitle: "تعذر الاتصال بالخادم", offlineIntro: "لم نتمكن من قراءة ملفك الشخصي الان. لم تفقد شيئا، اعد المحاولة بعد لحظات.", retry: "اعادة المحاولة", invalid: "أدخل اسما كاملا ورقم جوال بالصيغة الدولية مثل +9665xxxxxxx" },
+    en: { title: "Complete your details", intro: "We need your full name and mobile number before you use the platform.", name: "Full name", phone: "Mobile number", save: "Save and continue", error: "Could not save, try again.", offlineTitle: "Could not reach the server", offlineIntro: "We could not read your profile right now. Nothing is lost; try again in a moment.", retry: "Try again", invalid: "Enter a full name and a mobile number in international format, e.g. +9665xxxxxxx" },
+    fr: { title: "Complétez vos informations", intro: "Nous avons besoin de votre nom complet et de votre numéro de mobile.", name: "Nom complet", phone: "Numéro de mobile", save: "Enregistrer et continuer", error: "Enregistrement impossible, réessayez.", offlineTitle: "Serveur injoignable", offlineIntro: "Impossible de lire votre profil pour le moment. Rien n'est perdu ; réessayez dans un instant.", retry: "Réessayer", invalid: "Saisissez un nom complet et un numéro au format international, ex. +9665xxxxxxx" },
+    ur: { title: "اپنی تفصیلات مکمل کریں", intro: "پلیٹ فارم استعمال کرنے سے پہلے ہمیں آپ کا پورا نام اور موبائل نمبر درکار ہے۔", name: "پورا نام", phone: "موبائل نمبر", save: "محفوظ کریں اور جاری رکھیں", error: "محفوظ نہیں ہو سکا، دوبارہ کوشش کریں۔", invalid: "پورا نام اور بین الاقوامی فارمیٹ میں نمبر درج کریں، مثلا +9665xxxxxxx", offlineTitle: "سرور سے رابطہ نہیں ہو سکا", offlineIntro: "ابھی آپ کی پروفائل نہیں پڑھی جا سکی۔ کچھ ضائع نہیں ہوا، تھوڑی دیر بعد دوبارہ کوشش کریں۔", retry: "دوبارہ کوشش کریں" }
   };
 
   var PROFILE_CSS = [
@@ -93,6 +93,17 @@
     if (profileComplete()) return;
 
     var t = profileText();
+    /* الملف لم يقرا من القاعدة (انقطاع او اعادة تشغيل): الحقيقة «تعذر الاتصال»
+       لا «بياناتك ناقصة» — فلا يطلب من المستخدم اكمال ما هو مكتمل ثم يفشل حفظه. */
+    if (app.profile && app.profile._offline) {
+      var os = document.createElement("style"); os.textContent = PROFILE_CSS; document.head.appendChild(os);
+      var og = document.createElement("div"); og.id = "appProfileGate"; og.className = "app-gate";
+      og.innerHTML = '<div class="app-gate-card" role="dialog" aria-modal="true"><h2>' + escapeHtml(t.offlineTitle) + "</h2><p>" +
+        escapeHtml(t.offlineIntro) + '</p><button type="button" id="gateRetry">' + escapeHtml(t.retry) + "</button></div>";
+      document.body.appendChild(og);
+      document.getElementById("gateRetry").addEventListener("click", function () { window.location.reload(); });
+      return;
+    }
     var style = document.createElement("style");
     style.textContent = PROFILE_CSS;
     document.head.appendChild(style);

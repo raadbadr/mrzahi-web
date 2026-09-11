@@ -418,8 +418,9 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
           .catch(function (err) {
             /* RLS may forbid the insert (the auth trigger normally creates the row); keep going. */
             if (window.console) console.warn("mrzahiApp: profile upsert failed:", err.message);
+            /* _offline: هذا ملف بديل لم يقرا من القاعدة، فلا يعامل كملف ناقص يطلب اكماله */
             return { id: user.id, full_name: fallbackName, full_name_en: null, email: user.email || null, phone: user.phone || null,
-                     lang: lang(), tz: TIME_ZONE, time_format: "24", is_platform_admin: false };
+                     lang: lang(), tz: TIME_ZONE, time_format: "24", is_platform_admin: false, _offline: true };
           });
       });
   }
