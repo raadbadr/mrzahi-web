@@ -27,7 +27,7 @@ These rules apply to every AI agent, developer, and automated tool working on th
 
 ## Deployment Rules
 
-- **Every push to `main` auto-deploys** via GitHub Actions (`deploy.yml`) + `wrangler deploy` to the Worker `thetracker` (`appmails.net` + `www.appmails.net`)
+- **Every push to `main` auto-deploys** via GitHub Actions (`deploy.yml`) + `wrangler deploy` to the Worker `thetracker` (`mrzahi.com` + `www.mrzahi.com`)
 - **Never run `wrangler deploy` with `--env` flags** that override production secrets
 - **CLOUDFLARE_API_TOKEN** lives in GitHub Secrets only — never commit it to any file
 - **SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY / ANTHROPIC_API_KEY** live in Cloudflare Worker Secrets only — never hardcode
@@ -75,7 +75,7 @@ These rules apply to every AI agent, developer, and automated tool working on th
 ## New Domain: mrzahi.com (Eng. Raad, 2026-09-06)
 
 - **`mrzahi.com` has been acquired and the whole project moves onto it** — site, app and email.
-  `appmails.net` is the domain in service until the move happens. There is no third domain.
+  The old domain served until the move; it was retired entirely on 2026-09-11 (see below). There is no third domain.
 - **It will be linked with Eng. Raad's "Zahi" project, which becomes the reminder project.**
   Nothing about that link is to be assumed — scope, boundaries and shape come from him directly
   before any work starts on it.
@@ -96,8 +96,12 @@ These rules apply to every AI agent, developer, and automated tool working on th
 - **Earlier status: the move has started and the new domain is live.** mrzahi.com and
   www.mrzahi.com are bound to the Worker `thetracker` as custom domains and serve every path;
   all 186 internal references (canonical, Open Graph, sitemap, robots, manifest, bot links,
-  calendar, MCP endpoint, assistant answers) now point at mrzahi.com. appmails.net stays live
-  and is still accepted in CORS until the move completes.
+  calendar, MCP endpoint, assistant answers) now point at mrzahi.com.
+- **Status (2026-09-11): the old domain appmails.net is retired entirely** on Eng. Raad's order
+  ("الدومين دا الغيه تماما"): both custom domains detached from the Worker, routes removed from
+  wrangler.toml, CORS origins and the redirect branch removed, docs and the email function point
+  at mrzahi.com. Nothing in the repository names it any more. Anything outside the repository
+  that still names it (Google OAuth origins, Supabase Auth URLs, DNS zone) is his to clean.
 - **Three steps remain and only Eng. Raad can do them** (each is his own account, not ours):
   Google OAuth authorised JavaScript origins and redirect URIs, Supabase Auth redirect/site
   URLs, and repointing the Telegram webhook at mrzahi.com.

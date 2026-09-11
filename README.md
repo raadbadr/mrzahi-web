@@ -40,7 +40,7 @@
 ├── src/worker.js                       # الـ Worker: GET /api/config، GET /api/stats، POST /api/assistant، POST /api/contact
 ├── src/assistant.js                    # المساعد: Claude إن وجد ANTHROPIC_API_KEY وإلا Workers AI (مجاني)
 ├── supabase/migrations/0001_init.sql   # المخطط + RLS + حدود الخطط + platform_stats() + generate_due_notifications()
-├── wrangler.toml                       # النطاقان appmails.net و www.appmails.net + [assets] + [ai]
+├── wrangler.toml                       # النطاقان mrzahi.com و www.mrzahi.com + [assets] + [ai]
 ├── DESIGN_STANDARDS.md                 # معايير التصميم
 └── RULES.md                            # القواعد الثابتة
 ```
@@ -118,7 +118,7 @@
 
 ## 📝 الاستخدام
 
-1. افتح `https://appmails.net` (أو شغل `npx wrangler dev` محليا)
+1. افتح `https://mrzahi.com` (أو شغل `npx wrangler dev` محليا)
 2. اختر اللغة من القائمة العلوية
 3. اختر المظهر (فاتح/داكن)
 4. سجل الدخول من `login.html` ثم استمتع بالتصفح! ✨
@@ -135,13 +135,13 @@
 ## 📄 الترخيص
 
 © 2026 MrZahi. جميع الحقوق محفوظة.
-الدعم: `support@appmails.net`
+الدعم: `support@mrzahi.com`
 
 ## ⚠️ تعليمات ثابتة — لا تعدل
 
 ### طريقة النشر (GitHub → Cloudflare Workers)
 - **المستودع:** `github.com/raadbadr/mrzahi-web`
-- **الـ Worker:** `thetracker` — النطاقان `appmails.net` و `www.appmails.net` مربوطان كـ Custom Domains من `wrangler.toml`
+- **الـ Worker:** `thetracker` — النطاقان `mrzahi.com` و `www.mrzahi.com` مربوطان كـ Custom Domains من `wrangler.toml`. النطاق القديم الغي نهائيا في 2026-09-11 ولا يذكر.
 - **كل `git push` للفرع `main` ينشر تلقائيا** عبر GitHub Actions (`.github/workflows/deploy.yml`) الذي يشغل `wrangler deploy` بالسر `CLOUDFLARE_API_TOKEN` (نفس رمز Parkinzi).
 - **الرمز `CLOUDFLARE_API_TOKEN` يعيش في GitHub Secrets فقط** — لا يكتب في أي ملف.
 - **لا تستخدم `wrangler deploy` يدويا — النشر فقط من GitHub.**

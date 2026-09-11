@@ -2,14 +2,11 @@ name = "thetracker"
 compatibility_date = "2026-02-17"
 main = "src/worker.js"
 
-# نطاقات المنصة — تُربط تلقائياً عند النشر (Custom Domain).
-# mrzahi.com هو النطاق الجديد الذي ينتقل إليه المشروع (أمر المهندس رعد 2026-09-06)،
-# وappmails.net يبقى عاملاً حتى يكتمل النقل فلا ينقطع أحد.
+# نطاقا المنصة — يربطان تلقائيا عند النشر (Custom Domain).
+# mrzahi.com هو النطاق الوحيد (امر المهندس رعد 2026-09-06)، والنطاق القديم الغي نهائيا في 2026-09-11.
 routes = [
   { pattern = "mrzahi.com", custom_domain = true },
-  { pattern = "www.mrzahi.com", custom_domain = true },
-  { pattern = "appmails.net", custom_domain = true },
-  { pattern = "www.appmails.net", custom_domain = true }
+  { pattern = "www.mrzahi.com", custom_domain = true }
 ]
 
 [assets]

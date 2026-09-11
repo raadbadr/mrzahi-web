@@ -1,6 +1,6 @@
 # Files excluded from the public static-assets upload.
 # Keep this list tight: anything NOT listed here is downloadable from
-# appmails.net by anyone.
+# mrzahi.com by anyone.
 
 # Tooling and infrastructure — never public
 .wrangler

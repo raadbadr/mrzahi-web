@@ -11,7 +11,7 @@ const corsHeaders = {
 
 const ZOHO_ACCOUNTS_BASE = "https://accounts.zoho.sa";
 const ZOHO_MAIL_BASE = "https://mail.zoho.sa";
-const FROM_EMAIL = "alerts@appmails.net";
+const FROM_EMAIL = "alerts@mrzahi.com";
 
 type SendPayload = {
   to: string;
@@ -161,7 +161,7 @@ function buildReminderHTML(p: ReminderPayload): { subject: string; html: string 
   const lang = p.lang && REMINDER_TEXT[p.lang] ? p.lang : "ar";
   const t = REMINDER_TEXT[lang];
   const rtl = lang === "ar" || lang === "ur";
-  const link = p.link || "https://appmails.net/app/dashboard.html";
+  const link = p.link || "https://mrzahi.com/app/dashboard";
   const esc = (s: string) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
   const html = `<!DOCTYPE html><html dir="${rtl ? "rtl" : "ltr"}" lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f2f7fc;font-family:Arial,Helvetica,sans-serif;direction:${rtl ? "rtl" : "ltr"};">
@@ -178,7 +178,7 @@ function buildReminderHTML(p: ReminderPayload): { subject: string; html: string 
   ${p.org_name ? `<div style="font-size:13px;color:#4d4d59;margin-bottom:16px;">${esc(p.org_name)}</div>` : "<div style=\"height:12px\"></div>"}
   <a href="${esc(link)}" style="display:inline-block;background:#008cf2;color:#ffffff;text-decoration:none;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;">${t.open}</a>
 </td></tr>
-<tr><td style="padding:14px 24px;border-top:1px solid #e8e9ec;text-align:center;font-size:11px;color:#808594;">${t.footer}<br>appmails.net</td></tr>
+<tr><td style="padding:14px 24px;border-top:1px solid #e8e9ec;text-align:center;font-size:11px;color:#808594;">${t.footer}<br>mrzahi.com</td></tr>
 </table></td></tr></table></body></html>`;
   return { subject: t.subject.replace("{title}", p.title), html };
 }

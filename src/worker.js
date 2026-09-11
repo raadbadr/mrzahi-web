@@ -913,8 +913,8 @@ async function handleWhatsappWebhook(request, env, url) {
 
 // --- Main router ---
 
-/* نطاقا المنصة أثناء النقل: الجديد أولا، والقديم حتى يكتمل التحويل */
-const SITE_ORIGINS = ["https://mrzahi.com", "https://www.mrzahi.com", "https://appmails.net", "https://www.appmails.net"];
+/* نطاقا المنصة: mrzahi.com وحده (النطاق القديم الغي نهائيا في 2026-09-11) */
+const SITE_ORIGINS = ["https://mrzahi.com", "https://www.mrzahi.com"];
 
 export default {
   async fetch(request, env) {
@@ -925,18 +925,6 @@ export default {
     if (url.protocol === "http:") {
       url.protocol = "https:";
       return Response.redirect(url.toString(), 301);
-    }
-
-    /* النطاق الجديد هو الأصل (أمر المهندس رعد 2026-09-06): كل زيارة على النطاق القديم
-       تحول إليه بالمسار نفسه وبالمعاملات نفسها. تستثنى مسارات /api لأن خطاف تيليغرام
-       وأي عميل يرسل POST لا يتبع التحويل — تحول بعد نقل الخطاف. */
-    if (url.hostname === "appmails.net" || url.hostname === "www.appmails.net") {
-      /* /mcp عميل POST كذلك، وملف توثيق جوجل يجب أن يبقى على النطاق القديم حتى يقرأ. */
-      if (!path.startsWith("/api/") && !path.startsWith("/mcp") && !path.startsWith("/google")) {
-        const to = new URL(url.toString());
-        to.hostname = "mrzahi.com";
-        return Response.redirect(to.toString(), 301);
-      }
     }
 
     // قناة الجهاز — /api/device/<token>: مواعيد بصيغة شاشة زاهي، يقرؤها الجسر المحلي
