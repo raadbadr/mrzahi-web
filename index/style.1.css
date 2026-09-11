@@ -860,3 +860,23 @@ html[data-season="nd96"][data-theme="light"]::before { opacity: 0.035; }
   html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 32px; }
 }
             
+
+/* الواجهة تأخذ نكهة الموسم: نقوش السدو تحف بالاطراف وتخفت نحو الوسط فلا
+   تزاحم الشعار، وتوهج اخضر خلفه. الشعار والتاغلاين وسطر الثقة لا تمس. */
+html[data-season="nd96"] .hero::after {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    repeating-conic-gradient(rgba(90, 186, 28, 0.11) 0% 25%, transparent 0% 50%),
+    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(0, 137, 74, 0.20), transparent 70%);
+  background-size: 30px 30px, cover;
+  -webkit-mask-image: radial-gradient(ellipse 62% 55% at 50% 50%, transparent 22%, #000 82%);
+  mask-image: radial-gradient(ellipse 62% 55% at 50% 50%, transparent 22%, #000 82%);
+}
+html[data-season="nd96"][data-theme="light"] .hero::after {
+  background-image:
+    repeating-conic-gradient(rgba(0, 137, 74, 0.09) 0% 25%, transparent 0% 50%),
+    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(0, 137, 74, 0.10), transparent 70%);
+}
+/* التاغلاين بالخط السعودي وبلون الهوية: نبرة الموسم في اول ما تقع عليه العين */
+html[data-season="nd96"] .tagline { color: rgb(90, 186, 28); }
+html[data-season="nd96"][data-theme="light"] .tagline { color: rgb(0, 137, 74); }
