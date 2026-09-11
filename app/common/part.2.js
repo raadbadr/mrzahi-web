@@ -421,7 +421,8 @@
   var DRIVE_FOLDER_MIME = "application/vnd.google-apps.folder";
   /* اسم الجذر يبدا بـ 00- كي يتصدر قائمة مجلدات المستخدم في درايف (امر المهندس رعد 2026-09-11) */
   var DRIVE_ROOT_NAME = "00-MrZahi";
-  var DRIVE_LEGACY_ROOT_NAMES = ["MrZahi", "TheTracker"]; /* اسماء الجذر السابقة، للعثور على مجلدات قديمة واعادة تسميتها */
+  var DRIVE_LEGACY_ROOT_NAMES = ["MrZahi", "TheTracker"];
+  var DRIVE_FOLDER_COLOR = "#4986e7"; /* ازرق من لوحة الوان درايف: مجلدات المنصة مميزة اللون (امر المهندس رعد 2026-09-11) */ /* اسماء الجذر السابقة، للعثور على مجلدات قديمة واعادة تسميتها */
   var DRIVE_FALLBACK_TEXT = {
     ar: "لم يتم الحفظ في Google Drive، فحفظ الملف في تخزين المنصة.",
     en: "Google Drive was unavailable, so the file was saved to platform storage.",
@@ -463,7 +464,7 @@
       .then(function (data) {
         var found = data && data.files && data.files[0];
         if (found) return found.id;
-        var meta = { name: name, mimeType: DRIVE_FOLDER_MIME, parents: [parentId || "root"] };
+        var meta = { name: name, mimeType: DRIVE_FOLDER_MIME, parents: [parentId || "root"], folderColorRgb: DRIVE_FOLDER_COLOR };
         if (props) meta.appProperties = props;
         return driveFetch(token, DRIVE_API + "/files?fields=id", {
           method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(meta)
@@ -577,6 +578,47 @@
       });
   }
 
+  /* جذر المنصة لكل مستخدم يربط: باسم 00-MrZahi (الجذر القديم MrZahi او TheTracker يعاد تسميته)
+     وبلون المنصة، مرة واحدة لكل متصفح؛ ولا يلمس شيئا ان كان الجذر الحالي مسمى وملونا. الفشل لا يوقف الرفع.
+     (امر المهندس رعد 2026-09-11: «اي مستخدم يسوي ربط يتحدث كل شي عنده يخص مجلد مستر زاهي بنفس التفاصيل») */
+  function driveEnsureRootName(token) {
+    var flag = "mrzahi_drive_root:v2:" + DRIVE_ROOT_NAME + ":" + DRIVE_FOLDER_COLOR;
+    if (localStorage.getItem(flag)) return Promise.resolve(null);
+    var base = "mimeType='" + DRIVE_FOLDER_MIME + "' and trashed=false and 'root' in parents and name='";
+    function byName(name) {
+      return driveFetch(token, DRIVE_API + "/files?q=" + encodeURIComponent(base + driveEscape(name) + "'") + "&fields=files(id,name,folderColorRgb)&pageSize=5&spaces=drive")
+        .then(function (d) { return (d && d.files) || []; });
+    }
+    function style(f, rename) {
+      var body = {};
+      if (rename) body.name = DRIVE_ROOT_NAME;
+      if (String(f.folderColorRgb || "").toLowerCase() !== DRIVE_FOLDER_COLOR) body.folderColorRgb = DRIVE_FOLDER_COLOR;
+      if (!Object.keys(body).length) return Promise.resolve(f.id);
+      return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(f.id) + "?fields=id", {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+      }).then(function () { return f.id; }).catch(function () { return f.id; });
+    }
+    return byName(DRIVE_ROOT_NAME).then(function (current) {
+      if (current.length) return style(current[0], false);
+      return DRIVE_LEGACY_ROOT_NAMES.reduce(function (p, legacy) {
+        return p.then(function (done) {
+          if (done) return done;
+          return byName(legacy).then(function (fs) { return fs.length ? style(fs[0], true) : null; });
+        });
+      }, Promise.resolve(null));
+    }).then(function () { localStorage.setItem(flag, "1"); return null; })
+      .catch(function () { return null; });
+  }
+
+  /* مجلد الشركة نفسه يلون بلون المنصة مرة لكل متصفح */
+  function driveEnsureOrgFolderStyle(token, folderId, orgId) {
+    var flag = "mrzahi_drive_org_style:v1:" + orgId + ":" + DRIVE_FOLDER_COLOR;
+    if (localStorage.getItem(flag)) return Promise.resolve(folderId);
+    return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(folderId) + "?fields=id", {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ folderColorRgb: DRIVE_FOLDER_COLOR })
+    }).then(function () { localStorage.setItem(flag, "1"); return folderId; }).catch(function () { return folderId; });
+  }
+
   /* مجلد الشركة: يبحث عن ربط سابق قبل اي انشاء (امر المهندس رعد: «يشيك اذا فيه ربط سابق، مو ينشئ جديد»)،
      ويحسم التكرار بـ driveChooseFolder، ولا ينشئ الا ان لم يوجد شيء. مفتاح الذاكرة v2 يسقط ما حفظ قبل الاصلاح. */
   function driveFolderFor(token, orgId, orgName, fresh) {
@@ -593,7 +635,7 @@
         return driveFindOrCreateFolder(token, DRIVE_ROOT_NAME, "root", null)
           .then(function (rootId) { return driveFindOrCreateFolder(token, orgName || "Company", rootId, { mrzahi_org: orgId }); });
       })
-      .then(function (id) { localStorage.setItem(key, id); return id; });
+      .then(function (id) { localStorage.setItem(key, id); return driveEnsureOrgFolderStyle(token, id, orgId); });
   }
 
   function driveUploadFile(token, file, folderId) {
