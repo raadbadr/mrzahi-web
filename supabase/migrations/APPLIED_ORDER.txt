@@ -156,3 +156,4 @@
 20260911140500	large_6999_vat_excluded_all	0129_large_6999_vat_excluded_all.sql	added
 20260911141500	national_day_96_prices	0130_national_day_96_prices.sql	added
 20260911150000	ledger_audit_trail	0131_ledger_audit_trail.sql	added
+20260911160000	payments_vat_at_checkout	0132_payments_vat_at_checkout.sql	added

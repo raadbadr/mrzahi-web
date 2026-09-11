@@ -32,7 +32,8 @@ function usd(amountSar) {
   return (Math.round((Number(amountSar) / SAR_PER_USD) * 100) / 100).toFixed(2);
 }
 
-/* يبدأ الدفع: المبلغ يحسب في القاعدة من جدول الباقات، لا يرسله المتصفح. */
+/* يبدأ الدفع: المبلغ يحسب في القاعدة من جدول الباقات (الاساس + 15% ضريبة حين
+   الباقة بلا ضريبة)، لا يرسله المتصفح. */
 export async function payCreate(env, user, body, origin) {
   const org = String(body.org || "").trim();
   const plan = String(body.plan || "").trim();
@@ -43,8 +44,24 @@ export async function payCreate(env, user, body, origin) {
     p_secret: env.WORKER_SECRET, p_user: user.id, p_org: org, p_plan: plan, p_period: period,
   });
   const amountSar = Number(started && started.amount_sar);
+  const baseSar = Number(started && started.base_sar);
+  const vatSar = Number(started && started.vat_sar) || 0;
   const paymentId = started && started.payment_id;
   if (!paymentId || !isFinite(amountSar)) return { error: "could not start payment", status: 400 };
+
+  /* المبلغ المرسل الى PayPal هو الكامل (الاساس + الضريبة). تفصيل الضريبة يرسل
+     ايضا كي يظهر في ايصال PayPal، وبقية القسمة بالدولار تقع في الضريبة لا في
+     الاساس حتى يطابق المجموع القيمة بالسنت. */
+  const totalUsd = usd(amountSar);
+  const amount = { currency_code: "USD", value: totalUsd };
+  if (vatSar > 0 && isFinite(baseSar)) {
+    const baseUsd = usd(baseSar);
+    const taxUsd = (Math.round((Number(totalUsd) - Number(baseUsd)) * 100) / 100).toFixed(2);
+    amount.breakdown = {
+      item_total: { currency_code: "USD", value: baseUsd },
+      tax_total: { currency_code: "USD", value: taxUsd },
+    };
+  }
 
   const t = await token(env);
   const res = await fetch(`${base(env)}/v2/checkout/orders`, {
@@ -54,8 +71,8 @@ export async function payCreate(env, user, body, origin) {
       intent: "CAPTURE",
       purchase_units: [{
         custom_id: paymentId,
-        description: `MrZahi ${plan} ${period}`,
-        amount: { currency_code: "USD", value: usd(amountSar) },
+        description: `MrZahi ${plan} ${period}` + (vatSar > 0 ? " (incl. 15% VAT)" : ""),
+        amount,
       }],
       application_context: {
         brand_name: "MrZahi",
@@ -71,7 +88,7 @@ export async function payCreate(env, user, body, origin) {
   if (!order.id || !approve) return { error: "no approval link", status: 502 };
 
   await rpc(env, "pay_mark_order", { p_secret: env.WORKER_SECRET, p_payment: paymentId, p_order: order.id });
-  return { url: approve.href, order: order.id, amount_sar: amountSar, amount_usd: usd(amountSar) };
+  return { url: approve.href, order: order.id, amount_sar: amountSar, base_sar: baseSar, vat_sar: vatSar, amount_usd: totalUsd };
 }
 
 /* عودة الدافع: نحصل الطلب، ثم تفعل القاعدة الاشتراك في المعاملة نفسها. */
