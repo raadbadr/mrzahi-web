@@ -169,7 +169,7 @@ const BOT = {
         upcomingTitle: "📅 Vos échéances à venir :", overdueTitle: "⏰ Éléments en retard :",
         noUpcoming: "Rien à venir 👌", noOverdue: "Rien en retard 👌",
         help: "Ecrivez simplement : recherche, mes echeances, ajouter une tache, termine, assigner. Ou utilisez les boutons." },
-  ur: { company: "🏢 کمپنی", upcoming: "📅 آنے والی تاریخیں", overdue: "⏰ تاخیر شدہ", dashboard: "🌐 ڈیش بورڈ", help: "❓ مدد",
+  ur: { company: "🏢 کمپنی", upcoming: "📅 آنے والی تاریخیں", overdue: "⏰ تاخیر شدہ", dashboard: "🌐 ڈیش بورڈ",
         linkBtn: "🔗 میرا اکاؤنٹ منسلک کریں", openDash: "ڈیش بورڈ کھولیں",
         phoneBtn: "📱 فون نمبر سے منسلک کریں", phoneHint: "یا نیچے دیے بٹن سے MrZahi میں رجسٹرڈ فون نمبر شیئر کریں — منسلکی فورا مکمل ہو جائے گی۔",
         phoneNotFound: "اس نمبر سے کوئی اکاؤنٹ نہیں ملا۔ ویب سائٹ پر سائن ان کر کے اوپر والا لنک بٹن دبائیں۔",
