@@ -295,6 +295,28 @@ async function notifyAdmins(env, kind, info) {
   } catch (e) { console.log("admin alert failed", String(e && e.message || e).slice(0, 120)); }
 }
 
+/* تنبيه العمليات للمديرين: نص واحد لكل مدير منصة مربوط بتيليغرام */
+async function notifyAdminsText(env, text) {
+  if (!env.WORKER_SECRET) return 0;
+  if (Date.now() - adminChatsCache.at > 60_000) { adminChatsCache = { at: Date.now(), rows: (await rpc(env, "platform_admin_chats", { p_secret: env.WORKER_SECRET })) || [] }; }
+  let sent = 0;
+  for (const a of adminChatsCache.rows) { try { await sendTelegram(env, a.chat_id, text); sent++; } catch (e) { console.log("ops alert failed", String(e && e.message || e).slice(0, 120)); } }
+  return sent;
+}
+
+/* حالة النسخة الاحتياطية الليلية من خادم جدة (/usr/local/bin/mrzahi-backup.sh):
+   تصل المديرين نجاحا وفشلا، فغياب رسالة الصباح نفسه انذار بان الخادم او النسخ توقف */
+async function handleOpsBackup(request, env) {
+  if (!env.OPS_SECRET || request.headers.get("x-ops-secret") !== env.OPS_SECRET) return json({ error: "forbidden" }, 403);
+  let s; try { s = await request.json(); } catch { return json({ error: "bad json" }, 400); }
+  const mb = (Number(s.size || 0) / 1048576).toFixed(2);
+  const text = s.ok
+    ? "نسخة مستر زاهي الاحتياطية تمت: " + String(s.file || "-") + " (" + mb + " MB)" + (s.uploaded ? "، ورفعت الى Oracle جدة" : "، محلية فقط بلا رفع")
+    : "فشل النسخ الاحتياطي لمستر زاهي: " + String(s.error || "خطا غير معروف").slice(0, 200);
+  const sent = await notifyAdminsText(env, text);
+  return json({ ok: true, sent });
+}
+
 async function greetLinked(env, chatId, userId, fallbackLang, fallbackName) {
   let target = null;
   try { target = await notifyTarget(env, userId, "telegram"); } catch {}
@@ -980,6 +1002,7 @@ export default {
         return await handleV1(request, env, url);
       }
       if (path === "/api/config" && request.method === "GET") return handleConfig(env);
+      if (path === "/api/ops/backup" && request.method === "POST") return await handleOpsBackup(request, env);
       if (path === "/api/stats" && request.method === "GET") return await handleStats(env);
       if (path === "/api/assistant" && request.method === "POST") return await handleAssistantRequest(request, env);
       if (path === "/api/documents/template" && request.method === "GET") {
