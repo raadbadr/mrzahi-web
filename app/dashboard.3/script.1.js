@@ -593,9 +593,9 @@
           '<div class="tlx-nav-row">' +
             '<button type="button" class="tlx-nav-btn" id="tlxPrev" aria-label="' + esc(T("tlPrev")) + '">' + prevSvg + "</button>" +
             '<div class="tlx-scroll" id="tlxScroll"><div class="tlx-range-wrap">' + ms + months +
-              /* المقبض لا يتعدى «الآن»: لا مستقبل في سجل النشاط (امر المهندس رعد).
-                 وفي شهر مضى كله يصير todayStep نهاية الشهر فينفتح المدى كله. */
-              '<input type="range" id="tlxSlider" min="0" max="' + todayStep + '" value="' + todayStep + '" step="1" aria-label="' + esc(T("timelineTitle")) + '">' +
+              /* المدى يبقى كاملا كي تتطابق خريطة المقبض مع مواضع الاعمدة
+                 والتعبئة، والوقوف عند «الآن» يفرض على القيمة لا على المدى. */
+              '<input type="range" id="tlxSlider" min="0" max="' + TLX_STEPS + '" value="' + todayStep + '" step="1" aria-label="' + esc(T("timelineTitle")) + '">' +
               (isCurrent ? '<div class="tlx-today is-at-today" id="tlxToday" style="left:' + tlxLeft(ratioOf(todayMs), isRtl) + '"><span class="tlx-today-label">' + esc(T("tlNow")) + "</span></div>" : "") +
             "</div></div>" +
             '<button type="button" class="tlx-nav-btn" id="tlxNext" aria-label="' + esc(T("tlNext")) + '">' + nextSvg + "</button>" +
@@ -683,6 +683,8 @@
         }
         slider.addEventListener("input", function () {
           var v = Number(this.value);
+          /* لا مستقبل في سجل النشاط: السحب يقف عند «الآن» (امر المهندس رعد) */
+          if (v > todayStep) { v = todayStep; this.value = String(v); }
           var nearest = null;
           for (var i = 0; i < stops.length; i++) if (Math.abs(v - stops[i]) <= SNAP && (nearest === null || Math.abs(v - stops[i]) < Math.abs(v - nearest))) nearest = stops[i];
           if (nearest !== null) { v = nearest; this.value = String(v); }
