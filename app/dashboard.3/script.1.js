@@ -685,6 +685,7 @@
           for (var i = 0; i < stops.length; i++) if (Math.abs(v - stops[i]) <= SNAP && (nearest === null || Math.abs(v - stops[i]) < Math.abs(v - nearest))) nearest = stops[i];
           if (nearest !== null) { v = nearest; this.value = String(v); }
           apply(v);
+          keepThumbVisible(v);
         });
         /* نقرة على عمود اليوم تفتح أول أحداثه، ونقرة أخرى تنتقل لتاليه فيه */
         cols.forEach(function (m) {
@@ -707,6 +708,22 @@
 
         var sc = document.getElementById("tlxScroll");
         var isRtl = bar.getAttribute("dir") === "rtl";
+        /* الشريط اوسع من نافذته، فالمقبض كان يخرج عنها عند السحب فيظن انه وقف:
+           النافذة تتبعه فورا حين يقترب من حافتها (امر المهندس رعد: «السحب
+           لليسار يوقف عن الان… مايتعدى»). الازاحة بفارق الاحداثيات فتصح في
+           الاتجاهين بلا اعتماد على اصطلاح scrollLeft في RTL. */
+        function keepThumbVisible(step) {
+          if (!sc) return;
+          var wr = bar.querySelector(".tlx-range-wrap");
+          if (!wr) return;
+          var ratio = Math.max(0, Math.min(1, Number(step) / TLX_STEPS));
+          var rw = wr.getBoundingClientRect(), rs = sc.getBoundingClientRect();
+          var x = rw.left + (isRtl ? (1 - ratio) : ratio) * rw.width;
+          var pad = 56, d = 0;
+          if (x < rs.left + pad) d = x - (rs.left + pad);
+          else if (x > rs.right - pad) d = x - (rs.right - pad);
+          if (d) sc.scrollLeft += d;
+        }
         function scrollTo(step) {
           if (!sc) return;
           var ratio = step / TLX_STEPS;
