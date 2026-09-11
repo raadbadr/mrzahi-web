@@ -3,6 +3,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     const translations = {
       ar: {
         tagline: "تتبع أعمالك في مكان واحد",
+        hostedInKsa: "بياناتك محفوظة داخل المملكة العربية السعودية على خادم محلي في جدة",
         statsSectionTitle: "أرقام المنصة",
         statUsers: "المستخدمون",
         statOrgs: "الشركات",
@@ -95,6 +96,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       },
       en: {
         tagline: "Track your business in one place",
+        hostedInKsa: "Your data is stored inside Saudi Arabia on a local server in Jeddah",
         statsSectionTitle: "Platform stats",
         statUsers: "Users",
         statOrgs: "Companies",
@@ -187,6 +189,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       },
       fr: {
         tagline: "Suivez votre activité en un seul endroit",
+        hostedInKsa: "Vos données sont stockées en Arabie saoudite, sur un serveur local à Djeddah",
         statsSectionTitle: "Chiffres de la plateforme",
         statUsers: "Utilisateurs",
         statOrgs: "Entreprises",
@@ -279,6 +282,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       },
       ur: {
         tagline: "اپنا کاروبار ایک جگہ ٹریک کریں",
+        hostedInKsa: "آپ کا ڈیٹا سعودی عرب کے اندر جدہ میں ایک مقامی سرور پر محفوظ ہے",
         statsSectionTitle: "پلیٹ فارم کے اعداد و شمار",
         statUsers: "صارفین",
         statOrgs: "کمپنیاں",

@@ -399,6 +399,28 @@
       text-shadow: 0 2px 20px rgba(0,160,210,0.3);
     }
 
+    /* سطر الثقة: استضافة البيانات داخل المملكة (عنصر جديد معزول، لا يمس التاغلاين) */
+    .hero-trust {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: -1.25rem auto 0;
+      padding: 0.55rem 1.1rem;
+      max-width: 560px;
+      font-size: 1rem;
+      font-weight: 500;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 999px;
+      text-align: center;
+    }
+    .hero-trust svg {
+      flex: 0 0 auto;
+      color: var(--success);
+    }
+
     .cta {
       display: flex;
       gap: 1.75rem;
