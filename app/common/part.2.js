@@ -420,6 +420,7 @@
   var DRIVE_UPLOAD = "https://www.googleapis.com/upload/drive/v3/files";
   var DRIVE_FOLDER_MIME = "application/vnd.google-apps.folder";
   var DRIVE_ROOT_NAME = "MrZahi";
+  var DRIVE_LEGACY_ROOT_NAMES = ["TheTracker"]; /* اسماء الجذر قبل اعادة التسمية، للعثور على مجلدات قديمة */
   var DRIVE_FALLBACK_TEXT = {
     ar: "لم يتم الحفظ في Google Drive، فحفظ الملف في تخزين المنصة.",
     en: "Google Drive was unavailable, so the file was saved to platform storage.",
@@ -502,20 +503,67 @@
     }).catch(function () { return null; });
   }
 
-  function driveFindFolderByProp(token, propKey, orgId) {
-    var q = "mimeType='" + DRIVE_FOLDER_MIME + "' and trashed=false and appProperties has { key='" + propKey + "' and value='" + driveEscape(orgId) + "' }";
-    return driveFetch(token, DRIVE_API + "/files?q=" + encodeURIComponent(q) + "&fields=files(id)&pageSize=1&spaces=drive")
-      .then(function (data) { var f = data && data.files && data.files[0]; return f ? f.id : null; })
-      .catch(function () { return null; });
+  /* كل المجلدات المرشحة للشركة: المجلد المرتبط بمرفق سابق، والموسومة بالوسم الحالي والقديم،
+     والمسماة باسم الشركة تحت الجذر الحالي والقديم. امر المهندس رعد 2026-09-11: «يتاكد لو فيه تكرار في المجلدات» */
+  function driveCandidateFolders(token, orgId, orgName, anchoredId) {
+    var found = [];
+    function add(id) { if (id && found.indexOf(id) === -1) found.push(id); }
+    function byQuery(q, pageSize) {
+      return driveFetch(token, DRIVE_API + "/files?q=" + encodeURIComponent(q) + "&fields=files(id)&pageSize=" + (pageSize || 20) + "&spaces=drive")
+        .then(function (d) { return ((d && d.files) || []).map(function (f) { return f.id; }); })
+        .catch(function () { return []; });
+    }
+    var base = "mimeType='" + DRIVE_FOLDER_MIME + "' and trashed=false";
+    add(anchoredId);
+    return byQuery(base + " and appProperties has { key='mrzahi_org' and value='" + driveEscape(orgId) + "' }").then(function (ids) { ids.forEach(add); })
+      .then(function () { return byQuery(base + " and appProperties has { key='tracker_org' and value='" + driveEscape(orgId) + "' }"); }).then(function (ids) { ids.forEach(add); })
+      .then(function () {
+        var roots = [DRIVE_ROOT_NAME].concat(DRIVE_LEGACY_ROOT_NAMES);
+        return roots.reduce(function (p, rootName) {
+          return p.then(function () { return byQuery(base + " and name='" + driveEscape(rootName) + "' and 'root' in parents", 5); })
+            .then(function (rootIds) {
+              return rootIds.reduce(function (q, rid) {
+                return q.then(function () { return byQuery(base + " and name='" + driveEscape(orgName || "Company") + "' and '" + driveEscape(rid) + "' in parents"); })
+                  .then(function (ids) { ids.forEach(add); });
+              }, Promise.resolve());
+            });
+        }, Promise.resolve());
+      })
+      .then(function () { return found; });
   }
 
+  /* عند التكرار: يفوز المجلد الذي فيه ملفات اكثر (والمرتبط بمرفق سابق عند التعادل)،
+     وترمى المجلدات المكررة الفارغة الى المهملات كي لا يتشتت شيء بين مجلدين */
+  function driveChooseFolder(token, candidates, anchoredId) {
+    if (!candidates.length) return Promise.resolve(null);
+    return Promise.all(candidates.map(function (id) { return driveFolderFileCount(token, id).catch(function () { return -1; }); }))
+      .then(function (counts) {
+        var best = null, bestScore = -Infinity;
+        candidates.forEach(function (id, i) {
+          var score = counts[i] + (id === anchoredId ? 0.5 : 0);
+          if (score > bestScore) { bestScore = score; best = id; }
+        });
+        var empties = candidates.filter(function (id, i) { return id !== best && counts[i] === 0; });
+        return empties.reduce(function (p, id) {
+          return p.then(function () {
+            return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(id) + "?fields=id", {
+              method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trashed: true })
+            }).catch(function () { return null; });
+          });
+        }, Promise.resolve()).then(function () { return best; });
+      });
+  }
+
+  /* مجلد الشركة: يبحث عن ربط سابق قبل اي انشاء (امر المهندس رعد: «يشيك اذا فيه ربط سابق، مو ينشئ جديد»)،
+     ويحسم التكرار بـ driveChooseFolder، ولا ينشئ الا ان لم يوجد شيء. مفتاح الذاكرة v2 يسقط ما حفظ قبل الاصلاح. */
   function driveFolderFor(token, orgId, orgName, fresh) {
     var key = "mrzahi_drive_folder:v2:" + orgId;
     var cached = !fresh && localStorage.getItem(key);
     if (cached) return Promise.resolve(cached);
+    var anchored = null;
     return driveFolderFromAttachments(token, orgId)
-      .then(function (id) { return id || driveFindFolderByProp(token, "mrzahi_org", orgId); })
-      .then(function (id) { return id || driveFindFolderByProp(token, "tracker_org", orgId); })
+      .then(function (a) { anchored = a; return driveCandidateFolders(token, orgId, orgName, a); })
+      .then(function (cands) { return driveChooseFolder(token, cands, anchored); })
       .then(function (id) {
         if (id) return id;
         return driveFindOrCreateFolder(token, DRIVE_ROOT_NAME, "root", null)
