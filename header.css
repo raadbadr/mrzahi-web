@@ -248,3 +248,40 @@ body.has-site-header { padding-top: 52px; }
     justify-content: center;
   }
 }
+
+/* ────────────────────────────────────────────────────────────────────────────
+   طبقة موسمية: اليوم الوطني السعودي الـ96 «عزنا بطبعنا» (امر المهندس رعد 2026-09-11).
+   مؤقتة حتى نهاية سبتمبر: تطفا بحذف هذه الكتلة وحدها وسطر التفعيل في brand-logo.js،
+   ولا تمس اي متغير او قاعدة في الاصول. الوان هوية الهيئة العامة للترفيه: اخضر العلم
+   السعودي #006C35 وقت النهار، واخضر الهوية #2fa84f في الليل ليقرا على الداكن،
+   والذهبي #b69f64 للثانوي. الشعار والايقونة لا يمسان.
+   ──────────────────────────────────────────────────────────────────────────── */
+html[data-season="nd96"] {
+  --primary: rgb(47, 168, 79);
+  --primary-light: rgb(88, 202, 118);
+  --primary-dark: rgb(31, 138, 60);
+  --secondary: rgb(182, 159, 100);
+  --accent: rgb(182, 159, 100);
+  --primary-shadow: rgba(47, 168, 79, 0.35);
+}
+html[data-season="nd96"][data-theme="light"] {
+  --primary: rgb(0, 108, 53);
+  --primary-light: rgb(47, 168, 79);
+  --primary-dark: rgb(0, 82, 42);
+  --secondary: rgb(150, 128, 74);
+  --accent: rgb(150, 128, 74);
+  --primary-shadow: rgba(0, 108, 53, 0.3);
+  --btn-ink: rgb(255, 255, 255);
+}
+/* شريط الهوية: خيط علوي باخضر العلم والذهبي. على html لا body لان
+   body::before و body::after مشغولان بخلفية الصفحة الرئيسية. */
+html[data-season="nd96"]::after {
+  content: "";
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 3px;
+  z-index: 9999;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgb(0, 108, 53) 0%, rgb(47, 168, 79) 45%, rgb(182, 159, 100) 100%);
+}

@@ -3,6 +3,19 @@
  * Replaces every visible occurrence of the literal text "MrZahi"
  * with the wordmark image, following the active theme.
  */
+/* موسم اليوم الوطني: طبقة الوان موقتة تشتغل في سبتمبر وحده وترجع الهوية بعده
+   (امر المهندس رعد 2026-09-11). ‎?season=off‎ يطفئها و‎?season=nd96‎ يجربها في اي وقت.
+   قواعدها كتلة واحدة في header.css، ولا تمس شعارا ولا ايقونة. */
+(function () {
+  try {
+    var on = new Date().getMonth() === 8;
+    var q = String(window.location.search || "");
+    if (q.indexOf("season=off") !== -1) on = false;
+    else if (q.indexOf("season=nd96") !== -1) on = true;
+    if (on) document.documentElement.setAttribute("data-season", "nd96");
+  } catch (e) { /* الثيم الاصلي يبقى */ }
+})();
+
 (function () {
   var LOGO_DARK = '/mrzahi-logo-full-dark.png?v=2';
   var LOGO_LIGHT = '/mrzahi-logo-full-light.png?v=2';
