@@ -255,7 +255,13 @@
           return tileValues(tiles).then(function (values) {
             paintTiles(values);
             statsReady();
-          }).catch(function (err) { statsReady(); fail(err); });
+          }).catch(function (err) {
+            /* رقم لم يصل يقول ذلك بشرطته: الفراغ الصامت كان يقرا كأن المربع
+               صمم بلا رقم اصلا (امر المهندس رعد: «وراحت الارقام»). */
+            paintTiles(tiles.map(function () { return "\u2014"; }));
+            statsReady();
+            fail(err);
+          });
         }
         if (state.viewType) return loadViewStats();
         var now = new Date();
