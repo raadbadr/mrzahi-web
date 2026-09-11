@@ -534,8 +534,22 @@
   }
 
   /* عند التكرار: يفوز المجلد الذي فيه ملفات اكثر (والمرتبط بمرفق سابق عند التعادل)،
-     وترمى المجلدات المكررة الفارغة الى المهملات كي لا يتشتت شيء بين مجلدين */
-  function driveChooseFolder(token, candidates, anchoredId) {
+     وتنقل ملفات المكررات الى الفائز ثم ترمى المكررات الفارغة الى المهملات، ويوسم الفائز
+     بالوسم الحالي كي يعثر عليه مباشرة في المرة التالية (امر المهندس رعد: «يتاكد لو فيه تكرار») */
+  function driveMoveChildren(token, fromId, toId) {
+    var q = "'" + driveEscape(fromId) + "' in parents and trashed=false";
+    return driveFetch(token, DRIVE_API + "/files?q=" + encodeURIComponent(q) + "&fields=files(id)&pageSize=1000&spaces=drive")
+      .then(function (d) {
+        return ((d && d.files) || []).reduce(function (p, f) {
+          return p.then(function () {
+            return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(f.id) + "?addParents=" + encodeURIComponent(toId) + "&removeParents=" + encodeURIComponent(fromId) + "&fields=id", { method: "PATCH" })
+              .catch(function () { return null; });
+          });
+        }, Promise.resolve());
+      }).catch(function () { return null; });
+  }
+
+  function driveChooseFolder(token, candidates, anchoredId, orgId) {
     if (!candidates.length) return Promise.resolve(null);
     return Promise.all(candidates.map(function (id) { return driveFolderFileCount(token, id).catch(function () { return -1; }); }))
       .then(function (counts) {
@@ -544,42 +558,23 @@
           var score = counts[i] + (id === anchoredId ? 0.5 : 0);
           if (score > bestScore) { bestScore = score; best = id; }
         });
-        var empties = candidates.filter(function (id, i) { return id !== best && counts[i] === 0; });
-        return empties.reduce(function (p, id) {
-          return p.then(function () {
-            return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(id) + "?fields=id", {
-              method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trashed: true })
-            }).catch(function () { return null; });
-          });
-        }, Promise.resolve()).then(function () { return best; });
-      });
-  }
-
-  /* جذر المنصة القائم باسم سابق (MrZahi او TheTracker) يعاد تسميته الى الاسم الحالي كي يتصدر
-     قائمة المستخدم، مرة واحدة لكل متصفح، ولا يلمس شيئا ان وجد الجذر الحالي اصلا. الفشل لا يوقف الرفع. */
-  function driveEnsureRootName(token) {
-    var flag = "mrzahi_drive_root_name:" + DRIVE_ROOT_NAME;
-    if (localStorage.getItem(flag)) return Promise.resolve(null);
-    var base = "mimeType='" + DRIVE_FOLDER_MIME + "' and trashed=false and 'root' in parents and name='";
-    function byName(name) {
-      return driveFetch(token, DRIVE_API + "/files?q=" + encodeURIComponent(base + driveEscape(name) + "'") + "&fields=files(id)&pageSize=5&spaces=drive")
-        .then(function (d) { return ((d && d.files) || []).map(function (f) { return f.id; }); });
-    }
-    return byName(DRIVE_ROOT_NAME).then(function (current) {
-      if (current.length) return null;
-      return DRIVE_LEGACY_ROOT_NAMES.reduce(function (p, legacy) {
-        return p.then(function (done) {
-          if (done) return done;
-          return byName(legacy).then(function (ids) {
-            if (!ids.length) return null;
-            return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(ids[0]) + "?fields=id,name", {
-              method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: DRIVE_ROOT_NAME })
-            }).then(function (f) { return f && f.id; });
-          });
+        var others = candidates.filter(function (id, i) { return id !== best && counts[i] >= 0; });
+        return others.reduce(function (p, id) {
+          return p.then(function () { return driveMoveChildren(token, id, best); })
+            .then(function () { return driveFolderFileCount(token, id).catch(function () { return -1; }); })
+            .then(function (left) {
+              if (left !== 0) return null;
+              return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(id) + "?fields=id", {
+                method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trashed: true })
+              }).catch(function () { return null; });
+            });
+        }, Promise.resolve()).then(function () {
+          if (!orgId) return best;
+          return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(best) + "?fields=id", {
+            method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ appProperties: { mrzahi_org: orgId } })
+          }).catch(function () { return null; }).then(function () { return best; });
         });
-      }, Promise.resolve(null));
-    }).then(function () { localStorage.setItem(flag, "1"); return null; })
-      .catch(function () { return null; });
+      });
   }
 
   /* مجلد الشركة: يبحث عن ربط سابق قبل اي انشاء (امر المهندس رعد: «يشيك اذا فيه ربط سابق، مو ينشئ جديد»)،
@@ -592,7 +587,7 @@
     return driveEnsureRootName(token)
       .then(function () { return driveFolderFromAttachments(token, orgId); })
       .then(function (a) { anchored = a; return driveCandidateFolders(token, orgId, orgName, a); })
-      .then(function (cands) { return driveChooseFolder(token, cands, anchored); })
+      .then(function (cands) { return driveChooseFolder(token, cands, anchored, orgId); })
       .then(function (id) {
         if (id) return id;
         return driveFindOrCreateFolder(token, DRIVE_ROOT_NAME, "root", null)
