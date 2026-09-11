@@ -149,3 +149,4 @@
 #	-	0082_trial_countdown.sql	orphan
 20260911120000	drive_standard_sweep	0123_drive_standard_sweep.sql	added
 20260911123000	storage_quotas_local_server	0124_storage_quotas_local_server.sql	added
+20260911130000	plan_names_monshaat_classification	0125_plan_names_monshaat_classification.sql	added
