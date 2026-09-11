@@ -460,7 +460,7 @@
     .case-bundle th, .case-bundle td { padding: 0.6rem 0.75rem; text-align: start; font-size: 0.85rem; border-bottom: 1px solid var(--glass-border); }
 
     /* الخط الزمني للإنجازات — شريط باركينزي نفسه (Liquid Glass) بمتغيرات مستر زاهي */
-    .tlx { --timeline-fill-pct: 100%; position: relative; isolation: isolate; margin-top: 0.75rem; padding: 4.5rem 1.2rem 1.6rem; border-radius: 16px;
+    .tlx { --timeline-fill-pct: 100%; position: relative; isolation: isolate; margin-top: 0.75rem; padding: 1.1rem 1.2rem 1rem; border-radius: 16px;
       backdrop-filter: blur(22px) saturate(1.65); -webkit-backdrop-filter: blur(22px) saturate(1.65);
       background: linear-gradient(165deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.07) 42%, rgba(255,255,255,0.04) 100%);
       border: 1px solid rgba(255,255,255,0.28);
@@ -469,17 +469,10 @@
       background: linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.48) 45%, rgba(255,255,255,0.38) 100%);
       border: 1px solid rgba(255,255,255,0.72); box-shadow: 0 12px 40px rgba(0,80,140,0.1), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(0,60,100,0.06); }
 
-    /* صف «تصفح الأشهر»: يمرر عرض الشريط أفقيا بلا ما يغير التاريخ المختار */
-    .tlx-title { display: flex; align-items: center; justify-content: flex-end; gap: 0.4rem; margin: 0 0 0.5rem; padding-inline-end: 0.1rem; }
-    .tlx-title-label { font-size: 0.68rem; color: var(--text-secondary); opacity: 0.75; margin-inline-end: 0.15rem; font-weight: 600; }
-    .tlx-month-btn { flex: 0 0 auto; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%;
-      background: transparent; border: 1px solid rgba(255,255,255,0.28); color: var(--text-secondary); cursor: pointer; -webkit-appearance: none; appearance: none;
-      transition: color .15s ease, border-color .15s ease, transform .12s ease, opacity .15s ease; }
-    .tlx-month-btn:hover:not(:disabled) { color: var(--primary); border-color: rgba(79,195,247,0.75); transform: scale(1.08); }
-    .tlx-month-btn:active:not(:disabled) { transform: scale(0.94); }
-    .tlx-month-btn:disabled { opacity: 0.25; cursor: default; }
-    [data-theme="light"] .tlx-month-btn { border-color: rgba(0,60,100,0.25); color: rgba(0,60,100,0.7); }
-    .tlx[dir="rtl"] .tlx-month-btn svg { transform: scaleX(-1); }
+    /* صف الشهر: زر ثم اسمه ثم زر، على خط واحد */
+    .tlx-title { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; align-items: center; gap: 0.6rem;
+      margin: 0 0 0.55rem; font-weight: 700; color: var(--text-primary); font-size: 1rem; letter-spacing: 0.01em; font-variant-numeric: tabular-nums; }
+    .tlx-title > span { text-align: center; }
 
     .tlx-nav-row { display: flex; align-items: center; gap: 0.6rem; }
     .tlx-nav-btn { flex: 0 0 auto; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%;
@@ -495,9 +488,9 @@
     /* overflow-x:auto يفرض قصا عموديا ايضا: حشو يتسع لعناوين المعالم فوق
        الشريط ولاسماء الاشهر تحته، وهامش سالب يلغي اثره على التخطيط. */
     .tlx-scroll { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-      padding: 2.6rem 0 1.4rem; margin: -2.6rem 0 -1.4rem; }
+      padding: 2.7rem 0 1.5rem; margin: -2.7rem 0 -1.5rem; }
     .tlx-scroll::-webkit-scrollbar { display: none; }
-    .tlx-range-wrap { position: relative; width: max(100%, calc(var(--tl-months, 1) * 46px)); height: 20px; z-index: 0; user-select: none; -webkit-user-select: none; }
+    .tlx-range-wrap { position: relative; width: max(100%, calc(var(--tlx-days, 30) * 40px)); height: 20px; z-index: 0; user-select: none; -webkit-user-select: none; }
     .tlx-range-wrap::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 14px; border-radius: 999px;
       width: var(--timeline-fill-pct, 100%); max-width: 100%; pointer-events: none; z-index: 0; transition: width .14s cubic-bezier(.25,.8,.25,1);
       background: linear-gradient(90deg, rgba(0,160,220,0.45) 0%, rgba(80,160,230,0.3) 55%, rgba(130,190,240,0.18) 100%); }
@@ -528,26 +521,27 @@
     .tlx-today.is-at-today { opacity: 1; }
     .tlx-today-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); white-space: nowrap; font-size: 0.46rem; font-weight: 800; line-height: 1; text-align: center; color: rgba(0,100,180,0.9); letter-spacing: 0.06em; text-transform: uppercase; }
 
-    /* المعلم: شرطة ملونة يعلوها عنوانه وتاريخه — بلا خلفية ولا راس */
-    .tlx-ms { position: absolute; left: 0; top: 0; bottom: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2;
-      pointer-events: auto; cursor: pointer; width: 32px; top: -12px; bottom: -12px; }
-    .tlx-ms .tlx-ms-label, .tlx-ms .tlx-ms-date { pointer-events: none; }
+    /* عمود اليوم: يرتكز على المسار ويطول بعدد احداث يومه، ولونه لون اكثر
+       انواعها. عشرات الاحداث في الشهر كانت شرطات متلاصقة لا تميز ولا تنقر. */
+    .tlx-ms { position: absolute; left: 0; top: -16px; bottom: -16px; transform: translateX(-50%); width: 22px; z-index: 2; pointer-events: auto; cursor: pointer; }
     .tlx-ms:focus { outline: none; }
-    .tlx-ms:focus-visible .tlx-ms-tick { outline: 2px solid var(--primary); outline-offset: 3px; }
-    .tlx-ms:hover .tlx-ms-tick { opacity: 1; }
+    .tlx-ms:focus-visible .tlx-ms-bar { outline: 2px solid var(--primary); outline-offset: 3px; }
     .tlx-ms.is-under-thumb { pointer-events: none; }
     .tlx-ms { --tick-top: #ffd180; --tick-mid: #ff9100; --tick-low: #e65100; --tick-glow: rgba(255,145,0,0.5); --tick-halo: rgba(255,180,80,0.8); --label-color: #ffb347; --label-color-light: #c2410c; }
-    .tlx-ms-tick { width: 3px; height: 26px; border-radius: 2px; opacity: 0.5; transition: opacity .16s ease, transform .16s ease;
-      background: linear-gradient(180deg, var(--tick-top) 0%, var(--tick-mid) 45%, var(--tick-low) 100%);
-      box-shadow: 0 0 10px var(--tick-glow), 0 0 3px var(--tick-halo), inset 0 1px 0 rgba(255,255,255,0.45); }
-    .tlx-ms.is-active .tlx-ms-tick { opacity: 1; transform: scaleY(1.35); }
-    .tlx-ms-label { position: absolute; bottom: calc(50% + 30px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.72rem; font-weight: 700; line-height: 1; text-align: center; color: var(--label-color); letter-spacing: 0.03em; text-shadow: 0 1px 3px rgba(0,0,0,0.55); opacity: 0; transition: opacity .16s ease; }
-    .tlx-ms-date { position: absolute; bottom: calc(50% + 16px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.58rem; font-weight: 600; line-height: 1; text-align: center; color: var(--label-color); opacity: 0; transition: opacity .16s ease; }
-    .tlx-ms.is-active .tlx-ms-label, .tlx-ms.is-active .tlx-ms-date { opacity: 1; }
-    .tlx--no-float .tlx-ms-label, .tlx--no-float .tlx-ms-date { display: none; }
-    .tlx-ms.is-outside .tlx-ms-label, .tlx-ms.is-outside .tlx-ms-date { opacity: 0; }
-    [data-theme="light"] .tlx-ms-label { color: var(--label-color-light); text-shadow: 0 1px 0 rgba(255,255,255,0.9); }
-    [data-theme="light"] .tlx-ms-date { color: var(--label-color-light); }
+    .tlx-ms-bar { position: absolute; left: 50%; margin-left: -3.5px; bottom: calc(50% - 3px); width: 7px; border-radius: 4px 4px 1px 1px; opacity: 0.78; transition: opacity .16s ease, transform .16s ease, box-shadow .16s ease;
+      transform-origin: bottom center; background: linear-gradient(180deg, var(--tick-top) 0%, var(--tick-mid) 45%, var(--tick-low) 100%);
+      box-shadow: 0 0 10px var(--tick-glow), inset 0 1px 0 rgba(255,255,255,0.45); }
+    /* اليوم الذي اجتمعت فيه انواع شتى يعلم بحده الفاتح لا بلون واحد يكذب عليه */
+    .tlx-ms.is-mixed .tlx-ms-bar { box-shadow: 0 0 10px var(--tick-glow), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 0 0 1px rgba(255,255,255,0.5); }
+    .tlx-ms:hover { z-index: 6; }
+    .tlx-ms:hover .tlx-ms-bar { opacity: 1; transform: scaleX(1.35); }
+    .tlx-ms.is-active .tlx-ms-bar { opacity: 1; transform: scaleX(1.5); box-shadow: 0 0 14px var(--tick-glow), 0 0 4px var(--tick-halo), inset 0 1px 0 rgba(255,255,255,0.55); }
+    /* عدد احداث اليوم: يظهر عند اختياره او عند المرور، فلا تزدحم الارقام */
+    .tlx-ms-count { position: absolute; bottom: calc(50% + 34px); left: 50%; transform: translateX(-50%); min-width: 16px; padding: 1px 4px; border-radius: 999px;
+      font-size: 0.6rem; font-weight: 800; line-height: 1.35; text-align: center; color: #0b1826; background: var(--tick-mid);
+      opacity: 0; transition: opacity .16s ease; pointer-events: none; font-variant-numeric: tabular-nums; }
+    .tlx-ms.is-active .tlx-ms-count, .tlx-ms:hover .tlx-ms-count { opacity: 1; }
+    .tlx--no-float .tlx-ms-count { display: none; }
     /* ألوان الأنواع كما في معالم باركينزي: أخضر، أزرق، ذهبي، بنفسجي */
     .tlx-ms[data-kind="item_done"] { --tick-top: #b9f6ca; --tick-mid: #69f0ae; --tick-low: #2e7d32; --tick-glow: rgba(105,240,174,0.5); --tick-halo: rgba(185,246,202,0.8); --label-color: #69f0ae; --label-color-light: #1b7a3e; }
     .tlx-ms[data-kind="import"] { --tick-top: #bbdefb; --tick-mid: #42a5f5; --tick-low: #1565c0; --tick-glow: rgba(66,165,245,0.5); --tick-halo: rgba(187,222,251,0.8); --label-color: #64b5f6; --label-color-light: #1565c0; }
@@ -555,18 +549,38 @@
     .tlx-ms[data-kind="member"] { --tick-top: #e1bee7; --tick-mid: #ab47bc; --tick-low: #6a1b9a; --tick-glow: rgba(171,71,188,0.5); --tick-halo: rgba(225,190,231,0.7); --label-color: #ce93d8; --label-color-light: #6a1b9a; }
     .tlx-ms[data-kind="subscription"] { --tick-top: #ffcdd2; --tick-mid: #ef5350; --tick-low: #b71c1c; --tick-glow: rgba(239,83,80,0.5); --tick-halo: rgba(255,205,210,0.7); --label-color: #ef9a9a; --label-color-light: #b71c1c; }
 
+    /* ارقام ايام الشهر تحت المسار، واليوم يعلم بقرصه لا بلونه وحده */
+    .tlx-day-tick { position: absolute; top: calc(50% - 5px); width: 1px; height: 10px; background: rgba(255,255,255,0.24); transform: translateX(-50%); pointer-events: none; z-index: 1; }
+    [data-theme="light"] .tlx-day-tick { background: rgba(0,60,100,0.18); }
+    .tlx-day-label { position: absolute; top: calc(50% + 13px); transform: translateX(-50%); padding: 1px 4px; border-radius: 999px; font-size: 0.62rem; font-weight: 700; line-height: 1.25;
+      color: var(--text-secondary); opacity: .9; pointer-events: none; z-index: 1; font-variant-numeric: tabular-nums; }
+    .tlx-day-label.is-today { color: #4fc3f7; opacity: 1; font-weight: 800; background: rgba(79,195,247,0.16); box-shadow: inset 0 0 0 1px rgba(79,195,247,0.4); }
+    [data-theme="light"] .tlx-day-label.is-today { color: #0277bd; background: rgba(2,119,189,0.12); box-shadow: inset 0 0 0 1px rgba(2,119,189,0.3); }
+
     /* فواصل الأشهر واسماؤها: كل شهر تقويمي ياخذ العرض نفسه مهما تفاوتت احداثه */
     .tlx-month-tick { position: absolute; top: calc(50% - 7px); width: 1px; height: 14px; background: rgba(255,255,255,0.22); transform: translateX(-50%); pointer-events: none; z-index: 1; }
     [data-theme="light"] .tlx-month-tick { background: rgba(0,60,100,0.18); }
     .tlx-month-label { position: absolute; top: calc(50% + 13px); transform: translateX(-50%); white-space: nowrap; font-size: 0.58rem; font-weight: 600; line-height: 1; color: var(--text-secondary); opacity: 0.75; pointer-events: none; z-index: 1; }
 
-    .tlx-current { min-height: 3.6em; line-height: 1.8; margin-top: 0.35rem; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--text-primary); opacity: 0.9; overflow-wrap: anywhere; }
+    /* الحدث المختار كاملا في سطر ثابت تحت المسار: العناوين عندنا طويلة
+       فلا تطفو فوق الشريط حيث تقص او تزاحم جيرانها. */
+    .tlx-current { display: flex; align-items: center; justify-content: center; gap: 0.55rem; min-height: 2.9em; margin-top: 0.6rem;
+      padding: 0.5rem 0.85rem; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+      text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--text-primary); overflow-wrap: anywhere; transition: border-color .16s ease; }
+    [data-theme="light"] .tlx-current { background: rgba(0,60,100,0.04); }
+    .tlx-current.is-empty { background: transparent; border-color: transparent; }
+    .tlx-current-dot { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; background: #ff9100; box-shadow: 0 0 8px rgba(255,145,0,0.6); }
+    .tlx-current.is-empty .tlx-current-dot { display: none; }
+    .tlx-current[data-kind="item_done"] .tlx-current-dot { background: #69f0ae; box-shadow: 0 0 8px rgba(105,240,174,0.6); }
+    .tlx-current[data-kind="import"] .tlx-current-dot { background: #42a5f5; box-shadow: 0 0 8px rgba(66,165,245,0.6); }
+    .tlx-current[data-kind="attachment"] .tlx-current-dot { background: #ffd700; box-shadow: 0 0 8px rgba(255,215,0,0.6); }
+    .tlx-current[data-kind="member"] .tlx-current-dot { background: #ab47bc; box-shadow: 0 0 8px rgba(171,71,188,0.6); }
+    .tlx-current[data-kind="subscription"] .tlx-current-dot { background: #ef5350; box-shadow: 0 0 8px rgba(239,83,80,0.6); }
 
     @media (max-width: 768px) {
-      .tlx { padding: 3.6rem 0.9rem 1rem; }
-      .tlx-ms-label { font-size: 0.52rem; }
-      .tlx-ms-date { display: none; }
-      .tlx-ms-tick { height: 18px; }
+      .tlx { padding: 1rem 0.9rem 0.9rem; }
+      .tlx-ms { width: 16px; }
+      .tlx-ms-bar { width: 5px; }
       .tlx-today-label { font-size: 0.42rem; }
       .tlx input[type="range"]::-webkit-slider-thumb { width: 26px; height: 16px; border-radius: 8px; }
       .tlx input[type="range"]::-moz-range-thumb { width: 26px; height: 16px; border-radius: 8px; }
@@ -1025,7 +1039,7 @@
       #timelineCard, .tlx, .tlx-title, .tlx-ends { max-width: 100%; overflow-x: hidden; }
       .tlx-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
       /* الشهر 46 بكسلا كما في شريط باركينزي: يتمرر بزري «تصفح الاشهر» */
-      .tlx-scroll .tlx-range-wrap { width: max(100%, calc(var(--tl-months, 1) * 46px)); }
+      .tlx-scroll .tlx-range-wrap { width: max(100%, calc(var(--tlx-days, 30) * 30px)); }
       .cal-grid, .cal-cell { min-width: 0; }
     }
     @media (max-width: 600px) {

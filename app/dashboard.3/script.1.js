@@ -498,6 +498,9 @@
 
       var tlState = { rows: [], stats: null, month: null };
 
+      /* شريط مستر زاهي: سجل نشاط كثيف (عشرات الاحداث في الشهر وعناوينها طويلة)،
+         فاليوم عمود واحد يطول بعدد احداثه بدل شرطة لكل حدث تتلاصق مع جارتها،
+         والعنوان يقرا في سطر ثابت تحت المسار بدل ان يطفو فوقه فيقص او يزاحم. */
       function renderTimeline(rows, stats) {
         var card = document.getElementById("timelineCard");
         if (!card) return;
@@ -518,142 +521,163 @@
           return isNaN(ms) ? null : { ms: ms, kind: r.kind, title: r.title || "", meta: r.meta || {} };
         }).filter(Boolean).sort(function (a, b) { return a.ms - b.ms; });
 
-        /* المدى كشريط باركينزي: من اول شهر فيه حدث الى نهاية الشهر الحالي،
-           وكل شهر تقويمي ياخذ العرض نفسه مهما تفاوتت احداثه. */
+        /* الشهر المعروض: من أول يوم فيه إلى آخر يوم */
+        var monthStart = tlState.month;
+        var monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1);
+        var minMs = monthStart.getTime(), maxMs = monthEnd.getTime() - 1;
         var nowMs = Date.now();
-        var nowD = new Date(nowMs);
-        var maxMs = new Date(nowD.getFullYear(), nowD.getMonth() + 1, 1).getTime() - 1;
-        var firstMs = events.length ? events[0].ms : new Date(nowD.getFullYear(), nowD.getMonth(), 1).getTime();
-        var firstD = new Date(Math.min(firstMs, maxMs));
-        var minMs = new Date(firstD.getFullYear(), firstD.getMonth(), 1).getTime();
-        var segs = [];
-        (function () {
-          var y = new Date(minMs).getFullYear(), mo = new Date(minMs).getMonth();
-          for (var g = 0; g < 240; g++) {
-            var a = new Date(y, mo, 1).getTime();
-            if (a > maxMs) break;
-            var b = new Date(y, mo + 1, 1).getTime() - 1;
-            segs.push({ a: Math.max(a, minMs), b: Math.min(b, maxMs) });
-            mo++; if (mo > 11) { mo = 0; y++; }
-          }
-          for (var i = 0; i < segs.length; i++) { segs[i].v0 = i / segs.length; segs[i].v1 = (i + 1) / segs.length; }
-        })();
         var isCurrent = nowMs >= minMs && nowMs <= maxMs;
         var todayMs = isCurrent ? nowMs : (nowMs > maxMs ? maxMs : minMs);
-        var ratioOf = function (ms) {
-          if (!segs.length || ms <= minMs) return 0;
-          if (ms >= maxMs) return 1;
-          for (var i = 0; i < segs.length; i++) {
-            var s = segs[i];
-            if (ms <= s.b) { var t = (ms - s.a) / Math.max(1, s.b - s.a); return s.v0 + Math.max(0, Math.min(1, t)) * (s.v1 - s.v0); }
-          }
-          return 1;
-        };
+        var spanMs = maxMs - minMs;
+        var daysInMonth = Math.round(spanMs / 86400000);
+        var ratioOf = function (ms) { return Math.max(0, Math.min(1, (ms - minMs) / spanMs)); };
         events = events.filter(function (ev) { return ev.ms >= minMs && ev.ms <= maxMs; });
-        var fillPct = 100;
+        var nextMonthStart = monthEnd.getTime();
 
-        var ms = "";
+        /* أحداث اليوم الواحد في عمود واحد: يطول بعددها ويحمل لون أكثر انواعها */
+        var days = [], dayOf = {};
         events.forEach(function (ev, i) {
-          /* الرقم القياسي (RSK-/ITM-/ORG-…) داخلي: يحذف من أول العنوان إن سبقه */
-          var shownTitle = String(ev.title || "").replace(/^\s*[A-Z]{2,4}-\d{6,8}-\d{3,5}\s*[·—–-]?\s*/, "").trim();
-          var label = T(TL_KINDS[ev.kind] || "tlCreated") + (shownTitle ? " — " + shownTitle : "");
-          ms += '<div class="tlx-ms" role="button" tabindex="0" data-idx="' + i + '" title="' + esc(label + " · " + tlxShortDate(ev.ms)) + '" data-kind="' + esc(ev.kind) + '" data-step="' + Math.round(ratioOf(ev.ms) * TLX_STEPS) + '" style="left:' + tlxLeft(ratioOf(ev.ms), isRtl) + '">' +
-                '<span class="tlx-ms-label">' + esc(label) + "</span>" +
-                '<span class="tlx-ms-date">' + esc(tlxShortDate(ev.ms)) + "</span>" +
-                '<span class="tlx-ms-tick" aria-hidden="true"></span></div>';
+          var d = new Date(ev.ms);
+          var key = d.getDate();
+          var col = dayOf[key];
+          if (!col) {
+            col = dayOf[key] = { day: key, ms: new Date(d.getFullYear(), d.getMonth(), key, 12).getTime(), idxs: [], kinds: {} };
+            days.push(col);
+          }
+          col.idxs.push(i);
+          col.kinds[ev.kind] = (col.kinds[ev.kind] || 0) + 1;
+        });
+        days.forEach(function (col) {
+          var best = "", bestN = 0;
+          Object.keys(col.kinds).forEach(function (k) { if (col.kinds[k] > bestN) { bestN = col.kinds[k]; best = k; } });
+          col.kind = best;
+          col.mixed = Object.keys(col.kinds).length > 1;
         });
 
-        /* فواصل الأشهر وأسماؤها تحت المسار */
+        var ms = "";
+        days.forEach(function (col) {
+          var n = col.idxs.length;
+          /* الارتفاع يقرا العدد: 14 بكسلا لحدث و4 لكل حدث بعده حتى 34 */
+          var h = Math.min(34, 14 + (n - 1) * 4);
+          ms += '<div class="tlx-ms' + (col.mixed ? " is-mixed" : "") + '" role="button" tabindex="0"' +
+                ' data-idx="' + col.idxs[0] + '" data-idxs="' + col.idxs.join(",") + '" data-day="' + col.day + '"' +
+                ' data-kind="' + esc(col.kind) + '" data-step="' + Math.round(ratioOf(col.ms) * TLX_STEPS) + '"' +
+                ' title="' + esc(fmt("tlDayEvents", { n: n, d: tlxShortDate(col.ms) })) + '"' +
+                ' style="left:' + tlxLeft(ratioOf(col.ms), isRtl) + '">' +
+                '<span class="tlx-ms-bar" style="height:' + h + 'px" aria-hidden="true"></span>' +
+                (n > 1 ? '<span class="tlx-ms-count">' + n + "</span>" : "") +
+                "</div>";
+        });
+
+        /* أيام الشهر تحت المسار */
         var months = "";
         var lo = app.lang(); var loc = lo === "ur" ? "ur-PK" : lo;
-        for (var si = 0; si < segs.length; si++) {
-          var sg = segs[si];
-          if (si > 0) months += '<span class="tlx-month-tick" style="left:' + tlxLeft(sg.v0, isRtl) + '"></span>';
-          months += '<span class="tlx-month-label" style="left:' + tlxLeft((sg.v0 + sg.v1) / 2, isRtl) + '">' +
-                    esc(new Date((sg.a + sg.b) / 2).toLocaleDateString(loc, { month: "short", numberingSystem: "latn" })) + "</span>";
+        var todayDay = isCurrent ? new Date(nowMs).getDate() : -1;
+        for (var day = 1; day <= daysInMonth; day++) {
+          var dms = new Date(monthStart.getFullYear(), monthStart.getMonth(), day).getTime();
+          var rr = ratioOf(dms);
+          months += '<span class="tlx-day-tick" style="left:' + tlxLeft(rr, isRtl) + '"></span>' +
+                    '<span class="tlx-day-label' + (day === todayDay ? " is-today" : "") + '" style="left:' + tlxLeft(rr, isRtl) + '">' + day + "</span>";
         }
-
+        var monthTitle = monthStart.toLocaleDateString(loc, { month: "long", year: "numeric", numberingSystem: "latn" });
         var todayStep = Math.round(ratioOf(todayMs) * TLX_STEPS);
-        var navPrevSvg = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg>';
-        var navNextSvg = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg>';
-        var monPrevSvg = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg>';
-        var monNextSvg = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg>';
-        html += '<div class="tlx" id="tlx" dir="' + (isRtl ? "rtl" : "ltr") + '" style="--timeline-fill-pct:' + fillPct + '%" data-today-step="' + todayStep + '">' +
-          /* صف «تصفح الأشهر»: يمرر عرض الشريط أفقيا ولا يغير التاريخ المختار */
+        var prevSvg = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg>';
+        var nextSvg = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg>';
+
+        html += '<div class="tlx" id="tlx" dir="' + (isRtl ? "rtl" : "ltr") + '" style="--timeline-fill-pct:100%;--tlx-days:' + daysInMonth + '" data-today-step="' + todayStep + '">' +
           '<div class="tlx-title">' +
-            '<span class="tlx-title-label">' + esc(T("tlMonths")) + "</span>" +
-            '<button type="button" class="tlx-month-btn" id="tlxMonthPrev" aria-label="' + esc(T("tlPrev")) + '">' + monPrevSvg + "</button>" +
-            '<button type="button" class="tlx-month-btn" id="tlxMonthNext" aria-label="' + esc(T("tlNext")) + '">' + monNextSvg + "</button>" +
+            '<button type="button" class="tlx-nav-btn" id="tlxMonthPrev" aria-label="' + esc(T("tlPrev")) + '">' + prevSvg + "</button>" +
+            "<span>" + esc(monthTitle) + "</span>" +
+            '<button type="button" class="tlx-nav-btn" id="tlxMonthNext"' + (nextMonthStart > nowMs ? " disabled" : "") + ' aria-label="' + esc(T("tlNext")) + '">' + nextSvg + "</button>" +
           "</div>" +
           '<div class="tlx-nav-row">' +
-            '<button type="button" class="tlx-nav-btn" id="tlxPrev" aria-label="' + esc(T("tlPrev")) + '">' + navPrevSvg + "</button>" +
-            '<div class="tlx-scroll" id="tlxScroll"><div class="tlx-range-wrap" style="--tl-months:' + segs.length + '">' + ms + months +
+            '<button type="button" class="tlx-nav-btn" id="tlxPrev" aria-label="' + esc(T("tlPrev")) + '">' + prevSvg + "</button>" +
+            '<div class="tlx-scroll" id="tlxScroll"><div class="tlx-range-wrap">' + ms + months +
               '<input type="range" id="tlxSlider" min="0" max="' + TLX_STEPS + '" value="' + todayStep + '" step="1" aria-label="' + esc(T("timelineTitle")) + '">' +
               (isCurrent ? '<div class="tlx-today is-at-today" id="tlxToday" style="left:' + tlxLeft(ratioOf(todayMs), isRtl) + '"><span class="tlx-today-label">' + esc(T("tlNow")) + "</span></div>" : "") +
             "</div></div>" +
-            '<button type="button" class="tlx-nav-btn" id="tlxNext" aria-label="' + esc(T("tlNext")) + '">' + navNextSvg + "</button>" +
+            '<button type="button" class="tlx-nav-btn" id="tlxNext" aria-label="' + esc(T("tlNext")) + '">' + nextSvg + "</button>" +
           "</div>" +
-          '<div class="tlx-ends">' +
-            "<span>" + esc(tlxFmtDate(minMs)) + "</span><span>" + esc(tlxFmtDate(maxMs)) + "</span>" +
-          "</div>" +
-          /* الحدث المختار بكلماته أسفل الصف الموجود: «الحدث 3 من 7 — استيراد ملف · 5 سبتمبر» */
-          (events.length ? '<div class="tlx-current" id="tlxCurrent" aria-live="polite"></div>' : "") +
+          '<div class="tlx-ends"><span>' + esc(tlxFmtDate(minMs)) + "</span><span>" + esc(tlxFmtDate(maxMs)) + "</span></div>" +
+          /* الحدث المختار كاملا في سطر ثابت: لا يقص ولا يزاحم المسار */
+          (events.length ? '<div class="tlx-current" id="tlxCurrent" aria-live="polite"><span class="tlx-current-dot" aria-hidden="true"></span><span class="tlx-current-text"></span></div>' : "") +
         "</div>";
         if (!events.length) html += '<p class="empty-note">' + esc(T("timelineEmpty")) + "</p>";
         if (card.__sig === html) return;
         card.__sig = html;
         card.innerHTML = html;
         card.hidden = false;
+        tlState.events = events;
         wireTimeline();
       }
 
       function wireTimeline() {
         var bar = document.getElementById("tlx"), slider = document.getElementById("tlxSlider");
         if (!bar || !slider) return;
-        var marks = [].slice.call(bar.querySelectorAll(".tlx-ms"));
-        var stops = marks.map(function (m) { return Number(m.dataset.step); });
-        stops = stops.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a - b; });
+        var events = tlState.events || [];
+        var cols = [].slice.call(bar.querySelectorAll(".tlx-ms"));
+        var stops = cols.map(function (m) { return Number(m.dataset.step); });
         var today = document.getElementById("tlxToday"), prev = document.getElementById("tlxPrev"), next = document.getElementById("tlxNext");
         var SNAP = Math.round(TLX_STEPS * 0.015);
         var todayStep = Number(bar.dataset.todayStep) || TLX_STEPS;
-
         var current = document.getElementById("tlxCurrent");
+        var currentText = current && current.querySelector(".tlx-current-text");
         var selIdx = -1;
-        /* pos: موضع المقبض؛ idx (اختياري): حدث بعينه — فتصل الأحداث المتزامنة في اليوم نفسه واحدا واحدا */
+
+        function colOfEvent(idx) {
+          for (var i = 0; i < cols.length; i++) {
+            var list = String(cols[i].dataset.idxs || "").split(",");
+            if (list.indexOf(String(idx)) >= 0) return cols[i];
+          }
+          return null;
+        }
+        function eventLabel(i) {
+          var ev = events[i];
+          if (!ev) return "";
+          var shown = String(ev.title || "").replace(/^\s*[A-Z]{2,4}-\d{6,8}-\d{3,5}\s*[·—–-]?\s*/, "").trim();
+          return T(TL_KINDS[ev.kind] || "tlCreated") + (shown ? " — " + shown : "");
+        }
+        /* pos: موضع المقبض؛ idx (اختياري): حدث بعينه */
         function apply(pos, idx) {
           var p = Number(pos);
           bar.style.setProperty("--timeline-fill-pct", Math.max(0, Math.min(100, (p / TLX_STEPS) * 100)) + "%");
           if (today) today.classList.toggle("is-at-today", Math.abs(p - todayStep) <= SNAP);
           var active = null;
-          if (typeof idx === "number" && marks[idx]) active = marks[idx];
+          if (typeof idx === "number") { active = colOfEvent(idx); selIdx = idx; }
           else {
             var best = -1;
-            marks.forEach(function (m) { var st = Number(m.dataset.step); if (st <= p && st > best) { best = st; active = m; } });
-            /* في اليوم الواحد أحداث عدة: يختار آخرها فيبقى «التالي» ينتقل للأمام */
-            if (active) marks.forEach(function (m) { if (m.dataset.step === active.dataset.step) active = m; });
+            cols.forEach(function (m) { var st = Number(m.dataset.step); if (st <= p && st > best) { best = st; active = m; } });
+            var onCol = !!active && Math.abs(Number(active.dataset.step) - p) <= SNAP;
+            selIdx = onCol ? Number(active.dataset.idx) : -1;
           }
-          /* المؤشر يعد «على الحدث» حين يقف المقبض عنده؛ وإلا فالسهمان يقاسان من موضع المقبض نفسه */
-          var onEvent = !!active && Math.abs(Number(active.dataset.step) - p) <= SNAP;
-          selIdx = onEvent ? Number(active.dataset.idx) : -1;
-          marks.forEach(function (m) {
+          cols.forEach(function (m) {
             m.classList.toggle("is-active", m === active);
             m.setAttribute("aria-pressed", m === active ? "true" : "false");
-            /* العلامة الواقعة تحت المقبض لا تعترض سحبه؛ نقرة هناك تصل المقبض ويلتقطها الالتصاق */
             m.classList.toggle("is-under-thumb", Math.abs(Number(m.dataset.step) - p) <= SNAP);
           });
-          /* السهمان يعملان ما دام هناك حدث في اتجاههما، وإلا يخفتان */
-          if (prev) prev.disabled = !marks.length || (onEvent ? selIdx <= 0 : !marks.some(function (m) { return Number(m.dataset.step) < p; }));
-          if (next) next.disabled = !marks.length || (onEvent ? selIdx >= marks.length - 1 : !marks.some(function (m) { return Number(m.dataset.step) > p; }));
-          if (current) {
+          if (prev) prev.disabled = !events.length || (selIdx >= 0 ? selIdx <= 0 : !stops.some(function (st) { return st < p; }));
+          if (next) next.disabled = !events.length || (selIdx >= 0 ? selIdx >= events.length - 1 : !stops.some(function (st) { return st > p; }));
+          if (currentText) {
             var text = "";
-            if (active) {
-              var lab = active.querySelector(".tlx-ms-label"), dt = active.querySelector(".tlx-ms-date");
-              text = T("tlEventOf").replace("{i}", String(Number(active.dataset.idx) + 1)).replace("{n}", String(marks.length)) +
-                     " — " + (lab ? lab.textContent : "") + (dt ? " · " + dt.textContent : "");
+            var showIdx = selIdx >= 0 ? selIdx : (active ? Number(active.dataset.idx) : -1);
+            if (showIdx >= 0 && events[showIdx]) {
+              text = T("tlEventOf").replace("{i}", String(showIdx + 1)).replace("{n}", String(events.length)) +
+                     " — " + eventLabel(showIdx) + " · " + tlxShortDate(events[showIdx].ms);
             }
-            if (current.textContent !== text) current.textContent = text;
+            if (currentText.textContent !== text) currentText.textContent = text;
+            if (current) {
+              var kind = showIdx >= 0 && events[showIdx] ? events[showIdx].kind : "";
+              if (current.dataset.kind !== kind) current.dataset.kind = kind;
+              current.classList.toggle("is-empty", !text);
+            }
           }
-          syncMarkLabels();
+        }
+        function pick(idx) {
+          var col = colOfEvent(idx);
+          var st = col ? Number(col.dataset.step) : Number(slider.value);
+          slider.value = String(st);
+          apply(st, idx);
+          scrollTo(st);
         }
         slider.addEventListener("input", function () {
           var v = Number(this.value);
@@ -662,61 +686,27 @@
           if (nearest !== null) { v = nearest; this.value = String(v); }
           apply(v);
         });
-        /* نقرة أو Enter على العلامة تختار حدثها */
-        function pick(m) { var st = Number(m.dataset.step); slider.value = String(st); apply(st, Number(m.dataset.idx)); scrollTo(st); }
-        marks.forEach(function (m) {
-          m.addEventListener("click", function () { pick(m); });
-          m.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pick(m); } });
+        /* نقرة على عمود اليوم تفتح أول أحداثه، ونقرة أخرى تنتقل لتاليه فيه */
+        cols.forEach(function (m) {
+          function open() {
+            var list = String(m.dataset.idxs || "").split(",").map(Number);
+            var at = list.indexOf(selIdx);
+            pick(list[(at >= 0 ? at + 1 : 0) % list.length]);
+          }
+          m.addEventListener("click", open);
+          m.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(); } });
         });
-        /* «تصفح الأشهر» يمرر عرض الشريط افقيا ولا يغير التاريخ المختار */
-        function nudge(dir) {
-          var sc2 = document.getElementById("tlxScroll");
-          if (!sc2) return;
-          var step = Math.max(120, Math.round(sc2.clientWidth * 0.6));
-          var d = (bar.getAttribute("dir") === "rtl" ? -dir : dir) * step;
-          try { sc2.scrollBy({ left: d, behavior: "smooth" }); } catch (e) { sc2.scrollLeft += d; }
+        function shiftMonth(dir) {
+          var m = tlState.month;
+          tlState.month = new Date(m.getFullYear(), m.getMonth() + dir, 1);
+          renderTimeline(tlState.rows, tlState.stats);
         }
         var mp = document.getElementById("tlxMonthPrev"), mn = document.getElementById("tlxMonthNext");
-        if (mp) mp.addEventListener("click", function () { nudge(-1); });
-        if (mn) mn.addEventListener("click", function () { nudge(1); });
+        if (mp) mp.addEventListener("click", function () { shiftMonth(-1); });
+        if (mn) mn.addEventListener("click", function () { shiftMonth(1); });
 
         var sc = document.getElementById("tlxScroll");
         var isRtl = bar.getAttribute("dir") === "rtl";
-        /* عنوان يطفو بلا شرطته تحته نص ضائع في حافة الشاشة: يخفى ان خرجت
-           شرطته عن نافذة التمرير، ونصه كاملا يبقى في سطر «الحدث» تحت المسار. */
-        /* وشريحة العنوان لا تقص في الحافة: تنزاح افقيا لتبقى كاملة داخل نافذة
-           التمرير، وتاريخها يبقى على شرطته فيدل عليها. */
-        function clampMarkLabel(m) {
-          var lab = m && m.querySelector(".tlx-ms-label");
-          if (!lab || !sc || bar.classList.contains("tlx--no-float")) return;
-          var pad = 8;
-          m.style.setProperty("--tlx-label-shift", "0px");
-          var avail = sc.clientWidth - pad * 2;
-          lab.style.maxWidth = avail > 60 ? avail + "px" : "";
-          var r = sc.getBoundingClientRect(), b = lab.getBoundingClientRect();
-          var shift = 0;
-          if (b.left < r.left + pad) shift = (r.left + pad) - b.left;
-          else if (b.right > r.right - pad) shift = (r.right - pad) - b.right;
-          if (shift) m.style.setProperty("--tlx-label-shift", Math.round(shift) + "px");
-        }
-        function syncMarkLabels() {
-          if (!sc) return;
-          var r = sc.getBoundingClientRect();
-          marks.forEach(function (m) {
-            var b = m.getBoundingClientRect();
-            m.classList.toggle("is-outside", b.left < r.left - 2 || b.right > r.right + 2);
-            if (!m.classList.contains("is-active")) m.style.setProperty("--tlx-label-shift", "0px");
-          });
-          clampMarkLabel(bar.querySelector(".tlx-ms.is-active"));
-        }
-        if (sc) {
-          var ticking = false;
-          sc.addEventListener("scroll", function () {
-            if (ticking) return;
-            ticking = true;
-            requestAnimationFrame(function () { ticking = false; syncMarkLabels(); });
-          }, { passive: true });
-        }
         function scrollTo(step) {
           if (!sc) return;
           var ratio = step / TLX_STEPS;
@@ -724,22 +714,18 @@
           x = Math.max(0, Math.min(sc.scrollWidth - sc.clientWidth, x));
           try { sc.scrollTo({ left: isRtl ? -(sc.scrollWidth - sc.clientWidth - x) : x, behavior: "smooth" }); } catch (e) { sc.scrollLeft = x; }
         }
-        /* السابق/التالي يمشيان على الأحداث واحدا واحدا (حتى المتزامنة)، وبلا أحداث في الاتجاه يتحرك المقبض يوما */
+        /* السابق/التالي يمشيان على الأحداث واحدا واحدا حتى داخل اليوم الواحد */
         function jump(dir) {
-          var p = Number(slider.value);
           var ni = selIdx >= 0 ? selIdx + dir : -1;
           if (selIdx < 0) {
-            if (dir < 0) { for (var i = marks.length - 1; i >= 0; i--) if (Number(marks[i].dataset.step) < p) { ni = i; break; } }
-            else { for (var j = 0; j < marks.length; j++) if (Number(marks[j].dataset.step) > p) { ni = j; break; } }
+            var p = Number(slider.value);
+            if (dir < 0) { for (var i = events.length - 1; i >= 0; i--) { var c1 = colOfEvent(i); if (c1 && Number(c1.dataset.step) < p) { ni = i; break; } } }
+            else { for (var j = 0; j < events.length; j++) { var c2 = colOfEvent(j); if (c2 && Number(c2.dataset.step) > p) { ni = j; break; } } }
           }
-          if (ni >= 0 && ni < marks.length) pick(marks[ni]);
+          if (ni >= 0 && ni < events.length) pick(ni);
         }
         if (prev) prev.addEventListener("click", function () { jump(-1); });
         if (next) next.addEventListener("click", function () { jump(1); });
-        /* على الجوال لا عنوان عائم اصلا: الشاشة تريه حدثا واحدا فيبقى نصفه
-           معلقا بلا شرطة، ونصه كاملا في سطر «الحدث» تحت المسار. والفراغ فوق
-           المسطرة صار حشوا ثابتا على البطاقة كما في شريط باركينزي. */
-        bar.classList.toggle("tlx--no-float", window.innerWidth <= 600);
         apply(todayStep);
         scrollTo(todayStep);
       }
