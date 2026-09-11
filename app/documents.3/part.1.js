@@ -468,6 +468,9 @@
         var filing = (f && f.details && isDateValue(f.details.first_filing_due)) ? f.details.first_filing_due : "";
         if (kind === "vat_certificate" && filing) $("fExpiry").value = filing;
         else if (!$("fExpiry").value) $("fExpiry").value = dueFromDetails(f);
+        /* التاريخ المفترض يعلم ويحفظ؛ وان غيره صاحب الورقة سقطت العلامة */
+        state.expiryAssumed = !!(f && f.expiry_assumed) && $("fExpiry").value === (f.expiry_date || "");
+        state.expiryAssumedValue = state.expiryAssumed ? $("fExpiry").value : "";
         fillRemind(f && f.remind_before);
         state.details = (f && f.details) || null;
         state.detailLabels = (f && f.detail_labels) || null;
@@ -521,7 +524,8 @@
               court: String($("fCourt").value || "").trim() || null,
               summary: $("fSummary").textContent || null,
               details: state.details && Object.keys(state.details).length ? state.details : null,
-              detail_labels: state.details && Object.keys(state.details).length ? state.detailLabels : null
+              detail_labels: state.details && Object.keys(state.details).length ? state.detailLabels : null,
+              expiry_assumed: (state.expiryAssumed && $("fExpiry").value === state.expiryAssumedValue) || undefined
             }
           };
           return app.insertItems([row]);
@@ -576,10 +580,14 @@
         return isDateValue(details.first_filing_due) ? details.first_filing_due : "";
       }
 
-      function dueCell(dateText, isFiling) {
-        if (!isFiling) return dateText;
+      /* تاريخ الانتهاء قد يكون مفترضا (سنة من الاصدار) لا مقروءا من الورقة:
+         يقال صراحة تحته، فلا يساوى بتاريخ حقيقي في ورقة قانونية. */
+      function dueCell(dateText, isFiling, isAssumed) {
+        var note = isFiling ? t("docFirstFiling") : (isAssumed ? t("docExpiryAssumed") : "");
+        if (!note) return dateText;
         return '<div class="cell-stack"><span>' + dateText + "</span>" +
-               '<span class="item-cat">' + esc(t("docFirstFiling")) + "</span></div>";
+               '<span class="item-cat"' + (isAssumed && !isFiling ? ' title="' + esc(t("docExpiryAssumedHint")) + '"' : "") +
+               ">" + esc(note) + "</span></div>";
       }
 
       function render() {
@@ -606,7 +614,7 @@
             '<td><span class="item-title" data-tr>' + esc(it.title) + "</span></td>" +
             '<td dir="ltr">' + esc(d.number || "-") + "</td>" +
             '<td data-tr>' + esc((app.clientDisplayName ? app.clientDisplayName(it) : it.client_name) || "-") + "</td>" +
-            "<td>" + dueCell(it.due_at ? esc(app.fmtDate(it.due_at)) : "-", !!firstFilingOf(d)) + "</td>" +
+            "<td>" + dueCell(it.due_at ? esc(app.fmtDate(it.due_at)) : "-", !!firstFilingOf(d), !!d.expiry_assumed) + "</td>" +
             '<td><span class="' + cls + '">' + esc(leftText) + "</span></td>" +
             "<td>" + (files.length
               ? files.map(function (a) {

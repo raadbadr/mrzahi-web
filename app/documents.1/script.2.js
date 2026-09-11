@@ -191,6 +191,8 @@
         remindWeek: "ایک ہفتہ",
         remind2Weeks: "دو ہفتے",
         remindMonth: "ایک مہینہ",
+        docExpiryAssumed: "فرضی تاریخ",
+        docExpiryAssumedHint: "فرضی: اجرا سے ایک سال — کاغذ سے نہیں پڑھی گئی",
         docFirstFiling: "پہلی گوشواری",
         pEndsIn: "{n} دن میں ختم",
         pEndsToday: "آج ختم",
