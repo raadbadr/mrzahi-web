@@ -1,5 +1,5 @@
 /* MrZahi — تخزين مؤقت للتصفح دون اتصال (نفس أصل الموقع فقط) */
-const CACHE_NAME = "mrzahi-offline-v6";
+const CACHE_NAME = "mrzahi-offline-v7";
 
 /* المسارات كما يخدمها الموقع فعلا: صفحة بلاحقة .html تحول إلى المسار النظيف،
    والاستجابة المحفوظة عن تحويل يرفض المتصفح إعادة تشغيلها في تنقل، فيموت
@@ -104,7 +104,7 @@ self.addEventListener("fetch", (event) => {
   const p = url.pathname;
   /* الأيقونات مع الأنماط والسكربتات: الشبكة أولا. كانت الصور كاشا-أولا،
      فبقيت أيقونة الاسم القديم على التبويبات بعد تغيير العلامة. */
-  const isIcon = /favicon|apple-touch-icon|logo/.test(p) && /\.(png|ico|svg)$/.test(p);
+  const isIcon = /favicon|apple-touch-icon|logo|mrzahi-icon/.test(p) && /\.(png|ico|svg)$/.test(p);
   const isFreshAsset = p.endsWith(".css") || p.endsWith(".js") || p.endsWith(".webmanifest") || isIcon;
   if (isDocumentRequest(request, url) || isFreshAsset) {
     event.respondWith(
