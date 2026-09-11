@@ -299,8 +299,8 @@ async function dispatch(msg, ctx) {
     case "ping": return rpcResult(id, {});
     case "tools/list": return rpcResult(id, { tools: TOOLS });
     case "tools/call": {
-      // الاسم القديم record_* يقبل مرادفا للجديد mrzahi_* حتى يحدث كل عميل MCP اسماءه فلا ينكسر تكامل قائم
-      const name = String(params.name || "").replace(/^record_/, "mrzahi_");
+      // الاسماء القديمة tracker_* (وrecord_* احتياطا) تقبل مرادفا للجديد mrzahi_* حتى يحدث كل عميل MCP اسماءه فلا ينكسر تكامل قائم
+      const name = String(params.name || "").replace(/^(tracker|record)_/, "mrzahi_");
       if (!TOOLS.some((t) => t.name === name)) return rpcError(id, -32602, "Unknown tool: " + name);
       try { return rpcResult(id, await callTool(name, params.arguments || {}, ctx)); }
       catch (e) { console.log("mcp tool failed", name, String(e && e.message || e).slice(0, 300)); return rpcResult(id, fail("Tool failed.")); }

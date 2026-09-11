@@ -43,7 +43,7 @@ begin
   v_new := jsonb_strip_nulls(jsonb_build_object('number', v_number, 'issuer', v_issuer, 'issue_date', v_issue::text, 'source', 'telegram',
              'summary', nullif(btrim(coalesce(p_doc->>'summary', '')), ''), 'court', nullif(btrim(coalesce(p_doc->>'court', '')), '')));
 
-  -- متتبع «المستندات» كما تنشئه صفحة المستندات و create_org_registered
+  -- سجل «المستندات» كما تنشئه صفحة المستندات و create_org_registered
   select id into v_tracker from public.trackers where org_id = v_org and name in ('المستندات','Documents','دستاویزات') order by created_at asc limit 1;
   if v_tracker is null then
     insert into public.trackers (org_id, name, columns, created_by) values (v_org, 'المستندات', '[]'::jsonb, p_user_id) returning id into v_tracker;

@@ -2,7 +2,7 @@
 # الحالة: exact مطابق حرفيا | merged مضمن في ملف يضم ترحيلات عدة | edited الملف نسخة معدلة لاحقا بالاسم نفسه | filled كان فارغا وملئ بالمطبق | added اضيف 2026-09-11
 # للبناء من الصفر: يطبق كل ملف مرة واحدة عند اول ظهور له في هذا الترتيب (tools/db-fresh-build.sh)
 # version	name	file	status
-20260903103947	wipe_maher_for_tracker	0091_wipe_maher_for_tracker.sql	added
+20260903103947	wipe_maher_for_tracker	0091_wipe_maher_project.sql	added
 20260903104135	tracker_0001_init	0001_init.sql	edited
 20260903104335	tracker_0002_worker_rpcs	0002_worker_rpcs.sql	exact
 20260903104524	tracker_0003_harden_function_grants	0092_harden_function_grants.sql	added

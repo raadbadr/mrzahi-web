@@ -37,7 +37,7 @@ begin
   return v;
 end $$;
 
--- الاستيراد نفسه: شركة المستخدم (التي يملكها وإلا أول عضوية)، متتبع باسم الورقة (ينشأ إن لم يوجد)،
+-- الاستيراد نفسه: شركة المستخدم (التي يملكها وإلا أول عضوية)، سجل باسم الورقة (ينشأ إن لم يوجد)،
 -- سجل استيراد، ثم العناصر. حد الباقة يفرضه المحفز items_enforce_limit كما في الموقع.
 create or replace function public.telegram_import(
   p_secret text, p_user_id uuid, p_filename text, p_sheet text, p_tracker_name text,

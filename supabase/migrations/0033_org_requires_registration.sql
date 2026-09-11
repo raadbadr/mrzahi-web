@@ -37,7 +37,7 @@ begin
     cr_number = coalesce(excluded.cr_number, org_profiles.cr_number), license_number = coalesce(excluded.license_number, org_profiles.license_number),
     unified_number = coalesce(excluded.unified_number, org_profiles.unified_number), updated_by = v_actor, updated_at = now();
 
-  -- المستند الأول يسجل في متتبع «المستندات» (كما تفعل صفحة المستندات) فتراه قائمة الأوراق
+  -- المستند الأول يسجل في سجل «المستندات» (كما تفعل صفحة المستندات) فتراه قائمة الأوراق
   select id into v_tracker from public.trackers where org_id = v_org and name in ('المستندات','Documents','دستاویزات') order by created_at asc limit 1;
   if v_tracker is null then
     insert into public.trackers (org_id, name, columns, created_by) values (v_org, 'المستندات', '[]'::jsonb, v_actor) returning id into v_tracker;

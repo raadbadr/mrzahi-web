@@ -1,6 +1,6 @@
 -- ============================================================
 -- 0057 — نظرة عامة للبوت، وقيمة مرجعية علامة ترقيم فقط تصير null
---   telegram_overview(secret, user)  : إجمالي/مفتوح/منجز، متتبعاته، وأنواعه
+--   telegram_overview(secret, user)  : إجمالي/مفتوح/منجز، سجلاته، وأنواعه
 --   clean_ref(text)                  : «-»/«—»/«ـ»/N/A/«لا يوجد» ← null
 -- حالة حقيقية: عنصر عنوانه «RSK-05092026-0001 · عدم ارتكاب المخالفة…»
 -- حمل case_number = «-» (من سجل الخطر نفسه) فحسبه item_kind جلسة قضائية
@@ -160,7 +160,7 @@ begin
                             'org_id', v_org, 'org_name', v_org_name, 'import_id', v_import);
 end $$;
 
--- نظرة عامة للبوت: العدد الكلي والمفتوح والمنجز، ومتتبعاته، وأنواع عناصره
+-- نظرة عامة للبوت: العدد الكلي والمفتوح والمنجز، وسجلاته، وأنواع عناصره
 create or replace function public.telegram_overview(p_secret text, p_user_id uuid)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare v_org uuid; v_org_name text; result jsonb;
