@@ -325,6 +325,7 @@ async function handleOpsBackup(request, env) {
   const mb = (Number(s.size || 0) / 1048576).toFixed(2);
   const text = s.ok
     ? "نسخة مستر زاهي الاحتياطية تمت: " + String(s.file || "-") + " (" + mb + " MB)" + (s.uploaded ? "، ورفعت الى Oracle جدة" : "، محلية فقط بلا رفع")
+      + (s.disk_pct != null ? "\nقرص الخادم: " + Number(s.disk_pct) + "%" + (Number(s.disk_pct) >= 60 ? " — تجاوز 60%: يلزم Block Volume اضافي في جدة" : "") + " | ملفات العملاء: " + Number(s.files_mb || 0) + " MB" : "")
     : "فشل النسخ الاحتياطي لمستر زاهي: " + String(s.error || "خطا غير معروف").slice(0, 200);
   const sent = await notifyAdminsText(env, text);
   return json({ ok: true, sent });
