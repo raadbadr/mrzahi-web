@@ -123,13 +123,17 @@
             return;
           }
           btn.disabled = true;
+          function deny() { btn.disabled = false; mark("platform"); toast("storePickDriveDenied", "error"); }
           app.connectDrive()
             .then(function () { return app.updateProfile({ storage_mode: "drive" }); })
             .then(function () { btn.disabled = false; mark("drive"); })
-            .catch(function () {
-              btn.disabled = false;
-              mark("platform");
-              toast("storePickDriveDenied", "error");
+            .catch(function (err) {
+              /* الشركة غير مربوطة بعد: موافقة جوجل من الخادم (لا نافذة اذن داخل المتصفح)،
+                 والعودة الى الاعدادات تكمل التفعيل */
+              if (err && err.needsConnect && app.driveServerConnect) {
+                return app.driveServerConnect().then(function (url) { window.location.href = url; }).catch(deny);
+              }
+              deny();
             });
         });
       })();

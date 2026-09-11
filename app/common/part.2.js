@@ -167,11 +167,11 @@
   /* ---------- Google Drive: اختيار ملف من درايف المستخدم وربطه بالعنصر ----------
      يعمل عبر Google Picker بصلاحية drive.file (غير حساسة): المستخدم يختار الملف
      بنفسه، ونخزن رابطه واسمه فقط؛ الملف يبقى في Drive الخاص به. */
-  var DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
   var driveConfig = { clientId: null, apiKey: null, server: false };
   var driveToken = null;
 
-  function driveAvailable() { return !!(driveConfig.clientId && driveConfig.apiKey); }
+  /* درايف متاح فقط حين يكون تفويض الخادم مضبوطا: لا مسار اذن داخل المتصفح بعد اليوم */
+  function driveAvailable() { return !!(driveConfig.server && driveConfig.clientId && driveConfig.apiKey); }
 
   function driveAppId() { return String(driveConfig.clientId || "").split("-")[0] || ""; }
 
@@ -220,44 +220,29 @@
     });
   }
 
+  /* الرمز من الخادم وحده: لا نافذة اذن داخل المتصفح ابدا (تدفق implicit القديم ازيل بامر
+     المهندس رعد 2026-09-11 لانه سبب تحذير «Use secure flows» في Google Console). حين لا تكون
+     الشركة مربوطة يرفض بـ needs_connect ويرشد المستخدم الى الاعدادات، والربط نفسه يجري من
+     الخادم عبر /api/drive/oauth/start (app.driveServerConnect) بموافقة واحدة ورمز تحديث دائم. */
   function driveAccessToken() {
     if (driveToken && driveToken.expires > Date.now()) return Promise.resolve(driveToken.token);
-    if (driveConfig.server) {
-      return driveServerToken().catch(function (err) {
-        /* لم يربط بعد (او سحب الاذن): المسار التفاعلي مرة واحدة فقط */
-        if (err && err.needsConnect) return driveInteractiveToken();
-        throw err;
-      });
-    }
-    return driveInteractiveToken();
+    if (!driveConfig.server) return Promise.reject(new Error("drive_unavailable"));
+    return driveServerToken().catch(function (err) {
+      if (err && err.needsConnect) { var e = new Error("needs_connect"); e.needsConnect = true; throw e; }
+      throw err;
+    });
   }
 
-  function driveInteractiveToken() {
-    if (driveToken && driveToken.expires > Date.now()) return Promise.resolve(driveToken.token);
-    return loadScriptOnce("https://accounts.google.com/gsi/client", function () { return !!(window.google && window.google.accounts && window.google.accounts.oauth2); })
-      .then(function () {
-        return new Promise(function (resolve, reject) {
-          var tc = window.google.accounts.oauth2.initTokenClient({
-            client_id: driveConfig.clientId,
-            scope: DRIVE_SCOPE,
-            callback: function (resp) {
-              if (!resp || !resp.access_token) { reject(new Error("no_token")); return; }
-              driveToken = { token: resp.access_token, expires: Date.now() + (Number(resp.expires_in) || 3000) * 1000 - 60000 };
-              resolve(resp.access_token);
-            },
-            error_callback: function () { reject(new Error("denied")); }
-          });
-          tc.requestAccessToken({ prompt: driveToken ? "" : "consent" });
-          /* نافذة الإذن قد تحجب بصمت (سفاري) فلا يصل أي رد: لا ننتظر إلى الأبد */
-          setTimeout(function () { reject(new Error("drive_timeout")); }, 25000);
-        });
-      });
+  /* رسالة الربط للمستخدم حين يرفض الخادم بـ needs_connect، ثم يمرر الخطا كما هو */
+  function driveExplainConnect(err) {
+    if (err && err.needsConnect) toast(DRIVE_CONNECT_TEXT[lang()] || DRIVE_CONNECT_TEXT.ar, "error");
+    throw err;
   }
 
   function pickFromDrive(opts) {
     var multi = !opts || opts.multi !== false;
     if (!driveAvailable()) return Promise.reject(new Error("drive_unavailable"));
-    return driveAccessToken().then(function (token) {
+    return driveAccessToken().catch(driveExplainConnect).then(function (token) {
       return loadScriptOnce("https://apis.google.com/js/api.js", function () { return !!window.gapi; })
         .then(function () { return new Promise(function (resolve, reject) {
       var timer = setTimeout(function () { reject(new Error("picker_timeout")); }, 20000);
@@ -423,6 +408,12 @@
   var DRIVE_ROOT_NAME = "00-MrZahi";
   var DRIVE_LEGACY_ROOT_NAMES = ["MrZahi", "TheTracker"];
   var DRIVE_FOLDER_COLOR = "#4986e7"; /* ازرق من لوحة الوان درايف: مجلدات المنصة مميزة اللون (امر المهندس رعد 2026-09-11) */ /* اسماء الجذر السابقة، للعثور على مجلدات قديمة واعادة تسميتها */
+  var DRIVE_CONNECT_TEXT = {
+    ar: "Google Drive غير مربوط بهذا الحساب بعد. اربطه من الاعدادات (بطاقة التخزين) ثم اعد المحاولة.",
+    en: "Google Drive is not connected to this account yet. Connect it from Settings (Storage card), then try again.",
+    fr: "Google Drive n'est pas encore connecté à ce compte. Connectez-le dans Paramètres (carte Stockage), puis réessayez.",
+    ur: "Google Drive ابھی اس اکاؤنٹ سے منسلک نہیں ہے۔ سیٹنگز (اسٹوریج کارڈ) سے منسلک کریں، پھر دوبارہ کوشش کریں۔"
+  };
   var DRIVE_FALLBACK_TEXT = {
     ar: "لم يتم الحفظ في Google Drive، فحفظ الملف في تخزين المنصة.",
     en: "Google Drive was unavailable, so the file was saved to platform storage.",
@@ -430,7 +421,7 @@
     ur: "Google Drive دستیاب نہیں تھا، فائل پلیٹ فارم اسٹوریج میں محفوظ ہو گئی۔"
   };
 
-  function driveOAuthAvailable() { return !!driveConfig.clientId; }
+  function driveOAuthAvailable() { return !!(driveConfig.server && driveConfig.clientId); }
 
   /* وضع التخزين الفعال: درايف فقط إن اختاره المستخدم في ملفه وكان عميل Google مضبوطا */
   function storageMode() {
@@ -747,7 +738,7 @@
       /* أي فشل في مسار درايف (إذن محجوب، واجهة غير مفعلة، شبكة…): الملف لا يضيع أبدا — يحفظ على المنصة،
          ويعاد وضع التخزين إلى المنصة كي لا يتكرر الفشل مع كل رفع؛ يعيد المستخدم تفعيل درايف من الإعدادات متى شاء */
       if (window.console) console.warn("drive upload failed, saving to platform:", err && (err.message || err));
-      toast(DRIVE_FALLBACK_TEXT[lang()] || DRIVE_FALLBACK_TEXT.ar, "error");
+      toast((err && err.needsConnect ? DRIVE_CONNECT_TEXT[lang()] || DRIVE_CONNECT_TEXT.ar : DRIVE_FALLBACK_TEXT[lang()] || DRIVE_FALLBACK_TEXT.ar), "error");
       try { if (app.profile && app.profile.storage_mode === "drive") updateProfile({ storage_mode: "platform" }).catch(function () { /* ignore */ }); } catch (e) { /* ignore */ }
       return viaPlatform();
     });

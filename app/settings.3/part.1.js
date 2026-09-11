@@ -776,14 +776,10 @@
               setMsg("storageMsg", t("storageDriveDenied"), "error");
             });
         }
-        /* بالإذن نفسه ينشأ المجلد فورا في Drive الخاص به ليرى أين تذهب ملفاته */
-        return app.connectDrive().then(function () { return app.updateProfile({ storage_mode: "drive" }); })
-          .then(function () { return app.driveFolder ? app.driveFolder().catch(function () { return null; }) : null; })
-          .then(function () { box.disabled = false; renderDriveSwitch(); })
-          .catch(function () {
-            box.checked = false; box.disabled = false; renderDriveSwitch();
-            setMsg("storageMsg", t("storageDriveDenied"), "error");
-          });
+        /* لا مسار اذن داخل المتصفح بعد اليوم: بلا تفويض الخادم يبقى درايف غير متاح */
+        box.checked = false; box.disabled = false; renderDriveSwitch();
+        setMsg("storageMsg", t("storageDriveUnavailable"), "error");
+        return Promise.resolve();
       }
 
       function currentPlan() {
