@@ -847,11 +847,10 @@ html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 40px; 
 html[data-season="nd96"]::before {
   content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
   opacity: 0.045;
-  /* شطرنج السدو نفسه الذي في اطار الشعار، متناثرا خلف المحتوى */
-  background-image:
-    repeating-conic-gradient(rgb(90, 186, 28) 0% 25%, transparent 0% 50%),
-    repeating-conic-gradient(rgb(124, 93, 33) 0% 25%, transparent 0% 50%);
-  background-size: 22px 22px, 66px 66px;
+  /* نقش السدو الرسمي مستخرجا من عناصر الهوية (Generosity) بالوان الهوية */
+  background-image: url("/nd96-sadu.svg");
+  background-size: 184px auto;
+  background-repeat: repeat;
 }
 html[data-season="nd96"][data-theme="light"]::before { opacity: 0.035; }
 @media (max-width: 600px) {
@@ -866,16 +865,19 @@ html[data-season="nd96"][data-theme="light"]::before { opacity: 0.035; }
 html[data-season="nd96"] .hero::after {
   content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background-image:
-    repeating-conic-gradient(rgba(90, 186, 28, 0.11) 0% 25%, transparent 0% 50%),
-    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(0, 137, 74, 0.20), transparent 70%);
-  background-size: 30px 30px, cover;
+    url("/nd96-sadu.svg"),
+    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(0, 137, 74, 0.22), transparent 70%);
+  background-size: 210px auto, cover;
+  background-repeat: repeat, no-repeat;
+  opacity: 0.5;
   -webkit-mask-image: radial-gradient(ellipse 62% 55% at 50% 50%, transparent 22%, #000 82%);
   mask-image: radial-gradient(ellipse 62% 55% at 50% 50%, transparent 22%, #000 82%);
 }
 html[data-season="nd96"][data-theme="light"] .hero::after {
   background-image:
-    repeating-conic-gradient(rgba(0, 137, 74, 0.09) 0% 25%, transparent 0% 50%),
-    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(0, 137, 74, 0.10), transparent 70%);
+    url("/nd96-sadu.svg"),
+    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(0, 137, 74, 0.12), transparent 70%);
+  opacity: 0.28;
 }
 /* التاغلاين بالخط السعودي وبلون الهوية: نبرة الموسم في اول ما تقع عليه العين */
 html[data-season="nd96"] .tagline { color: rgb(90, 186, 28); }

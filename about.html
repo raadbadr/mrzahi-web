@@ -257,11 +257,10 @@ html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 40px; 
 html[data-season="nd96"]::before {
   content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
   opacity: 0.045;
-  /* شطرنج السدو نفسه الذي في اطار الشعار، متناثرا خلف المحتوى */
-  background-image:
-    repeating-conic-gradient(rgb(90, 186, 28) 0% 25%, transparent 0% 50%),
-    repeating-conic-gradient(rgb(124, 93, 33) 0% 25%, transparent 0% 50%);
-  background-size: 22px 22px, 66px 66px;
+  /* نقش السدو الرسمي مستخرجا من عناصر الهوية (Generosity) بالوان الهوية */
+  background-image: url("/nd96-sadu.svg");
+  background-size: 184px auto;
+  background-repeat: repeat;
 }
 html[data-season="nd96"][data-theme="light"]::before { opacity: 0.035; }
 @media (max-width: 600px) {
