@@ -153,8 +153,8 @@
 - `ANTHROPIC_API_KEY` (اختياري — بدونه يعمل المساعد عبر Workers AI مجانا)
 
 ### أيقونة الموقع (Favicon & Apple Touch Icon)
-- ملفات الأيقونة: `favicon.ico`، `favicon-32x32.png`، `favicon-16x16.png`، `apple-touch-icon.png`
-- المصدر: أيقونات حرف "T" المولدة (خط Monoton على أزرق العلامة)
+- ملفات الأيقونة: `mrzahi-icon.ico`، `mrzahi-icon-32.png`، `mrzahi-icon-16.png`، `mrzahi-icon-180.png` (بعلامة `?v=2` في كل صفحة)
+- المصدر: أيقونة علامة Mr.Zahi (حرف M أبيض مخطط على أزرق العلامة)
 - **لا تغيير هذه الأيقونة بعد الآن بدون إذن مباشر من المهندس رعد.**
 - مرجعية في `manifest.webmanifest` وكل صفحات HTML.
 

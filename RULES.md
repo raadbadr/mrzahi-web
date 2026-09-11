@@ -9,9 +9,9 @@ These rules apply to every AI agent, developer, and automated tool working on th
 
 | File / Path | What it is | Why it's locked |
 |---|---|---|
-| `favicon.ico` | Website favicon | Brand identity — generated "T" icon (Monoton font on brand blue). Never replace. |
-| `favicon-32x32.png` / `favicon-16x16.png` | Favicon 32px / 16px | Brand identity — same source as favicon.ico |
-| `apple-touch-icon.png` | iOS home screen icon | Brand identity — same source as favicon.ico |
+| `mrzahi-icon.ico` | Website favicon | Brand identity — the Mr.Zahi "M" icon (white striped M on brand blue), linked with `?v=2`. Never replace. |
+| `mrzahi-icon-32.png` / `mrzahi-icon-16.png` | Favicon 32px / 16px | Brand identity — same source as mrzahi-icon.ico |
+| `mrzahi-icon-180.png` | iOS home screen icon (apple-touch-icon) | Brand identity — same source as mrzahi-icon.ico |
 | `mrzahi-logo-dark.png` / `mrzahi-logo-light.png` | Small "T" brand mark | Brand identity — used by `brand-logo.js` and the header/footer |
 | `mrzahi-logo-full-dark.png` / `mrzahi-logo-full-light.png` | "MrZahi" wordmark | Brand identity — the only approved wordmark files |
 | `header.css` / `footer.css` | Shared header and footer | Design must stay identical to parkinzi.com — owner's red line |
@@ -48,8 +48,8 @@ These rules apply to every AI agent, developer, and automated tool working on th
 
 - Wordmark is "MrZahi": `mrzahi-logo-full-dark.png` (dark theme) / `mrzahi-logo-full-light.png` (light theme)
 - Mark is the letter "T": `mrzahi-logo-dark.png` / `mrzahi-logo-light.png`
-- Favicon must always be the generated "T" icon (Monoton font on brand blue)
-- Never replace `favicon.ico`, `favicon-32x32.png`, `favicon-16x16.png`, or `apple-touch-icon.png` with any other asset without explicit approval
+- Favicon must always be the Mr.Zahi "M" icon set (`mrzahi-icon.ico`, `mrzahi-icon-32.png`, `mrzahi-icon-16.png`, `mrzahi-icon-180.png`), linked with `?v=2` on every HTML page
+- Never replace `mrzahi-icon.ico`, `mrzahi-icon-32.png`, `mrzahi-icon-16.png`, or `mrzahi-icon-180.png` with any other asset without explicit approval
 - `brand-logo.js` replaces "MrZahi" text nodes with the logo image — never disable or remove it
 - The visual theme is inherited verbatim from parkinzi.com and must not change
 
