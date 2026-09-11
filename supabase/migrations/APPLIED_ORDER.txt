@@ -152,3 +152,4 @@
 20260911130000	plan_names_monshaat_classification	0125_plan_names_monshaat_classification.sql	added
 20260911133000	plan_tiers_official_terms	0126_plan_tiers_official_terms.sql	added
 20260911134500	three_plans_startup	0127_three_plans_startup.sql	added
+20260911135500	four_plans_micro_large	0128_four_plans_micro_large.sql	added
