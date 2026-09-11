@@ -12,7 +12,14 @@
     var q = String(window.location.search || "");
     if (q.indexOf("season=off") !== -1) on = false;
     else if (q.indexOf("season=nd96") !== -1) on = true;
-    if (on) document.documentElement.setAttribute("data-season", "nd96");
+    if (on) {
+      document.documentElement.setAttribute("data-season", "nd96");
+      /* الراس ينمو بقدر الشريط بعد ضبط السمة، و‎syncSiteHeaderHeight‎ تكون قد قاسته
+         قبلها؛ وهي مربوطة بـ‎resize‎ فنطلقه ليعاد القياس وينزل ما يعتمد عليه. */
+      var again = function () { try { window.dispatchEvent(new Event("resize")); } catch (e) {} };
+      again();
+      window.addEventListener("load", again);
+    }
   } catch (e) { /* الثيم الاصلي يبقى */ }
 })();
 
