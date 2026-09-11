@@ -156,7 +156,7 @@
       .then(function (id) { return { id: id, url: "https://drive.google.com/drive/folders/" + id, path: DRIVE_ROOT_NAME + "/" + (orgName || "Company") }; });
   };
   app.driveFolderCached = function () {
-    try { var id = localStorage.getItem("mrzahi_drive_folder:" + requireOrg()); return id ? { id: id, url: "https://drive.google.com/drive/folders/" + id, path: DRIVE_ROOT_NAME + "/" + ((app.org && app.org.name) || "Company") } : null; } catch (e) { return null; }
+    try { var id = localStorage.getItem("mrzahi_drive_folder:v2:" + requireOrg()); return id ? { id: id, url: "https://drive.google.com/drive/folders/" + id, path: DRIVE_ROOT_NAME + "/" + ((app.org && app.org.name) || "Company") } : null; } catch (e) { return null; }
   };
   /* بداية ربط درايف من الخادم: يعيد عنوان شاشة موافقة جوجل لينتقل اليه المتصفح */
   app.driveServerConnect = function () {

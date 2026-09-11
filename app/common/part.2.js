@@ -476,13 +476,51 @@
       .then(function (data) { return (data && data.files ? data.files.length : 0); });
   }
 
-  /* مجلد «MrZahi/اسم الشركة» في درايف المستخدم، مع تخزين معرفه محليا */
+  /* مجلد الشركة القديم اولا، ولا ينشا مجلد جديد الا ان لم يوجد شيء (امر المهندس رعد 2026-09-11:
+     «يشيك اذا فيه ربط سابق او لا، مو ينشئ جديد»). ترتيب البحث:
+     1) المجلد الذي فيه مرفق سابق للشركة على درايف (الاوثق: لا يعتمد على اسم ولا خاصية)،
+     2) المجلد الموسوم بالخاصية الحالية mrzahi_org، 3) الموسوم بخاصية الاسم القديم tracker_org،
+     4) الانشاء تحت «MrZahi». مفتاح الذاكرة المحلية v2 كي يسقط مجلد فارغ حفظ قبل هذا الاصلاح. */
+  function driveFolderFromAttachments(token, orgId) {
+    return run(function (client) {
+      return client.from("attachments").select("drive_file_id").eq("org_id", orgId)
+        .not("drive_file_id", "is", null).order("created_at", { ascending: false }).limit(5).then(unwrap);
+    }).then(function (rows) {
+      var ids = (rows || []).map(function (r) { return r.drive_file_id; }).filter(Boolean);
+      return ids.reduce(function (p, fid) {
+        return p.then(function (found) {
+          if (found) return found;
+          return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(fid) + "?fields=parents,trashed")
+            .then(function (f) {
+              var parent = f && !f.trashed && f.parents && f.parents[0];
+              if (!parent) return null;
+              return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(parent) + "?fields=id,trashed")
+                .then(function (d) { return d && !d.trashed ? d.id : null; });
+            }).catch(function () { return null; });
+        });
+      }, Promise.resolve(null));
+    }).catch(function () { return null; });
+  }
+
+  function driveFindFolderByProp(token, propKey, orgId) {
+    var q = "mimeType='" + DRIVE_FOLDER_MIME + "' and trashed=false and appProperties has { key='" + propKey + "' and value='" + driveEscape(orgId) + "' }";
+    return driveFetch(token, DRIVE_API + "/files?q=" + encodeURIComponent(q) + "&fields=files(id)&pageSize=1&spaces=drive")
+      .then(function (data) { var f = data && data.files && data.files[0]; return f ? f.id : null; })
+      .catch(function () { return null; });
+  }
+
   function driveFolderFor(token, orgId, orgName, fresh) {
-    var key = "mrzahi_drive_folder:" + orgId;
+    var key = "mrzahi_drive_folder:v2:" + orgId;
     var cached = !fresh && localStorage.getItem(key);
     if (cached) return Promise.resolve(cached);
-    return driveFindOrCreateFolder(token, DRIVE_ROOT_NAME, "root", null)
-      .then(function (rootId) { return driveFindOrCreateFolder(token, orgName || "Company", rootId, { mrzahi_org: orgId }); })
+    return driveFolderFromAttachments(token, orgId)
+      .then(function (id) { return id || driveFindFolderByProp(token, "mrzahi_org", orgId); })
+      .then(function (id) { return id || driveFindFolderByProp(token, "tracker_org", orgId); })
+      .then(function (id) {
+        if (id) return id;
+        return driveFindOrCreateFolder(token, DRIVE_ROOT_NAME, "root", null)
+          .then(function (rootId) { return driveFindOrCreateFolder(token, orgName || "Company", rootId, { mrzahi_org: orgId }); });
+      })
       .then(function (id) { localStorage.setItem(key, id); return id; });
   }
 
