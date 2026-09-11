@@ -157,3 +157,4 @@
 20260911141500	national_day_96_prices	0130_national_day_96_prices.sql	added
 20260911150000	ledger_audit_trail	0131_ledger_audit_trail.sql	added
 20260911160000	payments_vat_at_checkout	0132_payments_vat_at_checkout.sql	added
+20260911163000	vat_included_individuals	0133_vat_included_individuals.sql	added
