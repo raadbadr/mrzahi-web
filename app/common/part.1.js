@@ -1050,10 +1050,20 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     });
   }
 
+  /* معيار التخزين المحلي (امر المهندس رعد 2026-09-11، بروح 00-MrZahi/الشركة في درايف):
+     المسار الشركة/السنة/السجل/الرمز-الاسم؛ السجل هو معرف السجل الذي يتبعه العنصر (records.id،
+     يعرض باسمه في الواجهة) او general لملف بلا عنصر. المسار القديم الشركة/العنصر/الملف يبقى كما هو. */
   function uploadAttachment(itemId, file) {
     var orgId = requireOrg();
     if (!file) return Promise.reject(new Error("file required"));
-    var path = orgId + "/" + (itemId || "org") + "/" + randomCode(10).toLowerCase() + "-" + storageKeyName(file.name);
-    return storeAttachment(file, { item_id: itemId || null }, path);
+    var year = String(new Date().getFullYear());
+    var folderP = itemId
+      ? run(function (client) { return client.from("items").select("record_id").eq("id", itemId).maybeSingle().then(unwrap); })
+          .then(function (row) { return (row && row.record_id) ? String(row.record_id) : "general"; }).catch(function () { return "general"; })
+      : Promise.resolve("general");
+    return folderP.then(function (folder) {
+      var path = orgId + "/" + year + "/" + folder + "/" + randomCode(10).toLowerCase() + "-" + storageKeyName(file.name);
+      return storeAttachment(file, { item_id: itemId || null }, path);
+    });
   }
 
