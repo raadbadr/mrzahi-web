@@ -1005,7 +1005,7 @@ export default {
       if (path === "/api/config" && (request.method === "GET" || request.method === "HEAD")) return handleConfig(env);
       if (path === "/api/ops/backup" && request.method === "POST") return await handleOpsBackup(request, env);
       if (path === "/api/ops/telegram-webhook") return await handleOpsTelegramWebhook(request, env);
-      if (path === "/api/ops/drive-sweep" && request.method === "POST") { if (!env.OPS_SECRET || request.headers.get("x-ops-secret") !== env.OPS_SECRET) return json({ error: "forbidden" }, 403); return json(await driveStandardSweep(env)); }
+      if (path === "/api/ops/drive-sweep" && request.method === "POST") { if (!env.OPS_SECRET || request.headers.get("x-ops-secret") !== env.OPS_SECRET) return json({ error: "forbidden" }, 403); try { return json(await driveStandardSweep(env)); } catch (e) { return json({ error: "sweep failed", detail: String((e && e.message) || e).slice(0, 300) }, 500); } }
       if (path === "/api/stats" && (request.method === "GET" || request.method === "HEAD")) return await handleStats(env);
       if (path === "/api/assistant" && request.method === "POST") return await handleAssistantRequest(request, env);
       if (path === "/api/documents/template" && request.method === "GET") {

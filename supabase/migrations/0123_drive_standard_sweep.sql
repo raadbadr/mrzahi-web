@@ -17,5 +17,5 @@ begin
   from public.drive_connections d join public.organizations o on o.id = d.org_id;
   return result;
 end $$;
-revoke all on function public.drive_conn_sweep_list(text) from public, anon;
-grant execute on function public.drive_conn_sweep_list(text) to authenticated, service_role;
+revoke all on function public.drive_conn_sweep_list(text) from public;
+grant execute on function public.drive_conn_sweep_list(text) to anon, authenticated, service_role; -- الـ Worker ينادي بدور anon والسر داخل الدالة هو الحماية
