@@ -36,17 +36,29 @@ function supaHeaders(env) {
 }
 
 // --- حقائق ثابتة عن المنصة (تعدل هنا فقط) ------------------------------
-const PLANS = [
-  { code: "trial", name_ar: "التجريبية", name_en: "Trial", price_monthly_sar: 0, price_yearly_sar: 0, trial_days: 14,
-    members: 5, items: 2000, channels: ["telegram"], excel_imports_per_month: null, calendar: ["ics", "google"],
-    note_ar: "14 يوما بكل المزايا وبلا بطاقة بنكية، ولا تتجدد تلقائيا" },
-  { code: "monthly", name_ar: "شهري", name_en: "Monthly", price_monthly_sar: 49, price_yearly_sar: null,
-    members: 5, items: 2000, channels: ["telegram"], excel_imports_per_month: null, calendar: ["ics", "google"] },
-  { code: "yearly", name_ar: "سنوي", name_en: "Yearly", price_monthly_sar: null, price_yearly_sar: 490,
-    members: 15, items: 20000, channels: ["telegram"], excel_imports_per_month: null, calendar: ["ics", "google"], priority_support: true },
-  { code: "business", name_ar: "باقة الشركات", name_en: "Business", price_monthly_sar: null, price_yearly_sar: 7000,
-    vat_excluded: true, members: null, items: null, channels: ["telegram"], excel_imports_per_month: null, calendar: ["ics", "google"], priority_support: true },
-];
+/* الباقات من القاعدة نفسها (plans النشطة) لا من قائمة ثابتة: القائمة الثابتة كانت تقول للزوار
+   اسعارا قديمة (شهري 49، سنوي 490، باقة الشركات 7000). تخزن 10 دقائق في ذاكرة الـ Worker. */
+let plansCache = { at: 0, rows: [] };
+async function loadPlans(env) {
+  if (Date.now() - plansCache.at < 600_000 && plansCache.rows.length) return plansCache.rows;
+  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return plansCache.rows;
+  try {
+    const res = await fetch(`${env.SUPABASE_URL}/rest/v1/plans?select=code,name_ar,name_en,name_fr,name_ur,price_monthly_sar,price_yearly_sar,limits,sort_order&active=eq.true&order=sort_order`, {
+      headers: { ...supaHeaders(env), Accept: "application/json" }, cf: NO_CACHE,
+    });
+    if (!res.ok) return plansCache.rows;
+    const rows = (await res.json()).map((p) => {
+      const l = p.limits || {};
+      return { code: p.code, name_ar: p.name_ar, name_en: p.name_en, name_fr: p.name_fr, name_ur: p.name_ur,
+        price_monthly_sar: Number(p.price_monthly_sar || 0), price_yearly_sar: Number(p.price_yearly_sar || 0), vat_excluded: !!l.vat_excluded,
+        members: l.members ?? null, extra_seat_price_sar: l.seat_price_sar ?? null, items: l.items ?? null, storage_mb: l.storage_mb ?? null,
+        channels: l.channels || [], excel_imports_per_month: l.imports_per_month ?? null, calendar: l.calendar || [],
+        priority_support: !!l.priority_support, trial_days: l.trial_days ?? null };
+    });
+    plansCache = { at: Date.now(), rows };
+    return rows;
+  } catch { return plansCache.rows; }
+}
 
 function toolAppInfo() {
   return {
@@ -107,7 +119,7 @@ const TOOLS = [
 
 async function callTool(name, args, env) {
   switch (name) {
-    case "get_plans": return { plans: PLANS };
+    case "get_plans": return { plans: await loadPlans(env) };
     case "get_app_info": return toolAppInfo();
     case "get_platform_stats": return await toolPlatformStats(env);
     default: return { error: "unknown tool" };
@@ -268,7 +280,7 @@ const WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 async function groundedSystemPrompt(env) {
   let stats = {};
   try { stats = await toolPlatformStats(env); } catch (e) { stats = {}; }
-  const facts = { plans: PLANS, app: toolAppInfo(), live_stats: stats };
+  const facts = { plans: await loadPlans(env), app: toolAppInfo(), live_stats: stats };
   return assistantSystemPrompt() +
     "\n\nالحقائق المعتمدة (لا تخرج عنها ولا تخترع غيرها):\n" +
     JSON.stringify(facts) +
