@@ -760,13 +760,14 @@
     /* المجموعات والزر على ارتفاع واحد: نفس ارتفاع كل حقل وزر في المنصة */
     .cal-nav .cal-modes { height: var(--field-h, 42px); min-height: var(--field-h, 42px); box-sizing: border-box; display: inline-flex; align-items: center; margin: 0; padding: 0.2rem; }
     .cal-nav .cal-mode { height: 32px; display: inline-flex; align-items: center; justify-content: center; }
-    .cal-nav .cal-modes .cal-mode { flex: 0 0 var(--cal-u, 4.75rem); width: var(--cal-u, 4.75rem); min-width: 0; padding-inline: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* لا قص ولا ثلاث نقاط (قاعدة 2-هـ): النص يبقى كاملا في عرضه الثابت، وان ضاق صغر خطه */
+    .cal-nav .cal-modes .cal-mode { flex: 0 0 var(--cal-u, 4.75rem); width: var(--cal-u, 4.75rem); min-width: 0; padding-inline: 0.25rem; white-space: nowrap; overflow: visible; font-size: clamp(0.72rem, 2.6vw, 0.9rem); }
     /* عرض محجوز ثابت للتاريخ: يتغير النص بتغير المدى ولا يتحرك السطر معه
        (امر المهندس رعد: «خلي السطر ثابت في العرض بس يختلف الزمن»). */
     .cal-title {
       font-size: 1.15rem; font-weight: 700; color: var(--text-primary);
       width: 15rem; flex: 0 0 15rem; text-align: center; line-height: 1.3;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; overflow: visible;   /* لا قص ولا ثلاث نقاط (قاعدة 2-هـ): الطويل يصغره fitCalTitle حتى 0.7 */
     }
     .cal-modes { display: inline-flex; padding: 0.2rem; border-radius: 12px; background: var(--glass-border); gap: 0.15rem; }
     .cal-mode {
@@ -857,7 +858,7 @@
     .cal-hhead {
       text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--text-secondary);
       padding: 0.4rem 0.25rem; border-bottom: 1px solid var(--glass-border);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; overflow: visible; font-size: clamp(0.62rem, 1.5vw, 0.78rem);   /* لا قص ولا ثلاث نقاط (قاعدة 2-هـ) */
     }
     .cal-hhead.is-today { color: var(--primary); }
     .cal-htime {
