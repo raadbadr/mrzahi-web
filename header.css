@@ -298,24 +298,41 @@ html[data-season="nd96"] .tagline {
   font-family: "Saudi", "IBM Plex Sans Arabic", system-ui, sans-serif;
   letter-spacing: 0;
 }
-/* شريط الهوية: نقوش السدو الهندسية باخضر الهوية والذهبي، وشعارها اللفظي */
+/* قيم الهوية الست: لكل يوم قيمة كاملة — عبارتها وبلاطتها ولونها. يضبط
+   ‎brand-logo.js‎ سمة ‎data-nd-value‎ مع العبارة، فتختار هذه القواعد بلاطة ذلك
+   اليوم ولونه. البلاطات مستخرجة من ‎visual identity elements/Icons.pdf‎ الرسمي،
+   ملف لكل قيمة (نحو 4 كيلوبايت) فلا ينزل المتصفح الا بلاطة يومه. */
+html[data-season="nd96"] { --nd-tile: none; --nd-value: rgb(0, 137, 74); }
+html[data-season="nd96"][data-nd-value="vision"]        { --nd-tile: url("/nd96-v-vision.webp");        --nd-value: rgb(166, 128, 52); }
+html[data-season="nd96"][data-nd-value="courage"]       { --nd-tile: url("/nd96-v-courage.webp");       --nd-value: rgb(133, 166, 112); }
+html[data-season="nd96"][data-nd-value="determination"] { --nd-tile: url("/nd96-v-determination.webp"); --nd-value: rgb(199, 51, 108); }
+html[data-season="nd96"][data-nd-value="authenticity"]  { --nd-tile: url("/nd96-v-authenticity.webp");  --nd-value: rgb(90, 186, 28); }
+html[data-season="nd96"][data-nd-value="generosity"]    { --nd-tile: url("/nd96-v-generosity.webp");    --nd-value: rgb(51, 129, 219); }
+html[data-season="nd96"][data-nd-value="giving"]        { --nd-tile: url("/nd96-v-giving.webp");        --nd-value: rgb(129, 129, 233); }
+
+/* شريط الهوية: بلاطة قيمة اليوم وعبارتها، والشعار الرسمي في الوسط، فوق شطرنج السدو */
 html[data-season="nd96"]::after {
-  /* الشعار الرسمي في الوسط، وعبارة القيمة تتغير كل يوم، فوق شطرنج السدو */
   content: attr(data-nd-slogan);
   position: fixed; inset-block-start: 0; inset-inline: 0; height: 40px;
   display: flex; align-items: center; justify-content: flex-start;
-  padding-inline: 1.1rem;
+  padding-inline-start: calc(1.1rem + 34px); padding-inline-end: 1.1rem;
   font: 700 0.8rem/1 "Saudi", "IBM Plex Sans Arabic", system-ui, sans-serif;
   letter-spacing: 0.02em; color: rgb(210, 183, 129);
   background-color: rgb(6, 27, 32);
   background-image:
+    var(--nd-tile),
     url("/nd96-logo.png"),
     repeating-conic-gradient(rgba(90,186,28,0.20) 0% 25%, transparent 0% 50%);
-  background-repeat: no-repeat, repeat;
-  background-position: center, 0 0;
-  background-size: auto 26px, 14px 14px;
-  border-block-end: 1px solid rgba(124, 93, 33, 0.6);
+  background-repeat: no-repeat, no-repeat, repeat;
+  /* البلاطة عند حافة البدء: يمينا في العربية ويسارا في اللغات اللاتينية.
+     ‎background-position‎ لا يفهم المنطقي، فيقلبها انتقاء ‎[dir="ltr"]‎ ادناه. */
+  background-position: right 1.1rem center, center, 0 0;
+  background-size: 26px 26px, auto 26px, 14px 14px;
+  border-block-end: 1px solid var(--nd-value);
   z-index: 9999; pointer-events: none;
+}
+html[dir="ltr"][data-season="nd96"]::after {
+  background-position: left 1.1rem center, center, 0 0;
 }
 /* الشريط يسكن فوق الراس نفسه: يزاد حشو ‎.site-header‎ العلوي بقدره، فتقيس
    ‎syncSiteHeaderHeight‎ الارتفاع الجديد وتنزل معه ‎.app-topbar‎ والشريط الجانبي
@@ -333,8 +350,25 @@ html[data-season="nd96"]::before {
   background-repeat: repeat;
 }
 html[data-season="nd96"][data-theme="light"]::before { opacity: 0.035; }
+
+/* التذييل يلبس الموسم ايضا: كان رماديا ازرق ‎#26333d‎ في كل صفحة بينما الصفحة
+   فوقه خضراء — سلعة باردة تحت كل شيء. ويعلوه شريط الحدود فاصلا المحتوى عنه،
+   فيؤدي في كل الصفحات ما كان يؤديه فاصل واحد في الرئيسية وحدها. */
+html[data-season="nd96"] .footer { background: rgb(2, 48, 44); }
+html[data-season="nd96"][data-theme="light"] .footer { background: rgb(218, 235, 221); }
+html[data-season="nd96"] .footer::before {
+  display: block; content: ""; position: absolute; pointer-events: none;
+  inset-block-start: 1.1rem; inset-inline: 1.6rem; height: 12px;
+  background: url("/nd96-border.svg") repeat-x center / auto 12px;
+  opacity: 0.6;
+}
 @media (max-width: 600px) {
-  html[data-season="nd96"]::after { height: 32px; background-size: auto 20px, 12px 12px; }
+  html[data-season="nd96"]::after {
+    height: 32px; background-size: 20px 20px, auto 20px, 12px 12px;
+    padding-inline-start: calc(0.75rem + 26px); padding-inline-end: 0.75rem;
+    background-position: right 0.75rem center, center, 0 0;
+  }
+  html[dir="ltr"][data-season="nd96"]::after { background-position: left 0.75rem center, center, 0 0; }
   html[data-season="nd96"] .site-header { padding-block-start: calc(0.4rem + 32px); }
   html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 32px; }
 }

@@ -15,10 +15,26 @@
     if (on) {
       var doc = document.documentElement;
       doc.setAttribute("data-season", "nd96");
-      /* عبارات الهوية الست: واحدة لكل يوم بالدور، بلا تشكيل */
-      var VALUES = ["عزنا باصالتنا", "عزنا بكرمنا", "عزنا بشجاعتنا",
-                    "عزنا بهمتنا", "عزنا بجودنا", "عزنا برؤيتنا"];
-      doc.setAttribute("data-nd-slogan", VALUES[new Date().getDate() % VALUES.length]);
+      /* قيم الهوية الست: لكل يوم قيمة كاملة لا عبارة وحدها — عبارتها وبلاطتها
+         ولونها، كما رتبها دليل الهوية. ‎?nd=tree‎ وما شابهه يثبت قيمة بعينها
+         للمعاينة. المفتاح يذهب الى ‎data-nd-value‎ فتتبعه قواعد header.css. */
+      var VALUES = [
+        { key: "authenticity",  slogan: "عزنا باصالتنا" },
+        { key: "generosity",    slogan: "عزنا بكرمنا" },
+        { key: "courage",       slogan: "عزنا بشجاعتنا" },
+        { key: "determination", slogan: "عزنا بهمتنا" },
+        { key: "giving",        slogan: "عزنا بجودنا" },
+        { key: "vision",        slogan: "عزنا برؤيتنا" }
+      ];
+      var v = VALUES[new Date().getDate() % VALUES.length];
+      var forced = q.match(/[?&]nd=([a-z]+)/);
+      if (forced) {
+        for (var i = 0; i < VALUES.length; i++) {
+          if (VALUES[i].key === forced[1]) { v = VALUES[i]; break; }
+        }
+      }
+      doc.setAttribute("data-nd-slogan", v.slogan);
+      doc.setAttribute("data-nd-value", v.key);
       /* الراس ينمو بقدر الشريط بعد ضبط السمة، و‎syncSiteHeaderHeight‎ تكون قد قاسته
          قبلها؛ وهي مربوطة بـ‎resize‎ فنطلقه ليعاد القياس وينزل ما يعتمد عليه. */
       var again = function () { try { window.dispatchEvent(new Event("resize")); } catch (e) {} };

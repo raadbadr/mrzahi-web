@@ -471,96 +471,10 @@
     }
 
 
-    /* ══ موسم اليوم الوطني السعودي الـ96 «عزنا بطبعنا» ══════════════════════════
-       امر المهندس رعد 2026-09-11. الالوان والخط من دليل الهوية الرسمي
-       (SND-GUIDELINE): الاخضر الغامق ‎#008849‎ اساس النظام البصري، والليموني
-       ‎#5ab91c‎ والذهبي ‎#7b5d20‎ مكملان، والخلفية الداكنة ‎#002528‎، والخط السعودي
-       للعناوين وIBM Plex Sans Arabic للنص. طبقة موقتة: تطفا بحذف هذه الكتلة
-       وسطر التفعيل في brand-logo.js، ولا تمس اي اصل. */
-    @font-face {
-      font-family: "Saudi";
-      src: url("/Saudi-Regular.woff2") format("woff2");
-      font-weight: 400; font-style: normal; font-display: swap;
-    }
-    @font-face {
-      font-family: "Saudi";
-      src: url("/Saudi-Bold.woff2") format("woff2");
-      font-weight: 700; font-style: normal; font-display: swap;
-    }
-    html[data-season="nd96"] {
-      --primary: rgb(0, 137, 74);
-      --primary-light: rgb(90, 186, 28);
-      --primary-dark: rgb(0, 103, 58);
-      --secondary: rgb(124, 93, 33);
-      --accent: rgb(90, 186, 28);
-      --primary-shadow: rgba(0, 137, 74, 0.35);
-      --bg-top: rgb(0, 52, 58);
-      --bg-mid: rgb(0, 45, 49);
-      --bg-bottom: rgb(0, 38, 40);
-    }
-    html[data-season="nd96"][data-theme="light"] {
-      --primary: rgb(0, 137, 74);
-      --primary-light: rgb(90, 186, 28);
-      --primary-dark: rgb(0, 93, 50);
-      --secondary: rgb(124, 93, 33);
-      --accent: rgb(0, 137, 74);
-      --primary-shadow: rgba(0, 137, 74, 0.3);
-      --btn-ink: rgb(255, 255, 255);
-      /* النهار يبقى نهارا: بياض مخضر خفيف لا خلفية الليل، والا صارت البطاقات
-         البيضاء عائمة فوق اخضر اسود (امر المهندس رعد: «الثيم الفاتح سيء»). */
-      --bg-top: rgb(247, 251, 247);
-      --bg-mid: rgb(239, 247, 240);
-      --bg-bottom: rgb(232, 243, 234);
-    }
-    /* الخط السعودي للعناوين وحدها كما في الدليل؛ النص يبقى IBM Plex Sans Arabic */
-    html[data-season="nd96"] h1,
-    html[data-season="nd96"] h2,
-    html[data-season="nd96"] h3,
-    html[data-season="nd96"] .hero-title,
-    html[data-season="nd96"] .tagline {
-      font-family: "Saudi", "IBM Plex Sans Arabic", system-ui, sans-serif;
-      letter-spacing: 0;
-    }
-    /* شريط الهوية: نقوش السدو الهندسية باخضر الهوية والذهبي، وشعارها اللفظي */
-    html[data-season="nd96"]::after {
-  /* الشعار الرسمي في الوسط، وعبارة القيمة تتغير كل يوم، فوق شطرنج السدو */
-  content: attr(data-nd-slogan);
-  position: fixed; inset-block-start: 0; inset-inline: 0; height: 40px;
-  display: flex; align-items: center; justify-content: flex-start;
-  padding-inline: 1.1rem;
-  font: 700 0.8rem/1 "Saudi", "IBM Plex Sans Arabic", system-ui, sans-serif;
-  letter-spacing: 0.02em; color: rgb(210, 183, 129);
-  background-color: rgb(6, 27, 32);
-  background-image:
-    url("/nd96-logo.png"),
-    repeating-conic-gradient(rgba(90,186,28,0.20) 0% 25%, transparent 0% 50%);
-  background-repeat: no-repeat, repeat;
-  background-position: center, 0 0;
-  background-size: auto 26px, 14px 14px;
-  border-block-end: 1px solid rgba(124, 93, 33, 0.6);
-  z-index: 9999; pointer-events: none;
-}
-    /* الشريط يسكن فوق الراس نفسه: يزاد حشو ‎.site-header‎ العلوي بقدره، فتقيس
-   ‎syncSiteHeaderHeight‎ الارتفاع الجديد وتنزل معه ‎.app-topbar‎ والشريط الجانبي
-   وحشو الصفحة تلقائيا — بلا لمس اي شيفرة ولا قيمة ثابتة تتعارض معها. */
-html[data-season="nd96"] .site-header { padding-block-start: calc(0.4rem + 40px); }
-html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 40px; }
-/* شبكة معينات هندسية خافتة خلف المحتوى، مستوحاة من النسيج التقليدي كما في الهوية.
-   بلا صور ولا طلبات شبكة، وتزول بحذف هذه القاعدة. */
-html[data-season="nd96"]::before {
-  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  opacity: 0.045;
-  /* نقش السدو الرسمي مستخرجا من عناصر الهوية (Generosity) بالوان الهوية */
-  background-image: url("/nd96-sadu.svg");
-  background-size: 184px auto;
-  background-repeat: repeat;
-}
-html[data-season="nd96"][data-theme="light"]::before { opacity: 0.035; }
-@media (max-width: 600px) {
-  html[data-season="nd96"]::after { height: 32px; background-size: auto 20px, 12px 12px; }
-  html[data-season="nd96"] .site-header { padding-block-start: calc(0.4rem + 32px); }
-  html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 32px; }
-}
+    /* ══ موسم اليوم الوطني السعودي الـ96 ═══════════════════════════════════════
+       طبقة الموسم كتلة واحدة في ‎header.css‎ وحدها، وهذه الصفحة تحمّله فتصلها.
+       كانت منسوخة هنا وفي سبع صفحات اخرى فانحرفت النسخ عن بعضها (لم تظهر بلاطة
+       قيمة اليوم الا حيث لا نسخة تطغى) — حذف النسخ هو اصل التصحيح. */
               </style>
 </head>
 <body class="has-site-header">
@@ -741,6 +655,6 @@ html[data-season="nd96"][data-theme="light"]::before { opacity: 0.035; }
 
   <script src="/pricing.inline.1.js"></script>
   <script src="/pricing.inline.2.js"></script>
-<script src="/brand-logo.js?v=6" defer></script>
+<script src="/brand-logo.js?v=7" defer></script>
 </body>
 </html>
