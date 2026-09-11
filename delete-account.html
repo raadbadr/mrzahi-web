@@ -148,6 +148,11 @@
       --accent: rgb(0, 137, 74);
       --primary-shadow: rgba(0, 137, 74, 0.3);
       --btn-ink: rgb(255, 255, 255);
+      /* النهار يبقى نهارا: بياض مخضر خفيف لا خلفية الليل، والا صارت البطاقات
+         البيضاء عائمة فوق اخضر اسود (امر المهندس رعد: «الثيم الفاتح سيء»). */
+      --bg-top: rgb(247, 251, 247);
+      --bg-mid: rgb(239, 247, 240);
+      --bg-bottom: rgb(232, 243, 234);
     }
     /* الخط السعودي للعناوين وحدها كما في الدليل؛ النص يبقى IBM Plex Sans Arabic */
     html[data-season="nd96"] h1,
@@ -160,24 +165,23 @@
     }
     /* شريط الهوية: نقوش السدو الهندسية باخضر الهوية والذهبي، وشعارها اللفظي */
     html[data-season="nd96"]::after {
-  content: "";
+  /* الشعار الرسمي في الوسط، وعبارة القيمة تتغير كل يوم، فوق شطرنج السدو */
+  content: attr(data-nd-slogan);
+  position: fixed; inset-block-start: 0; inset-inline: 0; height: 40px;
+  display: flex; align-items: center; justify-content: flex-start;
+  padding-inline: 1.1rem;
+  font: 700 0.8rem/1 "Saudi", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  letter-spacing: 0.02em; color: rgb(210, 183, 129);
   background-color: rgb(6, 27, 32);
   background-image:
     url("/nd96-logo.png"),
-    repeating-linear-gradient(135deg, rgba(90,186,28,0.16) 0 5px, transparent 5px 12px);
+    repeating-conic-gradient(rgba(90,186,28,0.20) 0% 25%, transparent 0% 50%);
   background-repeat: no-repeat, repeat;
   background-position: center, 0 0;
-  background-size: auto 26px, auto;
-      position: fixed; inset-block-start: 0; inset-inline: 0; height: 40px;
-      display: flex; align-items: center; justify-content: center;
-      font: 700 0.78rem/1 "Saudi", "IBM Plex Sans Arabic", system-ui, sans-serif;
-      letter-spacing: 0.02em; color: rgb(244, 238, 221);
-      background:
-        repeating-linear-gradient(135deg, rgba(124,93,33,0.28) 0 6px, transparent 6px 14px),
-        linear-gradient(90deg, rgb(0, 38, 40) 0%, rgb(0, 137, 74) 45%, rgb(90, 186, 28) 100%);
-      border-block-end: 1px solid rgba(124, 93, 33, 0.6);
-      z-index: 9999; pointer-events: none;
-    }
+  background-size: auto 26px, 14px 14px;
+  border-block-end: 1px solid rgba(124, 93, 33, 0.6);
+  z-index: 9999; pointer-events: none;
+}
     /* الشريط يسكن فوق الراس نفسه: يزاد حشو ‎.site-header‎ العلوي بقدره، فتقيس
    ‎syncSiteHeaderHeight‎ الارتفاع الجديد وتنزل معه ‎.app-topbar‎ والشريط الجانبي
    وحشو الصفحة تلقائيا — بلا لمس اي شيفرة ولا قيمة ثابتة تتعارض معها. */
@@ -188,14 +192,15 @@ html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 40px; 
 html[data-season="nd96"]::before {
   content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
   opacity: 0.045;
+  /* شطرنج السدو نفسه الذي في اطار الشعار، متناثرا خلف المحتوى */
   background-image:
-    repeating-linear-gradient(60deg, rgb(90, 186, 28) 0 1px, transparent 1px 26px),
-    repeating-linear-gradient(-60deg, rgb(90, 186, 28) 0 1px, transparent 1px 26px),
-    repeating-linear-gradient(0deg, rgb(124, 93, 33) 0 1px, transparent 1px 52px);
+    repeating-conic-gradient(rgb(90, 186, 28) 0% 25%, transparent 0% 50%),
+    repeating-conic-gradient(rgb(124, 93, 33) 0% 25%, transparent 0% 50%);
+  background-size: 22px 22px, 66px 66px;
 }
-html[data-season="nd96"][data-theme="light"]::before { opacity: 0.06; }
+html[data-season="nd96"][data-theme="light"]::before { opacity: 0.035; }
 @media (max-width: 600px) {
-  html[data-season="nd96"]::after { height: 32px; background-size: auto 20px, auto; }
+  html[data-season="nd96"]::after { height: 32px; background-size: auto 20px, 12px 12px; }
   html[data-season="nd96"] .site-header { padding-block-start: calc(0.4rem + 32px); }
   html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 32px; }
 }
@@ -304,6 +309,6 @@ html[data-season="nd96"][data-theme="light"]::before { opacity: 0.06; }
 
   <script src="/delete-account.inline.1.js"></script>
   <script src="/delete-account.inline.2.js"></script>
-<script src="/brand-logo.js?v=5" defer></script>
+<script src="/brand-logo.js?v=6" defer></script>
 </body>
 </html>

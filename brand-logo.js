@@ -13,7 +13,12 @@
     if (q.indexOf("season=off") !== -1) on = false;
     else if (q.indexOf("season=nd96") !== -1) on = true;
     if (on) {
-      document.documentElement.setAttribute("data-season", "nd96");
+      var doc = document.documentElement;
+      doc.setAttribute("data-season", "nd96");
+      /* عبارات الهوية الست: واحدة لكل يوم بالدور، بلا تشكيل */
+      var VALUES = ["عزنا باصالتنا", "عزنا بكرمنا", "عزنا بشجاعتنا",
+                    "عزنا بهمتنا", "عزنا بجودنا", "عزنا برؤيتنا"];
+      doc.setAttribute("data-nd-slogan", VALUES[new Date().getDate() % VALUES.length]);
       /* الراس ينمو بقدر الشريط بعد ضبط السمة، و‎syncSiteHeaderHeight‎ تكون قد قاسته
          قبلها؛ وهي مربوطة بـ‎resize‎ فنطلقه ليعاد القياس وينزل ما يعتمد عليه. */
       var again = function () { try { window.dispatchEvent(new Event("resize")); } catch (e) {} };
