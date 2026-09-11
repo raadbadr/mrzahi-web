@@ -79,6 +79,10 @@ const SUPABASE_PROXY_PREFIXES = ["/auth/v1/", "/rest/v1/", "/storage/v1/", "/rea
 async function proxySupabase(request, env, url) {
   if (!env.SUPABASE_URL) return json({ error: "not configured" }, 503);
   const upstream = new URL(url.pathname + url.search, new URL(env.SUPABASE_URL).origin);
+  /* Realtime يفتح WebSocket: ترقية 101 لا تنسخ يدويا، تمرر كما هي ليتولاها الـ runtime */
+  if ((request.headers.get("upgrade") || "").toLowerCase() === "websocket") {
+    return fetch(upstream, request);
+  }
   const headers = new Headers(request.headers);
   headers.delete("host");
   const init = { method: request.method, headers, redirect: "manual" };
