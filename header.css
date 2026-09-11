@@ -338,7 +338,13 @@ html[dir="ltr"][data-season="nd96"]::after {
    ‎syncSiteHeaderHeight‎ الارتفاع الجديد وتنزل معه ‎.app-topbar‎ والشريط الجانبي
    وحشو الصفحة تلقائيا — بلا لمس اي شيفرة ولا قيمة ثابتة تتعارض معها. */
 html[data-season="nd96"] .site-header { padding-block-start: calc(0.4rem + 40px); }
-html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 40px; }
+/* الفاصل يزيد بقدر الشريط لا يحل محله: كانت القاعدة تكتب ‎40px‎ مطلقة فتغلب
+   ‎body.has-site-header { padding-top: 52px }‎ بالاولوية، فينمو الراس 40 بكسلا
+   وينكمش الفاصل 12 — فيختفي 60 بكسلا من اول بطاقة تحت الراس الثابت في كل
+   صفحات الموقع. الان 52+40، والصفحات بلا راس ثابت (404) تاخذ 40 وحدها،
+   وصفحات التطبيق تستثنى لان ‎syncSiteHeaderHeight‎ تقيس لها. */
+html[data-season="nd96"] body.has-site-header:not(.has-app-topbar) { padding-block-start: calc(52px + 40px); }
+html[data-season="nd96"] body:not(.has-site-header):not(.has-app-topbar) { padding-block-start: 40px; }
 /* شبكة معينات هندسية خافتة خلف المحتوى، مستوحاة من النسيج التقليدي كما في الهوية.
    بلا صور ولا طلبات شبكة، وتزول بحذف هذه القاعدة. */
 html[data-season="nd96"]::before {
@@ -372,5 +378,6 @@ html[data-season="nd96"] .footer::before {
   }
   html[dir="ltr"][data-season="nd96"]::after { background-position: left 0.75rem center, center, 0 0; }
   html[data-season="nd96"] .site-header { padding-block-start: calc(0.4rem + 32px); }
-  html[data-season="nd96"] body:not(.has-app-topbar) { padding-block-start: 32px; }
+  html[data-season="nd96"] body.has-site-header:not(.has-app-topbar) { padding-block-start: calc(52px + 32px); }
+  html[data-season="nd96"] body:not(.has-site-header):not(.has-app-topbar) { padding-block-start: 32px; }
 }

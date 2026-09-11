@@ -795,9 +795,10 @@ html[data-season="nd96"][data-theme="light"] .hero::after {
     radial-gradient(ellipse 70% 55% at 50% 50%, rgba(0, 137, 74, 0.12), transparent 70%);
   opacity: 0.16;
 }
-/* التاغلاين بالخط السعودي وبلون الهوية: نبرة الموسم في اول ما تقع عليه العين */
-html[data-season="nd96"] .tagline { color: rgb(90, 186, 28); }
-html[data-season="nd96"][data-theme="light"] .tagline { color: rgb(0, 137, 74); }
+/* التاغلاين بالرملي الذهبي لا بالليموني: صار الشعار نفسه ليمونيا في الموسم،
+   فلو بقي السطر تحته بلونه ذاب الاثنان في كتلة واحدة وضاع التدرج. */
+html[data-season="nd96"] .tagline { color: rgb(210, 183, 129); }
+html[data-season="nd96"][data-theme="light"] .tagline { color: rgb(124, 93, 33); }
 
 /* ══ فواصل الاقسام: شريط الحدود الرسمي من عناصر هوية الموسم ══════════════════
    مستخرج من الشريط النباتي في لوح «الكرم» بالوان الهوية. يفصل الترحيب عن

@@ -44,9 +44,51 @@
   } catch (e) { /* الثيم الاصلي يبقى */ }
 })();
 
+/* شعار الموسم: نسخة من الشعار نفسه بلون الهوية بدل الازرق السماوي — الليموني
+   ‎#5aba1c‎ على الداكن والاخضر ‎#008949‎ على الفاتح، والحرفان ‎MR‎ كما هما.
+   مصدر الشعار مثبت نصا في عشرة ملفات (سكربتات كل صفحة تبدله مع الثيم)، فبدل
+   ملاحقتها كلها نمسح الصور مرة عند البدء ونراقب سمة ‎src‎ فنبدل ما يوضع لاحقا.
+   تزول الطبقة بزوال ‎data-season‎ فيرجع الازرق بلا لمس اي ملف اخر. */
 (function () {
-  var LOGO_DARK = '/mrzahi-logo-full-dark.png?v=2';
-  var LOGO_LIGHT = '/mrzahi-logo-full-light.png?v=2';
+  var ND = document.documentElement.getAttribute('data-season') === 'nd96';
+  var RE = /mrzahi-logo-full-(dark|light)\.png/;
+  function seasonal(src) {
+    if (!ND || !src || src.indexOf('-nd96') !== -1) return src;
+    return src.replace(RE, 'mrzahi-logo-full-$1-nd96.png');
+  }
+  function sweep(root) {
+    if (!ND || !root || !root.querySelectorAll) return;
+    var imgs = root.querySelectorAll('img[src*="mrzahi-logo-full-"]');
+    for (var i = 0; i < imgs.length; i++) {
+      var cur = imgs[i].getAttribute('src'); var next = seasonal(cur);
+      if (next !== cur) imgs[i].setAttribute('src', next);
+    }
+  }
+  if (ND && typeof MutationObserver !== 'undefined') {
+    new MutationObserver(function (recs) {
+      for (var i = 0; i < recs.length; i++) {
+        var r = recs[i];
+        if (r.type === 'attributes' && r.target.tagName === 'IMG') {
+          var cur = r.target.getAttribute('src'); var next = seasonal(cur);
+          if (next !== cur) r.target.setAttribute('src', next);
+        } else if (r.type === 'childList') {
+          for (var j = 0; j < r.addedNodes.length; j++) {
+            var n = r.addedNodes[j];
+            if (n.nodeType !== 1) continue;
+            if (n.tagName === 'IMG') { var c = n.getAttribute('src'); var x = seasonal(c); if (x !== c) n.setAttribute('src', x); }
+            else sweep(n);
+          }
+        }
+      }
+    }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['src'] });
+  }
+  if (ND) {
+    sweep(document);
+    document.addEventListener('DOMContentLoaded', function () { sweep(document); });
+  }
+
+  var LOGO_DARK = seasonal('/mrzahi-logo-full-dark.png') + '?v=2';
+  var LOGO_LIGHT = seasonal('/mrzahi-logo-full-light.png') + '?v=2';
   var SKIP_SELECTOR = 'script, style, noscript, code, pre, title, .brand-logo-mark, .brand-logo-inline, [data-brand-logo-footer]';
   var TARGET = 'MrZahi';
 
