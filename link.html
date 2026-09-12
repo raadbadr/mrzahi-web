@@ -8,18 +8,26 @@
   <link rel="icon" href="/mrzahi-icon.ico?v=2">
   <link rel="apple-touch-icon" sizes="180x180" href="/mrzahi-icon-180.png?v=2">
   <title>ربط شاشة زاهي | MrZahi</title>
+  <link rel="stylesheet" href="header.css">
   <style>
     /* صفحة عبور لباركود شاشة زاهي: تتحقق من ان العنوان محلي ثم تنتقل الى بطاقة التقويم
        في الاعدادات حيث زر «اربط شاشتي». لا تطلب شيئا بنفسها ولا تحمل اي رمز. */
-    html, body { margin: 0; min-height: 100%; background: #1a2933; color: #f2f5f7; font-family: "IBM Plex Sans Arabic", system-ui, sans-serif; }
+    /* الالوان من متغيرات الموقع حين توجد (طبقة الموسم تضبطها في header.css)، وقيم
+       الثيم الداكن الاصلية احتياطا — فلا تظل هذه الصفحة زرقاء رمادية بينما كل
+       صفحة اخرى خضراء في الموسم. */
+    html, body { margin: 0; min-height: 100%; background: linear-gradient(180deg, var(--bg-top, #1a2933) 0%, var(--bg-bottom, #1a2933) 100%); color: #f2f5f7; font-family: "IBM Plex Sans Arabic", system-ui, sans-serif; }
     main { min-height: 100vh; min-height: 100svh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; box-sizing: border-box; text-align: center; }
+    /* شريط الموسم الثابت يزيد حشو ‎body‎ بقدره، فينقص منه ارتفاع ‎main‎ كي يبقى
+       المحتوى في وسط ما يراه العين بلا تمرير زائد. */
+    html[data-season="nd96"] main { min-height: calc(100svh - 40px); }
+    @media (max-width: 600px) { html[data-season="nd96"] main { min-height: calc(100svh - 32px); } }
     .card { max-width: 28rem; }
     .card img { width: 160px; max-width: 60%; height: auto; margin-bottom: 1.25rem; }
     h1 { font-size: 1.25rem; margin: 0 0 0.75rem; }
     p { margin: 0 0 0.5rem; line-height: 1.7; color: #c9d3d9; }
     p[lang="en"] { direction: ltr; }
     a.btn[hidden] { display: none; }
-    a.btn { display: inline-block; margin-top: 1rem; padding: 0.75rem 1.5rem; border-radius: 12px; background: #2fa84f; color: #fff; text-decoration: none; font-weight: 700; }
+    a.btn { display: inline-block; margin-top: 1rem; padding: 0.85rem 1.6rem; border-radius: 12px; background: var(--primary, #2fa84f); color: #fff; text-decoration: none; font-weight: 700; min-height: 44px; box-sizing: border-box; }
   </style>
 </head>
 <body>
@@ -32,6 +40,7 @@
       <a class="btn" id="btn" href="/app/settings.html#calendarCard" hidden>فتح الاعدادات</a>
     </div>
   </main>
+  <script src="/brand-logo.js?v=8" defer></script>
   <script src="/link.inline.1.js?v=1" defer></script>
 </body>
 </html>
