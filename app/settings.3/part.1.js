@@ -798,6 +798,20 @@
         /* رابط الشاشة المكتبية من رمز التقويم نفسه: لا رمز جديد ولا صلاحية جديدة */
         var dev = el("deviceUrl");
         if (dev) dev.value = url.replace("/api/calendar/", "/api/device/").replace(/\.ics$/, "");
+        /* باركود شاشة زاهي: /link?to=<عنوان محلي> يحول الى هنا مع link=<to>، وزر واحد يفتح
+           http://<to>/dtoken?t=<الرمز> على شبكة الجهاز نفسها فيحفظه الجهاز ويرد «تم الربط»
+           (امر المهندس رعد 2026-09-12). رابط يضغطه المستخدم لا fetch ولا تحويل تلقائي. */
+        var linkBtn = el("deviceLinkBtn"), linkHint = el("deviceLinkHint");
+        if (linkBtn) {
+          var to = "";
+          try { to = String(new URLSearchParams(window.location.search).get("link") || "").trim().toLowerCase(); } catch (e) { to = ""; }
+          var tok = url.match(/\/api\/calendar\/([A-Za-z0-9_-]+)\.ics$/);
+          var okTo = to.length <= 64 && /^(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|[a-z0-9-]+\.local)$/.test(to);
+          var show = !!(okTo && tok);
+          if (show) linkBtn.href = "http://" + to + "/dtoken?t=" + encodeURIComponent(tok[1]);
+          linkBtn.hidden = !show;
+          if (linkHint) linkHint.hidden = !show;
+        }
         var g = el("googleCalBtn");
         var a = el("appleCalBtn");
         if (g) g.href = "https://calendar.google.com/calendar/r?cid=" + encodeURIComponent(url);

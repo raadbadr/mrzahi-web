@@ -250,7 +250,9 @@ curl -H "Authorization: Bearer mz_live_..." "https://mrzahi.com/api/v1/items?rec
           <input type="text" class="waitlist-input" id="deviceUrl" readonly dir="ltr">
           <div class="settings-actions">
             <button type="button" class="chat-option-btn" id="copyDeviceBtn" data-i18n="copyUrlBtn">نسخ الرابط</button>
+            <a class="waitlist-btn" id="deviceLinkBtn" href="#" target="_blank" rel="noopener" hidden data-i18n="deviceLinkBtn">اربط شاشتي</a>
             <span class="settings-note" data-i18n="deviceIntro">يقرأ منه جهاز زاهي أقرب أربعة مواعيد بالعربية.</span>
+            <span class="settings-note" id="deviceLinkHint" hidden data-i18n="deviceLinkHint">اضغط والجوال على شبكة الجهاز نفسها؛ يفتح الجهاز صفحة «تم الربط».</span>
           </div>
         </div>
         <p class="waitlist-msg" id="calendarMsg" style="display:none" role="status" aria-live="polite"></p>
@@ -405,9 +407,9 @@ curl -H "Authorization: Bearer mz_live_..." "https://mrzahi.com/api/v1/items?rec
   </div>
 
 
-  <script src="/app/settings.1.js?v=77"></script>
-  <script src="/app/settings.2.js?v=77"></script>
-  <script src="/app/settings.3.js?v=77"></script>
+  <script src="/app/settings.1.js?v=78"></script>
+  <script src="/app/settings.2.js?v=78"></script>
+  <script src="/app/settings.3.js?v=78"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- رمز QR لربط تيليجرام من الجوال (qrcode-generator من cdnjs — مسموح في CSP) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" defer integrity="sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
