@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <!-- الموسم قبل اول رسم: لا defer ولا async، والا رسمت الصفحة بالتصميم القديم ثم قفزت.
+       وقبل اوراق الانماط: السكربت العادي بعد ورقة معلقة ينتظر تحميلها، فيتاخر الرسم. -->
+  <script src="/season.js?v=1"></script>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cloudflareinsights.com; worker-src 'self' blob:;">
   <meta name="theme-color" content="#1a2933" id="themeColorMeta">
   <meta name="robots" content="index, follow">
@@ -118,8 +121,6 @@
        كانت منسوخة هنا وفي سبع صفحات اخرى فانحرفت النسخ عن بعضها (لم تظهر بلاطة
        قيمة اليوم الا حيث لا نسخة تطغى) — حذف النسخ هو اصل التصحيح. */
               </style>
-  <!-- الموسم قبل اول رسم: لا defer ولا async، والا رسمت الصفحة بالتصميم القديم ثم قفزت -->
-  <script src="/season.js?v=1"></script>
 </head>
 <body class="has-site-header">
   <header class="site-header">

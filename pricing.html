@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <!-- الموسم قبل اول رسم: لا defer ولا async، والا رسمت الصفحة بالتصميم القديم ثم قفزت.
+       وقبل اوراق الانماط: السكربت العادي بعد ورقة معلقة ينتظر تحميلها، فيتاخر الرسم. -->
+  <script src="/season.js?v=1"></script>
   <meta name="theme-color" content="#1a2933" id="themeColorMeta">
   <meta name="robots" content="index, follow">
   <link rel="icon" href="/mrzahi-icon.ico?v=2">
@@ -476,8 +479,6 @@
        كانت منسوخة هنا وفي سبع صفحات اخرى فانحرفت النسخ عن بعضها (لم تظهر بلاطة
        قيمة اليوم الا حيث لا نسخة تطغى) — حذف النسخ هو اصل التصحيح. */
               </style>
-  <!-- الموسم قبل اول رسم: لا defer ولا async، والا رسمت الصفحة بالتصميم القديم ثم قفزت -->
-  <script src="/season.js?v=1"></script>
 </head>
 <body class="has-site-header">
   <header class="site-header">
