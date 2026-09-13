@@ -76,12 +76,14 @@
       opacity: 0.85;
     }
   </style>
+  <!-- الموسم قبل اول رسم: لا defer ولا async، والا رسمت الصفحة بالتصميم القديم ثم قفزت -->
+  <script src="/season.js?v=1"></script>
 </head>
 <body>
   <div class="error-code">404</div>
   <p class="error-message">الصفحة غير موجودة</p>
   <p class="error-sub">الرابط الذي فتحته لا يعمل، أو الصفحة محذوفة</p>
   <a href="/" class="home-btn">الرئيسية</a>
-<script src="/brand-logo.js?v=8" defer></script>
+<script src="/brand-logo.js?v=9" defer></script>
 </body>
 </html>
