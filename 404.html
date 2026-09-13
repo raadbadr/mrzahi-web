@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-  <!-- الموسم قبل اول رسم: لا defer ولا async، والا رسمت الصفحة بالتصميم القديم ثم قفزت.
-       وقبل اوراق الانماط: السكربت العادي بعد ورقة معلقة ينتظر تحميلها، فيتاخر الرسم. -->
-  <script src="/season.js?v=1"></script>
+  <!-- الموسم مطبوع في الترميز من الـ Worker، فتصل الصفحة وهي بالثيم. هذا احتياط
+       لمن يفتحها من خارجه، ولتبديل صور الشعار التي تبنى بعد التحميل. -->
+  <script src="/season.js?v=2" defer></script>
   <meta name="theme-color" content="#1a2933" id="themeColorMeta">
   <meta name="robots" content="noindex">
   <link rel="icon" href="/mrzahi-icon.ico?v=2">

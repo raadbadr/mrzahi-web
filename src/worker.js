@@ -918,6 +918,50 @@ async function handleWhatsappWebhook(request, env, url) {
 /* نطاقا المنصة: mrzahi.com وحده (النطاق القديم الغي نهائيا في 2026-09-11) */
 const SITE_ORIGINS = ["https://mrzahi.com", "https://www.mrzahi.com"];
 
+/* ═══ موسم اليوم الوطني: يطبع في الترميز نفسه، لا يركب بسكربت ══════════════
+   كانت السمات تضبط في المتصفح، فتصل الصفحة بلا ثيم ثم تتبدل بعد وصول السكربت.
+   الان يكتبها الـ Worker على وسم ‎<html>‎ قبل ان تغادر الخادم، ويبدل مصدر صور
+   الشعار الى نسخة الموسم — فتصل الصفحة الى المتصفح وهي بالثيم، بلا انتظار
+   ولا قفزة. ‎season.js‎ يبقى احتياطا لمن يفتح الصفحة من خارج الـ Worker.
+   يزول الموسم بزوال سبتمبر بلا لمس شيء. */
+const ND_VALUES = [
+  { key: "authenticity", slogan: "عزنا باصالتنا" },
+  { key: "generosity", slogan: "عزنا بكرمنا" },
+  { key: "courage", slogan: "عزنا بشجاعتنا" },
+  { key: "determination", slogan: "عزنا بهمتنا" },
+  { key: "giving", slogan: "عزنا بجودنا" },
+  { key: "vision", slogan: "عزنا برؤيتنا" },
+];
+const ND_LOGO_RE = /mrzahi-logo-full-(dark|light)\.png/;
+function ndSeason(url) {
+  /* بتوقيت الرياض (+3) كي تتبدل قيمة اليوم عند منتصف ليل المملكة لا غرينتش */
+  const riyadh = new Date(Date.now() + 3 * 3600 * 1000);
+  let on = riyadh.getUTCMonth() === 8;
+  const q = url.searchParams.get("season");
+  if (q === "off") on = false; else if (q === "nd96") on = true;
+  if (!on) return null;
+  let v = ND_VALUES[riyadh.getUTCDate() % ND_VALUES.length];
+  const forced = url.searchParams.get("nd");
+  if (forced) { const hit = ND_VALUES.find((x) => x.key === forced); if (hit) v = hit; }
+  return v;
+}
+function ndStamp(res, v) {
+  if (!v) return res;
+  const type = res.headers.get("content-type") || "";
+  if (!type.includes("text/html")) return res;
+  return new HTMLRewriter()
+    .on("html", { element(el) {
+      el.setAttribute("data-season", "nd96");
+      el.setAttribute("data-nd-value", v.key);
+      el.setAttribute("data-nd-slogan", v.slogan);
+    } })
+    .on("img", { element(el) {
+      const src = el.getAttribute("src") || "";
+      if (ND_LOGO_RE.test(src)) el.setAttribute("src", src.replace(ND_LOGO_RE, "mrzahi-logo-full-$1-nd96.png"));
+    } })
+    .transform(res);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -975,7 +1019,28 @@ export default {
         try { const bundled = await serveBundle(request, env, url); if (bundled) return bundled; }
         catch (e) { console.log("bundle error", path, String(e && e.message || e)); }
       }
-      return env.ASSETS.fetch(request);
+      /* طبقة الموسم لا يجوز ان تسقط الموقع: اي خلل فيها يرجع الى تقديم الاصل
+         كما هو، فيبقى الموقع يعمل بلا ثيم بدل ان ينقطع. */
+      try {
+        const nd = ndSeason(url);
+        if (!nd) return env.ASSETS.fetch(request);
+        /* الترويسات الشرطية تنزع في الموسم: لو ردت طبقة الاصول 304 لعاد المتصفح
+           الى نسخته المحفوظة بقيمة يوم مضى، فما تبدلت قيمة اليوم حتى يتغير الملف.
+           الصفحات صغيرة والرد يبقى قابلا للضغط، والاثر يزول بزوال سبتمبر. */
+        const bare = new Request(request, { headers: new Headers(request.headers) });
+        bare.headers.delete("If-None-Match");
+        bare.headers.delete("If-Modified-Since");
+        const asset = await env.ASSETS.fetch(bare);
+        const type = asset.headers.get("content-type") || "";
+        if (!type.includes("text/html")) return asset;
+        const fresh = new Response(asset.body, asset);
+        fresh.headers.delete("ETag");
+        fresh.headers.set("Cache-Control", "no-cache");
+        return ndStamp(fresh, nd);
+      } catch (e) {
+        console.log("nd stamp error", path, String((e && e.message) || e));
+        return env.ASSETS.fetch(request);
+      }
     }
 
     // CORS preflight
