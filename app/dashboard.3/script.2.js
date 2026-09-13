@@ -1444,10 +1444,16 @@
         return out;
       }
 
+      /* لا سالب في ملخص الاسبوع (امر المهندس رعد 2026-09-14: «مافي شي اسمو سالب
+         في الاضافات، خليه يعرض صفر فقط او الزيادات»): الزيادة تعلن بعلامتها،
+         والتساوي يقال كما كان، وما دونهما يترك السطر فارغا فلا يعرض نقصا.
+         والسطر يبقى موجودا محجوزا بمسافة غير فاصلة كي تتساوى ارتفاعات البطاقات
+         الثلاث مهما اختلفت ارقامها. */
       function trendText(now, before) {
         var diff = now - before;
-        if (!diff) return T("weekSame");
-        return (diff > 0 ? "+" : "−") + Math.abs(diff) + " " + T("weekVsLast");
+        if (diff > 0) return "+" + diff + " " + T("weekVsLast");
+        if (diff === 0) return T("weekSame");
+        return "";
       }
 
       /* الأرقام من القاعدة على كل العناصر لا على الصفحة المحملة (500 صف).
@@ -1482,7 +1488,7 @@
           '<div class="totals-row">' + boxes.map(function (b) {
             return '<div class="total-card"><span class="total-label">' + esc(T(b.key)) + "</span>" +
                    '<span class="total-value ' + b.cls + '">' + b.n + "</span>" +
-                   '<span class="total-label">' + esc(trendText(b.n, b.was)) + "</span></div>";
+                   '<span class="total-label">' + (esc(trendText(b.n, b.was)) || "&nbsp;") + "</span></div>";
           }).join("") + "</div>";
         paintEl(card).html = html;
         card.hidden = false;
