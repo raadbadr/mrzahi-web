@@ -153,6 +153,24 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       function (err) { clearTimeout(timer); throw err; });
   }
 
+  /* لا نداء الى القاعدة بلا سقف زمني: وعد لا يرفض ابدا يترك الشاشة معلقة بلا
+     دوار ولا رسالة ولا خطأ، فلا يمسه اي catch ولا يعرف صاحبه ماذا جرى. المهلة
+     سخية (نصف دقيقة) ثم يرفض الوعد فيصل الخبر (المهندس رعد 2026-09-16). */
+  function fetchWithTimeout(input, init) {
+    var opts = init || {};
+    if (typeof AbortController !== "function" || opts.signal) return window.fetch(input, opts);
+    var ac = new AbortController(), done = false;
+    var timer = setTimeout(function () { if (!done) ac.abort(); }, 30000);
+    var next = {};
+    for (var k in opts) if (Object.prototype.hasOwnProperty.call(opts, k)) next[k] = opts[k];
+    next.signal = ac.signal;
+    var clear = function () { done = true; clearTimeout(timer); };
+    return window.fetch(input, next).then(
+      function (r) { clear(); return r; },
+      function (e) { clear(); throw e; }
+    );
+  }
+
   function loadConfig() {
     return fetchWithTimeout(CONFIG_URL, { cache: "no-store", headers: { Accept: "application/json" } }, 12000)
       .then(function (res) {
@@ -172,7 +190,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
         googleClientId = cfg.googleClientId || null;
         googleDirect = !!cfg.googleDirect;
         auth.client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
-          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+          global: { fetch: fetchWithTimeout }
         });
         auth.client.auth.onAuthStateChange(function (_event, session) {
           auth.session = session || null;

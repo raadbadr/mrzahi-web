@@ -44,8 +44,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
   /* Fallback strings (used only when the page has no `translations` object or lacks the key). */
   var FALLBACK = {
     ar: {
-      serviceUnavailableTitle: "الخدمة قيد التجهيز",
-      serviceUnavailableText: "نعمل حاليا على تجهيز الخدمة، حاول مرة أخرى لاحقا.",
+      serviceUnavailableTitle: "تعذر الاتصال بالخدمة",
+      serviceUnavailableText: "انقطع الاتصال بالخدمة. تحقق من اتصالك ثم أعد المحاولة.",
       noOrg: "لا توجد شركة محددة، أنشئ شركتك أولا.",
       planLimitItems: "وصلت إلى الحد الأقصى لعدد العناصر في باقتك الحالية، رق باقتك لإضافة المزيد.",
       planLimitMembers: "وصلت إلى الحد الأقصى لعدد الأعضاء في باقتك الحالية، رق باقتك لإضافة المزيد.",
@@ -56,8 +56,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       notAllowed: "لا تملك صلاحية هذا الإجراء."
     },
     en: {
-      serviceUnavailableTitle: "Service is being prepared",
-      serviceUnavailableText: "We are setting up the service. Please try again later.",
+      serviceUnavailableTitle: "Could not reach the service",
+      serviceUnavailableText: "The connection to the service was lost. Check your connection and try again.",
       noOrg: "No company selected. Create your company first.",
       planLimitItems: "You have reached the item limit of your current plan. Upgrade to add more.",
       planLimitMembers: "You have reached the member limit of your current plan. Upgrade to add more.",
@@ -68,8 +68,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       notAllowed: "You do not have permission for this action."
     },
     fr: {
-      serviceUnavailableTitle: "Service en cours de préparation",
-      serviceUnavailableText: "Nous préparons le service. Veuillez réessayer plus tard.",
+      serviceUnavailableTitle: "Service injoignable",
+      serviceUnavailableText: "La connexion au service a ete perdue. Verifiez votre connexion et reessayez.",
       noOrg: "Aucune entreprise sélectionnée. Créez d'abord votre entreprise.",
       planLimitItems: "Vous avez atteint la limite d'éléments de votre forfait actuel. Passez à un forfait supérieur pour en ajouter.",
       planLimitMembers: "Vous avez atteint la limite de membres de votre forfait actuel. Passez à un forfait supérieur pour en ajouter.",
@@ -80,8 +80,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       notAllowed: "Vous n'avez pas l'autorisation pour cette action."
     },
     ur: {
-      serviceUnavailableTitle: "سروس تیار کی جا رہی ہے",
-      serviceUnavailableText: "ہم سروس تیار کر رہے ہیں، براہ کرم بعد میں دوبارہ کوشش کریں۔",
+      serviceUnavailableTitle: "سروس تک رسائی نہیں ہو سکی",
+      serviceUnavailableText: "سروس سے رابطہ منقطع ہو گیا۔ اپنا رابطہ چیک کر کے دوبارہ کوشش کریں۔",
       noOrg: "کوئی کمپنی منتخب نہیں، پہلے اپنی کمپنی بنائیں۔",
       planLimitItems: "آپ اپنے موجودہ پلان میں آئٹمز کی حد تک پہنچ چکے ہیں، مزید شامل کرنے کے لیے پلان اپ گریڈ کریں۔",
       planLimitMembers: "آپ اپنے موجودہ پلان میں اراکین کی حد تک پہنچ چکے ہیں، مزید شامل کرنے کے لیے پلان اپ گریڈ کریں۔",

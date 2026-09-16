@@ -120,6 +120,14 @@
           $("docFile").value = "";
           return;
         }
+        /* قراءة واحدة في كل مرة: قراءتان تتسابقان كانتا تملآن النموذج نفسه،
+           فيحفظ مستند برقم وتاريخ وجهة لا تخصه (المهندس رعد 2026-09-16). */
+        if (state.reading) {
+          setStatus(t("docBusy"), "error");
+          $("docFile").value = "";
+          return;
+        }
+        state.reading = true;
         state.file = file;
         var wantedKind = state.pendingKind; state.pendingKind = null;
         state.wantedKind = wantedKind;
@@ -147,7 +155,7 @@
         }).catch(function (err) {
           var why = errorText(err && err.message);
           setStatus(t("docFailed") + (why ? " — " + why : ""), "error");
-        });
+        }).then(function () { state.reading = false; });
       }
 
       /* ---------- الورقة الرسمية تبني المنشأة بنفسها ---------- */

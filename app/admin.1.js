@@ -4,8 +4,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       ar: {
         title: "لوحة إدارة المنصة",
         loading: "جاري التحميل...",
-        serviceUnavailableTitle: "الخدمة قيد التجهيز",
-        serviceUnavailableText: "نعمل حاليا على تجهيز الخدمة، حاول مرة أخرى لاحقا.",
+        serviceUnavailableTitle: "تعذر الاتصال بالخدمة",
+        serviceUnavailableText: "انقطع الاتصال بالخدمة. تحقق من اتصالك ثم أعد المحاولة.",
         deniedTitle: "غير مصرح",
         deniedText: "هذه الصفحة مخصصة لمشرفي المنصة فقط.",
         dashboardBtn: "العودة إلى لوحة التحكم",
@@ -129,8 +129,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       en: {
         title: "Platform Admin Console",
         loading: "Loading...",
-        serviceUnavailableTitle: "Service is being prepared",
-        serviceUnavailableText: "We are setting up the service. Please try again later.",
+        serviceUnavailableTitle: "Could not reach the service",
+        serviceUnavailableText: "The connection to the service was lost. Check your connection and try again.",
         deniedTitle: "Not authorized",
         deniedText: "This page is for platform administrators only.",
         dashboardBtn: "Back to Dashboard",
@@ -254,8 +254,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       fr: {
         title: "Console d'administration",
         loading: "Chargement...",
-        serviceUnavailableTitle: "Service en cours de préparation",
-        serviceUnavailableText: "Nous préparons le service. Veuillez réessayer plus tard.",
+        serviceUnavailableTitle: "Service injoignable",
+        serviceUnavailableText: "La connexion au service a ete perdue. Verifiez votre connexion et reessayez.",
         deniedTitle: "Accès non autorisé",
         deniedText: "Cette page est réservée aux administrateurs de la plateforme.",
         dashboardBtn: "Retour au tableau de bord",
@@ -379,8 +379,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       ur: {
         title: "پلیٹ فارم ایڈمن پینل",
         loading: "لوڈ ہو رہا ہے...",
-        serviceUnavailableTitle: "سروس تیار کی جا رہی ہے",
-        serviceUnavailableText: "ہم سروس تیار کر رہے ہیں، براہ کرم بعد میں دوبارہ کوشش کریں۔",
+        serviceUnavailableTitle: "سروس تک رسائی نہیں ہو سکی",
+        serviceUnavailableText: "سروس سے رابطہ منقطع ہو گیا۔ اپنا رابطہ چیک کر کے دوبارہ کوشش کریں۔",
         deniedTitle: "اجازت نہیں",
         deniedText: "یہ صفحہ صرف پلیٹ فارم ایڈمنز کے لیے ہے۔",
         dashboardBtn: "ڈیش بورڈ پر واپس جائیں",

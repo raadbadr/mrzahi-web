@@ -864,7 +864,7 @@
         '<button type="button" class="app-iconbtn" id="topBellBtn" aria-label="' + escapeHtml(sidebarLabel(BELL_LABELS)) + '">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5S10.5 3.17 10.5 4v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>' +
           '<span class="app-bell-badge" id="topBellBadge" hidden>0</span></button>' +
-        '<button type="button" class="app-iconbtn" id="topSignOut" aria-label="' + escapeHtml(sidebarLabel(SIGN_OUT_LABELS)) + '">' +
+        '<button type="button" class="app-iconbtn" id="topSignOut" aria-label="' + escapeHtml(sidebarLabel(SIGN_OUT_LABELS)) + '" title="' + escapeHtml(sidebarLabel(SIGN_OUT_LABELS)) + '">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg></button>' +
         '<div class="app-bell-panel" id="topBellPanel"><div class="app-bell-empty">' + escapeHtml(sidebarLabel(BELL_EMPTY)) + "</div></div>" +
       "</div>";
@@ -951,6 +951,11 @@
 
     var out = document.getElementById("topSignOut");
     if (out) out.addEventListener("click", function () {
+      /* الخروج فعل لا رجعة فيه: ينهي الجلسة ويمسح الجهاز ويستبدل الصفحة، فما
+         لم يحفظ يذهب وزر الرجوع لا يعيده. والزر ايقونة ملاصقة للجرس فتخطئه
+         الاصبع على الجوال. يسأل كما تسأل المنصة قبل حذف عضو او خطوة
+         (المهندس رعد 2026-09-16: «ما نبغى اي شي يخلي المستخدم يطلع»). */
+      if (!window.confirm(sidebarLabel(SIGN_OUT_CONFIRM))) return;
       var auth = window.mrzahiAuth;
       var done = function () { forgetDevice(); window.location.replace("/login"); };
       forgetDevice();

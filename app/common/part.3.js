@@ -665,6 +665,12 @@
   ];
 
   var SIGN_OUT_LABELS = { ar: "تسجيل الخروج", en: "Sign out", fr: "Se déconnecter", ur: "سائن آؤٹ" };
+  var SIGN_OUT_CONFIRM = {
+    ar: "تسجيل الخروج من حسابك؟ ما لم يحفظ في هذه الصفحة سيذهب.",
+    en: "Sign out of your account? Anything unsaved on this page will be lost.",
+    fr: "Se deconnecter ? Tout ce qui n'est pas enregistre sera perdu.",
+    ur: "سائن آؤٹ کریں؟ اس صفحے پر غیر محفوظ شدہ سب کچھ ضائع ہو جائے گا۔"
+  };
 
   var SIDEBAR_CSS = [
     ".app-sidebar{position:fixed;inset-block:52px 0;inset-inline-start:0;width:240px;padding:1.5rem 1rem;",
