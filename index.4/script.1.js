@@ -632,7 +632,11 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       const animateNumbers = opts && opts.animateNumbers;
       const pairs = [
         ["statValueUsers", "users"],
-        ["statValueOrgs", "organizations"],
+        /* «الشركات» تعد الشركات وحدها لا كل صفوف organizations: المساحات الشخصية
+           منها (لكل مستخدم مساحة باسمه)، فكانت البطاقة تقول 19 والشركات اربع
+           (المهندس رعد 2026-09-17: «كيف عندي 19 شركة»). الرقم من companies في
+           platform_stats بعد ترحيل 0151، ويبقى organizations فيها للبوت وMCP. */
+        ["statValueOrgs", "companies"],
         ["statValueRecords", "records"],
         ["statValueItems", "items"],
         ["statItemsUpcoming", "itemsUpcoming"],
@@ -679,7 +683,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       /* الأرقام كلها من platform_stats في القاعدة: عد حقيقي للمستخدمين والحسابات
          والسجلات والعناصر والتنبيهات. ما لا يصل لا يخترع له رقم. */
       const KEYS = [
-        "users", "organizations", "records",
+        "users", "organizations", "companies", "personalSpaces", "records",
         "items", "itemsUpcoming", "itemsOverdue", "itemsNoDue", "itemsDone",
         "notifications", "notifInapp", "notifEmail", "notifTelegram", "notifWhatsapp", "notifSms",
         "telegramMessages"
