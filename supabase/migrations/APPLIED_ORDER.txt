@@ -186,3 +186,4 @@
 20260917050000	admin_activate_is_atomic	0155_admin_activate_is_atomic.sql	added
 20260917060000	personal_budget_label	0156_personal_budget_label.sql	added
 20260917070000	legal_without_opex	0157_legal_without_opex.sql	added
+20260917010000	tiles_per_pack	0155_tiles_per_pack.sql	added
