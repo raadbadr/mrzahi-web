@@ -52,6 +52,12 @@
       --success: rgb(52, 199, 89);
       --warning: rgb(255, 159, 10);
       --error: rgb(255, 59, 48);
+      --tag-trial: rgb(110, 120, 135);
+      --tag-personal: rgb(0, 104, 184);
+      --tag-freelance: rgb(0, 137, 123);
+      --tag-business: rgb(108, 74, 200);
+      --tag-enterprise: rgb(168, 124, 16);
+      --tag-expired: rgb(200, 45, 40);
     }
     [data-theme="dark"] {
       --primary: rgb(0, 160, 210);
@@ -76,6 +82,12 @@
       --success: rgb(52, 199, 89);
       --warning: rgb(255, 159, 10);
       --error: rgb(255, 59, 48);
+      --tag-trial: rgb(160, 172, 186);
+      --tag-personal: rgb(70, 175, 235);
+      --tag-freelance: rgb(45, 200, 180);
+      --tag-business: rgb(170, 145, 255);
+      --tag-enterprise: rgb(235, 195, 90);
+      --tag-expired: rgb(255, 115, 105);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { background: var(--bg-bottom); }
@@ -502,6 +514,36 @@
       border: 1px solid var(--glass-border); border-radius: 10px;
       background: var(--glass); font-size: 0.82rem; line-height: 1.6;
     }
+    /* وسوم الباقات: لون لكل باقة ليعرف نوع الحساب من نظرة (امر المهندس رعد
+       2026-09-17: «المفروض عليه تاغ والوان عشان نعرف نفرق»). اللون يصعد مع
+       الباقة: محايد للتجريبية، ثم ازرق للشخصي، ثم اخضر مزرق لوثيقة العمل الحر،
+       ثم بنفسجي للمنشاة متناهية الصغر، ثم ذهبي للمنشاة الكبيرة، واحمر للمنتهية.
+       حد واحد لكل وسم بلا حلقة ثانية (قاعدة 18)، والاسم كاملا بلا قص (قاعدة 2-هـ). */
+    .plan-tag {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      min-height: 22px; padding: 0.1rem 0.55rem;
+      border: 1px solid currentColor; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 700; line-height: 1.5;
+      color: var(--tag-trial);
+      background: transparent;
+      background: color-mix(in srgb, currentColor 14%, transparent);
+    }
+    .plan-tag::before {
+      content: ""; width: 7px; height: 7px; border-radius: 50%;
+      background: currentColor; flex: 0 0 auto;
+    }
+    .plan-tag-date { font-weight: 600; opacity: 0.85; white-space: nowrap; }
+    .plan-tag-personal, .plan-tag-monthly, .plan-tag-yearly { color: var(--tag-personal); }
+    .plan-tag-freelance { color: var(--tag-freelance); }
+    .plan-tag-business { color: var(--tag-business); }
+    .plan-tag-enterprise { color: var(--tag-enterprise); }
+    .plan-tag-expired { color: var(--tag-expired); }
+
+    /* راس بطاقة المستخدم: الاسم وباقته الاعلى في صف واحد، والوسم في موضعه
+       الثابت مهما طال الاسم (قاعدة التناسق 14). */
+    .user-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+    .user-head h3 { margin: 0; overflow-wrap: anywhere; }
+
     .user-org-name { font-weight: 700; overflow-wrap: anywhere; }
     .user-org-role { color: var(--text-secondary); font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
 
@@ -524,3 +566,11 @@
     .user-pick-name { font-weight: 700; font-size: 0.9rem; overflow-wrap: anywhere; }
     .user-pick-sub { color: var(--text-secondary); font-size: 0.78rem; overflow-wrap: anywhere; }
     .user-pick-empty { margin: 0; padding: 0.6rem; color: var(--text-secondary); font-size: 0.85rem; }
+
+/* المسجلون داخل بطاقة الحساب: اسم وبريد لكل واحد في سطره، لا رقم مجرد
+   (المهندس رعد 2026-09-17: «البحث في الشركات المفروض يطلعلي قائمة المسجلين»). */
+.platform-stat-detail-row.is-members .platform-stat-detail-val {
+  display: flex; flex-direction: column; gap: .25rem; align-items: flex-end; text-align: end;
+}
+.admin-member { display: block; line-height: 1.35; }
+.admin-member-mail { opacity: .7; font-size: .82em; }

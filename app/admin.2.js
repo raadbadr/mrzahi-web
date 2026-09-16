@@ -91,8 +91,12 @@
 
       function matchesFilter(org) {
         if (!filterText) return true;
-        const hay = (String(org.name || "") + " " + ownerEmail(org)).toLowerCase();
-        return hay.indexOf(filterText) !== -1;
+        let hay = String(org.name || "") + " " + ownerEmail(org);
+        /* البحث يجد الحساب باسم اي مسجل فيه او ببريده، لا باسم الحساب وحده */
+        membersOf(org.id).forEach(u => {
+          hay += " " + (u.full_name || "") + " " + (u.full_name_en || "") + " " + (u.email || "");
+        });
+        return hay.toLowerCase().indexOf(filterText) !== -1;
       }
 
       function row(labelKey, valueHtml, extraAttrs, rowClass) {
@@ -175,10 +179,30 @@
           '<span class="user-org-role">' + esc(T(ROLE_KEYS[c.role] || "roleMember")) + "</span>" +
           planChip(c.plan_code, c.plan_expires_at) + "</span>").join("") + "</span>";
       }
-      function planChip(code, expires) {
+      /* وسم الباقة بلون يخصها: يفرق من نظرة بين الشخصي ووثيقة العمل الحر
+         والمنشاة متناهية الصغر والمنشاة الكبيرة (امر المهندس رعد 2026-09-17:
+         «عشان نعرف نفرق بين اللي حسابو شخصي عادي واللي حسابو وثيقة واللي حسابو
+         منشاة صغيرة واللي حسابو فخم»). الاسم من جدول plans بلغة الواجهة كاملا. */
+      const PLAN_RANK = { expired: 0, trial: 1, personal: 2, monthly: 2, yearly: 2, freelance: 3, business: 4, enterprise: 5 };
+      function planTag(code, expires) {
         if (!code) return "";
-        const tail = expires ? " · " + fmtDate(expires) : "";
-        return '<span class="user-org-role">' + esc(planName(code) + tail) + "</span>";
+        const known = PLAN_RANK[code] !== undefined;
+        const date = expires ? '<span class="plan-tag-date">' + esc(fmtDate(expires)) + "</span>" : "";
+        return '<span class="plan-tag plan-tag-' + esc(known ? code : "trial") + '">' +
+               esc(planName(code)) + date + "</span>";
+      }
+      function planChip(code, expires) { return planTag(code, expires); }
+      /* اعلى باقة يملكها المستخدم في حساباته كلها: هي وسم راس بطاقته. */
+      function topPlanOf(u) {
+        const codes = [];
+        if (u.personal && u.personal.plan_code) codes.push(u.personal.plan_code);
+        (Array.isArray(u.companies) ? u.companies : []).forEach(function (c) { if (c.plan_code) codes.push(c.plan_code); });
+        let best = null;
+        codes.forEach(function (c) {
+          const r = PLAN_RANK[c] === undefined ? 1 : PLAN_RANK[c];
+          if (best === null || r > (PLAN_RANK[best] === undefined ? 1 : PLAN_RANK[best])) best = c;
+        });
+        return best;
       }
       function personalText(u) {
         const p = u.personal;
@@ -190,7 +214,8 @@
       }
       function userCard(u) {
         return '<div class="feature-card">' +
-          "<h3>" + esc(u.full_name || u.email || "—") + "</h3>" +
+          '<div class="user-head"><h3>' + esc(u.full_name || u.email || "—") + "</h3>" +
+            planTag(topPlanOf(u), null) + "</div>" +
           row("colOwner", esc(u.email || "—"), ' dir="ltr"', "is-email") +
           row("colPhone", esc(u.phone || "—"), ' dir="ltr"') +
           row("colUserNumber", esc(u.profile_number || "—"), ' dir="ltr"') +
@@ -291,6 +316,7 @@
           setStatus($("usersStatus"), "");
           renderUsers();
           renderUserPick();
+          if (orgsLoaded) renderOrgs();   /* اسماء المسجلين تظهر في بطاقات الحسابات */
         }).catch(err => {
           setStatus($("usersStatus"), T("loadError") + " " + ((err && err.message) || ""), "error");
         }).then(() => { if (btn) btn.disabled = false; });
@@ -303,9 +329,9 @@
         return '<div class="feature-card" data-org="' + esc(org.id) + '">' +
           '<h3>' + esc(org.name) + '</h3>' +
           row("colOwner", email ? esc(email) : "—", ' dir="ltr"', "is-email") +
-          row("colPlan", esc(planName(org.plan_code))) +
+          row("colPlan", planTag(org.plan_code, null)) +
           row("colExpires", esc(expiryText(org))) +
-          row("colMembers", esc(countText(org.id, "members")), ' data-count="members:' + esc(org.id) + '"') +
+          row("colMembers", memberListHtml(org.id), ' data-count="members:' + esc(org.id) + '"', "is-members") +
           row("colItems", esc(countText(org.id, "items")), ' data-count="items:' + esc(org.id) + '"') +
           row("colCreated", esc(fmtDate(org.created_at, { withTime: true }))) +
           row("colPack", packSelectHtml(org.id)) +
@@ -336,6 +362,30 @@
 
       /* بطاقة الشركات للشركات وحدها؛ والمساحات الشخصية تظهر داخل اصحابها في
          بطاقة المستخدمين لا في بطاقة مستقلة (امر المهندس رعد 2026-09-17). */
+      /* المسجلون في كل حساب: تبنى من admin_list_users المحملة اصلا (كل مستخدم
+         ومعه حساباته)، فلا نداء جديد ولا دالة قاعدة. المهندس رعد 2026-09-17:
+         «البحث في الشركات المفروض يطلعلي قائمة المسجلين». */
+      function membersOf(orgId) {
+        const out = [];
+        (users || []).forEach(u => {
+          const mine = u.orgs || u.organizations || [];
+          const hit = Array.isArray(mine) && mine.some(o => (o && (o.id || o.org_id)) === orgId);
+          if (hit) out.push(u);
+        });
+        return out;
+      }
+
+      function memberListHtml(orgId) {
+        const list = membersOf(orgId);
+        if (!list.length) return esc(countText(orgId, "members"));
+        return list.map(u => {
+          const nm = String(u.full_name || u.full_name_en || "").trim() || String(u.email || "").split("@")[0];
+          const mail = String(u.email || "").trim();
+          return '<span class="admin-member">' + esc(nm) +
+                 (mail ? ' <span class="admin-member-mail" dir="ltr">' + esc(mail) + "</span>" : "") + "</span>";
+        }).join("");
+      }
+
       function renderOrgs() {
         const companies = orgs.filter(o => !isPersonalOrg(o));
         renderOrgGrid("orgsGrid", "orgsCount", "orgsStatus",
