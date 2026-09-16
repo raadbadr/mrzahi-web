@@ -30,10 +30,10 @@
    * ============================================================ */
 
   var PROFILE_TEXT = {
-    ar: { title: "أكمل بياناتك", intro: "نحتاج اسمك الكامل ورقم جوالك قبل استخدام المنصة.", name: "الاسم الكامل", phone: "رقم الجوال", save: "حفظ ومتابعة", error: "تعذر الحفظ، حاول مرة أخرى.", offlineTitle: "تعذر الاتصال بالخادم", offlineIntro: "لم نتمكن من قراءة ملفك الشخصي الان. لم تفقد شيئا، اعد المحاولة بعد لحظات.", retry: "اعادة المحاولة", invalid: "أدخل اسما كاملا ورقم جوال بالصيغة الدولية مثل +9665xxxxxxx" },
-    en: { title: "Complete your details", intro: "We need your full name and mobile number before you use the platform.", name: "Full name", phone: "Mobile number", save: "Save and continue", error: "Could not save, try again.", offlineTitle: "Could not reach the server", offlineIntro: "We could not read your profile right now. Nothing is lost; try again in a moment.", retry: "Try again", invalid: "Enter a full name and a mobile number in international format, e.g. +9665xxxxxxx" },
-    fr: { title: "Complétez vos informations", intro: "Nous avons besoin de votre nom complet et de votre numéro de mobile.", name: "Nom complet", phone: "Numéro de mobile", save: "Enregistrer et continuer", error: "Enregistrement impossible, réessayez.", offlineTitle: "Serveur injoignable", offlineIntro: "Impossible de lire votre profil pour le moment. Rien n'est perdu ; réessayez dans un instant.", retry: "Réessayer", invalid: "Saisissez un nom complet et un numéro au format international, ex. +9665xxxxxxx" },
-    ur: { title: "اپنی تفصیلات مکمل کریں", intro: "پلیٹ فارم استعمال کرنے سے پہلے ہمیں آپ کا پورا نام اور موبائل نمبر درکار ہے۔", name: "پورا نام", phone: "موبائل نمبر", save: "محفوظ کریں اور جاری رکھیں", error: "محفوظ نہیں ہو سکا، دوبارہ کوشش کریں۔", invalid: "پورا نام اور بین الاقوامی فارمیٹ میں نمبر درج کریں، مثلا +9665xxxxxxx", offlineTitle: "سرور سے رابطہ نہیں ہو سکا", offlineIntro: "ابھی آپ کی پروفائل نہیں پڑھی جا سکی۔ کچھ ضائع نہیں ہوا، تھوڑی دیر بعد دوبارہ کوشش کریں۔", retry: "دوبارہ کوشش کریں" }
+    ar: { title: "أكمل بياناتك", intro: "نحتاج اسمك الكامل ورقم جوالك قبل استخدام المنصة.", name: "الاسم الكامل", phone: "رقم الجوال", save: "حفظ ومتابعة", error: "تعذر الحفظ، حاول مرة أخرى.", offlineTitle: "تعذر الاتصال بالخادم", offlineIntro: "لم نتمكن من قراءة ملفك الشخصي الان. لم تفقد شيئا، اعد المحاولة بعد لحظات.", retry: "اعادة المحاولة", invalid: "أدخل اسمك الكامل ورقم جوالك، مثل 0512345678 أو ‎+966512345678‎" },
+    en: { title: "Complete your details", intro: "We need your full name and mobile number before you use the platform.", name: "Full name", phone: "Mobile number", save: "Save and continue", error: "Could not save, try again.", offlineTitle: "Could not reach the server", offlineIntro: "We could not read your profile right now. Nothing is lost; try again in a moment.", retry: "Try again", invalid: "Enter your full name and mobile number, e.g. 0512345678 or +966512345678" },
+    fr: { title: "Complétez vos informations", intro: "Nous avons besoin de votre nom complet et de votre numéro de mobile.", name: "Nom complet", phone: "Numéro de mobile", save: "Enregistrer et continuer", error: "Enregistrement impossible, réessayez.", offlineTitle: "Serveur injoignable", offlineIntro: "Impossible de lire votre profil pour le moment. Rien n'est perdu ; réessayez dans un instant.", retry: "Réessayer", invalid: "Saisissez votre nom complet et votre numéro, ex. 0512345678 ou +966512345678" },
+    ur: { title: "اپنی تفصیلات مکمل کریں", intro: "پلیٹ فارم استعمال کرنے سے پہلے ہمیں آپ کا پورا نام اور موبائل نمبر درکار ہے۔", name: "پورا نام", phone: "موبائل نمبر", save: "محفوظ کریں اور جاری رکھیں", error: "محفوظ نہیں ہو سکا، دوبارہ کوشش کریں۔", invalid: "اپنا پورا نام اور موبائل نمبر درج کریں، مثلا 0512345678 یا ‎+966512345678‎", offlineTitle: "سرور سے رابطہ نہیں ہو سکا", offlineIntro: "ابھی آپ کی پروفائل نہیں پڑھی جا سکی۔ کچھ ضائع نہیں ہوا، تھوڑی دیر بعد دوبارہ کوشش کریں۔", retry: "دوبارہ کوشش کریں" }
   };
 
   var PROFILE_CSS = [
@@ -116,7 +116,7 @@
         "<h2>" + escapeHtml(t.title) + "</h2><p>" + escapeHtml(t.intro) + "</p>" +
         "<label>" + escapeHtml(t.name) + '<input type="text" id="gateName" maxlength="120" autocomplete="name" value="' +
           escapeHtml(String((app.profile || {}).full_name || "")) + '" dir="auto"></label>' +
-        "<label>" + escapeHtml(t.phone) + '<input type="tel" id="gatePhone" dir="ltr" placeholder="+9665xxxxxxx" autocomplete="tel" value="' +
+        "<label>" + escapeHtml(t.phone) + '<input type="tel" id="gatePhone" dir="ltr" placeholder="0512345678" autocomplete="tel" value="' +
           escapeHtml(String((app.profile || {}).phone || "")) + '"></label>' +
         '<button type="button" id="gateSave">' + escapeHtml(t.save) + "</button>" +
         '<div class="app-gate-msg" id="gateMsg"></div>' +
@@ -125,9 +125,10 @@
 
     document.getElementById("gateSave").addEventListener("click", function () {
       var name = String(document.getElementById("gateName").value || "").trim();
-      var phone = String(document.getElementById("gatePhone").value || "").trim().replace(/[\s-]/g, "");
+      var phone = normalizePhone(document.getElementById("gatePhone").value);
       var msg = document.getElementById("gateMsg");
-      if (name.split(/\s+/).length < 2 || !/^\+[1-9]\d{7,14}$/.test(phone)) { msg.textContent = t.invalid; return; }
+      if (name.split(/\s+/).length < 2 || !isValidPhone(phone)) { msg.textContent = t.invalid; return; }
+      document.getElementById("gatePhone").value = phone;
       var btn = document.getElementById("gateSave");
       btn.disabled = true;
       msg.textContent = "";

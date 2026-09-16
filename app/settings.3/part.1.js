@@ -131,7 +131,7 @@
       function saveProfile(ev) {
         ev.preventDefault();
         var btn = el("profileSaveBtn");
-        var phone = String(el("profilePhone").value || "").trim().replace(/[\s-]/g, "");
+        var phone = app.normalizePhone ? app.normalizePhone(el("profilePhone").value) : String(el("profilePhone").value || "").trim();
         if (!PHONE_RX.test(phone)) {
           setMsg("profileMsg", t("phoneInvalid"), "error");
           el("profilePhone").focus();

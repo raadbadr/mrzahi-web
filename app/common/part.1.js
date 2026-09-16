@@ -824,6 +824,24 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
   /* الشخص يسجل باسمه، والمنشأة باسمها: نص واحد لا يصلح للاثنين. */
   function isPersonType(v) { return entityTypeValue(v) === "individual"; }
 
+  /* رقم الجوال كما يكتبه الناس فعلا: 0501234567 و501234567 و966501234567
+     و00966501234567 و+966501234567 كلها تقبل وتحول الى الصيغة الدولية، والارقام
+     العربية الشرقية تبدل بالغربية. لا نرفض رقما صحيحا لان كاتبه لم يضع + (امر
+     المهندس رعد 2026-09-16). */
+  function normalizePhone(raw) {
+    var p = String(raw || "");
+    p = p.replace(/[\u0660-\u0669]/g, function (d) { return String(d.charCodeAt(0) - 0x0660); });
+    p = p.replace(/[\u06F0-\u06F9]/g, function (d) { return String(d.charCodeAt(0) - 0x06F0); });
+    p = p.replace(/[\s\-().\u200E\u200F]/g, "");
+    if (/^00\d+$/.test(p)) p = "+" + p.slice(2);
+    else if (/^05\d{8}$/.test(p)) p = "+966" + p.slice(1);
+    else if (/^5\d{8}$/.test(p)) p = "+966" + p;
+    else if (/^966\d{9}$/.test(p)) p = "+" + p;
+    else if (/^[1-9]\d{8,14}$/.test(p)) p = "+" + p;
+    return p;
+  }
+  function isValidPhone(p) { return /^\+[1-9]\d{7,14}$/.test(p); }
+
   var ORG_PROFILE_FIELDS = ["entity_type", "legal_name", "cr_number", "vat_number", "unified_number",
     "license_number", "national_address", "phone", "email", "website", "account_number", "iban", "bank_name", "account_name", "notes"];
 
