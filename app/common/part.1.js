@@ -602,6 +602,19 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
           return withTimeout(loadOrgs(app.client, app.user), 8000, "orgs");
         }).then(function (orgs) {
           app.orgs = orgs;
+          /* لكل مستخدم مساحة شخصية دائما: من دخل ولا مساحة له تنشا باسمه فورا،
+             فيبدا باوراقه ومواعيده بلا خطوة «انشئ شركة». الشركة او وثيقة العمل
+             الحر تضاف بعدها من زر «+ اضافة حساب» ويبدل بينها من الشريط العلوي
+             (امر المهندس رعد 2026-09-16). */
+          if (orgs.length) return orgs;
+          var me = String((app.profile && app.profile.full_name) || "").trim();
+          if (!me) return orgs;
+          initStep = "personal";
+          return createOrg(me, "individual")
+            .then(function () { return withTimeout(loadOrgs(app.client, app.user), 8000, "orgs"); })
+            .catch(function () { return app.orgs || []; });
+        }).then(function (orgs) {
+          app.orgs = orgs;
           app.org = pickOrg(orgs);
           try { if (app.org) localStorage.setItem(ORG_KEY, app.org.id); } catch (e) { /* ignore */ }
           initStep = "services";
