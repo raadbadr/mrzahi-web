@@ -140,6 +140,13 @@
         app.adminSetOrgPack(orgId, wanted).then(resolved => {
           orgPacks[orgId] = Object.assign({}, orgPacks[orgId], { ui_pack: wanted, resolved_pack: resolved || wanted });
           setStatus($("orgsStatus"), T("packChanged"), "success");
+          /* القيمة المعروضة تصير ما تراه الشركة فعلا بعد الحفظ لا ما اختير فقط،
+             وان كان الحساب هو المفتوح الان تعاد الصفحة ليظهر الاثر (امر المهندس
+             رعد 2026-09-16: «تغيير الواجهة من هنا مايسوي شي»). */
+          return loadPacks().then(() => {
+            renderOrgs();
+            if (app.org && app.org.id === orgId) window.location.reload();
+          });
         }).catch(err => {
           setStatus($("orgsStatus"), T("loadError") + " " + ((err && err.message) || ""), "error");
         }).then(() => { sel.disabled = false; });
