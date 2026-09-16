@@ -768,16 +768,9 @@
     /* my_pack_config يعيد المفتاح باسم pack؛ قراءته باسم key كانت تترك القائمة
        بلا خيار معلم فيظهر أول خيار («شخصي») مهما كانت الواجهة الحقيقية. */
     var cur = (app.pack && (app.pack.pack || app.pack.key)) || "";
-    /* القائمة مرجعها entity_choices في القاعدة، لا قاعدة مكتوبة هنا، فلا
-       يتناقض موضعان: 0139 اعاد للحساب الشخصي خيارات التخصص (محاماة، تدريب،
-       تصميم)، والمنع الباقي وحده ان تعطى الواجهة الشخصية لكيان تجاري — وهو
-       محفوظ لان حزمة individual لا تقبل سوى individual في entity_choices. */
-    var ent = (app.org && app.org.entity_type) || "company";
-    var list = packsCache.filter(function (pk) {
-      var choices = pk.entity_choices;
-      return (choices && choices.length) ? choices.indexOf(ent) !== -1 : true;
-    });
-    if (!list.length) list = packsCache;
+    /* القائمة كاملة: كل الواجهات النشطة معروضة لصاحب الحساب، بلا تقييد بنوع
+       الحساب. المهندس رعد 2026-09-16: «رجع اللسته حقت اختيار الواجهة». */
+    var list = packsCache;
     var opts = list.map(function (pk) {
       var name = (pk.names && (pk.names[lang()] || pk.names.ar)) || pk.key;
       return '<option value="' + escapeHtml(pk.key) + '"' + (pk.key === cur ? " selected" : "") + ">" +
