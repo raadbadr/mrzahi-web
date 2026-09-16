@@ -590,7 +590,19 @@
                ">" + esc(note) + "</span></div>";
       }
 
+      /* العنوان يتبع الحزمة: في الحساب الشخصي «أوراقي الرسمية» لا «مستندات
+         الشركة» — التسمية من ui_packs.labels لا من الشيفرة (المهندس رعد
+         2026-09-16: «في الشخصي ما يطلع اشياء تخص الشركات»). */
+      function applyPackTitle() {
+        if (!app.packLabel) return;
+        var el = document.querySelector('[data-i18n="docListTitle"]');
+        if (!el) return;
+        var name = app.packLabel("documentsTitle", "");
+        if (name) el.textContent = name;
+      }
+
       function render() {
+        applyPackTitle();
         var rows = state.items.filter(function (it) {
           var d = it.data || {};
           if (state.kind && d.document_kind !== state.kind) return false;

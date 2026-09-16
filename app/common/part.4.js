@@ -280,6 +280,10 @@
     "color:var(--text-primary);font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;-webkit-appearance:none;appearance:none;",
     "text-overflow:clip}",
     ".app-orgselect option{color:#12212b;background:#fff}",
+    ".app-orgadd{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:0 0 28px;padding:0;",
+    "border:1px solid var(--glass-border);border-radius:10px;background:transparent;color:var(--text-secondary);cursor:pointer;transition:.15s}",
+    ".app-orgadd:hover{background:var(--glass-border);color:var(--primary);border-color:var(--primary)}",
+    ".app-orgadd svg{width:15px;height:15px;fill:currentColor}",
     "body select,body .waitlist-input select,body select.waitlist-input{-webkit-appearance:none;appearance:none;background-image:none}",
     "body select::-ms-expand{display:none}",
     /* اسم المستخدم رابط إلى ملفه الشخصي في الإعدادات (طلب المهندس رعد) */
@@ -700,7 +704,11 @@
        اختياره يخرج من حساب الشركة الى المساحة الشخصية لصاحبه. */
     var hasPersonal = false;
     for (var oi = 0; oi < orgs.length; oi++) if (isPersonType(orgs[oi].entity_type)) hasPersonal = true;
-    var opts = orgs.map(function (o) {
+    /* الشخصي اول القائمة دائما (المهندس رعد 2026-09-16)، وترتيب الباقي كما هو */
+    var ordered = orgs.slice().sort(function (a, b) {
+      return (isPersonType(a.entity_type) ? 0 : 1) - (isPersonType(b.entity_type) ? 0 : 1);
+    });
+    var opts = ordered.map(function (o) {
       var person = isPersonType(o.entity_type);
       var type = o.entity_type ? entityLabel(o.entity_type) : "";
       var text = person ? entityLabel("individual") : orgDisplayName(o);
@@ -709,11 +717,16 @@
              escapeHtml(text) + "</option>";
     }).join("");
     /* لا مساحة شخصية بعد: الخيار ينشئها باسم صاحبها ثم ينقله اليها */
+    /* لا مساحة شخصية بعد: الخيار ينشئ المساحة باسم صاحبها ثم ينقله اليها */
     if (!hasPersonal) opts += '<option value="__personal">' + escapeHtml(entityLabel("individual")) + "</option>";
-    opts += '<option value="__new">' + escapeHtml(sidebarLabel(NEW_ORG_LABELS)) + "</option>";
+    /* «حساب جديد» صار زرا بجوار القائمة لا خيارا فيها: القائمة للحسابات
+       القائمة وحدها، والاضافة فعل مستقل (المهندس رعد 2026-09-16). */
+    var addLabel = sidebarLabel(NEW_ORG_LABELS).replace(/^\s*[+＋]\s*/, "");
     return '<div class="app-orgbox" title="' + escapeHtml(sidebarLabel(ORG_LABELS)) + '">' +
              '<span class="app-orglabel">' + escapeHtml(sidebarLabel(ORG_LABELS)) + "</span>" +
              '<select class="app-orgselect" id="topOrgSelect">' + opts + "</select>" +
+             '<button type="button" class="app-orgadd" id="topOrgAdd" title="' + escapeHtml(addLabel) + '" aria-label="' + escapeHtml(addLabel) + '">' +
+               '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z"/></svg></button>' +
            "</div>";
   }
 
@@ -885,6 +898,9 @@
     document.addEventListener("click", function () {
       if (bellPanel) bellPanel.classList.remove("is-open");
     });
+
+    var orgAdd = document.getElementById("topOrgAdd");
+    if (orgAdd) orgAdd.addEventListener("click", function (ev) { ev.stopPropagation(); openNewOrgDialog(); });
 
     var orgSel = document.getElementById("topOrgSelect");
     if (orgSel) orgSel.addEventListener("change", function () {
