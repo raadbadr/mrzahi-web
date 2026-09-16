@@ -436,9 +436,20 @@
         return { html: '<div class="ind-body">' + donutSvg(parts, total) + '<div class="donut-legend">' + legend + "</div></div>", total: total };
       }
 
+      /* لفظ المؤشر يتبع الواجهة (امر المهندس رعد 2026-09-17: «ابغى دي تظهر فقط
+         في واجهة المحامي، واي واجهة اخرى نحط بديل مايناسب الواجهة»): المحاماة
+         بلفظها الكامل (قضايا وعملاء ومبالغ)، وكل واجهة اخرى بتسمية خدمتها هي
+         (المشاريع، الدورات، المراجعون…) بكلمات عامة لا كلمات محكمة. */
+      function packIsLegal() { return ((app.pack && (app.pack.pack || app.pack.key)) || "") === "legal"; }
+      function casesWord() { return viewTitleText("cases") || T("viewCases"); }
+      function clientWord() {
+        var lbl = app.packLabel ? app.packLabel("fieldClient", "") : "";
+        return lbl || T("fieldClient");
+      }
       function renderCasesChart() {
         var card = document.getElementById("casesChart");
         if (!card) return;
+        var legal = packIsLegal();
         var items = (state.items || []).filter(function (it) { return isCaseItem(it); });
         var clients = clientBreakdown(items);
         var donut = donutHtml(clients, "noClientData");
@@ -449,17 +460,71 @@
           totalAmount += amt;
           if (it.status === "done") doneAmount += amt;
         });
+        var name = casesWord();
+        var metrics = caseMetrics(items);
+        if (!legal) {
+          /* كلمات عامة تصلح لكل واجهة: الاجمالي، جارية، متاخرة، منتهية */
+          var GENERIC = { caseTotal: "indTotal", caseOpen: "indOpen", caseOverdue: "indOverdue", caseDone: "indDone" };
+          metrics = metrics.map(function (m) { return { key: GENERIC[m.key] || m.key, value: m.value }; });
+        }
 
         paintEl(card).html =
-          "<h2>" + esc(T("casesIndicatorsTitle")) + "</h2>" +
+          "<h2>" + esc(legal ? T("casesIndicatorsTitle") : T("indicatorsFor").replace("{name}", name)) + "</h2>" +
           '<div class="ind-grid">' +
-            '<div class="ind-card"><h3>' + esc(T("casesChartTitle")) + "</h3>" + barsHtml(caseMetrics(items)) + "</div>" +
-            '<div class="ind-card"><h3>' + esc(T("clientsTitle").replace("{n}", String(donut.total))) + "</h3>" + donut.html + "</div>" +
+            '<div class="ind-card"><h3>' + esc(legal ? T("casesChartTitle") : T("indTableOf").replace("{name}", name)) + "</h3>" + barsHtml(metrics) + "</div>" +
+            '<div class="ind-card"><h3>' + esc((legal ? T("clientsTitle") : T("byPartyTitle").replace("{name}", clientWord())).replace("{n}", String(donut.total))) + "</h3>" + donut.html + "</div>" +
           "</div>" +
           '<div class="ind-totals">' +
-            '<div class="ind-total"><b>' + shortMoney(totalAmount) + "</b><span>" + esc(T("caseAmount")) + "</span></div>" +
-            '<div class="ind-total"><b>' + shortMoney(doneAmount) + "</b><span>" + esc(T("caseDoneAmount")) + "</span></div>" +
+            '<div class="ind-total"><b>' + shortMoney(totalAmount) + "</b><span>" + esc(legal ? T("caseAmount") : T("indAmountTotal")) + "</span></div>" +
+            '<div class="ind-total"><b>' + shortMoney(doneAmount) + "</b><span>" + esc(legal ? T("caseDoneAmount") : T("indAmountDone")) + "</span></div>" +
           "</div>";
+      }
+
+      /* الواجهة التي لا تسمي «القضايا» لها مؤشرها هي: اوراقها ومواعيدها
+         ومصاريفها وصحتها ان كانت من خدماتها — بديل يناسبها لا فراغ. */
+      function ownMetrics() {
+        var items = state.items || [];
+        var now = Date.now(), soon = now + 30 * 24 * 3600 * 1000;
+        var papers = 0, expiring = 0, expired = 0, openItems = 0;
+        items.forEach(function (it) {
+          var d = it.data || {};
+          var due = it.due_at ? new Date(it.due_at).getTime() : null;
+          if (d.document_kind) {
+            papers++;
+            if (due && due < now) expired++;
+            else if (due && due <= soon) expiring++;
+          }
+          if (it.status === "open") openItems++;
+        });
+        return [
+          { key: "indPapers", value: papers },
+          { key: "indPapersSoon", value: expiring },
+          { key: "indPapersExpired", value: expired },
+          { key: "indOpenItems", value: openItems }
+        ];
+      }
+      function renderOwnChart() {
+        var card = document.getElementById("ownChart");
+        if (!card) return;
+        var items = state.items || [];
+        var spent = 0, regular = 0;
+        items.forEach(function (it) {
+          if (isOfType(it, "expenses")) spent += Number(it.amount) || 0;
+          if (it.data && it.data.repeat) regular++;
+        });
+        var cards =
+          '<div class="ind-card"><h3>' + esc(T("indMyPapers")) + "</h3>" + barsHtml(ownMetrics()) + "</div>";
+        if (packHasService("health")) {
+          cards += '<div class="ind-card"><h3>' + esc(viewTitleText("health") || T("viewHealth")) + "</h3>" +
+                   '<p class="ind-note">' + esc(T("indRegular").replace("{n}", String(regular))) + "</p></div>";
+        }
+        paintEl(card).html =
+          "<h2>" + esc(T("indMine")) + "</h2>" +
+          '<div class="ind-grid">' + cards + "</div>" +
+          (packHasService("expenses")
+            ? '<div class="ind-totals"><div class="ind-total"><b>' + shortMoney(spent) + "</b><span>" +
+              esc(viewTitleText("expenses") || T("viewExpenses")) + "</span></div></div>"
+            : "");
       }
 
       function renderChart() {
@@ -939,7 +1004,12 @@
         if (state.viewType === "violations") { if (hasViolations) addChart("violationsChart"); }
         else if (state.viewType === "cases") { if (hasCases) addChart("casesChart"); }
         else if (state.viewType === "expenses") { if (hasExpenses) addChart("expensesChart"); }
-        else if (!state.viewType) { if (hasViolations) addChart("violationsChart"); if (hasCases) addChart("casesChart"); }
+        else if (!state.viewType) {
+          if (hasViolations) addChart("violationsChart");
+          if (hasCases) addChart("casesChart");
+          /* واجهة بلا «قضايا»: مؤشرها هي بدل لا شيء */
+          if (!hasCases) addChart("ownChart");
+        }
 
         calCard.appendChild(calendar);
         /* التقويم أول اللوحة بعرض الصفحة كاملا (أمر المهندس رعد)، لا داخل عمود */

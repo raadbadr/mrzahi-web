@@ -1438,6 +1438,7 @@
         renderWeek();
         renderChart();
         renderCasesChart();
+        renderOwnChart();      /* مؤشر الواجهة التي لا قضايا فيها */
         renderExpensesChart();
         if (state.viewType === "violations") {
           $("violationsBar").hidden = false;
