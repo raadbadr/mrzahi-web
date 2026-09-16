@@ -266,7 +266,18 @@
             .catch(function (err) { window.alert((err && err.code === "NOT_ALLOWED") ? app.t("notAllowed") : t("genericError")); });
         });
       }
-      window.__risksRefresh = renderAll;
+      /* عنوان المحرر تكتبه الشيفرة («تعديل — الرمز») وهو يحمل data-i18n، فمطبق الترجمة
+         يكتب فوقه عند تبديل اللغة فيضيع الرمز. يعاد هنا بلغة الواجهة الجديدة لان هذه
+         الدالة تنادى بعد المطبق. */
+      function renderEditorTitle() {
+        var card = document.getElementById("editorCard");
+        if (!card || card.hidden) return;
+        var el = $("editorTitle");
+        if (!el) return;
+        var d = state.draft;
+        el.textContent = (d && d.id) ? t("editorEdit") + " — " + (d.code || "") : t("editorNew");
+      }
+      window.__risksRefresh = function () { renderAll(); renderEditorTitle(); };
       function boot() {
         app = window.mrzahiApp;
         if (!app || !app.ready) { show("loadingCard", false); show("unavailableCard", true); return; }

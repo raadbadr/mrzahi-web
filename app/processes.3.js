@@ -620,7 +620,18 @@
         });
 
       }
-      window.__processesRefresh = function () { renderList(); };
+      /* عنوان المحرر تكتبه الشيفرة («تعديل — الرمز») وهو يحمل data-i18n، فمطبق الترجمة
+         يكتب فوقه عند تبديل اللغة فيضيع الرمز. يعاد هنا بلغة الواجهة الجديدة لان هذه
+         الدالة تنادى بعد المطبق. */
+      function renderEditorTitle() {
+        var card = document.getElementById("editorCard");
+        if (!card || card.hidden) return;
+        var el = $("editorTitle");
+        if (!el) return;
+        var d = state.draft;
+        el.textContent = (d && d.id) ? t("editorEdit") + " — " + (d.code || "") : t("editorNew");
+      }
+      window.__processesRefresh = function () { renderList(); renderEditorTitle(); };
 
       function boot() {
         app = window.mrzahiApp;

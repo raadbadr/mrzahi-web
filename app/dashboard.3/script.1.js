@@ -816,6 +816,20 @@
           icon: '<path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 16H5V9h14v11zM7 11h5v5H7z"/>' }
       ];
 
+      var servicesEl = null;
+
+      /* بطاقة الخدمات نصوصها من القاموس لا من [data-i18n]، فتعاد كتابتها عند تبديل
+         اللغة والا بقيت بلغتها الاولى (قاسه الوكيل 06-mrzahi-7a: «الخدمات» و«بدء
+         الخدمة» يبقيان عربيين في الواجهة الانجليزية). المستمع بالتفويض على البطاقة
+         فلا يضيع باعادة الكتابة، والتوقيع يمنع اعادة كتابة بلا تغيير (قاعدة الثبات). */
+      function renderServices() {
+        if (!servicesEl) return;
+        var html = "<h2>" + esc(T("servicesTitle")) + '</h2><div class="svc-grid">' + buildServices() + "</div>";
+        if (servicesEl.__sig === html) return;
+        servicesEl.__sig = html;
+        servicesEl.innerHTML = html;
+      }
+
       function buildServices() {
         var html = "";
         SERVICES.forEach(function (svc) {
@@ -888,7 +902,8 @@
         /* بطاقة الخدمات فوق القائمة */
         var services = document.createElement("div");
         services.className = "content";
-        services.innerHTML = "<h2>" + esc(T("servicesTitle")) + '</h2><div class="svc-grid">' + buildServices() + "</div>";
+        servicesEl = services;
+        renderServices();
 
         /* التقويم يخرج من التبويبات ويظهر دائما بعرض الصفحة تحت المربعات */
         var calCard = document.createElement("div");

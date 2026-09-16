@@ -912,6 +912,7 @@
         renderList();
         renderCalendar();
         renderCalFilters();                            /* اسماء الفلاتر بلغة الواجهة الجديدة */
+        renderServices();                              /* بطاقة الخدمات بلغة الواجهة الجديدة */
         renderTimeline(tlState.rows, tlState.stats);   /* الخط الزمني بلغة الواجهة الجديدة، بلا تحميل */
         paintTiles();                                  /* أسماء المربعات بلغة الواجهة الجديدة من أرقامها المحفوظة */
       };
