@@ -640,7 +640,11 @@
     .chart-col:nth-child(2) .chart-bar { background: rgba(0,160,210,0.55); }
     .chart-col:nth-child(3) .chart-bar { background: rgba(120,144,156,0.75); }
     .chart-col:nth-child(4) .chart-bar { background: rgba(0,160,210,0.28); }
-    .chart-label { font-size: 0.75rem; text-align: center; color: var(--text-secondary); line-height: 1.35; }
+    /* سطر التسمية بارتفاع سطرين محجوز دائما: تسمية من سطرين («تنتهي خلال 30
+       يوما») كانت ترفع عمودها كله فيختل صف الاعمدة، وقاعدة المهندس رعد ان
+       الموضع يثبته التخطيط لا طول البيانات (قاعدة 14). */
+    .chart-label { font-size: 0.75rem; text-align: center; color: var(--text-secondary); line-height: 1.35;
+      min-height: 2.7em; display: flex; align-items: flex-start; justify-content: center; }
 
     .svc-card .waitlist-btn, .svc-card a.waitlist-btn {
       width: 100%; text-align: center; text-decoration: none;
