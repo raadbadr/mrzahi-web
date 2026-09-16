@@ -236,7 +236,7 @@
                    واي شي مانختارو مايظهر اصلا في اللسته»): المؤشر عليه يظهر
                    للعضو، وما لا مؤشر عليه لا يظهر في قائمته اصلا. وبلا اي
                    اختيار يرى الكل. */
-                '<fieldset class="allow-checks" data-allow-user="' + esc(m.user_id) + '">' +
+                '<fieldset class="allow-checks" data-allow-user="' + esc(m.user_id) + '" title="' + esc(t("allowNote")) + '">' +
                   '<legend class="allow-legend">' + esc(t("allowLabel")) + "</legend>" +
                   (state.packs || []).filter(function (pk) { return pk.key !== "individual"; }).map(function (pk) {
                     var nm = (pk.names && (pk.names[app.lang()] || pk.names.ar)) || pk.key;
@@ -247,7 +247,6 @@
                              '<span class="allow-name">' + esc(nm) + "</span>" +
                            "</label>";
                   }).join("") +
-                  '<span class="allow-hint">' + esc(t("allowNote")) + "</span>" +
                 "</fieldset>" +
               "</div>";
           }
