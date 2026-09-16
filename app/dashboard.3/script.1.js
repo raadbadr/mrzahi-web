@@ -1086,6 +1086,14 @@
           state.org = app.org;
           state.month = startOfMonth(new Date());
           state.viewType = currentViewType();
+          /* الشاشة تتبع الواجهة لا الرابط (امر المهندس رعد 2026-09-17: «صحتي فقط
+             في الواجهة الشخصية، ايش دخلها في المحاماة»): الشريط لا يعرض ما ليس
+             من خدمات الحزمة، لكن الرابط المباشر كان يفتحه ويكتب فيه. الواجهة
+             التي لا تسمي الخدمة تعيد صاحبها الى لوحته. */
+          if (state.viewType && !packHasService(state.viewType)) {
+            window.location.replace("/app/dashboard.html");
+            return;
+          }
           applyViewTitle();
         applyPackForm();
           /* فلاتر التقويم تبنى بعد وصول الحزمة لا قبلها: قبل app.ready تكون
