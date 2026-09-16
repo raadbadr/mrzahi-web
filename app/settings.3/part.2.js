@@ -1,6 +1,19 @@
       function fillOrgProfile() {
         return app.orgProfile().then(function (p) {
           state.orgProfile = p || null;
+          /* «شخصي المفروض في الاعدادات مايظهر عندو بيانات المنشاة لانو شخص فرد
+             مو منشاة» (امر المهندس رعد 2026-09-17): البطاقة كلها تخفى في
+             الحساب الشخصي لا حقولها التجارية وحدها. وتحويله الى كيان يبقى
+             متاحا من رفع سجله التجاري في صفحة اوراقه (convert_org_to_company). */
+          var personAccount = app.isPersonType
+            ? app.isPersonType((p && p.entity_type) || (app.org && app.org.entity_type))
+            : ((p && p.entity_type) || (app.org && app.org.entity_type)) === "individual";
+          var card = el("orgProfileCard");
+          if (card) card.hidden = personAccount;
+          /* وبطاقة «الشركة» نفسها تتبع نوع الحساب: الشخص يعيد تسمية مساحته
+             ويحذفها بكلمات حسابه لا بكلمة «الشركة». */
+          applyAccountWords(personAccount);
+          if (personAccount) return;
           var addr = (p && p.national_address) || {};
           if (el("opEntityType")) el("opEntityType").value = (p && p.entity_type) || "company";
           applyEntityType();
@@ -37,6 +50,24 @@
           sel.value = cur || sel.value;
           field.hidden = false;
         }).catch(function () { field.hidden = true; });
+      }
+
+      /* لفظ بطاقة الحساب يتبع نوعه: «الشركة» للكيان التجاري، و«حسابي الشخصي»
+         للفرد (امر المهندس رعد 2026-09-17: «شخص فرد مو منشاة»). لا يحذف زر ولا
+         حقل: الكلمة وحدها هي التي تتبدل. */
+      function applyAccountWords(person) {
+        var title = document.querySelector('#orgCard h2');
+        if (title) {
+          title.dataset.i18n = person ? "personalCardTitle" : "orgCardTitle";
+          title.textContent = t(person ? "personalCardTitle" : "orgCardTitle");
+        }
+        var del = el("orgDeleteBtn");
+        if (del) {
+          del.dataset.i18n = person ? "deletePersonalBtn" : "deleteOrgBtn";
+          del.textContent = t(person ? "deletePersonalBtn" : "deleteOrgBtn");
+        }
+        var nameInput = el("orgNameInput");
+        if (nameInput) nameInput.placeholder = t(person ? "personalNamePh" : "orgNamePh");
       }
 
       /* الحساب الفردي: شخص يرتب أوراقه، فلا تعرض عليه حقول المنشآت التجارية. */
