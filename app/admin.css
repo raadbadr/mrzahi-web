@@ -482,3 +482,30 @@
     .tg-msg-body { color: var(--text-primary); overflow-wrap: anywhere; white-space: pre-wrap; }
     .tg-msg-meta { display: flex; gap: .6rem; font-size: .75rem; color: var(--text-secondary); margin-top: .35rem; }
     .tg-msg-action { color: var(--primary); font-weight: 700; }
+
+    /* شركات المستخدم داخل بطاقته: شريحة لكل شركة ودوره فيها (امر المهندس رعد
+       2026-09-17)، ملتفة بلا قص ولا ثلاث نقاط */
+    .user-org { display: inline-flex; align-items: center; gap: 0.35rem; margin: 0 0 0.3rem 0.3rem;
+      padding: 0.15rem 0.5rem; border: 1px solid var(--glass-border); border-radius: 10px;
+      background: var(--glass); font-size: 0.82rem; overflow-wrap: anywhere; }
+    .user-org-role { color: var(--text-secondary); font-size: 0.72rem; font-weight: 700; }
+
+    /* قائمة المسجلين: ضغطة على الحقل تفتحها كاملة. معتمة دائما وفوق كل شيء
+       (قاعدة 2-ز)، وبارتفاع الحقول نفسه، وبلا قص ولا ثلاث نقاط. */
+    .user-pick { position: relative; flex: 1 1 260px; min-width: 0; }
+    .user-pick .waitlist-input { width: 100%; }
+    .user-pick-list {
+      position: absolute; inset-inline-start: 0; inset-inline-end: 0; top: calc(100% + 0.35rem);
+      z-index: 220; max-height: 320px; overflow-y: auto;
+      background: var(--bg-mid); border: 1px solid var(--glass-border); border-radius: var(--field-r, 12px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35); padding: 0.3rem;
+    }
+    .user-pick-item {
+      display: flex; flex-direction: column; gap: 0.1rem; width: 100%; text-align: start;
+      padding: 0.45rem 0.6rem; border: 0; border-radius: 10px; background: transparent;
+      color: var(--text-primary); font: inherit; cursor: pointer;
+    }
+    .user-pick-item:hover, .user-pick-item:focus-visible { background: var(--glass); }
+    .user-pick-name { font-weight: 700; font-size: 0.9rem; overflow-wrap: anywhere; }
+    .user-pick-sub { color: var(--text-secondary); font-size: 0.78rem; overflow-wrap: anywhere; }
+    .user-pick-empty { margin: 0; padding: 0.6rem; color: var(--text-secondary); font-size: 0.85rem; }

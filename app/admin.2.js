@@ -162,16 +162,47 @@
       let users = [];
       let userFilterText = "";
 
+      /* الحساب الشخصي ليس كيانا مستقلا بل جزء من صاحبه (امر المهندس رعد
+         2026-09-17: «المفروض المستخدمون وفي داخلهم حسابهم الشخصي وكمان يبين
+         منضمين لاي شركة»)، فبطاقة المستخدم تحمله وتحمل شركاته ودوره فيها. */
+      const ROLE_KEYS = { owner: "roleOwner", admin: "roleAdmin", member: "roleMember" };
+      const LANG_NAMES = { ar: "العربية", en: "English", fr: "Francais", ur: "اردو" };
+      function companiesText(u) {
+        const list = Array.isArray(u.companies) ? u.companies : [];
+        if (!list.length) return esc(T("noCompanies"));
+        return list.map(c => '<span class="user-org">' + esc(c.name || "—") +
+          ' <span class="user-org-role">' + esc(T(ROLE_KEYS[c.role] || "roleMember")) + "</span>" +
+          planChip(c.plan_code, c.plan_expires_at) + "</span>").join("");
+      }
+      function planChip(code, expires) {
+        if (!code) return "";
+        const tail = expires ? " · " + fmtDate(expires) : "";
+        return ' <span class="user-org-role">' + esc(planName(code) + tail) + "</span>";
+      }
+      function personalText(u) {
+        const p = u.personal;
+        if (!p) return esc(T("noPersonal"));
+        const items = Number(p.items) || 0;
+        return '<span class="user-org">' + esc(p.name || "—") + planChip(p.plan_code, p.plan_expires_at) +
+          (items ? ' <span class="user-org-role">' + esc(T("itemsCountShort").replace("{n}", String(items))) + "</span>" : "") + "</span>";
+      }
       function userCard(u) {
-        const orgNames = Array.isArray(u.org_names) ? u.org_names : [];
         return '<div class="feature-card">' +
           "<h3>" + esc(u.full_name || u.email || "—") + "</h3>" +
           row("colOwner", esc(u.email || "—"), ' dir="ltr"', "is-email") +
           row("colPhone", esc(u.phone || "—"), ' dir="ltr"') +
           row("colUserNumber", esc(u.profile_number || "—"), ' dir="ltr"') +
-          row("colOrgs", esc(orgNames.length ? orgNames.join(" · ") : "—"), ' style="overflow-wrap:anywhere"') +
+          row("colPersonal", personalText(u), ' style="overflow-wrap:anywhere"') +
+          row("colMemberOf", companiesText(u), ' style="overflow-wrap:anywhere"') +
+          row("colLang", esc(LANG_NAMES[u.lang] || u.lang || "—")) +
+          row("colStore", esc(u.storage_mode === "drive" ? T("storeDrive") : T("storePlatform"))) +
+          row("colTelegram", esc(u.telegram_linked ? T("linkedYes") : T("linkedNo"))) +
+          row("colLastSeen", esc(u.last_seen_at ? fmtDate(u.last_seen_at, { withTime: true }) : "—")) +
           row("colAdmin", esc(u.is_platform_admin ? T("yes") : T("no"))) +
           row("colCreated", esc(fmtDate(u.created_at, { withTime: true }))) +
+          (u.delete_requested_at
+            ? row("colDeleteReq", '<span class="status-overdue">' + esc(fmtDate(u.delete_requested_at)) + "</span>")
+            : "") +
           "</div>";
       }
 
@@ -195,6 +226,60 @@
         countEl.textContent = T("usersCountLabel") + " " + list.length + (userFilterText ? " / " + users.length : "");
       }
 
+      /* صندوق اختيار المستخدم: ضغطة تفتح كل المسجلين، والكتابة تضيق القائمة،
+         والاختيار يعرض بطاقته وحدها (امر المهندس رعد 2026-09-17). */
+      function userPickRows() {
+        const q = userFilterText;
+        return users.filter(u => {
+          if (!q) return true;
+          const hay = [u.full_name, u.email, u.phone, u.profile_number].filter(Boolean).join(" ").toLowerCase();
+          return hay.indexOf(q) !== -1;
+        });
+      }
+      function renderUserPick() {
+        const box = $("userPickList");
+        if (!box) return;
+        const rows = userPickRows();
+        const html = rows.length
+          ? rows.map(u => '<button type="button" class="user-pick-item" role="option" data-pick-user="' + esc(u.id) + '">' +
+              '<span class="user-pick-name">' + esc(u.full_name || u.email || "—") + "</span>" +
+              '<span class="user-pick-sub" dir="ltr">' + esc(u.email || u.phone || "") + "</span>" +
+            "</button>").join("")
+          : '<p class="user-pick-empty">' + esc(T("usersEmpty")) + "</p>";
+        if (box.innerHTML !== html) box.innerHTML = html;
+      }
+      function openUserPick(on) {
+        const box = $("userPickList"), input = $("userFilter");
+        if (!box || !input) return;
+        if (on) renderUserPick();
+        box.hidden = !on;
+        input.setAttribute("aria-expanded", on ? "true" : "false");
+      }
+      function wireUserPick() {
+        const input = $("userFilter"), box = $("userPickList"), wrap = $("userPick");
+        if (!input || !box || !wrap) return;
+        input.addEventListener("focus", () => openUserPick(true));
+        input.addEventListener("click", () => openUserPick(true));
+        input.addEventListener("input", () => {
+          userFilterText = String(input.value || "").trim().toLowerCase();
+          renderUserPick();
+          openUserPick(true);
+          renderUsers();
+        });
+        input.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { openUserPick(false); input.blur(); } });
+        box.addEventListener("click", (ev) => {
+          const btn = ev.target.closest("[data-pick-user]");
+          if (!btn) return;
+          const u = users.filter(x => x.id === btn.getAttribute("data-pick-user"))[0];
+          if (!u) return;
+          input.value = u.full_name || u.email || "";
+          userFilterText = String(input.value || "").trim().toLowerCase();
+          openUserPick(false);
+          renderUsers();
+        });
+        document.addEventListener("click", (ev) => { if (!wrap.contains(ev.target)) openUserPick(false); });
+      }
+
       function loadUsers() {
         if (!app.adminListUsers) return Promise.resolve();
         setStatus($("usersStatus"), T("loading"));
@@ -203,6 +288,7 @@
           users = rows || [];
           setStatus($("usersStatus"), "");
           renderUsers();
+          renderUserPick();
         }).catch(err => {
           setStatus($("usersStatus"), T("loadError") + " " + ((err && err.message) || ""), "error");
         }).then(() => { if (btn) btn.disabled = false; });
@@ -246,13 +332,12 @@
         });
       }
 
+      /* بطاقة الشركات للشركات وحدها؛ والمساحات الشخصية تظهر داخل اصحابها في
+         بطاقة المستخدمين لا في بطاقة مستقلة (امر المهندس رعد 2026-09-17). */
       function renderOrgs() {
         const companies = orgs.filter(o => !isPersonalOrg(o));
-        const personal = orgs.filter(isPersonalOrg);
         renderOrgGrid("orgsGrid", "orgsCount", "orgsStatus",
           companies.filter(matchesFilter), companies, "orgsEmpty", "orgsCountLabel");
-        renderOrgGrid("personalOrgsGrid", "personalOrgsCount", "personalOrgsStatus",
-          personal.filter(matchesFilter), personal, "personalOrgsEmpty", "personalOrgsCountLabel");
       }
 
       function refreshCountCells() {
@@ -599,11 +684,7 @@
         });
         $("orgsRefresh").addEventListener("click", () => { loadOrgs(); });
         $("orgsGrid").addEventListener("change", onPackChange);
-        $("personalOrgsGrid").addEventListener("change", onPackChange);
-        $("userFilter").addEventListener("input", () => {
-          userFilterText = String($("userFilter").value || "").trim().toLowerCase();
-          renderUsers();
-        });
+        wireUserPick();
         $("usersRefresh").addEventListener("click", () => { loadUsers(); });
         $("msgsRefresh").addEventListener("click", () => { loadMessages(); });
         $("tgRefresh").addEventListener("click", () => { loadTgMessages(); });

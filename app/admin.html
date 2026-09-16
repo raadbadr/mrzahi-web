@@ -90,22 +90,19 @@
         <div class="features-grid" id="orgsGrid"></div>
       </div>
 
-      <!-- (1-أ) الحسابات الشخصية: مساحة كل شخص لنفسه، لا شركة (امر المهندس رعد
-           2026-09-16: «شركات لحال مستخدمين لحال»). البحث نفسه يصفي البطاقتين. -->
-      <div class="content" id="personalOrgsCard">
-        <h2 data-i18n="personalOrgsTitle">الحسابات الشخصية</h2>
-        <p data-i18n="personalOrgsIntro">مساحة كل شخص لاوراقه ومواعيده، بلا سجل تجاري ولا فريق.</p>
-        <p class="waitlist-msg" id="personalOrgsStatus" role="status" aria-live="polite" style="display:none"></p>
-        <p id="personalOrgsCount"></p>
-        <div class="features-grid" id="personalOrgsGrid"></div>
-      </div>
-
       <!-- (1-ب) المستخدمون: من هم، وأي واجهة يستعملون، وحساباتهم -->
       <div class="content" id="usersCard">
         <h2 data-i18n="usersTitle">المستخدمون</h2>
         <p data-i18n="usersIntro">كل من سجل في المنصة، وحساباته، وواجهة كل حساب. تغيير الواجهة من بطاقة الشركة.</p>
+        <!-- ضغطة واحدة تفتح قائمة كل المسجلين، والكتابة تضيقها (امر المهندس
+             رعد 2026-09-17: «لمن اضغط يفتح لسته بكل المسجل عندي») -->
         <div class="waitlist-form">
-          <input type="search" class="waitlist-input" id="userFilter" data-i18n-placeholder="userFilterPh" placeholder="ابحث بالاسم أو البريد أو الجوال" autocomplete="off" dir="auto">
+          <div class="user-pick" id="userPick">
+            <input type="text" class="waitlist-input" id="userFilter" role="combobox" aria-expanded="false"
+                   aria-controls="userPickList" aria-autocomplete="list"
+                   data-i18n-placeholder="userPickPh" placeholder="اضغط لعرض كل المسجلين، أو اكتب للتصفية" autocomplete="off" dir="auto">
+            <div class="user-pick-list" id="userPickList" role="listbox" hidden></div>
+          </div>
           <button type="button" class="waitlist-btn" id="usersRefresh" data-i18n="refreshBtn">تحديث</button>
         </div>
         <p class="waitlist-msg" id="usersStatus" role="status" aria-live="polite" style="display:none"></p>
