@@ -696,12 +696,20 @@
     var current = app && app.org ? app.org : null;
     if (!current && !orgs.length) return "";
     /* الاسم كما هو في السجل التجاري بلا أي لاحقة، والنوع تلميح عند المرور */
+    /* «شخصي» مكانه قائمة الحساب لا قائمة الواجهة (المهندس رعد 2026-09-16):
+       اختياره يخرج من حساب الشركة الى المساحة الشخصية لصاحبه. */
+    var hasPersonal = false;
+    for (var oi = 0; oi < orgs.length; oi++) if (isPersonType(orgs[oi].entity_type)) hasPersonal = true;
     var opts = orgs.map(function (o) {
+      var person = isPersonType(o.entity_type);
       var type = o.entity_type ? entityLabel(o.entity_type) : "";
+      var text = person ? entityLabel("individual") : orgDisplayName(o);
       return '<option value="' + escapeHtml(o.id) + '"' + (current && o.id === current.id ? " selected" : "") +
-             (type ? ' title="' + escapeHtml(type) + '"' : "") + ">" +
-             escapeHtml(orgDisplayName(o)) + "</option>";
+             (type ? ' title="' + escapeHtml(person ? orgDisplayName(o) : type) + '"' : "") + ">" +
+             escapeHtml(text) + "</option>";
     }).join("");
+    /* لا مساحة شخصية بعد: الخيار ينشئها باسم صاحبها ثم ينقله اليها */
+    if (!hasPersonal) opts += '<option value="__personal">' + escapeHtml(entityLabel("individual")) + "</option>";
     opts += '<option value="__new">' + escapeHtml(sidebarLabel(NEW_ORG_LABELS)) + "</option>";
     return '<div class="app-orgbox" title="' + escapeHtml(sidebarLabel(ORG_LABELS)) + '">' +
              '<span class="app-orglabel">' + escapeHtml(sidebarLabel(ORG_LABELS)) + "</span>" +
@@ -768,9 +776,10 @@
     /* my_pack_config يعيد المفتاح باسم pack؛ قراءته باسم key كانت تترك القائمة
        بلا خيار معلم فيظهر أول خيار («شخصي») مهما كانت الواجهة الحقيقية. */
     var cur = (app.pack && (app.pack.pack || app.pack.key)) || "";
-    /* القائمة كاملة: كل الواجهات النشطة معروضة لصاحب الحساب، بلا تقييد بنوع
-       الحساب. المهندس رعد 2026-09-16: «رجع اللسته حقت اختيار الواجهة». */
-    var list = packsCache;
+    /* القائمة كاملة بلا تقييد بنوع الحساب، عدا «شخصي»: نقل الى قائمة الحساب
+       بامر المهندس رعد 2026-09-16، لانه حساب لا واجهة تخصص. */
+    var list = packsCache.filter(function (pk) { return pk.key !== "individual"; });
+    if (!list.length) list = packsCache;
     var opts = list.map(function (pk) {
       var name = (pk.names && (pk.names[lang()] || pk.names.ar)) || pk.key;
       return '<option value="' + escapeHtml(pk.key) + '"' + (pk.key === cur ? " selected" : "") + ">" +
@@ -879,6 +888,16 @@
       if (this.value === "__new") {
         this.value = app.org ? app.org.id : "";
         openNewOrgDialog();
+        return;
+      }
+      if (this.value === "__personal") {
+        var selOrg = this, backTo = app.org ? app.org.id : "";
+        selOrg.disabled = true;
+        var me = String((app.profile && (app.profile.full_name || app.profile.full_name_en)) || "").trim();
+        if (!me) { selOrg.value = backTo; selOrg.disabled = false; openNewOrgDialog(); return; }
+        app.createOrg(me, "individual").then(function (org) {
+          if (org && org.id) app.setCurrentOrg(org.id); else window.location.reload();
+        }).catch(function () { selOrg.value = backTo; selOrg.disabled = false; openNewOrgDialog(); });
         return;
       }
       if (app.org && this.value !== app.org.id) setCurrentOrg(this.value);
