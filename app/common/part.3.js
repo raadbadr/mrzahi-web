@@ -936,7 +936,35 @@
       if (item.path.indexOf("type=") === 0) { if (qs.indexOf(item.path) !== -1) current = item.service; }
       else if (item.path !== "dashboard" && here.indexOf("/" + item.path) !== -1) current = item.service;
     });
-    if (current && !serviceAllowed(current)) window.location.replace("/app/dashboard.html");
+    /* لا يقذف احد من شاشة بلا كلمة: ينتقل الى لوحته ومعه سبب يقرؤه هناك،
+       فيعرف لماذا تحول ولا يظن الموقع كسر (المهندس رعد 2026-09-16: «ما نبغى
+       اي شي يخلي المستخدم يطلع من الموقع او يحس انو رخيص»). */
+    if (current && !serviceAllowed(current)) {
+      window.location.replace("/app/dashboard.html?why=" + encodeURIComponent(current));
+    }
+  }
+
+  /* السبب يقال مرة واحدة ثم يمحى من العنوان، فلا يبقى في الرابط ولا يتكرر
+     عند تحديث الصفحة. النص من تسميات الشريط نفسها، فيسمي الخدمة بلغتها. */
+  var SERVICE_DENIED = {
+    ar: "خدمة «{s}» ليست ضمن خدمات قسمك، فعدت إلى لوحتك.",
+    en: "“{s}” is not among your department’s services, so you were returned to your board.",
+    fr: "« {s} » ne fait pas partie des services de votre service ; retour a votre tableau.",
+    ur: "«{s}» آپ کے شعبے کی خدمات میں نہیں، اس لیے آپ اپنے بورڈ پر واپس آئے۔"
+  };
+
+  function tellWhyReturned() {
+    var why = "";
+    try { why = new URLSearchParams(window.location.search).get("why") || ""; } catch (e) { return; }
+    if (!why) return;
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.delete("why");
+      window.history.replaceState({}, "", u.pathname + (u.search || "") + (u.hash || ""));
+    } catch (e) { /* العنوان يبقى كما هو: لا يمنع الرسالة */ }
+    var name = why;
+    NAV_ITEMS.forEach(function (item) { if (item.service === why) name = sidebarLabel(packNavLabel(item)); });
+    if (app && app.toast) app.toast(sidebarLabel(SERVICE_DENIED).replace("{s}", name), "info");
   }
 
   var sidebarReady = false;
@@ -971,7 +999,10 @@
     if (html === sidebarHtml) return;
     sidebarHtml = html;
     nav.innerHTML = html;
+    if (!whyTold) { whyTold = true; tellWhyReturned(); }
   }
+
+  var whyTold = false;
 
   /* ============================================================
    * زر الإغلاق الدائري — كتلة مستقلة، لا تلمس شيئا من تخطيط الصفحات.
