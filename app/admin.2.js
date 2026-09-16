@@ -11,6 +11,20 @@
       let owners = {};                /* owner_id → { email, full_name } */
       let counts = {};                /* org_id → { members, items } (null = count unavailable) */
       let plansList = [];
+      let plansPromise = null;
+      /* اسماء الباقات من جدول plans، فلا ترسم بطاقة قبل وصوله والا ظهر الرمز الخام
+         «enterprise» و«trial» وسط واجهة عربية (المهندس رعد 2026-09-17: «ليش كدا
+         واحنا عربي»). تحمل مرة واحدة، وكل من يرسم ينتظرها. */
+      function ensurePlans() {
+        if (plansList.length) return Promise.resolve(plansList);
+        if (!app.plans) return Promise.resolve(plansList);
+        if (!plansPromise) {
+          plansPromise = app.plans()
+            .then(rows => { plansList = rows || []; return plansList; })
+            .catch(() => { plansPromise = null; return plansList; });
+        }
+        return plansPromise;
+      }
       let messages = [];
       let orgsLoaded = false;
       let msgsLoaded = false;
@@ -341,8 +355,8 @@
         if (!app.adminListUsers) return Promise.resolve();
         setStatus($("usersStatus"), T("loading"));
         const btn = $("usersRefresh"); if (btn) btn.disabled = true;
-        return app.adminListUsers(500).then(rows => {
-          users = rows || [];
+        return Promise.all([app.adminListUsers(500), ensurePlans()]).then(res => {
+          users = res[0] || [];
           setStatus($("usersStatus"), "");
           renderUsers();
           renderUserPick();
@@ -470,10 +484,9 @@
       function loadOrgs() {
         setStatus($("orgsStatus"), T("loading"));
         $("orgsRefresh").disabled = true;
-        return Promise.all([app.adminListOrgs(), plansList.length ? Promise.resolve(plansList) : app.plans(), loadPacks()])
+        return Promise.all([app.adminListOrgs(), ensurePlans(), loadPacks()])
           .then(res => {
             orgs = res[0] || [];
-            plansList = res[1] || [];
             counts = {};
             orgsLoaded = true;
             setStatus($("orgsStatus"), "");
