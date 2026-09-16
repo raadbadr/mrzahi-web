@@ -828,7 +828,163 @@
         document.querySelectorAll("[data-view]").forEach(function (el) {
           el.hidden = el.getAttribute("data-view") !== state.viewType;
         });
+        /* صحتي: سجلها يجهز وحده فلا يسال صاحبه «اي سجل؟» قبل ان يضيف دواء */
+        document.querySelectorAll('[data-field="record"]').forEach(function (el) {
+          if (state.viewType === "health") el.hidden = true;
+        });
       }
+
+      /* سجل «صحتي»: يبحث عنه فان لم يوجد انشئ مرة واحدة، ثم يختار في النموذجين */
+      var healthRecordAsked = false;
+      function healthRecordName() { return T("healthRecordName"); }
+      function pickHealthRecord() {
+        var names = ["صحتي", "Health", "My health", "Ma sante", "میری صحت", healthRecordName()];
+        for (var i = 0; i < (state.records || []).length; i++) {
+          if (names.indexOf(state.records[i].name) !== -1) return state.records[i];
+        }
+        return null;
+      }
+      function selectHealthRecord(rec) {
+        if (!rec) return;
+        ["addRecord", "editRecord"].forEach(function (id) {
+          var sel = $(id);
+          if (sel) sel.value = rec.id;
+        });
+      }
+      function ensureHealthRecord() {
+        var rec = pickHealthRecord();
+        if (rec) { selectHealthRecord(rec); return Promise.resolve(rec); }
+        if (healthRecordAsked) return Promise.resolve(null);
+        healthRecordAsked = true;
+        return app.createRecord({ name: healthRecordName() }).then(function (t) {
+          state.records.push(t);
+          renderSelects();
+          selectHealthRecord(t);
+          return t;
+        }).catch(function () { healthRecordAsked = false; return null; });
+      }
+
+      /* ---------- «صحتي»: شاشتها الخاصة ---------- */
+      /* كل ما يخص صحة صاحبها: دواء وجرعته وتكراره، موعد طبيب، فحص، تطعيم،
+         اشتراك نادي وحصصه، تامين صحي. المنتظم يحمل data.repeat فتنشا مرته
+         التالية وحدها عند اتمام الحالية (مشغل القاعدة، ترحيل 0146). */
+      var HEALTH_STATES = ["", "today", "upcoming", "overdue", "done"];
+      var HEALTH_STATE_KEYS = { "": "healthStateAll", today: "healthStateToday", upcoming: "healthStateUpcoming", overdue: "healthStateOverdue", done: "healthStateDone" };
+
+      function healthFields(item) {
+        var d = (item && item.data) || {};
+        var kind = d.health_kind || "";
+        if (!kind) {
+          /* عنصر سجل قبل النموذج المتخصص: نوعه يستنتج من تصنيفه لا يترك فارغا */
+          var cat = String((item && item.category) || "");
+          if (/نادي|جيم|تمرين|لياقة|gym|fitness/i.test(cat)) kind = "fitness";
+          else if (/تطعيم|لقاح|vaccine/i.test(cat)) kind = "vaccine";
+          else if (/فحص|تحليل|اشعة|lab|test/i.test(cat)) kind = "lab";
+          else if (/موعد|مراجعة|طبيب|عيادة|appointment|clinic|doctor/i.test(cat)) kind = "appointment";
+          else if (/تامين|تأمين|insurance/i.test(cat)) kind = "insurance";
+          else kind = "medicine";
+        }
+        return { kind: kind, dose: d.dose || "", repeat: d.repeat || "", provider: d.provider || item.client_name || "", note: d.health_note || "" };
+      }
+
+      function healthKindLabel(kind) {
+        for (var i = 0; i < HEALTH_KINDS.length; i++) if (HEALTH_KINDS[i].value === kind) return T(HEALTH_KINDS[i].key);
+        return kind || "-";
+      }
+
+      function healthRepeatLabel(rep) {
+        for (var i = 0; i < HEALTH_REPEATS.length; i++) if (HEALTH_REPEATS[i].value === (rep || "")) return T(HEALTH_REPEATS[i].key);
+        return rep || "-";
+      }
+
+      function healthState(item) {
+        if (item.status === "done") return "done";
+        if (!item.due_at) return "upcoming";
+        var due = new Date(item.due_at), now = new Date();
+        if (isNaN(due.getTime())) return "upcoming";
+        if (due < now) return "overdue";
+        if (due.toDateString() === now.toDateString()) return "today";
+        return "upcoming";
+      }
+
+      function renderHealthFilters(items) {
+        var kinds = {};
+        items.forEach(function (it) { kinds[healthFields(it).kind] = true; });
+        var kindOpts = [{ value: "", label: T("healthKindAll") }];
+        HEALTH_KINDS.forEach(function (k) { if (kinds[k.value]) kindOpts.push({ value: k.value, label: T(k.key) }); });
+        fillSelect($("healthKindFilter"), kindOpts, state.healthKind || "");
+        fillSelect($("healthStateFilter"), HEALTH_STATES.map(function (v) { return { value: v, label: T(HEALTH_STATE_KEYS[v]) }; }), state.healthState || "");
+      }
+
+      /* المجاميع: ما يهم صاحبه فعلا — اليوم، المتأخر، المنتظم، والاشتراكات */
+      function renderHealthTotals(items) {
+        var box = $("healthTotals");
+        if (!box) return;
+        var today = 0, overdue = 0, regular = 0, subs = 0, subsAmount = 0;
+        items.forEach(function (it) {
+          var f = healthFields(it), st = healthState(it);
+          if (st === "today") today++;
+          if (st === "overdue") overdue++;
+          if (f.repeat) regular++;
+          if (f.kind === "fitness" || f.kind === "insurance") { subs++; subsAmount += Number(it.amount) || 0; }
+        });
+        var cells = [
+          { label: T("healthTotalToday"), value: String(today) },
+          { label: T("healthTotalOverdue"), value: String(overdue) },
+          { label: T("healthTotalRegular"), value: String(regular) },
+          { label: T("healthTotalSubs"), value: subsAmount ? money(subsAmount) : String(subs) }
+        ];
+        var html = cells.map(function (c) {
+          return '<div class="total-cell"><span class="total-label">' + esc(c.label) + '</span><b class="total-value">' + c.value + "</b></div>";
+        }).join("");
+        if (box.innerHTML !== html) box.innerHTML = html;
+      }
+
+      function renderHealth() {
+        renderHealthFilters(state.items);
+        var items = state.items.filter(function (it) {
+          var f = healthFields(it);
+          if (state.healthKind && f.kind !== state.healthKind) return false;
+          if (state.healthState && healthState(it) !== state.healthState) return false;
+          return true;
+        });
+        renderHealthTotals(items);
+        var body = $("healthBody");
+        body.innerHTML = "";
+        $("healthWrap").hidden = items.length === 0;
+        $("emptyList").hidden = items.length > 0;
+        items.forEach(function (item) {
+          var f = healthFields(item);
+          var sk = statusKeyOf(item);
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            '<td><span class="item-title" data-tr>' + esc(item.title) + "</span>" +
+              (f.note ? ' <span class="item-cat" data-tr>' + esc(f.note) + "</span>" : "") + "</td>" +
+            "<td>" + esc(healthKindLabel(f.kind)) + "</td>" +
+            '<td data-tr>' + esc(f.dose || "-") + "</td>" +
+            "<td>" + (f.repeat ? '<span class="item-cat">' + esc(healthRepeatLabel(f.repeat)) + "</span>" : "-") + "</td>" +
+            '<td class="cell-num">' + (item.due_at ? esc(app.fmtDate(item.due_at)) : "-") + "</td>" +
+            '<td class="cell-num">' + (item.due_at
+              ? '<span class="item-cat due-left" data-due="' + esc(item.due_at) + '"></span>'
+              : "-") + "</td>" +
+            '<td data-tr>' + esc(f.provider || "-") + "</td>" +
+            '<td class="cell-num">' + money(item.amount) + "</td>" +
+            '<td><span class="status-' + sk + '">' + esc(T(HEALTH_STATE_KEYS[healthState(item)])) + "</span></td>" +
+            '<td><div class="chat-options row-actions">' +
+              (item.status === "done" ? actionBtn(item, "reopen", "actionReopen") : actionBtn(item, "done", "actionDone")) +
+              actionBtn(item, "edit", "actionEdit") +
+              actionBtn(item, "delete", "actionDelete", "is-danger") +
+            "</div></td>";
+          body.appendChild(tr);
+        });
+        translateView();
+      }
+
+      (function wireHealthFilters() {
+        var kind = $("healthKindFilter"), st = $("healthStateFilter");
+        if (kind) kind.addEventListener("change", function () { state.healthKind = this.value; renderHealth(); });
+        if (st) st.addEventListener("change", function () { state.healthState = this.value; renderHealth(); });
+      })();
 
       /* ---------- مصاريف التشغيل: شاشتها لا تشبه القضايا ---------- */
       var EXP_MONTHS = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
@@ -1304,6 +1460,8 @@
           $("violationsWrap").hidden = true;
           $("contractsBar").hidden = true;
           $("contractsWrap").hidden = true;
+          $("healthBar").hidden = true;
+          $("healthWrap").hidden = true;
           renderExpenses();
           return;
         }
@@ -1314,7 +1472,21 @@
           $("violationsWrap").hidden = true;
           $("expensesBar").hidden = true;
           $("expensesWrap").hidden = true;
+          $("healthBar").hidden = true;
+          $("healthWrap").hidden = true;
           renderContracts();
+          return;
+        }
+        if (state.viewType === "health") {
+          $("healthBar").hidden = false;
+          $("tableWrap").hidden = true;
+          $("violationsBar").hidden = true;
+          $("violationsWrap").hidden = true;
+          $("expensesBar").hidden = true;
+          $("expensesWrap").hidden = true;
+          $("contractsBar").hidden = true;
+          $("contractsWrap").hidden = true;
+          renderHealth();
           return;
         }
         $("expensesBar").hidden = true;
@@ -1323,6 +1495,8 @@
         $("violationsWrap").hidden = true;
         $("contractsBar").hidden = true;
         $("contractsWrap").hidden = true;
+        $("healthBar").hidden = true;
+        $("healthWrap").hidden = true;
         if (renderPackTable()) return;
         var body = $("itemsBody");
         body.innerHTML = "";
@@ -1420,7 +1594,7 @@
         }
         applyViewFields();
         if (state.viewType === "contracts") fillRenewalOptions($("addContractRenewal"), $("addContractRenewal").value);
-        if (state.viewType === "health") fillHealthOptions("add");
+        if (state.viewType === "health") { fillHealthOptions("add"); ensureHealthRecord(); }
         var p = $("addItemPanel");
         p.hidden = !p.hidden;
         clearMsg("addMsg");

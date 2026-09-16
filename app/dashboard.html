@@ -393,6 +393,37 @@
             </table>
           </div>
 
+          <!-- «صحتي»: شاشتها الخاصة لا جدول عام (امر المهندس رعد 2026-09-16:
+               «زبط صحتي في الشخصي: اشتراك نادي، ادوية وعلاجات ومواعيدها، اي
+               شي له علاقة بالصحة»). -->
+          <div id="healthBar" hidden>
+            <div class="waitlist-form violations-toolbar">
+              <select class="waitlist-input" id="healthKindFilter" aria-label="نوع العنصر الصحي"></select>
+              <select class="waitlist-input" id="healthStateFilter" aria-label="الحالة"></select>
+            </div>
+            <div class="totals-row" id="healthTotals"></div>
+          </div>
+
+          <div class="table-wrap" id="healthWrap" hidden>
+            <table class="items-table" id="healthTable">
+              <thead>
+                <tr>
+                  <th data-i18n="colHItem">العنصر</th>
+                  <th data-i18n="colHKind">النوع</th>
+                  <th data-i18n="colHDose">الجرعة أو التفصيل</th>
+                  <th data-i18n="colHRepeat">التكرار</th>
+                  <th data-i18n="colHWhen">الموعد</th>
+                  <th data-i18n="colHLeft">المتبقي</th>
+                  <th data-i18n="colHProvider">الطبيب أو الجهة</th>
+                  <th data-i18n="colHAmount">المبلغ</th>
+                  <th data-i18n="colStatus">الحالة</th>
+                  <th data-i18n="colActions">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="healthBody"></tbody>
+            </table>
+          </div>
+
           <div class="content case-bundle" id="caseBundle" hidden></div>
 
           <div class="table-wrap" id="tableWrap" hidden>
