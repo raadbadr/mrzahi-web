@@ -133,6 +133,10 @@
       btn.disabled = true;
       msg.textContent = "";
       updateProfile({ full_name: name, phone: phone }).then(function () {
+        /* المساحة الشخصية تنشا من الاسم، والاسم لم يكن معروفا وقت الاقلاع: من لا
+           مساحة له تعاد صفحته ليجد مساحته جاهزة بدل شاشة «انشئ حسابا» (ملاحظة
+           وكيل القاعدة 2026-09-16). */
+        if (!(app.orgs && app.orgs.length)) { window.location.reload(); return; }
         gate.remove();
       }).catch(function () {
         btn.disabled = false;

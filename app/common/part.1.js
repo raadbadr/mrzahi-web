@@ -774,7 +774,10 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
   }
 
   /* لا جهة بلا مستندها الرسمي: الدالة create_org_registered في القاعدة هي الطريق الوحيد،
-     تتحقق من الرقم (سجل تجاري / رخصة / هوية بحسب النوع) وتاريخ الانتهاء وتسجله مستندا أولا. */
+     تتحقق من الرقم (سجل تجاري / رخصة / هوية بحسب النوع) وتاريخ الانتهاء وتسجله مستندا أولا.
+     تحذير: p_name_en يمرر دائما ولو كان null. في القاعدة نسختان من الدالة، والرباعية
+     (بلا p_name_en) ترفض الفرد بلا رقم هوية، فحذف الوسيط يكسر انشاء المساحة الشخصية
+     بصمت (تنبيه وكيل القاعدة 2026-09-16). */
   function createOrg(name, entityType, regNumber, regExpiry, nameEn) {
     return run(function (client) {
       var clean = String(name || "").trim();
