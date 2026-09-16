@@ -253,13 +253,24 @@
         if (!p) return esc(T("noPersonal"));
         const items = Number(p.items) || 0;
         return '<span class="user-orgs"><span class="user-org">' +
-          '<span class="user-org-name">' + esc(p.name || "—") + "</span>" + entityTag("individual") + planChip(p.plan_code, p.plan_expires_at) +
+          entityTag("individual") + planChip(p.plan_code, p.plan_expires_at) +
           (items ? '<span class="user-org-role">' + esc(T("itemsCountShort").replace("{n}", String(items))) + "</span>" : "") + "</span></span>";
       }
+      /* عنوان البطاقة بلغة الواجهة: الانجليزية والفرنسية تاخذان الاسم الانجليزي ان
+         وجد، وغيرهما الاسم كما كتبه صاحبه. والخانتان تحته تعرضان الاثنين كاملين،
+         فدعم اللغات يحتاجهما معا (امر المهندس رعد 2026-09-17). */
+      function userTitle(u) {
+        const prefersEn = (l === "en" || l === "fr");
+        if (prefersEn && u.full_name_en) return u.full_name_en;
+        return u.full_name || u.full_name_en || u.email || "—";
+      }
+
       function userCard(u) {
         return '<div class="feature-card">' +
-          '<div class="user-head"><h3>' + esc(u.full_name || u.email || "—") + "</h3>" +
+          '<div class="user-head"><h3>' + esc(userTitle(u)) + "</h3>" +
             '<span class="user-head-tags">' + entityTag(topEntityOf(u)) + planTag(topPlanOf(u), null) + "</span></div>" +
+          row("colNameAr", esc(u.full_name || "—")) +
+          row("colNameEn", esc(u.full_name_en || "—"), ' dir="ltr"') +
           row("colOwner", esc(u.email || "—"), ' dir="ltr"', "is-email") +
           row("colPhone", esc(u.phone || "—"), ' dir="ltr"') +
           row("colUserNumber", esc(u.profile_number || "—"), ' dir="ltr"') +
