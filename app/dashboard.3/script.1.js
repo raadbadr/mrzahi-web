@@ -144,8 +144,12 @@
       /* انقطاع لحظي لا يستحق رسالة: محاولة ثانية بعد لحظة قبل اي اعلان فشل.
          اخطاء المنصة المعروفة (لا حساب، حد الباقة) تمر فورا بلا اعادة. */
       function retryOnce(make) {
+        var began = new Date().getTime();
         return make().catch(function (err) {
           if (err && (err.code === "NO_ORG" || err.code === "PLAN_LIMIT")) throw err;
+          /* الاعادة للانقطاع اللحظي وحده. نداء تعثر بعد انتظار طويل اعادته
+             تضاعف الانتظار على صاحبه: يقال له فورا بدل ان ينتظر مرتين. */
+          if (new Date().getTime() - began > 4000) throw err;
           if (window.console) console.warn("dashboard:retry", err && err.message ? err.message : err);
           return new Promise(function (r) { setTimeout(r, 700); }).then(make);
         });
