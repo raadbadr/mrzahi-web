@@ -185,3 +185,4 @@
 20260917050000	admin_user_card_full_profile	0154_admin_user_card_full_profile.sql	added
 20260917050000	admin_activate_is_atomic	0155_admin_activate_is_atomic.sql	added
 20260917060000	personal_budget_label	0156_personal_budget_label.sql	added
+20260917070000	legal_without_opex	0157_legal_without_opex.sql	added
