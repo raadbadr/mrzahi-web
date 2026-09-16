@@ -187,6 +187,11 @@
                    words: ["حكم", "أحكام", "احكام", "ruling", "rulings", "judgment", "judgement", "jugement", "فیصلہ"] },
         contracts: { titleKey: "viewContracts", defaultCategory: "عقد",
                      words: ["عقد", "عقود", "contract", "contracts", "contrat", "معاہدہ"] },
+        /* صحتي: ادوية وعلاجات ومواعيد مراجعة. الدواء المنتظم يحمل data.repeat
+           فتنشأ جرعته التالية وحدها عند اتمامه (المهندس رعد 2026-09-16). */
+        health: { titleKey: "viewHealth", defaultCategory: "دواء",
+                  words: ["دواء", "ادوية", "أدوية", "علاج", "علاجات", "جرعة", "مراجعة طبية", "موعد طبي",
+                          "medicine", "medication", "treatment", "dose", "medicament", "médicament", "دوا"] },
         meetings: { titleKey: "viewMeetings", defaultCategory: "اجتماع",
                     /* «جلسة» في مكتب المحاماة جلسة محكمة لا اجتماعا، فلا تدخل هنا */
                     words: ["اجتماع", "اجتماعات", "meeting", "meetings", "reunion", "réunion", "میٹنگ"] }
