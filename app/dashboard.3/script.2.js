@@ -916,11 +916,12 @@
         fillSelect($("healthStateFilter"), HEALTH_STATES.map(function (v) { return { value: v, label: T(HEALTH_STATE_KEYS[v]) }; }), state.healthState || "");
       }
 
-      /* المجاميع: ما يهم صاحبه فعلا — اليوم، المتأخر، المنتظم، والاشتراكات */
+      /* المجاميع بمكون المنصة نفسه (total-card كما في العقود والمخالفات):
+         بطاقة لكل رقم، لا نص ملتصق برقم (امر المهندس رعد: «عدل التصميم السيء»). */
       function renderHealthTotals(items) {
         var box = $("healthTotals");
         if (!box) return;
-        var today = 0, overdue = 0, regular = 0, subs = 0, subsAmount = 0;
+        var today = 0, overdue = 0, regular = 0, subsAmount = 0, subs = 0;
         items.forEach(function (it) {
           var f = healthFields(it), st = healthState(it);
           if (st === "today") today++;
@@ -928,16 +929,11 @@
           if (f.repeat) regular++;
           if (f.kind === "fitness" || f.kind === "insurance") { subs++; subsAmount += Number(it.amount) || 0; }
         });
-        var cells = [
-          { label: T("healthTotalToday"), value: String(today) },
-          { label: T("healthTotalOverdue"), value: String(overdue) },
-          { label: T("healthTotalRegular"), value: String(regular) },
-          { label: T("healthTotalSubs"), value: subsAmount ? money(subsAmount) : String(subs) }
-        ];
-        var html = cells.map(function (c) {
-          return '<div class="total-cell"><span class="total-label">' + esc(c.label) + '</span><b class="total-value">' + c.value + "</b></div>";
-        }).join("");
-        if (box.innerHTML !== html) box.innerHTML = html;
+        paintEl(box).html =
+          '<div class="total-card"><span class="total-label">' + esc(T("healthTotalToday")) + '</span><span class="total-value">' + esc(String(today)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("healthTotalOverdue")) + '</span><span class="total-value">' + esc(String(overdue)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("healthTotalRegular")) + '</span><span class="total-value">' + esc(String(regular)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("healthTotalSubs")) + '</span><span class="total-value">' + (subsAmount ? money(subsAmount) : esc(String(subs))) + "</span></div>";
       }
 
       function renderHealth() {
