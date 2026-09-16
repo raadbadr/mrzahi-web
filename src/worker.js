@@ -1052,7 +1052,26 @@ export default {
       withKey.headers.set("Authorization", "Bearer " + mcpKeyInPath[1]);
       return await handleMcp(withKey, env, url, { authenticate: mcpAuthenticate, importRows: importRowsWithKey });
     }
-    /* وكيل القاعدة: كل مسارات سوبابيس تمر عبر نطاقنا فيبقى العنوان ثابتا
+    /* رابط قديم او مكتوب بخطأ كان يرد بجسم فارغ تماما: لا صفحة ولا نص ولا زر.
+   صفحة 404 العربية بالهوية موجودة في المستودع ولم تكن تخدم ابدا. تخدم هنا
+   بحالة 404 نفسها، ولا تمس طلبات الاصول (صور، انماط، سكربتات) ولا الـ API
+   (المهندس رعد 2026-09-16: «ما نبغى اي شي يخلي المستخدم يطلع من الموقع»). */
+async function withNotFoundPage(env, url, res) {
+  try {
+    if (!res || res.status !== 404) return res;
+    if (/\.[a-z0-9]{2,5}$/i.test(url.pathname)) return res;
+    const page = await env.ASSETS.fetch(new Request(new URL("/404.html", url.origin).href));
+    if (!page || !page.ok) return res;
+    return new Response(page.body, {
+      status: 404,
+      headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }
+    });
+  } catch {
+    return res;
+  }
+}
+
+/* وكيل القاعدة: كل مسارات سوبابيس تمر عبر نطاقنا فيبقى العنوان ثابتا
        مهما انتقلت القاعدة (لندن، جدة، او غيرهما) */
     if (SUPABASE_PROXY_PREFIXES.some((prefix) => path.startsWith(prefix))) {
       return await proxySupabase(request, env, url);
@@ -1067,14 +1086,15 @@ export default {
          كما هو، فيبقى الموقع يعمل بلا ثيم بدل ان ينقطع. */
       try {
         const nd = ndSeason(url);
-        if (!nd) return env.ASSETS.fetch(request);
+        if (!nd) return await withNotFoundPage(env, url, await env.ASSETS.fetch(request));
         /* الترويسات الشرطية تنزع في الموسم: لو ردت طبقة الاصول 304 لعاد المتصفح
            الى نسخته المحفوظة بقيمة يوم مضى، فما تبدلت قيمة اليوم حتى يتغير الملف.
            الصفحات صغيرة والرد يبقى قابلا للضغط، والاثر يزول بزوال سبتمبر. */
         const bare = new Request(request, { headers: new Headers(request.headers) });
         bare.headers.delete("If-None-Match");
         bare.headers.delete("If-Modified-Since");
-        const asset = await env.ASSETS.fetch(bare);
+        const asset0 = await env.ASSETS.fetch(bare);
+        const asset = await withNotFoundPage(env, url, asset0);
         const type = asset.headers.get("content-type") || "";
         if (!type.includes("text/html")) return asset;
         const fresh = new Response(asset.body, asset);
@@ -1083,7 +1103,7 @@ export default {
         return ndStamp(fresh, nd);
       } catch (e) {
         console.log("nd stamp error", path, String((e && e.message) || e));
-        return env.ASSETS.fetch(request);
+        return await withNotFoundPage(env, url, await env.ASSETS.fetch(request));
       }
     }
 

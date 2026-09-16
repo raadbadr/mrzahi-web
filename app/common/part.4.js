@@ -1097,7 +1097,10 @@
     for (var i = 0; i < links.length; i++) {
       var a = links[i];
       var href = a.getAttribute("href") || "";
-      if (href.indexOf("/login") === 0 || href.indexOf("login.html") !== -1) { a.hidden = true; continue; }
+      /* رابط الدخول يخفى لئلا يخرج صاحبه من لوحته — الا الرابط الذي يعطيه
+         لغيره ليدعوه (صفحة الفريق)، فالنص فوقه يعد به وكان يبقى سطرا مبتورا
+         بلا رابط تحته (المهندس رعد 2026-09-16). */
+      if ((href.indexOf("/login") === 0 || href.indexOf("login.html") !== -1) && !a.hasAttribute("data-share-link")) { a.hidden = true; continue; }
       if (href.charAt(0) === "#" || href.indexOf("mailto:") === 0 || href.indexOf("webcal:") === 0) continue;
       var outside = href.indexOf("/app/") !== 0 && href.indexOf("http") !== 0 ? true : (href.indexOf(window.location.origin + "/app/") === 0 ? false : href.indexOf("http") === 0);
       if (href.indexOf("/app/") === 0) continue;

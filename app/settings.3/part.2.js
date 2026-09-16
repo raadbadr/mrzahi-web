@@ -77,11 +77,16 @@
         var typeChanged = row.entity_type !== ((state.orgProfile && state.orgProfile.entity_type) || "");
         app.saveOrgProfile(row).then(function (saved) {
           state.orgProfile = saved;
-          /* نوع الحساب يغير الواجهة في القاعدة وحدها، فتعاد الصفحة لتظهر الجديدة */
-          if (typeChanged) { window.location.reload(); return null; }
+          /* الحفظ يقال اولا ثم تعاد الصفحة بعد لحظة يراها فيها: كانت تعاد فورا
+             فلا يرى نجاحا ولا فشلا، فيبقى شاكا هل حفظ ام ضاع ما كتب
+             (المهندس رعد 2026-09-16). */
+          var reloadSoon = function () {
+            setMsg("opMsg", t("opSaved"), "success");
+            setTimeout(function () { window.location.reload(); }, 1200);
+          };
+          if (typeChanged) { reloadSoon(); return null; }
           if (!packChanged) return null;
-          /* الواجهة تتبدل كاملة، فتعاد الصفحة مرة واحدة بدل إعادة رسم كل شيء أمام المستخدم */
-          return app.setOrgPack(packWanted).then(function () { window.location.reload(); });
+          return app.setOrgPack(packWanted).then(reloadSoon);
         }).then(function () {
           setMsg("opMsg", t("opSaved"), "success");
         }).catch(function (err) {

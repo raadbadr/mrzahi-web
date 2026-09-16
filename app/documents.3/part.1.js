@@ -84,9 +84,9 @@
         });
       }
       function pdfFirstPageImage(pdf) { return pdfPageImage(pdf, 1); }
-      var ERROR_TEXT = { ar: { unauthorized: "انتهت الجلسة، سجل الدخول من جديد.", rate_limited: "طلبات كثيرة، انتظر دقيقة ثم أعد المحاولة.", ai_unavailable: "خدمة القراءة غير متاحة الآن.", no_text: "لم يقرأ نص من الملف. جرب صورة أوضح.", image_read_failed: "تعذرت قراءة الصورة.", extract_failed: "قرئ النص لكن تعذر فهم المستند." },
-                         en: { unauthorized: "Session expired, sign in again.", rate_limited: "Too many requests, wait a minute and try again.", ai_unavailable: "Reading service unavailable.", no_text: "No text could be read. Try a clearer image.", image_read_failed: "Could not read the image.", extract_failed: "Text was read but the document could not be understood." },
-                         fr: { unauthorized: "Session expirée, reconnectez-vous.", rate_limited: "Trop de requêtes, attendez une minute puis réessayez.", ai_unavailable: "Service de lecture indisponible.", no_text: "Aucun texte n'a pu être lu. Essayez une image plus nette.", image_read_failed: "Impossible de lire l'image.", extract_failed: "Le texte a été lu mais le document n'a pas pu être compris." },
+      var ERROR_TEXT = { ar: { unauthorized: "انتهت الجلسة، سجل الدخول من جديد.", analyze_timeout: "تأخرت قراءة المستند ولم تكتمل. جرب ملفا أصغر أو أعد المحاولة.", rate_limited: "طلبات كثيرة، انتظر دقيقة ثم أعد المحاولة.", ai_unavailable: "خدمة القراءة غير متاحة الآن.", no_text: "لم يقرأ نص من الملف. جرب صورة أوضح.", image_read_failed: "تعذرت قراءة الصورة.", extract_failed: "قرئ النص لكن تعذر فهم المستند." },
+                         en: { unauthorized: "Session expired, sign in again.", analyze_timeout: "Reading the document took too long. Try a smaller file or try again.", rate_limited: "Too many requests, wait a minute and try again.", ai_unavailable: "Reading service unavailable.", no_text: "No text could be read. Try a clearer image.", image_read_failed: "Could not read the image.", extract_failed: "Text was read but the document could not be understood." },
+                         fr: { unauthorized: "Session expirée, reconnectez-vous.", analyze_timeout: "La lecture du document a pris trop de temps. Essayez un fichier plus petit.", rate_limited: "Trop de requêtes, attendez une minute puis réessayez.", ai_unavailable: "Service de lecture indisponible.", no_text: "Aucun texte n'a pu être lu. Essayez une image plus nette.", image_read_failed: "Impossible de lire l'image.", extract_failed: "Le texte a été lu mais le document n'a pas pu être compris." },
                          ur: { unauthorized: "سیشن ختم ہو گیا، دوبارہ سائن ان کریں۔", rate_limited: "بہت زیادہ درخواستیں، ایک منٹ بعد دوبارہ کوشش کریں۔", ai_unavailable: "پڑھنے کی سروس اس وقت دستیاب نہیں۔", no_text: "فائل سے کوئی متن نہیں پڑھا جا سکا۔ واضح تصویر آزمائیں۔", image_read_failed: "تصویر پڑھی نہیں جا سکی۔", extract_failed: "متن پڑھا گیا مگر دستاویز سمجھی نہیں جا سکی۔" } };
       function errorText(code) { var d = ERROR_TEXT[lang()] || ERROR_TEXT.ar; return d[code] || (ERROR_TEXT.ar[code]) || ""; }
 
@@ -95,7 +95,20 @@
           var jwt = session && session.access_token;
           var headers = { "Content-Type": "application/json" };
           if (jwt) headers.Authorization = "Bearer " + jwt;
-          return fetch("/api/documents/analyze", { method: "POST", headers: headers, body: JSON.stringify(payload) });
+          /* سقف زمني للقراءة: بلاه يبقى «جاري القراءة...» الى ما لا نهاية ولا
+             يعرف صاحبه اوقف المستند ام ما زال يقرأ (المهندس رعد 2026-09-16). */
+          var opts = { method: "POST", headers: headers, body: JSON.stringify(payload) };
+          if (typeof AbortController !== "function") return fetch("/api/documents/analyze", opts);
+          var ac = new AbortController(), done = false;
+          var timer = setTimeout(function () { if (!done) ac.abort(); }, 60000);
+          opts.signal = ac.signal;
+          return fetch("/api/documents/analyze", opts).then(
+            function (r) { done = true; clearTimeout(timer); return r; },
+            function (e) {
+              done = true; clearTimeout(timer);
+              throw (e && e.name === "AbortError") ? new Error("analyze_timeout") : e;
+            }
+          );
         }).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || "analyze"); return d.fields; }); });
       }
 

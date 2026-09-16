@@ -617,6 +617,15 @@
           el("calendarUrl").value = url;
           syncCalendarLinks(url);
         }).catch(function (err) {
+          /* بلا رابط: الازرار تعطل بدل ان تبقى href="#" فتفتح تبويبا على
+             الصفحة نفسها ويظن المستخدم الموقع مكسورا (المهندس رعد 2026-09-16). */
+          ["googleCalBtn", "appleCalBtn", "copyUrlBtn", "regenerateBtn"].forEach(function (id) {
+            var n = el(id);
+            if (!n) return;
+            n.setAttribute("aria-disabled", "true");
+            n.style.pointerEvents = "none";
+            n.style.opacity = ".5";
+          });
           setMsg("calendarMsg", errorMessage(err), "error");
         });
       }
