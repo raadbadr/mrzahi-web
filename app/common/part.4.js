@@ -152,6 +152,7 @@
   app.storageMode = storageMode;
   app.setMyPack = setMyPack;
   app.setMemberPack = setMemberPack;
+  app.setMemberAllowedPacks = setMemberAllowedPacks;
   app.connectDrive = driveAccessToken;
   /* مجلد درايف الخاص بالشركة الحالية: ينشأ إن لم يوجد، ويعاد معرفه ورابطه لعرضه في الإعدادات */
   app.driveFolder = function () {
@@ -802,8 +803,15 @@
     var cur = (app.pack && (app.pack.pack || app.pack.key)) || "";
     /* القائمة كاملة بلا تقييد بنوع الحساب، عدا «شخصي»: نقل الى قائمة الحساب
        بامر المهندس رعد 2026-09-16، لانه حساب لا واجهة تخصص. */
-    var list = packsCache.filter(function (pk) { return pk.key !== "individual"; });
-    if (!list.length) list = packsCache;
+    /* «شخصي» حساب لا واجهة، والباقي يضيق بما سمح به المدير لهذا العضو:
+       app.pack.allowed تأتي من القاعدة (packs_allowed_for)، و null فيها يعني
+       بلا تضييق (المهندس رعد 2026-09-16: «ما تظهر غير المسموح لي بها»). */
+    var allowed = (app.pack && app.pack.allowed && app.pack.allowed.length) ? app.pack.allowed : null;
+    var list = packsCache.filter(function (pk) {
+      if (pk.key === "individual") return false;
+      return allowed ? allowed.indexOf(pk.key) !== -1 : true;
+    });
+    if (!list.length) list = packsCache.filter(function (pk) { return pk.key !== "individual"; });
     var opts = list.map(function (pk) {
       var name = (pk.names && (pk.names[lang()] || pk.names.ar)) || pk.key;
       return '<option value="' + escapeHtml(pk.key) + '"' + (pk.key === cur ? " selected" : "") + ">" +

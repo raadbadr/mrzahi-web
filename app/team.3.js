@@ -204,6 +204,16 @@
                     return '<option value="' + esc(pk.key) + '"' + (m.ui_pack === pk.key ? " selected" : "") + ">" + esc(nm) + "</option>";
                   }).join("") +
                 "</select>" +
+                /* الواجهات المسموحة لهذا العضو: لا يرى في قائمته سواها، وبلا
+                   تحديد يرى الكل (المهندس رعد 2026-09-16). */
+                '<select class="waitlist-input" multiple size="4" data-allow-user="' + esc(m.user_id) + '" ' +
+                  'aria-label="' + esc(t("allowLabel")) + '" title="' + esc(t("allowLabel") + " — " + t("allowNote")) + '">' +
+                  (state.packs || []).filter(function (pk) { return pk.key !== "individual"; }).map(function (pk) {
+                    var nm = (pk.names && (pk.names[app.lang()] || pk.names.ar)) || pk.key;
+                    var on = Array.isArray(m.allowed_packs) && m.allowed_packs.indexOf(pk.key) !== -1;
+                    return '<option value="' + esc(pk.key) + '"' + (on ? " selected" : "") + ">" + esc(nm) + "</option>";
+                  }).join("") +
+                "</select>" +
               "</div>";
           }
           if (state.canManage && !isOwner && !isSelf) {
@@ -263,6 +273,25 @@
       }
 
       function onMembersChange(ev) {
+        /* الواجهات المسموحة: بلا اختيار يرفع التضييق فيرى العضو الكل */
+        var allowSel = ev.target.closest("[data-allow-user]");
+        if (allowSel) {
+          var aUser = allowSel.getAttribute("data-allow-user"), aMember = findMember(aUser);
+          var picked = [];
+          for (var ai = 0; ai < allowSel.options.length; ai++) {
+            if (allowSel.options[ai].selected) picked.push(allowSel.options[ai].value);
+          }
+          allowSel.disabled = true;
+          app.setMemberAllowedPacks(aUser, picked).then(function () {
+            if (aMember) aMember.allowed_packs = picked.length ? picked : null;
+            allowSel.disabled = false;
+            toast(t("allowUpdated"), "success");
+          }).catch(function (err) {
+            allowSel.disabled = false;
+            toast(errorMessage(err), "error");
+          });
+          return;
+        }
         /* توزيع الواجهات: المالك أو الإداري يسند لكل عضو واجهته */
         var packSel = ev.target.closest("[data-pack-user]");
         if (packSel) {

@@ -1033,6 +1033,16 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     });
   }
 
+  /* الواجهات المسموحة لعضو: المدير يحددها، والعضو لا يرى في قائمته سواها.
+     مصفوفة فارغة ترفع التضييق فيرى الكل (المهندس رعد 2026-09-16). */
+  function setMemberAllowedPacks(userId, keys) {
+    return run(function (client) {
+      var orgId = requireOrg();
+      var list = (keys && keys.length) ? keys : null;
+      return client.rpc("set_member_allowed_packs", { p_org: orgId, p_user: userId, p_packs: list }).then(unwrap);
+    });
+  }
+
   /* المالك يوزع الواجهات على فريقه: واجهة لكل عضو */
   function setMemberPack(userId, packKey) {
     return run(function (client) {
