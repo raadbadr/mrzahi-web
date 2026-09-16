@@ -11,7 +11,7 @@
       var state = { items: [], attachments: {}, file: null, fields: null, record: null, kind: "", search: "", papers: null, paperState: "", focused: "", details: null, detailLabels: null, profilePatch: null, pendingKind: null, wantedKind: null };
       var PDF_SRC = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
       var PDF_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      var KINDS = ["commercial_register","articles_of_association","bylaws","chamber_certificate","gosi_certificate","zakat_certificate","saudization_certificate","vat_certificate","license","lease_contract","contract","case_filing","court_ruling","hearing_notice","violation","invoice","power_of_attorney","id_document","passport","driving_license","vehicle_registration","insurance_policy","employment_contract","other","bank_certificate","quotation"];
+      var KINDS = ["commercial_register","articles_of_association","bylaws","chamber_certificate","gosi_certificate","zakat_certificate","saudization_certificate","vat_certificate","license","lease_contract","contract","case_filing","court_ruling","hearing_notice","violation","invoice","power_of_attorney","id_document","passport","driving_license","vehicle_registration","insurance_policy","employment_contract","other","bank_certificate","quotation","experience_certificate","cv","installment_plan","purchase_invoice"];
       var RECORD_NAME = { ar: "المستندات", en: "Documents", fr: "Documents", ur: "دستاویزات" };
 
       function $(id) { return document.getElementById(id); }
@@ -20,6 +20,19 @@
       function show(id, on) { var el = $(id); if (el) el.hidden = !on; }
       function setStatus(text, kind) { var el = $("docStatus"); el.textContent = text || ""; el.className = "waitlist-msg" + (kind ? " " + kind : ""); el.hidden = !text; }
       function kindLabel(k) { return t("kind_" + (KINDS.indexOf(k) !== -1 ? k : "other")); }
+
+      /* اوراق الحساب الشخصي شخصية صرفة: هوية وجواز ورخصة قيادة واستمارة
+         مركبة ووثيقة تأمين وعقد عمل وعقد ايجار سكن وعقد شخصي. لا سجل تجاري
+         ولا عقد تأسيس ولا زكاة ولا سعودة ولا فاتورة ولا عرض سعر — من اراد
+         هذه يحول حسابه الى وثيقة عمل حر او مؤسسة او شركة (المهندس رعد
+         2026-09-16: «اي شي تجاري ما يظهر عند الحساب الشخصي»). */
+      var PERSONAL_KINDS = ["id_document", "passport", "driving_license", "vehicle_registration",
+                            "insurance_policy", "gosi_certificate", "employment_contract", "experience_certificate",
+                            "cv", "lease_contract", "installment_plan", "purchase_invoice", "contract", "other"];
+      function kindsHere() {
+        var personal = !!(app && app.isPersonType && app.isPersonType(app.org && app.org.entity_type));
+        return personal ? PERSONAL_KINDS : KINDS;
+      }
 
       /* ---------- قراءة الملف ---------- */
       /* بصمة الملف تتحقق قبل تنفيذه: نسخة مختلفة من الشبكة لا تعمل أصلا */
@@ -189,6 +202,20 @@
         var nameEn = String(f.party_en || "").trim();
         var number = String(f.number || "").trim();
 
+        /* حساب شخصي جاءته ورقة تجارية: يتحول الى حساب كيان، وتتبعه واجهته.
+           ورقة تجارية تعني كيانا تجاريا، فلا يبقى الحساب مصنفا شخصيا
+           (المهندس رعد 2026-09-16: «فيه سجل تجاري خلاص يتحول لشركة»). */
+        if (app.org && map.entity && app.isPersonType && app.isPersonType(app.org.entity_type)) {
+          return app.convertOrgToCompany(map.entity, number, name || nameEn)
+            .then(function (res) {
+              if (res && res.status === "converted") {
+                app.toast(t("orgConverted"), "success");
+                setTimeout(function () { window.location.reload(); }, 1800);
+              }
+              return saveProfileFields(f, map, name, number);
+            })
+            .catch(function () { return null; });
+        }
         /* شركة قائمة: لا يكتب في ملفها شيء بلا إذن — بطاقة «تحديث بيانات الشركة» تسأل أولا */
         if (app.org) return null;
         /* لا شركة بعد؟ الورقة نفسها تنشئها. */
@@ -873,7 +900,7 @@
       }
 
       function renderKindSelects() {
-        var opts = KINDS.map(function (k) { return '<option value="' + k + '">' + esc(kindLabel(k)) + "</option>"; }).join("");
+        var opts = kindsHere().map(function (k) { return '<option value="' + k + '">' + esc(kindLabel(k)) + "</option>"; }).join("");
         $("fKind").innerHTML = opts;
         $("filterKind").innerHTML = '<option value="">' + esc(t("allKinds")) + "</option>" + opts;
       }

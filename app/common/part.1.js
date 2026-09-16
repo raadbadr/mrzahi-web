@@ -1093,6 +1093,18 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     });
   }
 
+  /* حساب شخصي جاءته ورقة تجارية يتحول الى حساب كيان: القاعدة تفعلها ذريا
+     (نوع الحساب ورقمه والواجهة) والواجهة تعيد التحميل بعدها. */
+  function convertOrgToCompany(entity, number, name) {
+    return run(function (client) {
+      var orgId = requireOrg();
+      return client.rpc("convert_org_to_company", {
+        p_org: orgId, p_entity: entity || "company",
+        p_number: String(number || ""), p_name: String(name || "")
+      }).then(unwrap);
+    });
+  }
+
   function setOrgPack(packKey) {
     return run(function (client) {
       var orgId = requireOrg();
@@ -1127,6 +1139,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
   app.packCfg = packCfg;
   app.listPacks = listPacks;
   app.setOrgPack = setOrgPack;
+  app.convertOrgToCompany = convertOrgToCompany;
   app.packLabel = packLabel;
 
   function orgProfile() {

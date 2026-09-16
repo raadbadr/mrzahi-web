@@ -37,6 +37,10 @@ const DOC_KINDS = [
   "insurance_policy",      // وثيقة تأمين
   "employment_contract",   // عقد عمل
   "bank_certificate",      // شهادة رقم الحساب الدولي (IBAN)
+  "experience_certificate", // شهادة خبرة (شخصي)
+  "cv",                    // السيرة الذاتية (شخصي)
+  "installment_plan",      // التزام أقساط (شخصي)
+  "purchase_invoice",      // فاتورة مشتريات (شخصي)
   "other",
 ];
 
