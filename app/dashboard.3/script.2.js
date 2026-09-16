@@ -256,8 +256,8 @@
       function loadStats() {
         var tiles = packTiles();
         if (tiles) {
-          return tileValues(tiles).then(function (values) {
-            paintTiles(values);
+          return retryOnce(function () { return tileValues(tiles); }).then(function (values) {
+            safeRender("tiles", function () { paintTiles(values); });
             statsReady();
           }).catch(function (err) {
             /* رقم لم يصل يقول ذلك بشرطته: الفراغ الصامت كان يقرا كأن المربع
@@ -470,11 +470,11 @@
         var q = { recordId: f.record || undefined, search: f.search || undefined };
         if (f.status === "overdue") { q.status = "open"; q.to = new Date().toISOString(); }
         else if (f.status) q.status = f.status;
-        return app.listItems(q).then(function (items) {
+        return retryOnce(function () { return app.listItems(q); }).then(function (items) {
           state.items = (items || []).filter(matchesView);
           if (f.status === "overdue") state.items = state.items.filter(function (it) { return !!it.due_at; });
           clearMsg("listMsg");
-          renderList();
+          safeRender("list", renderList);
           if (pendingOpenItem) {
             var hit = state.items.filter(function (it) { return it.id === pendingOpenItem; })[0];
             pendingOpenItem = "";

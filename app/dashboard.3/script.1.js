@@ -128,6 +128,29 @@
         else if (app && app.toast) app.toast(T(key), "error");
       }
 
+      /* «تعذر تحميل البيانات» كانت تظهر ولو وصلت البيانات سليمة: الرسم كان داخل
+         وعد الجلب، فاي خطا في بناء الشاشة (عنصر غير موجود، تاريخ غير صالح)
+         يسقط الوعد فيقرا كأنه فشل تحميل. الرسم هنا معزول: يسجل باسم موضعه
+         ولا يكذب على صاحبه (المهندس رعد 2026-09-16: «حل الموضوع دا لانو تكرر،
+         وحط طريقة عشان مايتكرر مره ثانية»). */
+      function safeRender(where, fn) {
+        try { return fn(); }
+        catch (e) {
+          if (window.console) console.error("dashboard:render:" + where, e);
+          return null;
+        }
+      }
+
+      /* انقطاع لحظي لا يستحق رسالة: محاولة ثانية بعد لحظة قبل اي اعلان فشل.
+         اخطاء المنصة المعروفة (لا حساب، حد الباقة) تمر فورا بلا اعادة. */
+      function retryOnce(make) {
+        return make().catch(function (err) {
+          if (err && (err.code === "NO_ORG" || err.code === "PLAN_LIMIT")) throw err;
+          if (window.console) console.warn("dashboard:retry", err && err.message ? err.message : err);
+          return new Promise(function (r) { setTimeout(r, 700); }).then(make);
+        });
+      }
+
       /* Serialises user actions: ignores clicks while a previous action is in flight. */
       function guard(fn) {
         if (state.busy) return Promise.resolve();
@@ -999,12 +1022,14 @@
           });
           renderSelects();
         }).catch(function (err) { fail(err); }).then(function () {
-          return Promise.all([loadStats(), loadItems(), loadCalendar(), loadWeek().then(renderWeek)]);
+          return Promise.all([loadStats(), loadItems(), loadCalendar(),
+                              loadWeek().then(function () { safeRender("week", renderWeek); })]);
         });
       }
 
       function refresh() {
-        return Promise.all([loadStats(), loadItems(), loadCalendar(), loadWeek().then(renderWeek)]);
+        return Promise.all([loadStats(), loadItems(), loadCalendar(),
+                            loadWeek().then(function () { safeRender("week", renderWeek); })]);
       }
 
       /* ---------- top bar / organizations ---------- */

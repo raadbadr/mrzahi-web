@@ -81,13 +81,15 @@
       function loadCalendar() {
         if (!state.calDay) state.calDay = new Date();
         var r = calRange();
-        return app.listItems({ from: r.start.toISOString(), to: r.end.toISOString(), limit: 1000 }).then(function (items) {
+        return retryOnce(function () {
+          return app.listItems({ from: r.start.toISOString(), to: r.end.toISOString(), limit: 1000 });
+        }).then(function (items) {
           state.calAll = (items || []).filter(matchesView);
           state.calItems = applyCalFilter(state.calAll);
-          renderCalendar();
+          safeRender("calendar", renderCalendar);
         }).catch(function (err) {
           state.calItems = [];
-          renderCalendar();
+          safeRender("calendar", renderCalendar);
           fail(err);
         });
       }
