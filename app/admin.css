@@ -318,6 +318,14 @@
 
     /* البريد لا ينكسر في منتصف الكلمة: يأخذ سطرا كاملا تحت عنوانه، وإن طال زحف أفقيا بلا نقاط */
     .platform-stat-detail-row.is-email { flex-direction: column; align-items: stretch; gap: 0.1rem; }
+    /* صف يحمل نصا طويلا (حسابه الشخصي، منضم الى): الاسم فوق والقيمة تحته بعرض
+       الصف كله. خانة القيمة في الصف العادي min-width:2ch بلا نمو، فكانت
+       الشريحة تنحشر في عمود فيتكسر «trial · 01-10-2026» حرفا في كل سطر
+       (امر المهندس رعد 2026-09-17: «ايش التصميم الخرا دا»). */
+    .platform-stat-detail-row.is-stack { flex-direction: column; align-items: stretch; gap: 0.25rem; }
+    .platform-stat-detail-row.is-stack .platform-stat-detail-val {
+      text-align: start; display: block; width: 100%; min-width: 0;
+    }
     .platform-stat-detail-row.is-email .platform-stat-detail-val {
       direction: ltr; text-align: start; white-space: nowrap; min-width: 0; max-width: 100%;
       overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none;
@@ -485,10 +493,17 @@
 
     /* شركات المستخدم داخل بطاقته: شريحة لكل شركة ودوره فيها (امر المهندس رعد
        2026-09-17)، ملتفة بلا قص ولا ثلاث نقاط */
-    .user-org { display: inline-flex; align-items: center; gap: 0.35rem; margin: 0 0 0.3rem 0.3rem;
-      padding: 0.15rem 0.5rem; border: 1px solid var(--glass-border); border-radius: 10px;
-      background: var(--glass); font-size: 0.82rem; overflow-wrap: anywhere; }
-    .user-org-role { color: var(--text-secondary); font-size: 0.72rem; font-weight: 700; }
+    /* شريحة لا تتكسر حرفا حرفا: الاسم وحده يلتف عند الحاجة، والباقة والدور
+       يبقيان سطرا واحدا. والشرائح تلتف كوحدات في سطور متتالية. */
+    .user-orgs { display: flex; flex-wrap: wrap; gap: 0.3rem; width: 100%; }
+    .user-org {
+      display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;
+      max-width: 100%; padding: 0.2rem 0.55rem;
+      border: 1px solid var(--glass-border); border-radius: 10px;
+      background: var(--glass); font-size: 0.82rem; line-height: 1.6;
+    }
+    .user-org-name { font-weight: 700; overflow-wrap: anywhere; }
+    .user-org-role { color: var(--text-secondary); font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
 
     /* قائمة المسجلين: ضغطة على الحقل تفتحها كاملة. معتمة دائما وفوق كل شيء
        (قاعدة 2-ز)، وبارتفاع الحقول نفسه، وبلا قص ولا ثلاث نقاط. */

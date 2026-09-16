@@ -170,21 +170,23 @@
       function companiesText(u) {
         const list = Array.isArray(u.companies) ? u.companies : [];
         if (!list.length) return esc(T("noCompanies"));
-        return list.map(c => '<span class="user-org">' + esc(c.name || "—") +
-          ' <span class="user-org-role">' + esc(T(ROLE_KEYS[c.role] || "roleMember")) + "</span>" +
-          planChip(c.plan_code, c.plan_expires_at) + "</span>").join("");
+        return '<span class="user-orgs">' + list.map(c => '<span class="user-org">' +
+          '<span class="user-org-name">' + esc(c.name || "—") + "</span>" +
+          '<span class="user-org-role">' + esc(T(ROLE_KEYS[c.role] || "roleMember")) + "</span>" +
+          planChip(c.plan_code, c.plan_expires_at) + "</span>").join("") + "</span>";
       }
       function planChip(code, expires) {
         if (!code) return "";
         const tail = expires ? " · " + fmtDate(expires) : "";
-        return ' <span class="user-org-role">' + esc(planName(code) + tail) + "</span>";
+        return '<span class="user-org-role">' + esc(planName(code) + tail) + "</span>";
       }
       function personalText(u) {
         const p = u.personal;
         if (!p) return esc(T("noPersonal"));
         const items = Number(p.items) || 0;
-        return '<span class="user-org">' + esc(p.name || "—") + planChip(p.plan_code, p.plan_expires_at) +
-          (items ? ' <span class="user-org-role">' + esc(T("itemsCountShort").replace("{n}", String(items))) + "</span>" : "") + "</span>";
+        return '<span class="user-orgs"><span class="user-org">' +
+          '<span class="user-org-name">' + esc(p.name || "—") + "</span>" + planChip(p.plan_code, p.plan_expires_at) +
+          (items ? '<span class="user-org-role">' + esc(T("itemsCountShort").replace("{n}", String(items))) + "</span>" : "") + "</span></span>";
       }
       function userCard(u) {
         return '<div class="feature-card">' +
@@ -192,8 +194,8 @@
           row("colOwner", esc(u.email || "—"), ' dir="ltr"', "is-email") +
           row("colPhone", esc(u.phone || "—"), ' dir="ltr"') +
           row("colUserNumber", esc(u.profile_number || "—"), ' dir="ltr"') +
-          row("colPersonal", personalText(u), ' style="overflow-wrap:anywhere"') +
-          row("colMemberOf", companiesText(u), ' style="overflow-wrap:anywhere"') +
+          row("colPersonal", personalText(u), "", "is-stack") +
+          row("colMemberOf", companiesText(u), "", "is-stack") +
           row("colLang", esc(LANG_NAMES[u.lang] || u.lang || "—")) +
           row("colStore", esc(u.storage_mode === "drive" ? T("storeDrive") : T("storePlatform"))) +
           row("colTelegram", esc(u.telegram_linked ? T("linkedYes") : T("linkedNo"))) +
