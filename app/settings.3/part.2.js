@@ -84,8 +84,12 @@
           return app.setOrgPack(packWanted).then(function () { window.location.reload(); });
         }).then(function () {
           setMsg("opMsg", t("opSaved"), "success");
-        }).catch(function () {
-          setMsg("opMsg", t("genericError"), "error");
+        }).catch(function (err) {
+          /* قيود منع تكرار الحساب (ترحيل 0144) تقال بنصها لا برسالة عامة */
+          var code = String((err && err.message) || "") + " " + String((err && err.sbCode) || "");
+          setMsg("opMsg", /23505|duplicate key/.test(code) ? t("opNumberTaken")
+            : /PERSONAL_ORG_EXISTS/.test(code) ? t("opPersonalExists")
+            : t("genericError"), "error");
         }).finally(function () { el("opSaveBtn").disabled = false; });
       }
 
