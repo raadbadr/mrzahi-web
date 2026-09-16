@@ -785,7 +785,7 @@
   function deleteAttachment(att) {
     return run(function (client) {
       if (!att || !att.id) throw new Error("attachment required");
-      return client.from("attachments").delete().eq("id", att.id).then(unwrap).then(function () {
+      return client.from("attachments").delete().eq("id", att.id).select("id").then(unwrap).then(deletedOrThrow).then(function () {
         if (att.storage_path) return client.storage.from(ATTACH_BUCKET).remove([att.storage_path]);
         return null;
       });
@@ -824,7 +824,7 @@
   function deleteOrg(orgId) {
     return run(function (client) {
       var id = orgId || requireOrg();
-      return client.from("organizations").delete().eq("id", id).then(unwrap).then(function () {
+      return client.from("organizations").delete().eq("id", id).select("id").then(unwrap).then(deletedOrThrow).then(function () {
         app.orgs = app.orgs.filter(function (o) { return o.id !== id; });
         app.org = app.orgs.length ? app.orgs[0] : null;
         try { app.org ? localStorage.setItem(ORG_KEY, app.org.id) : localStorage.removeItem(ORG_KEY); } catch (e) { /* ignore */ }

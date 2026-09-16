@@ -176,7 +176,8 @@
         $("fFrequency").value = state.draft.frequency || ""; $("fTrigger").value = state.draft.trigger_text || "";
         $("fInputs").value = state.draft.inputs || ""; $("fOutputs").value = state.draft.outputs || ""; $("fDescription").value = state.draft.description || "";
         $("fCode").value = state.draft.code || "";
-        show("deleteBtn", !!p);
+        /* الحذف للمنشئ او المشرف: القاعدة ترفض غيرهما بصمت (فحص الصلاحيات 2026-09-16) */
+        show("deleteBtn", !!p && !!(app.isOrgAdmin && app.isOrgAdmin() || (app.user && p.created_by === app.user.id)));
         renderSteps();
         state.wizStep = 0;
         renderWizard();
@@ -607,7 +608,8 @@
         $("cancelBtn").addEventListener("click", function () { show("editorCard", false); show("listCard", true); });
         $("deleteBtn").addEventListener("click", function () {
           if (!state.draft.id || !window.confirm(t("deleteConfirm"))) return;
-          app.deleteProcess(state.draft.id).then(load).then(function () { show("editorCard", false); show("listCard", true); });
+          app.deleteProcess(state.draft.id).then(load).then(function () { show("editorCard", false); show("listCard", true); })
+            .catch(function (err) { window.alert((err && err.code === "NOT_ALLOWED") ? app.t("notAllowed") : t("genericError")); });
         });
 
       }

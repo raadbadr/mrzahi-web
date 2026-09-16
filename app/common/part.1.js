@@ -52,7 +52,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       genericError: "حدث خطأ، حاول مرة أخرى.",
       saved: "تم الحفظ.",
       deleted: "تم الحذف.",
-      accountDeletionCancelled: "سجلت الدخول، فألغينا طلب حذف حسابك."
+      accountDeletionCancelled: "سجلت الدخول، فألغينا طلب حذف حسابك.",
+      notAllowed: "لا تملك صلاحية هذا الإجراء."
     },
     en: {
       serviceUnavailableTitle: "Service is being prepared",
@@ -63,7 +64,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       genericError: "Something went wrong. Please try again.",
       saved: "Saved.",
       deleted: "Deleted.",
-      accountDeletionCancelled: "You signed in, so we cancelled your account deletion request."
+      accountDeletionCancelled: "You signed in, so we cancelled your account deletion request.",
+      notAllowed: "You do not have permission for this action."
     },
     fr: {
       serviceUnavailableTitle: "Service en cours de préparation",
@@ -74,7 +76,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       genericError: "Une erreur est survenue. Veuillez réessayer.",
       saved: "Enregistré.",
       deleted: "Supprimé.",
-      accountDeletionCancelled: "Vous vous êtes connecté, la demande de suppression de votre compte a donc été annulée."
+      accountDeletionCancelled: "Vous vous êtes connecté, la demande de suppression de votre compte a donc été annulée.",
+      notAllowed: "Vous n'avez pas l'autorisation pour cette action."
     },
     ur: {
       serviceUnavailableTitle: "سروس تیار کی جا رہی ہے",
@@ -85,7 +88,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       genericError: "کچھ غلط ہو گیا، براہ کرم دوبارہ کوشش کریں۔",
       saved: "محفوظ ہو گیا۔",
       deleted: "حذف ہو گیا۔",
-      accountDeletionCancelled: "آپ سائن ان ہوئے، اس لیے ہم نے آپ کے اکاؤنٹ حذف کرنے کی درخواست منسوخ کر دی۔"
+      accountDeletionCancelled: "آپ سائن ان ہوئے، اس لیے ہم نے آپ کے اکاؤنٹ حذف کرنے کی درخواست منسوخ کر دی۔",
+      notAllowed: "آپ کے پاس اس کارروائی کی اجازت نہیں ہے۔"
     }
   };
 
@@ -752,6 +756,18 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     return app.org ? (app.org.role || null) : null;
   }
 
+  /* الصلاحية تقرر في القاعدة، وهذان للواجهة وحدها: لا نعرض زرا يرفضه الخادم بصمت
+     فيظن المستخدم انه نجح (فحص الصلاحيات 2026-09-16، امر المهندس رعد). */
+  function isOrgOwner() { return role() === "owner"; }
+  function isOrgAdmin() { var r = role(); return r === "owner" || r === "admin"; }
+
+  /* حذف رفضته سياسات القاعدة يعيد صفر صفوف بلا خطا: نطلب الصفوف المحذوفة
+     ونرمي NOT_ALLOWED كي لا يظهر نجاح كاذب. */
+  function deletedOrThrow(rows) {
+    if (!rows || !rows.length) { var e = new Error("not allowed"); e.code = "NOT_ALLOWED"; throw e; }
+    return true;
+  }
+
   function setCurrentOrg(orgId) {
     try { localStorage.setItem(ORG_KEY, orgId); } catch (e) { /* ignore */ }
     window.location.reload();
@@ -1026,7 +1042,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
   function deleteProcess(id) {
     return run(function (client) {
       var orgId = requireOrg();
-      return client.from("processes").delete().eq("id", id).eq("org_id", orgId).then(unwrap);
+      return client.from("processes").delete().eq("id", id).eq("org_id", orgId).select("id").then(unwrap).then(deletedOrThrow);
     });
   }
 
@@ -1061,7 +1077,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
   function deleteRisk(id) {
     return run(function (client) {
       var orgId = requireOrg();
-      return client.from("risks").delete().eq("id", id).eq("org_id", orgId).then(unwrap);
+      return client.from("risks").delete().eq("id", id).eq("org_id", orgId).select("id").then(unwrap).then(deletedOrThrow);
     });
   }
 

@@ -117,7 +117,8 @@
         $("fRL").innerHTML = scaleOptions(d.res_likelihood, "L"); $("fRI").innerHTML = scaleOptions(d.res_impact, "I");
         $("fStrategy").innerHTML = STRATS.map(function (s) { return '<option value="' + s + '"' + (d.strategy === s ? " selected" : "") + ">" + esc(t("strat_" + s)) + "</option>"; }).join("");
         $("fStatus").innerHTML = STATUSES.map(function (s) { return '<option value="' + s + '"' + (d.status === s ? " selected" : "") + ">" + esc(t("rstatus_" + s)) + "</option>"; }).join("");
-        show("deleteBtn", !!r);
+        /* الحذف للمنشئ او المشرف: القاعدة ترفض غيرهما بصمت (فحص الصلاحيات 2026-09-16) */
+        show("deleteBtn", !!r && !!(app.isOrgAdmin && app.isOrgAdmin() || (app.user && r.created_by === app.user.id)));
         renderActions(); updateScore();
         show("registerCard", false); show("overviewCard", false); show("editorCard", true);
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -254,7 +255,8 @@
         $("cancelBtn").addEventListener("click", function () { show("editorCard", false); show("registerCard", true); show("overviewCard", true); });
         $("deleteBtn").addEventListener("click", function () {
           if (!state.draft.id || !window.confirm(t("deleteConfirm"))) return;
-          app.deleteRisk(state.draft.id).then(load).then(function () { show("editorCard", false); show("registerCard", true); show("overviewCard", true); });
+          app.deleteRisk(state.draft.id).then(load).then(function () { show("editorCard", false); show("registerCard", true); show("overviewCard", true); })
+            .catch(function (err) { window.alert((err && err.code === "NOT_ALLOWED") ? app.t("notAllowed") : t("genericError")); });
         });
       }
       window.__risksRefresh = renderAll;

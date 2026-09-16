@@ -127,6 +127,8 @@
   app.entityTypes = function () { return ENTITY_TYPES.slice(); };
   app.entityLabel = entityLabel;
   app.isPersonType = isPersonType;
+  app.isOrgOwner = isOrgOwner;
+  app.isOrgAdmin = isOrgAdmin;
   app.normalizePhone = normalizePhone;
   app.isValidPhone = isValidPhone;
   app.orgProfile = orgProfile;

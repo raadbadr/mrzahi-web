@@ -122,6 +122,10 @@
           document.addEventListener("record:drive", renderDriveSwitch);
 
           if (app.org && el("orgNameInput")) el("orgNameInput").value = app.org.name || "";
+          /* بطاقة الشركة للمالك وحده: القاعدة ترفض اعادة التسمية والحذف لغيره،
+             فعرضها كانت تعد بما لا يقع (فحص الصلاحيات 2026-09-16، امر المهندس رعد). */
+          var orgCard = el("orgCard");
+          if (orgCard) orgCard.hidden = !(app.org && app.isOrgOwner && app.isOrgOwner());
           el("orgSaveBtn").addEventListener("click", function () {
             var name = String(el("orgNameInput").value || "").trim();
             if (!name) return;
@@ -136,7 +140,10 @@
             if (!app.org) return;
             if (!window.confirm(t("deleteOrgConfirm").split("{name}").join(app.org.name || ""))) return;
             app.deleteOrg().then(function () { window.location.href = "/app/dashboard.html"; })
-              .catch(function () { setMsg("orgMsg", t("genericError"), "error"); });
+              .catch(function (err) {
+                /* القاعدة ترفض حذف الشركة لغير المالك بصفر صفوف، فيظهر السبب لا خطا عام */
+                setMsg("orgMsg", (err && err.code === "NOT_ALLOWED") ? app.t("notAllowed") : t("genericError"), "error");
+              });
           });
           var adBtn = el("accountDeleteBtn");
           if (adBtn) adBtn.addEventListener("click", function () {
