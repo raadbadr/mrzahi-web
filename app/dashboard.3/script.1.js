@@ -185,7 +185,10 @@
       }
 
       function recordOptions(firstKey) {
-        return [{ value: "", label: T(firstKey) }].concat(state.records.map(function (t) { return { value: t.id, label: t.name }; }));
+        /* اللفظ الموحد: اسم السجل الافتراضي يعرض بتسمية الواجهة (app.recordLabel) */
+        return [{ value: "", label: T(firstKey) }].concat(state.records.map(function (t) {
+          return { value: t.id, label: (app.recordLabel ? app.recordLabel(t.name) : t.name) };
+        }));
       }
       function memberOptions() {
         return [{ value: "", label: T("noAssignee") }].concat(state.members.map(function (m) {

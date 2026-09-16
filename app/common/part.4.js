@@ -914,6 +914,35 @@
     });
   }
 
+  /* توحيد الالفاظ (امر المهندس رعد 2026-09-17: «ليش هنا المستندات وهنا اوراقي
+     الرسمية، المفروض توحيد الالفاظ»): اسم السجل الافتراضي الذي تنشئه القاعدة
+     يعرض بتسمية الخدمة في هذه الواجهة، فلا يرى صاحب الحساب الشخصي «المستندات»
+     في قائمة وهو يقرا «اوراقي الرسمية» في الشريط. البيانات لا تمس: العرض وحده. */
+  var DEFAULT_RECORD_LABELS = {
+    "المستندات": "documents", "Documents": "documents", "دستاویزات": "documents",
+    "المهام": "tasks", "Tasks": "tasks", "Taches": "tasks", "ٹاسک": "tasks",
+    "صحتي": "health", "My health": "health", "Ma sante": "health", "میری صحت": "health"
+  };
+  function packServiceLabelFor(key) {
+    var list = app.pack && Array.isArray(app.pack.services) ? app.pack.services : null;
+    if (!list) return "";
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].service !== key || !list[i].label) continue;
+      var row = list[i].label;
+      return row[lang()] || row.ar || "";
+    }
+    return "";
+  }
+  function recordLabel(name) {
+    var key = DEFAULT_RECORD_LABELS[String(name || "").trim()];
+    if (!key) return name || "";
+    var own = packServiceLabelFor(key);
+    if (own) return own;
+    if (key === "documents") return app.packLabel ? app.packLabel("documentsTitle", name) : name;
+    return name || "";
+  }
+  app.recordLabel = recordLabel;
+
   app.confirmDanger = confirmDanger;
   /* انماط منطقة الحذف تحقن عند التركيب لا عند اول حوار: الصفحة التي فيها
      danger-zone تحتاج خطها الفاصل قبل ان يضغط احد شيئا. */

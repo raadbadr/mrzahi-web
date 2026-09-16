@@ -361,7 +361,10 @@
               return String(r.case_number || d.number || d.violation_number || d["رقم المخالفة"] || "").trim(); } },
           { label: T("colTitle"), get: function (r) { return r.title; } },
           { label: "category", get: function (r) { return r.category; } },
-          { label: T("colRecord"), get: function (r) { return r.records && r.records.name || ""; } },
+          { label: T("colRecord"), get: function (r) {
+            var nm = (r.records && r.records.name) || "";
+            return app.recordLabel ? app.recordLabel(nm) : nm;
+          } },
           { label: T("colStatus"), get: function (r) { return r.status; } },
           { label: T("colDue"), get: function (r) { return r.due_at ? app.fmtDate(r.due_at, { withTime: true }) : ""; } },
           { label: T("colAssignee"), get: function (r) { return r.assignee_id ? assigneeName(r.assignee_id) : ""; } },
