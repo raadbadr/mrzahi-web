@@ -662,9 +662,20 @@
     }).catch(function () { return null; });
   }
 
+  /* اسم مجلد الحساب داخل 00-MrZahi: «شخصي» للمساحة الشخصية لا اسم صاحبها،
+     فيقف مجلد الشخصي منفصلا الى جوار مجلد الشركة (المهندس رعد 2026-09-16:
+     «فولدر شخصي منفصل تماما وفولدر الشركة منفصل»). الاسم ثابت لا يتبع لغة
+     العرض، وإلا تعدد المجلد الواحد بتعدد اللغات. */
+  function driveOrgFolderName() {
+    var o = (app && app.org) || {};
+    if (app && app.isPersonType && app.isPersonType(o.entity_type)) return "شخصي";
+    return o.name || "";
+  }
+  app.driveOrgFolderName = driveOrgFolderName;
+
   function storeInDrive(file) {
     var orgId = requireOrg();
-    var orgName = (app.org && app.org.name) || "";
+    var orgName = driveOrgFolderName();
     return driveAccessToken().then(function (token) {
       return driveFolderFor(token, orgId, orgName).then(function (folderId) {
         return driveUploadFile(token, file, folderId).catch(function (err) {
@@ -673,7 +684,13 @@
           return driveFolderFor(token, orgId, orgName, true).then(function (fid) { return driveUploadFile(token, file, fid); });
         });
       }).then(function (f) {
-        return driveShareWithTeam(token, f.id).then(function () {
+        /* المساحة الشخصية لا تشارك مع احد: ما رفع من الواجهة الشخصية يبقى
+           لصاحبه وحده، ولو صار في الحساب اكثر من عضو يوما. المشاركة مع
+           الفريق لحساب الشركة وحده (المهندس رعد 2026-09-16: «اللي معايا في
+           الفريق يشوفوا فقط فولدر الشركة، انما الباقي لا»). */
+        var personal = !!(app.isPersonType && app.isPersonType(app.org && app.org.entity_type));
+        var shared = personal ? Promise.resolve(null) : driveShareWithTeam(token, f.id);
+        return shared.then(function () {
           return { id: f.id, name: f.name || file.name, mime: f.mimeType || file.type || null,
                    size: Number(f.size) || file.size || 0, url: f.webViewLink || ("https://drive.google.com/file/d/" + f.id + "/view") };
         });

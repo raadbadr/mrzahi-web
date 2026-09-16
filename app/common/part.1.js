@@ -768,7 +768,24 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     return true;
   }
 
+  /* الفصل بين الحسابات (المهندس رعد 2026-09-16: «لازم تفصل بين الشخصي وبين
+     الوثيقة وبين الشركة»): ما خزن على الجهاز وهو مرتبط بحساب — تبويب اللوحة،
+     مجلد درايف، النصوص المترجمة التي تحمل عناوين عناصر وأسماء عملاء، عدادات
+     الجرس والدردشة — يمسح عند الانتقال، فلا يظهر اثر حساب في حساب. يبقى
+     تفضيلا العرض واللافتة الموسمية: لا يحملان بيانات حساب. */
+  var ORG_SWITCH_KEEP = { mrzahi_lang: 1, mrzahi_theme: 1, mrzahi_sidebar: 1, mrzahi_org: 1, "mrzahi:seen": 1 };
+
+  function forgetOrgScoped() {
+    try {
+      for (var i = localStorage.length - 1; i >= 0; i--) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf("mrzahi") === 0 && !ORG_SWITCH_KEEP[k]) localStorage.removeItem(k);
+      }
+    } catch (e) { /* التخزين محجوب: لا شيء ليمسح */ }
+  }
+
   function setCurrentOrg(orgId) {
+    forgetOrgScoped();
     try { localStorage.setItem(ORG_KEY, orgId); } catch (e) { /* ignore */ }
     window.location.reload();
   }

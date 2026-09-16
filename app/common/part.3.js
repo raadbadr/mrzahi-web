@@ -910,9 +910,15 @@
   }
   function packNavLabel(item) {
     var list = packServices();
-    if (!list || !item.service) return item.labels;
-    for (var i = 0; i < list.length; i++) {
-      if (list[i].service === item.service && list[i].label) return list[i].label;
+    if (list && item.service) {
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].service === item.service && list[i].label) return list[i].label;
+      }
+    }
+    /* احتياطي: حزمة تسمي عنوان اوراقها ولا تسمي الخدمة — الشريط يتبع التسمية
+       نفسها فلا يقول «المستندات» في حساب شخصي (المهندس رعد 2026-09-16). */
+    if (item.service === "documents" && app && app.pack && app.pack.labels && app.pack.labels.documentsTitle) {
+      return app.pack.labels.documentsTitle;
     }
     return item.labels;
   }
