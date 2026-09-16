@@ -174,3 +174,4 @@
 20260916210000	personal_health_service	0146_personal_health_service.sql	added
 20260916210000	personal_first_in_bot	0145_personal_first_in_bot.sql	added
 20260916220000	bot_knows_health_kind	0147_bot_knows_health_kind.sql	added
+20260916220000	calendar_filters_follow_pack	0147_calendar_filters_follow_pack.sql	added

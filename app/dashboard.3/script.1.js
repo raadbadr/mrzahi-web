@@ -996,6 +996,9 @@
           state.viewType = currentViewType();
           applyViewTitle();
         applyPackForm();
+          /* فلاتر التقويم تبنى بعد وصول الحزمة لا قبلها: قبل app.ready تكون
+             app.pack فارغة فتقع الفلاتر على القائمة الاحتياطية */
+          if (typeof renderCalFilters === "function") renderCalFilters();
           renderSelects();
           restoreTab();
           show("dashboard");

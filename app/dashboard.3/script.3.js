@@ -141,12 +141,15 @@
 
       function calendarIsHijri() { return state.calMode === "hijri"; }
 
-      /* فلاتر التقويم الماستر: تصنيف بلا إعادة جلب؛ الأوراق عناصر بنوع مستند، والمهام ما ليس قضية ولا مخالفة ولا ورقة */
+      /* فلاتر التقويم الماستر: تصنيف بلا إعادة جلب؛ الأوراق عناصر بنوع مستند،
+         وكل نوع تعرفه الواجهة يصنف بمطابقته نفسها (isOfType) لا بقائمة ثابتة،
+         والمهام ما لم يطابق نوعا. */
+      var CAL_KIND_ORDER = ["cases", "violations", "expenses", "rulings", "contracts", "health", "meetings"];
       function calKind(it) {
         if (it && it.data && it.data.document_kind) return "documents";
-        if (isCaseItem(it)) return "cases";
-        if (isViolationItem(it)) return "violations";
-        if (isMeetingItem(it)) return "meetings";
+        for (var i = 0; i < CAL_KIND_ORDER.length; i++) {
+          if (VIEW_TYPES[CAL_KIND_ORDER[i]] && isOfType(it, CAL_KIND_ORDER[i])) return CAL_KIND_ORDER[i];
+        }
         return "tasks";
       }
       function applyCalFilter(list) {
@@ -155,14 +158,78 @@
         if (!who) return out;
         return out.filter(function (it) { return it.assignee_id === who; });
       }
+      /* الفلاتر تتبع واجهة الحساب لا قائمة ثابتة (امر المهندس رعد 2026-09-16:
+         «المفروض الفلتر حسب الواجهة... كل قسم وواجهة ليها فلاتر خاصة مو كلهم
+         نفس الشي»، و«دي تظهر فقط لقسم المحاماة»): «الكل» ثم خدمات هذه الحزمة
+         التي تصنف عناصر التقويم، بترتيب الحزمة وتسميتها. الحساب الشخصي لا يرى
+         قضايا ولا مخالفات ولا مهام لان واجهته لا تسميها. */
+      var CAL_FILTER_EXTRA = { documents: 1, tasks: 1 };   /* تصنفان عناصر التقويم وان لم تكونا لوحتين */
+      function packServiceLabel(key) {
+        var list = app && app.pack && Array.isArray(app.pack.services) ? app.pack.services : null;
+        if (!list) return "";
+        for (var i = 0; i < list.length; i++) {
+          if (list[i].service !== key || !list[i].label) continue;
+          var row = list[i].label;
+          return row[app.lang()] || row.ar || "";
+        }
+        return "";
+      }
+      function calFilterKeys() {
+        var list = app && app.pack && Array.isArray(app.pack.services) ? app.pack.services : null;
+        /* حزمة غير معروفة (تعذر تحميلها) لا تخفي شيئا، كما في packHasService */
+        if (!list || !list.length) return ["cases", "violations", "tasks", "meetings"];
+        var out = [];
+        list.forEach(function (row) {
+          var key = row && row.service;
+          if (!key || (!VIEW_TYPES[key] && !CAL_FILTER_EXTRA[key])) return;
+          if (out.indexOf(key) === -1) out.push(key);
+        });
+        return out;
+      }
+      /* كلمة الفلتر قصيرة كبقية التبويبات: تسمية الحزمة ان وجدت، وإلا الكلمة
+         القصيرة («قضايا» لا «لوحة القضايا»)، وإلا عنوان اللوحة. */
+      var CAL_FILTER_WORD = { cases: "calFilterCases", violations: "calFilterViolations", tasks: "calFilterTasks", meetings: "calFilterMeetings", documents: "calFilterDocuments" };
+      function calFilterLabel(key) {
+        if (key === "all") return T("calFilterAll");
+        var own = packServiceLabel(key);
+        if (own) return own;
+        if (key === "documents" && app.packLabel) return app.packLabel("documentsTitle", T("calFilterDocuments"));
+        if (CAL_FILTER_WORD[key]) return T(CAL_FILTER_WORD[key]);
+        return viewTitleText(key) || key;
+      }
+      function renderCalFilters() {
+        var box = $("calFilters"), list = $("calFilterList");
+        if (!box || !list) return;
+        var keys = calFilterKeys();
+        /* لا فلتر يصنف في هذه الواجهة: لا صف فارغ ولا زر «الكل» وحيد */
+        if (!keys.length) { box.hidden = true; return; }
+        keys = ["all"].concat(keys);
+        if (keys.indexOf(state.calFilter || "all") === -1) state.calFilter = "all";
+        var sig = keys.map(function (k) { return k + ":" + calFilterLabel(k); }).join("|") + "#" + (state.calFilter || "all");
+        if (list.dataset.sig === sig) return;   /* لا اعادة كتابة بلا تغيير (قاعدة الثبات) */
+        list.textContent = "";
+        keys.forEach(function (key) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "cal-mode" + ((state.calFilter || "all") === key ? " is-active" : "");
+          btn.dataset.calFilter = key;
+          btn.textContent = calFilterLabel(key);
+          btn.title = btn.textContent;
+          btn.setAttribute("aria-pressed", (state.calFilter || "all") === key ? "true" : "false");
+          list.appendChild(btn);
+        });
+        list.dataset.sig = sig;
+      }
       function wireCalFilters() {
         var box = $("calFilters");
         if (!box) return;
         box.hidden = !!currentViewType();   /* الرئيسية وحدها: هي التقويم الماستر */
+        renderCalFilters();
         box.addEventListener("click", function (ev) {
           var btn = ev.target.closest("[data-cal-filter]");
           if (!btn) return;
           state.calFilter = btn.getAttribute("data-cal-filter") || "all";
+          if (box.querySelector("#calFilterList")) box.querySelector("#calFilterList").dataset.sig = "";
           box.querySelectorAll("[data-cal-filter]").forEach(function (b) {
             b.classList.toggle("is-active", b === btn);
             b.setAttribute("aria-pressed", b === btn ? "true" : "false");
@@ -838,6 +905,7 @@
         renderSelects();
         renderList();
         renderCalendar();
+        renderCalFilters();                            /* اسماء الفلاتر بلغة الواجهة الجديدة */
         renderTimeline(tlState.rows, tlState.stats);   /* الخط الزمني بلغة الواجهة الجديدة، بلا تحميل */
         paintTiles();                                  /* أسماء المربعات بلغة الواجهة الجديدة من أرقامها المحفوظة */
       };

@@ -427,14 +427,10 @@
             </div>
             <!-- سطر ثان بنفس الحواف وبنفس التبويبات: التصنيف في طرف والمسؤولون في الطرف الاخر -->
             <div class="cal-line cal-line--sub" id="calSubLine">
+              <!-- الفلاتر تبنى من خدمات واجهة الحساب نفسها (renderCalFilters)، فلا
+                   يرى الشخصي قضايا ولا مخالفات، ولكل واجهة فلاترها (المهندس رعد 2026-09-16) -->
               <div class="cal-nav-group" id="calFilters" role="group" hidden>
-                <div class="cal-modes">
-                  <button type="button" class="cal-mode is-active" data-cal-filter="all" data-i18n="calFilterAll">الكل</button>
-                  <button type="button" class="cal-mode" data-cal-filter="cases" data-i18n="calFilterCases">قضايا</button>
-                  <button type="button" class="cal-mode" data-cal-filter="violations" data-i18n="calFilterViolations">مخالفات</button>
-                  <button type="button" class="cal-mode" data-cal-filter="tasks" data-i18n="calFilterTasks">مهام</button>
-                  <button type="button" class="cal-mode" data-cal-filter="meetings" data-i18n="calFilterMeetings">اجتماعات</button>
-                </div>
+                <div class="cal-modes" id="calFilterList"></div>
               </div>
               <div class="cal-people" id="calPeople" hidden></div>
             </div>
