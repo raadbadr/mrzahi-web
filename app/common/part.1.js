@@ -805,7 +805,11 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
         .then(unwrap)
         .then(function (org) {
           org.role = "owner";
-          app.orgs.push(org);
+          /* القاعدة تعيد الحساب القائم بدل انشاء ثان (org.existing): لا يكرر في القائمة */
+          var known = null;
+          for (var i = 0; i < app.orgs.length; i++) if (app.orgs[i].id === org.id) known = app.orgs[i];
+          if (known) { for (var k in org) if (Object.prototype.hasOwnProperty.call(org, k)) known[k] = org[k]; org = known; }
+          else app.orgs.push(org);
           app.org = org;
           try { localStorage.setItem(ORG_KEY, org.id); } catch (e) { /* ignore */ }
           return org;
