@@ -860,7 +860,12 @@
     ".app-danger-acts{display:flex;gap:.6rem}",
     ".app-danger-acts .chat-option-btn{flex:1 1 0;justify-content:center}",
     /* منطقة الحذف: اخر الصفحة، مفصولة بخط. الزر هو chat-option-btn is-danger نفسه */
-    ".danger-zone{margin-top:1.75rem;padding-top:1.1rem;border-top:1px solid var(--glass-border);display:flex;justify-content:flex-start}"
+    ".danger-zone{margin-top:1.75rem;padding-top:1.1rem;border-top:1px solid var(--glass-border);display:flex;justify-content:flex-start}",
+    /* لون الخطر من متغير الثيم القائم (--error) لا لون جديد: صفحة لا تعرف
+       is-danger (الاعدادات) كانت ترسم زر الحذف بلون المنصة الاخضر، وامره ان
+       يكون الحذف احمر (المهندس رعد 2026-09-17). */
+    ".chat-option-btn.is-danger{border-color:var(--error);color:var(--error)}",
+    ".chat-option-btn.is-danger:hover{background:var(--error);color:#fff}"
   ].join("");
 
   var dangerCssDone = false;
@@ -910,6 +915,15 @@
   }
 
   app.confirmDanger = confirmDanger;
+  /* انماط منطقة الحذف تحقن عند التركيب لا عند اول حوار: الصفحة التي فيها
+     danger-zone تحتاج خطها الفاصل قبل ان يضغط احد شيئا. */
+  app.ensureDangerCss = ensureDangerCss;
+  try {
+    if (document.querySelector(".danger-zone")) ensureDangerCss();
+    else document.addEventListener("DOMContentLoaded", function () {
+      if (document.querySelector(".danger-zone")) ensureDangerCss();
+    });
+  } catch (e) { /* تجاهل */ }
 
   /* الخروج لا يترك اثرا على الجهاز: النصوص المترجمة المخزنة تحمل عناوين عناصر
      واسماء عملاء، ومعها معرف الحساب ومجلد Drive. تمسح كلها قبل انهاء الجلسة،

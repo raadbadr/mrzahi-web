@@ -184,18 +184,30 @@
               setMsg("orgMsg", t("genericError"), "error");
             }).finally(function () { el("orgSaveBtn").disabled = false; });
           });
+          /* الحذف لا يمضي بنقرة: حوار المنصة يسمي ما سيحذف وفيه خياران، والالغاء
+             هو الافتراضي (امر المهندس رعد 2026-09-17: «اي شي فيه حذف... ما يحذف
+             مباشرة، يعطي رسالة تحذير وفيها خياران»). */
           el("orgDeleteBtn").addEventListener("click", function () {
             if (!app.org) return;
-            if (!window.confirm(t("deleteOrgConfirm").split("{name}").join(app.org.name || ""))) return;
-            app.deleteOrg().then(function () { window.location.href = "/app/dashboard.html"; })
-              .catch(function (err) {
-                /* القاعدة ترفض حذف الشركة لغير المالك بصفر صفوف، فيظهر السبب لا خطا عام */
-                setMsg("orgMsg", (err && err.code === "NOT_ALLOWED") ? app.t("notAllowed") : t("genericError"), "error");
-              });
+            var ask = app.confirmDanger
+              ? app.confirmDanger(app.org.name || "")
+              : Promise.resolve(window.confirm(t("deleteOrgConfirm").split("{name}").join(app.org.name || "")));
+            ask.then(function (ok) {
+              if (!ok) return;
+              app.deleteOrg().then(function () { window.location.href = "/app/dashboard.html"; })
+                .catch(function (err) {
+                  /* القاعدة ترفض حذف الشركة لغير المالك بصفر صفوف، فيظهر السبب لا خطا عام */
+                  setMsg("orgMsg", (err && err.code === "NOT_ALLOWED") ? app.t("notAllowed") : t("genericError"), "error");
+                });
+            });
           });
           var adBtn = el("accountDeleteBtn");
           if (adBtn) adBtn.addEventListener("click", function () {
-            if (!window.confirm(t("deleteAccountConfirm"))) return;
+            var askAcc = app.confirmDanger
+              ? app.confirmDanger(t("deleteAccountBtn"), { warn: t("deleteAccountConfirm") })
+              : Promise.resolve(window.confirm(t("deleteAccountConfirm")));
+            askAcc.then(function (ok) {
+            if (!ok) return;
             adBtn.disabled = true;
             app.requestAccountDeletion().then(function () {
               setMsg("accountDeleteMsg", t("deleteAccountScheduled"), "success");
@@ -212,6 +224,7 @@
               } else {
                 setMsg("accountDeleteMsg", t("genericError"), "error");
               }
+            });
             });
           });
           try { wireApi(); } catch (e) { if (window.console) console.warn("api card:", e); }

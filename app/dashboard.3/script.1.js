@@ -1219,10 +1219,17 @@
         }).catch(function (err) { fail(err); });
       });
 
+      /* الحذف بحوار المنصة لا بنافذة المتصفح، والالغاء هو الافتراضي
+         (امر المهندس رعد 2026-09-17: «ما يحذف مباشرة، يعطي رسالة تحذير وفيها خياران») */
       $("deleteOrgBtn").addEventListener("click", function () {
         if (!app.org) return;
-        if (!window.confirm(T("deleteOrgConfirm").replace("{name}", app.org.name || ""))) return;
-        app.deleteOrg().then(function () { window.location.reload(); })
-          .catch(function (err) { fail(err); });
+        var ask = app.confirmDanger
+          ? app.confirmDanger(app.org.name || "")
+          : Promise.resolve(window.confirm(T("deleteOrgConfirm").replace("{name}", app.org.name || "")));
+        ask.then(function (ok) {
+          if (!ok) return;
+          app.deleteOrg().then(function () { window.location.reload(); })
+            .catch(function (err) { fail(err); });
+        });
       });
 
