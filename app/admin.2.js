@@ -177,6 +177,7 @@
         return '<span class="user-orgs">' + list.map(c => '<span class="user-org">' +
           '<span class="user-org-name">' + esc(c.name || "—") + "</span>" +
           '<span class="user-org-role">' + esc(T(ROLE_KEYS[c.role] || "roleMember")) + "</span>" +
+          entityTag(c.entity_type || "company") +
           planChip(c.plan_code, c.plan_expires_at) + "</span>").join("") + "</span>";
       }
       /* وسم الباقة بلون يخصها: يفرق من نظرة بين الشخصي ووثيقة العمل الحر
@@ -192,6 +193,35 @@
                esc(planName(code)) + date + "</span>";
       }
       function planChip(code, expires) { return planTag(code, expires); }
+
+      /* وسم نوع الكيان بجانب وسم الباقة: اللون يقول الباقة، والايقونة تقول النوع
+         (امر المهندس رعد 2026-09-17: «سوي وسم ثاني»). الاسم من app.entityLabel
+         بلغة الواجهة، وهو نفسه المستعمل في انشاء الحساب فلا يختلف لفظان. */
+      const ENTITY_ICONS = {
+        individual:    '<path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z"/>',
+        freelance:     '<path d="M20 6h-4V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2zm-10-2h4v2h-4V4zm10 15H4V8h16v11z"/>',
+        establishment: '<path d="M4 4h16v2H4V4zm0 4h16l-1 3H5L4 8zm1 5h14v7H5v-7zm2 2v3h4v-3H7z"/>',
+        company:       '<path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10z"/>',
+        nonprofit:     '<path d="M12 21l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.18L12 21z"/>',
+        government:    '<path d="M12 2L2 7v2h20V7L12 2zM4 11v7H2v2h20v-2h-2v-7h-2v7h-3v-7h-2v7h-2v-7H9v7H6v-7H4z"/>'
+      };
+      function entityTag(type) {
+        if (!type || !app.entityLabel) return "";
+        const key = ENTITY_ICONS[type] ? type : "company";
+        return '<span class="entity-tag">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true">' + ENTITY_ICONS[key] + "</svg>" +
+          esc(app.entityLabel(type)) + "</span>";
+      }
+      /* نوع الحساب صاحب اعلى باقة: هو ما يوسم به راس بطاقة المستخدم. */
+      function topEntityOf(u) {
+        const top = topPlanOf(u);
+        if (!top) return null;
+        const list = Array.isArray(u.companies) ? u.companies : [];
+        for (let i = 0; i < list.length; i++) if (list[i].plan_code === top) return list[i].entity_type || "company";
+        if (u.personal && u.personal.plan_code === top) return "individual";
+        return null;
+      }
+
       /* اعلى باقة يملكها المستخدم في حساباته كلها: هي وسم راس بطاقته. */
       function topPlanOf(u) {
         const codes = [];
@@ -209,13 +239,13 @@
         if (!p) return esc(T("noPersonal"));
         const items = Number(p.items) || 0;
         return '<span class="user-orgs"><span class="user-org">' +
-          '<span class="user-org-name">' + esc(p.name || "—") + "</span>" + planChip(p.plan_code, p.plan_expires_at) +
+          '<span class="user-org-name">' + esc(p.name || "—") + "</span>" + entityTag("individual") + planChip(p.plan_code, p.plan_expires_at) +
           (items ? '<span class="user-org-role">' + esc(T("itemsCountShort").replace("{n}", String(items))) + "</span>" : "") + "</span></span>";
       }
       function userCard(u) {
         return '<div class="feature-card">' +
           '<div class="user-head"><h3>' + esc(u.full_name || u.email || "—") + "</h3>" +
-            planTag(topPlanOf(u), null) + "</div>" +
+            '<span class="user-head-tags">' + entityTag(topEntityOf(u)) + planTag(topPlanOf(u), null) + "</span></div>" +
           row("colOwner", esc(u.email || "—"), ' dir="ltr"', "is-email") +
           row("colPhone", esc(u.phone || "—"), ' dir="ltr"') +
           row("colUserNumber", esc(u.profile_number || "—"), ' dir="ltr"') +
@@ -329,7 +359,7 @@
         return '<div class="feature-card" data-org="' + esc(org.id) + '">' +
           '<h3>' + esc(org.name) + '</h3>' +
           row("colOwner", email ? esc(email) : "—", ' dir="ltr"', "is-email") +
-          row("colPlan", planTag(org.plan_code, null)) +
+          row("colPlan", entityTag(org.entity_type || "company") + " " + planTag(org.plan_code, null)) +
           row("colExpires", esc(expiryText(org))) +
           row("colMembers", memberListHtml(org.id), ' data-count="members:' + esc(org.id) + '"', "is-members") +
           row("colItems", esc(countText(org.id, "items")), ' data-count="items:' + esc(org.id) + '"') +

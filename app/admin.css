@@ -539,6 +539,20 @@
     .plan-tag-enterprise { color: var(--tag-enterprise); }
     .plan-tag-expired { color: var(--tag-expired); }
 
+    /* وسم نوع الكيان: محايد بايقونته، الى جانب وسم الباقة الملون فلا يتنافسان
+       (امر المهندس رعد 2026-09-17: «سوي وسم ثاني»). الباقة هي اللون، والنوع هو
+       الشكل: شخص للفرد، وبطاقة لوثيقة العمل الحر، ومتجر للمؤسسة، ومبنى للشركة. */
+    .entity-tag {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      min-height: 22px; padding: 0.1rem 0.55rem;
+      border: 1px solid var(--glass-border); border-radius: 999px;
+      background: var(--bg-mid);
+      color: var(--text-secondary);
+      font-size: 0.72rem; font-weight: 700; line-height: 1.5;
+    }
+    .entity-tag svg { width: 13px; height: 13px; fill: currentColor; flex: 0 0 auto; }
+    .user-head-tags { display: inline-flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+
     /* راس بطاقة المستخدم: الاسم وباقته الاعلى في صف واحد، والوسم في موضعه
        الثابت مهما طال الاسم (قاعدة التناسق 14). */
     .user-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
