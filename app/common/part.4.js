@@ -942,13 +942,20 @@
         }).catch(function () { selOrg.value = backTo; selOrg.disabled = false; openNewOrgDialog(); });
         return;
       }
-      if (app.org && this.value !== app.org.id) setCurrentOrg(this.value);
+      if (app.org && this.value !== app.org.id) {
+        if (hasUnsavedWork() && !window.confirm(sidebarLabel(LEAVE_CONFIRM))) {
+          this.value = app.org.id;
+          return;
+        }
+        setCurrentOrg(this.value);
+      }
     });
 
     var packSel = document.getElementById("topPackSelect");
     if (packSel) packSel.addEventListener("change", function () {
       var want = this.value, was = (app.pack && (app.pack.pack || app.pack.key)) || "";
       if (!want || want === was) return;
+      if (hasUnsavedWork() && !window.confirm(sidebarLabel(LEAVE_CONFIRM))) { this.value = was; return; }
       var sel = this;
       sel.disabled = true;
       /* «الواجهة الافتراضية» تمحو التجاوز فيتبع العضو واجهة حسابه */

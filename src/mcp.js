@@ -5,8 +5,10 @@
 import { rpc, dmy, writeGate, describePending } from "./notify.js";
 
 const PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"];
-const SERVER_INFO = { name: "mrzahi", version: "1.0.0" };
+const SERVER_INFO = { name: "mrzahi", version: "1.1.0" };
 const INSTRUCTIONS =
+  "MrZahi: one person can hold several separate accounts — a personal space, a freelance-licence account and one or more company accounts. Each account has its own subscription, its own data and its own interface; nothing crosses between them. Every tool acts on the account the key or the linked member currently belongs to. " +
+  "Item kinds: case, violation, task, document, and health (medicines, treatments, medical appointments, gym and training) which belongs to the personal space. A health or task item may carry repeat = daily | weekly | monthly: when it is completed the platform opens its next occurrence by itself, so never create the next dose or session manually. " +
   "MrZahi: cases, violations and tasks for one company. Numbers/identifiers are never translated. " +
   "On Telegram ALWAYS pass telegram_user_id (the numeric id of the person you are talking to) to every tool so you act as that member with their permissions. " +
   "If a tool answers status=unlinked, ask the person for the 8-character link code shown in Settings → Telegram on the site and call mrzahi_link_telegram with it; there is no other way to link. status=not_member means they belong to another company: do not act for them. " +
@@ -37,16 +39,16 @@ const rpcError = (id, code, message, data) => ({ jsonrpc: "2.0", id, error: { co
 
 /* ---------- الأدوات ---------- */
 export const TOOLS = [
-  { name: "mrzahi_whoami", description: "Who the current person is (by telegram_user_id if linked, else the key owner), the company, and headline counts.",
+  { name: "mrzahi_whoami", description: "Who the current person is (by telegram_user_id if linked, else the key owner), which account they are acting in and its type (personal space, freelance licence, establishment or company) and interface, and headline counts. A person may hold several separate accounts; this says which one is active.",
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string", description: "Numeric Telegram user id of the person talking" } }, additionalProperties: false } },
   { name: "mrzahi_link_telegram", description: "Link a Telegram user to their MrZahi account with the 8-character link code they read from Settings → Telegram on the site. The code is the only proof accepted; never link by phone number or without a code.",
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string" }, code: { type: "string", description: "8-character link code from Settings → Telegram" } }, required: ["telegram_user_id", "code"], additionalProperties: false } },
   { name: "mrzahi_search", description: "Search cases, violations and tasks by title, client, case number or violation number. Returns id, title, status, due_at, client, amount, roles.",
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string", description: "Telegram user id of the person talking (Telegram only)" }, query: { type: "string", description: "Free text or a number" }, limit: { type: "integer", minimum: 1, maximum: 20, default: 8 } }, required: ["query"], additionalProperties: false } },
-  { name: "mrzahi_company", description: "The user's company record as registered on the site: legal name, commercial register number, VAT number, unified number, IBAN and bank, national address, contacts, plan, and the official papers on file with their extracted details. Use it for questions like 'what is my CR number?'.",
+  { name: "mrzahi_company", description: "The registered record of the ACTIVE account (a personal space has an identity document instead of a commercial register): legal name, commercial register number, VAT number, unified number, IBAN and bank, national address, contacts, plan, and the official papers on file with their extracted details. Use it for questions like 'what is my CR number?'.",
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string" } }, additionalProperties: false } },
-  { name: "mrzahi_items", description: "List the user's items by kind and status: kind case|violation|task|document|all, status open|done|all. Use it for one-word requests like قضايا, مخالفات, مهام, مستندات, المنجز.",
-    inputSchema: { type: "object", properties: { telegram_user_id: { type: "string" }, kind: { type: "string", enum: ["case", "violation", "task", "document", "all"], default: "all" }, status: { type: "string", enum: ["open", "done", "all"], default: "open" }, limit: { type: "integer", minimum: 1, maximum: 30, default: 10 } }, additionalProperties: false } },
+  { name: "mrzahi_items", description: "List the user's items by kind and status: kind case|violation|task|document|health|all, status open|done|all. Use it for one-word requests like قضايا, مخالفات, مهام, مستندات, صحتي, أدويتي, المنجز. kind=health covers medicines, treatments, medical appointments, gym and training in the personal space; such an item may carry repeat (daily/weekly/monthly) and the platform opens the next occurrence itself when it is completed.",
+    inputSchema: { type: "object", properties: { telegram_user_id: { type: "string" }, kind: { type: "string", enum: ["case", "violation", "task", "document", "health", "all"], default: "all" }, status: { type: "string", enum: ["open", "done", "all"], default: "open" }, limit: { type: "integer", minimum: 1, maximum: 30, default: 10 } }, additionalProperties: false } },
   { name: "mrzahi_list", description: "Open items with a due date: 'upcoming' (soonest first) or 'overdue'.",
     inputSchema: { type: "object", properties: { telegram_user_id: { type: "string", description: "Telegram user id of the person talking (Telegram only)" }, mode: { type: "string", enum: ["upcoming", "overdue"], default: "upcoming" }, limit: { type: "integer", minimum: 1, maximum: 20, default: 10 } }, additionalProperties: false } },
   { name: "mrzahi_add", description: "Create a case, violation or task. A task must belong to a case or violation: pass parent_id (item id) or the call returns status=needs_parent with candidates to choose from.",
@@ -182,7 +184,7 @@ export async function callTool(name, args, ctx) {
       if (rows && rows.length) return result({ kind, status, count: rows.length, items: rows }, rows.length + " items\n" + describeRows(rows));
       if (kind === "all") return result({ kind, status, count: 0, items: [] }, status === "open" ? "لا عناصر مفتوحة." : "لا عناصر مسجلة.");
       /* لا شيء من هذا النوع: انظر أوسع قبل النفي — المنجز منه، وما يحمل الكلمة في عنوانه، ونظرة عامة على الموجود */
-      const K = { violation: ["مخالفات", "مخالف"], case: ["قضايا", "قض"], task: ["مهام", "مهم"], document: ["مستندات", "مستند"] }[kind] || [kind, kind];
+      const K = { violation: ["مخالفات", "مخالف"], case: ["قضايا", "قض"], task: ["مهام", "مهم"], document: ["مستندات", "مستند"], health: ["أمور صحية", "دواء"] }[kind] || [kind, kind];
       const parts = [], extra = { kind, status, count: 0, items: [] };
       let done = [];
       if (status === "open") { try { done = (await ctx.rpc("telegram_items_by_kind", { p_secret: secret, p_user_id: user, p_kind: kind, p_status: "done", p_limit: 10 })) || []; } catch (e) { done = []; } }

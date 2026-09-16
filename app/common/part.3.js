@@ -665,6 +665,30 @@
   ];
 
   var SIGN_OUT_LABELS = { ar: "تسجيل الخروج", en: "Sign out", fr: "Se déconnecter", ur: "سائن آؤٹ" };
+  var LEAVE_CONFIRM = {
+    ar: "لديك عمل مفتوح لم يحفظ في هذه الصفحة. المتابعة ستذهب به. تتابع؟",
+    en: "You have unsaved work open on this page. Continuing will discard it. Continue?",
+    fr: "Vous avez un travail non enregistre sur cette page. Continuer le supprimera. Continuer ?",
+    ur: "اس صفحے پر غیر محفوظ شدہ کام کھلا ہے۔ جاری رکھنے پر ضائع ہو جائے گا۔ جاری رکھیں؟"
+  };
+
+  /* عمل غير محفوظ: نص مكتوب داخل محرر مفتوح. حقول البحث والتصفية لا تعد
+     عملا، فلا يسأل المستخدم في كل تبديل (المهندس رعد 2026-09-16). */
+  function hasUnsavedWork() {
+    var cards = document.querySelectorAll(
+      "#editorCard:not([hidden]),#editPanel:not([hidden]),#addItemPanel:not([hidden])," +
+      "#docForm:not([hidden]),#newOrgForm:not([hidden]),#newRecordForm:not([hidden])");
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].style.display === "none") continue;
+      var fields = cards[i].querySelectorAll("input[type=text],input[type=number],input[type=date],input[type=email],textarea");
+      for (var j = 0; j < fields.length; j++) {
+        if (fields[j].readOnly || fields[j].disabled) continue;
+        if (String(fields[j].value || "").trim()) return true;
+      }
+    }
+    return false;
+  }
+
   var SIGN_OUT_CONFIRM = {
     ar: "تسجيل الخروج من حسابك؟ ما لم يحفظ في هذه الصفحة سيذهب.",
     en: "Sign out of your account? Anything unsaved on this page will be lost.",
