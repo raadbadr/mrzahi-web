@@ -148,7 +148,12 @@
             if (app.org && app.org.id === orgId) window.location.reload();
           });
         }).catch(err => {
-          setStatus($("orgsStatus"), T("loadError") + " " + ((err && err.message) || ""), "error");
+          /* حارس نوع الكيان في القاعدة يرد بالانجليزية: يترجم هنا كي يفهمه المستخدم */
+          const raw = String((err && err.message) || "");
+          const known = /personal interface is for a personal account/i.test(raw) ? T("packOnlyPersonal")
+            : /personal account keeps the personal interface/i.test(raw) ? T("packPersonalLocked")
+            : /unknown pack/i.test(raw) ? T("packUnknown") : "";
+          setStatus($("orgsStatus"), known || (T("loadError") + " " + raw), "error");
         }).then(() => { sel.disabled = false; });
       }
 

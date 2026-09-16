@@ -235,6 +235,9 @@
   var ORG_LABELS = { ar: "الحساب", en: "Account", fr: "Compte", ur: "اکاؤنٹ" };
   var NEW_ORG_LABELS = { ar: "＋ حساب جديد", en: "＋ New account", fr: "＋ Nouveau compte", ur: "＋ نیا اکاؤنٹ" };
   var PACK_LABELS = { ar: "الواجهة", en: "Interface", fr: "Interface", ur: "انٹرفیس" };
+  /* خيار يمحو تجاوز العضو فيعود الى واجهة الحساب: بدونه يعلق من اسندت اليه واجهة
+     قديمة ولا مسار لديه لازالتها (فحص الصلاحيات 2026-09-16). */
+  var PACK_DEFAULT_LABELS = { ar: "الواجهة الافتراضية للحساب", en: "Account default interface", fr: "Interface par defaut du compte", ur: "اکاؤنٹ کا طے شدہ انٹرفیس" };
   var PLAN_UPGRADE_LABELS = { ar: "اشترك الآن", en: "Subscribe now", fr: "S'abonner", ur: "ابھی سبسکرائب کریں" };
   var BELL_DELETE = { ar: "حذف التنبيه", en: "Delete", fr: "Supprimer", ur: "حذف کریں" };
   var BELL_CLEAR = { ar: "حذف كل التنبيهات", en: "Clear all", fr: "Tout effacer", ur: "سب حذف کریں" };
@@ -773,9 +776,10 @@
       return '<option value="' + escapeHtml(pk.key) + '"' + (pk.key === cur ? " selected" : "") + ">" +
              escapeHtml(name) + "</option>";
     }).join("");
+    opts += '<option value="__default">' + escapeHtml(sidebarLabel(PACK_DEFAULT_LABELS)) + "</option>";
     return '<div class="app-orgbox" title="' + escapeHtml(sidebarLabel(PACK_LABELS)) + '">' +
              '<span class="app-orglabel">' + escapeHtml(sidebarLabel(PACK_LABELS)) + "</span>" +
-             '<select class="app-orgselect" id="topPackSelect"' + (list.length < 2 ? " disabled" : "") + ">" + opts + "</select>" +
+             '<select class="app-orgselect" id="topPackSelect">' + opts + "</select>" +
            "</div>";
   }
 
@@ -887,7 +891,8 @@
       if (!want || want === was) return;
       var sel = this;
       sel.disabled = true;
-      app.setMyPack(want).then(function () { window.location.reload(); })
+      /* «الواجهة الافتراضية» تمحو التجاوز فيتبع العضو واجهة حسابه */
+      app.setMyPack(want === "__default" ? null : want).then(function () { window.location.reload(); })
         .catch(function () { sel.value = was; sel.disabled = false; });
     });
 
