@@ -689,7 +689,10 @@
       "#editorCard:not([hidden]),#editPanel:not([hidden]),#addItemPanel:not([hidden])," +
       "#docForm:not([hidden]),#newOrgForm:not([hidden]),#newRecordForm:not([hidden])");
     for (var i = 0; i < cards.length; i++) {
-      if (cards[i].style.display === "none") continue;
+      /* الظهور الفعلي لا السمة وحدها: الصفحات تخفي بـ hidden تارة وبـ display
+         تارة، وبطاقة مخفية بجد مخفي كانت تعد حقولها عملا مفتوحا فيعترض
+         الحارس بلا داع (المهندس رعد 2026-09-16). */
+      if (cards[i].offsetParent === null) continue;
       var fields = cards[i].querySelectorAll("input[type=text],input[type=number],input[type=date],input[type=email],textarea");
       for (var j = 0; j < fields.length; j++) {
         if (fields[j].readOnly || fields[j].disabled) continue;

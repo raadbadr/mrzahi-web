@@ -955,7 +955,6 @@
     if (packSel) packSel.addEventListener("change", function () {
       var want = this.value, was = (app.pack && (app.pack.pack || app.pack.key)) || "";
       if (!want || want === was) return;
-      if (hasUnsavedWork() && !window.confirm(sidebarLabel(LEAVE_CONFIRM))) { this.value = was; return; }
       var sel = this;
       sel.disabled = true;
       /* «الواجهة الافتراضية» تمحو التجاوز فيتبع العضو واجهة حسابه */
