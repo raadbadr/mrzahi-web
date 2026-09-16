@@ -271,10 +271,14 @@
         app = window.mrzahiApp;
         if (!app || !app.ready) { show("loadingCard", false); show("unavailableCard", true); return; }
         app.ready.then(function (res) {
-          show("loadingCard", false);
-          if (!res || res.unavailable || app.unavailable) { show("unavailableCard", true); return; }
-          if (!app.org) { show("noOrgCard", true); return; }
-          wire(); show("view", true); return load();
+          if (!res || res.unavailable || app.unavailable) { show("loadingCard", false); show("unavailableCard", true); return; }
+          if (!app.org) { show("loadingCard", false); show("noOrgCard", true); return; }
+          /* الشاشة تكشف بعد وصول بياناتها لا قبلها: كشفها اولا كان يترك شريط
+             الادوات والمربعات ظاهرة ومساحة الجدول بيضاء بلا كلمة ولا دوار،
+             فتقرأ كأن الحساب فارغ (المهندس رعد 2026-09-16). */
+          wire();
+          var reveal = function () { show("loadingCard", false); show("view", true); };
+          return load().then(reveal, function (e) { reveal(); throw e; });
         }).catch(function () { show("loadingCard", false); show("unavailableCard", true); });
       }
       if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
