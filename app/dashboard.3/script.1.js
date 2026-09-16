@@ -929,13 +929,17 @@
           week.hidden = true;   /* لا إطار فارغ قبل حسابه */
           dash.insertBefore(week, dash.firstChild);
         }
-        /* مؤشر المخالفات والجلسات لواجهة المحاماة وحدها (أمر المهندس رعد):
-           الواجهة التي لا تسمي خدمة المخالفات لا مخالفات فيها، فلا مؤشر لها. */
+        /* كل مؤشر يتبع خدمته في الحزمة (أمر المهندس رعد 2026-09-17: «حساب شخصي
+           تظهر فيه اشياء المحاماة ليش»): الواجهة التي لا تسمي «القضايا» لا
+           قضايا فيها، فلا مؤشر قضايا ولا عملاء ولا مبالغ قضايا. وكان مؤشر
+           المخالفات وحده مشروطا ومؤشر القضايا بلا شرط. */
         var hasViolations = packHasService("violations");
+        var hasCases = packHasService("cases");
+        var hasExpenses = packHasService("expenses");
         if (state.viewType === "violations") { if (hasViolations) addChart("violationsChart"); }
-        else if (state.viewType === "cases") addChart("casesChart");
-        else if (state.viewType === "expenses") addChart("expensesChart");
-        else if (!state.viewType) { if (hasViolations) addChart("violationsChart"); addChart("casesChart"); }
+        else if (state.viewType === "cases") { if (hasCases) addChart("casesChart"); }
+        else if (state.viewType === "expenses") { if (hasExpenses) addChart("expensesChart"); }
+        else if (!state.viewType) { if (hasViolations) addChart("violationsChart"); if (hasCases) addChart("casesChart"); }
 
         calCard.appendChild(calendar);
         /* التقويم أول اللوحة بعرض الصفحة كاملا (أمر المهندس رعد)، لا داخل عمود */
