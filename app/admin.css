@@ -52,11 +52,11 @@
       --success: rgb(52, 199, 89);
       --warning: rgb(255, 159, 10);
       --error: rgb(255, 59, 48);
-      --tag-trial: rgb(110, 120, 135);
+      --tag-trial: rgb(92, 101, 115);
       --tag-personal: rgb(0, 104, 184);
-      --tag-freelance: rgb(0, 137, 123);
+      --tag-freelance: rgb(0, 112, 101);
       --tag-business: rgb(108, 74, 200);
-      --tag-enterprise: rgb(168, 124, 16);
+      --tag-enterprise: rgb(134, 97, 8);
       --tag-expired: rgb(200, 45, 40);
     }
     [data-theme="dark"] {
