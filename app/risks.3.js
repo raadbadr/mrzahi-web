@@ -118,7 +118,7 @@
         $("fStrategy").innerHTML = STRATS.map(function (s) { return '<option value="' + s + '"' + (d.strategy === s ? " selected" : "") + ">" + esc(t("strat_" + s)) + "</option>"; }).join("");
         $("fStatus").innerHTML = STATUSES.map(function (s) { return '<option value="' + s + '"' + (d.status === s ? " selected" : "") + ">" + esc(t("rstatus_" + s)) + "</option>"; }).join("");
         /* الحذف للمنشئ او المشرف: القاعدة ترفض غيرهما بصمت (فحص الصلاحيات 2026-09-16) */
-        show("deleteBtn", !!r && !!(app.isOrgAdmin && app.isOrgAdmin() || (app.user && r.created_by === app.user.id)));
+        show("dangerZone", !!r && !!(app.isOrgAdmin && app.isOrgAdmin() || (app.user && r.created_by === app.user.id)));
         renderActions(); updateScore();
         show("registerCard", false); show("overviewCard", false); show("editorCard", true);
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -260,10 +260,22 @@
             .finally(function () { $("saveBtn").disabled = false; });
         });
         $("cancelBtn").addEventListener("click", function () { show("editorCard", false); show("registerCard", true); show("overviewCard", true); });
+        /* الحذف لا يقع مباشرة: حوار بهوية المنصة فيه خياران، والالغاء هو
+           المركز الافتراضي (المهندس رعد 2026-09-17). */
         $("deleteBtn").addEventListener("click", function () {
-          if (!state.draft.id || !window.confirm(t("deleteConfirm"))) return;
-          app.deleteRisk(state.draft.id).then(load).then(function () { show("editorCard", false); show("registerCard", true); show("overviewCard", true); })
-            .catch(function (err) { window.alert((err && err.code === "NOT_ALLOWED") ? app.t("notAllowed") : t("genericError")); });
+          if (!state.draft.id) return;
+          var ask = app.confirmDanger
+            ? app.confirmDanger(state.draft.title || "")
+            : Promise.resolve(window.confirm(t("deleteConfirm")));
+          ask.then(function (ok) {
+            if (!ok) return;
+            app.deleteRisk(state.draft.id).then(load).then(function () { show("editorCard", false); show("registerCard", true); show("overviewCard", true); })
+              .catch(function (err) {
+                var m = $("msg");
+                m.textContent = (app && app.errorSay) ? app.errorSay(err, "genericError") : t("genericError");
+                m.hidden = false;
+              });
+          });
         });
       }
       /* عنوان المحرر تكتبه الشيفرة («تعديل — الرمز») وهو يحمل data-i18n، فمطبق الترجمة

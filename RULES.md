@@ -15,6 +15,23 @@ These rules apply to every AI agent, developer, and automated tool working on th
 
 ---
 
+## الحذف والالوان — قاعدتان ثابتتان (المهندس رعد 2026-09-17)
+
+**كل حذف**:
+- **موضعه اخر الصفحة تحت**، في منطقة `danger-zone` مفصولة بخط، لا بين ازرار الحفظ والالغاء.
+- **لونه احمر**: `chat-option-btn is-danger` — المكون القائم، ولون `--error` المعتمد.
+- **لا يحذف مباشرة ابدا**: `app.confirmDanger(name)` يفتح حوارا بهوية المنصة يسمي ما سيحذف، يقول ان الحذف لا رجعة فيه، **وفيه خياران**: الاحمر يحذف، والثاني يلغي. الالغاء هو المركز الافتراضي، وESC والنقر خارج البطاقة يلغيان. ممنوع `window.confirm` الخام للحذف.
+
+**الالوان والمكونات**:
+- **لا لون صريح جديد** (hex او rgb) في css ولا في js. الالوان من متغيرات الثيم وحدها: `--primary` و`--error` و`--glass` و`--glass-border` و`--glass-strong` و`--text-primary` و`--text-secondary` و`--bg-mid` و`--shadow-dark`. المستثنى وحده: ابيض داخل لون المنصة، وظل اسود شفاف.
+- **لا متغير لون مخترع**: `var(--danger, #xxx)` و`var(--warn, #xxx)` ليسا في الثيم، فكتابتهما اختراع لوحة جديدة.
+- **لا مكون جديد ما دام في المنصة نظيره**: `total-card` للارقام، `cal-mode` للتبويبات، `waitlist-input` للحقول، `chat-option-btn` للزر الثانوي، `chat-option-btn is-danger` للخطر.
+- **اي تغيير مظهري يحتاج امرا يسميه بعينه**.
+
+**وفي مستودع يعمل عليه اكثر من وكيل**: لا تلتزم بـ `git add -A <ملف>` ملفا يعمل فيه غيرك — يبتلع تعديلاته غير الملتزمة وينسبها اليك، فيقرا التاريخ خطأ. راجع `git diff --cached` قبل كل التزام.
+
+---
+
 ## IMMUTABLE COMPONENTS — Never Touch Without Explicit Approval
 
 | File / Path | What it is | Why it's locked |

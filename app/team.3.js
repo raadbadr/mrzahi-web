@@ -170,7 +170,7 @@
            «ماينفع يفضل كدا طاير»). المالك والمدير قسمهما «الإدارة» بحكم دورهما. */
         var unset = state.members.filter(needsSetup);
         var notice = (state.canManage && unset.length)
-          ? '<div class="platform-stat-detail-row team-setup-note" style="grid-column:1/-1;display:block;padding:.85rem 1rem;border:1px solid var(--warn,#e0a33e);border-radius:14px;margin-bottom:.75rem">' +
+          ? '<div class="platform-stat-detail-row team-setup-note" style="grid-column:1/-1;display:block;padding:.85rem 1rem;border:1px solid var(--error);border-radius:14px;margin-bottom:.75rem">' +
               '<strong>' + esc(String(unset.length) + " " + t("setupNeeded")) + "</strong><br>" +
               '<span style="opacity:.85">' + esc(t("setupNote")) + "</span>" +
               '<br><span style="opacity:.85">' + esc(unset.map(memberName).join(" · ")) + "</span>" +
@@ -184,7 +184,7 @@
           var email = memberEmail(m);
 
           var badges = '<span class="chat-option-btn" style="cursor:default">' + esc(roleName(m.role)) + "</span>";
-          if (wants && state.canManage) badges += ' <span class="chat-option-btn" style="cursor:default;border-color:var(--warn,#e0a33e);color:var(--warn,#e0a33e)">' + esc(t("setupBadge")) + "</span>";
+          if (wants && state.canManage) badges += ' <span class="chat-option-btn" style="cursor:default;border-color:var(--error);color:var(--error)">' + esc(t("setupBadge")) + "</span>";
           if (isSelf) badges += ' <span class="chat-option-btn" style="cursor:default">' + esc(t("you")) + "</span>";
           if (m.status && m.status !== "active") badges += ' <span class="chat-option-btn" style="cursor:default">' + esc(t("statusInvited")) + "</span>";
 

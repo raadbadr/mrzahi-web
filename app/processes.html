@@ -138,9 +138,13 @@
             <button type="button" class="waitlist-btn" id="wizNext" data-i18n="wizNext">التالي</button>
             <button type="submit" class="waitlist-btn" id="saveBtn" data-i18n="save" hidden>حفظ</button>
             <button type="button" class="chat-option-btn" id="cancelBtn" data-i18n="cancel">إلغاء</button>
-            <button type="button" class="chat-option-btn is-danger" id="deleteBtn" data-i18n="delete" hidden>حذف</button>
           </div>
           <p class="waitlist-msg" id="msg" hidden role="status" aria-live="polite"></p>
+          <!-- منطقة الحذف: آخر المحرر وحدها، مفصولة بخط وبلون احمر — امر المهندس
+               رعد 2026-09-17: «اي شي فيه حذف يكون اخر الصفحة تحت وبلون احمر». -->
+          <div class="danger-zone" id="dangerZone" hidden>
+            <button type="button" class="chat-option-btn is-danger" id="deleteBtn" data-i18n="delete">حذف</button>
+          </div>
         </form>
       </div>
 

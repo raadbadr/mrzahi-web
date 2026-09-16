@@ -177,7 +177,7 @@
         $("fInputs").value = state.draft.inputs || ""; $("fOutputs").value = state.draft.outputs || ""; $("fDescription").value = state.draft.description || "";
         $("fCode").value = state.draft.code || "";
         /* الحذف للمنشئ او المشرف: القاعدة ترفض غيرهما بصمت (فحص الصلاحيات 2026-09-16) */
-        show("deleteBtn", !!p && !!(app.isOrgAdmin && app.isOrgAdmin() || (app.user && p.created_by === app.user.id)));
+        show("dangerZone", !!p && !!(app.isOrgAdmin && app.isOrgAdmin() || (app.user && p.created_by === app.user.id)));
         renderSteps();
         state.wizStep = 0;
         renderWizard();
@@ -613,10 +613,22 @@
             .finally(function () { $("saveBtn").disabled = false; });
         });
         $("cancelBtn").addEventListener("click", function () { show("editorCard", false); show("listCard", true); });
+        /* الحذف لا يقع مباشرة: حوار بهوية المنصة يسمي ما سيحذف وفيه خياران،
+           والالغاء هو المركز الافتراضي (المهندس رعد 2026-09-17). */
         $("deleteBtn").addEventListener("click", function () {
-          if (!state.draft.id || !window.confirm(t("deleteConfirm"))) return;
-          app.deleteProcess(state.draft.id).then(load).then(function () { show("editorCard", false); show("listCard", true); })
-            .catch(function (err) { window.alert((err && err.code === "NOT_ALLOWED") ? app.t("notAllowed") : t("genericError")); });
+          if (!state.draft.id) return;
+          var ask = app.confirmDanger
+            ? app.confirmDanger(state.draft.title || "")
+            : Promise.resolve(window.confirm(t("deleteConfirm")));
+          ask.then(function (ok) {
+            if (!ok) return;
+            app.deleteProcess(state.draft.id).then(load).then(function () { show("editorCard", false); show("listCard", true); })
+              .catch(function (err) {
+                var m = $("msg");
+                m.textContent = (app && app.errorSay) ? app.errorSay(err, "genericError") : t("genericError");
+                m.hidden = false;
+              });
+          });
         });
 
       }

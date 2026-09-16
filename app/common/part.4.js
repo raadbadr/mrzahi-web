@@ -830,6 +830,87 @@
            "</div>";
   }
 
+  /* ============================================================
+   * تاكيد الحذف — مكون واحد لكل المنصة (المهندس رعد 2026-09-17:
+   * «اي شي فيه حذف يكون اخر الصفحة تحت وبلون احمر، ومايحذف مباشرة،
+   * يعطي رسالة تحذير وفيها خيارين»).
+   * لا window.confirm الخام: حوار بهوية المنصة، يسمي ما سيحذف، ويقول
+   * ان الحذف لا رجعة فيه، وخياراه: الاحمر يحذف، والثاني يلغي. الالغاء
+   * هو المركز الافتراضي، وESC والنقر خارج البطاقة يلغيان.
+   * ============================================================ */
+  var DANGER_TEXT = {
+    ar: { title: "تأكيد الحذف", warn: "لا يمكن التراجع عن هذا الحذف.", yes: "نعم، احذف", no: "إلغاء" },
+    en: { title: "Confirm deletion", warn: "This deletion cannot be undone.", yes: "Yes, delete", no: "Cancel" },
+    fr: { title: "Confirmer la suppression", warn: "Cette suppression est irreversible.", yes: "Oui, supprimer", no: "Annuler" },
+    ur: { title: "حذف کی تصدیق", warn: "یہ حذف واپس نہیں ہو سکتا۔", yes: "ہاں، حذف کریں", no: "منسوخ" }
+  };
+
+  /* بلا لون جديد: متغيرات الثيم وحدها، و--error هو لون الخطر المعتمد في
+     المنصة (.chat-option-btn.is-danger يستعمله). والزر نفسه مكون قائم لا
+     مكون جديد. الابيض داخل لون المنصة والظل الاسود الشفاف وحدهما مستثنيان. */
+  var DANGER_CSS = [
+    ".app-danger{position:fixed;inset:0;z-index:140;display:flex;align-items:center;justify-content:center;padding:1rem;",
+    "background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}",
+    ".app-danger-card{width:min(100vw - 2rem,420px);padding:1.5rem;border-radius:20px;text-align:start;",
+    "background:var(--glass-strong);border:1px solid var(--glass-border);",
+    "box-shadow:0 24px 60px var(--shadow-dark);color:var(--text-primary)}",
+    ".app-danger-title{margin:0 0 .4rem;font-size:1.05rem;font-weight:800}",
+    ".app-danger-name{margin:0 0 .5rem;font-size:.95rem;overflow-wrap:anywhere}",
+    ".app-danger-warn{margin:0 0 1.2rem;font-size:.85rem;color:var(--error)}",
+    ".app-danger-acts{display:flex;gap:.6rem}",
+    ".app-danger-acts .chat-option-btn{flex:1 1 0;justify-content:center}",
+    /* منطقة الحذف: اخر الصفحة، مفصولة بخط. الزر هو chat-option-btn is-danger نفسه */
+    ".danger-zone{margin-top:1.75rem;padding-top:1.1rem;border-top:1px solid var(--glass-border);display:flex;justify-content:flex-start}"
+  ].join("");
+
+  var dangerCssDone = false;
+  function ensureDangerCss() {
+    if (dangerCssDone) return;
+    dangerCssDone = true;
+    var st = document.createElement("style");
+    st.textContent = DANGER_CSS;
+    document.head.appendChild(st);
+  }
+
+  /* يعيد وعدا: true ان اكد الحذف، false ان الغى. name = اسم الشيء المحذوف. */
+  function confirmDanger(name, opts) {
+    ensureDangerCss();
+    var tx = DANGER_TEXT[lang()] || DANGER_TEXT.ar;
+    var o = opts || {};
+    return new Promise(function (resolve) {
+      var box = document.createElement("div");
+      box.className = "app-danger";
+      box.setAttribute("role", "alertdialog");
+      box.setAttribute("aria-modal", "true");
+      box.innerHTML = '<div class="app-danger-card">' +
+        '<h2 class="app-danger-title">' + escapeHtml(o.title || tx.title) + "</h2>" +
+        (name ? '<p class="app-danger-name">' + escapeHtml(String(name)) + "</p>" : "") +
+        '<p class="app-danger-warn">' + escapeHtml(o.warn || tx.warn) + "</p>" +
+        '<div class="app-danger-acts">' +
+          '<button type="button" class="chat-option-btn app-danger-no">' + escapeHtml(o.no || tx.no) + "</button>" +
+          '<button type="button" class="chat-option-btn is-danger app-danger-yes">' + escapeHtml(o.yes || tx.yes) + "</button>" +
+        "</div></div>";
+      var done = function (v) {
+        if (!box.parentNode) return;
+        document.removeEventListener("keydown", onKey, true);
+        box.parentNode.removeChild(box);
+        resolve(v);
+      };
+      var onKey = function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); done(false); } };
+      box.addEventListener("click", function (ev) {
+        if (ev.target === box) { done(false); return; }
+        if (ev.target.closest(".app-danger-no")) { done(false); return; }
+        if (ev.target.closest(".app-danger-yes")) { done(true); }
+      });
+      document.addEventListener("keydown", onKey, true);
+      document.body.appendChild(box);
+      var no = box.querySelector(".app-danger-no");
+      if (no) no.focus();   /* الالغاء هو المركز الافتراضي، لا الحذف */
+    });
+  }
+
+  app.confirmDanger = confirmDanger;
+
   /* الخروج لا يترك اثرا على الجهاز: النصوص المترجمة المخزنة تحمل عناوين عناصر
      واسماء عملاء، ومعها معرف الحساب ومجلد Drive. تمسح كلها قبل انهاء الجلسة،
      فجهاز مشترك في مكتب لا يبقى فيه اسم عميل بعد خروج صاحبه. */
