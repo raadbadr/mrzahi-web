@@ -733,6 +733,18 @@
         return (mb < 10 ? mb.toFixed(1) : String(Math.round(mb))) + " MB";
       }
 
+      /* رقم الحصة يكتب من اخر قيمة وصلت لا من طلب جديد، فيعاد بلغة الواجهة عند
+         تبديل اللغة («غير محدود») بلا نداء شبكة وبلا ومضة (قاعدة الثبات). */
+      var storageUsedBytes = null;
+
+      function paintStorageValue() {
+        var value = el("storageUsageValue");
+        if (!value || storageUsedBytes === null) return;
+        var capMb = state.limits ? state.limits.storage_mb : null;
+        var capText = (capMb === null || capMb === undefined) ? t("unlimited") : fmtMb(Number(capMb));
+        value.textContent = fmtMb(storageUsedBytes / 1048576) + " / " + capText;
+      }
+
       function renderStorage() {
         var value = el("storageUsageValue");
         if (!value) return Promise.resolve();
@@ -741,8 +753,8 @@
         var capMb = state.limits ? state.limits.storage_mb : null;
         return app.storageUsed().then(function (used) {
           var usedMb = (Number(used) || 0) / 1048576;
-          var capText = (capMb === null || capMb === undefined) ? t("unlimited") : fmtMb(Number(capMb));
-          value.textContent = fmtMb(usedMb) + " / " + capText;
+          storageUsedBytes = Number(used) || 0;
+          paintStorageValue();
           var pct = capMb ? Math.min(100, Math.round(usedMb / Number(capMb) * 100)) : 0;
           var fill = el("storageBarFill");
           if (fill) fill.style.width = pct + "%";
@@ -1002,6 +1014,8 @@
         var so = el("signOutBtn");
         if (so && !so.disabled) so.textContent = t("signOutBtn");
         applyEntityType();
+        renderDriveSwitch();   /* «Google Drive غير متاح» بلغة الواجهة الجديدة */
+        paintStorageValue();   /* «غير محدود» بلغة الواجهة الجديدة */
       }
       window.__settingsRerender = rerender;
 

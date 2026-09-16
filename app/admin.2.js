@@ -618,6 +618,8 @@
         if (orgsLoaded) { renderOrgs(); renderActivateOptions(); }
         if (msgsLoaded) renderMessages();
         if (reqsLoaded) renderRequests();
+        if (users.length) renderUsers();   /* تسميات بطاقات المستخدمين وعددهم بلغة الواجهة الجديدة */
+        renderTgMessages();                /* «لا رسائل بعد» بلغة الواجهة الجديدة، من الرسائل المحملة */
       };
 
       /* ---------- platform admins ---------- */
