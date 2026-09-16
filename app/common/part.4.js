@@ -785,7 +785,9 @@
       return '<option value="' + escapeHtml(pk.key) + '"' + (pk.key === cur ? " selected" : "") + ">" +
              escapeHtml(name) + "</option>";
     }).join("");
-    opts += '<option value="__default">' + escapeHtml(sidebarLabel(PACK_DEFAULT_LABELS)) + "</option>";
+    /* «الواجهة الافتراضية للحساب» ازيلت من القائمة بامر المهندس رعد 2026-09-16
+       («شيل الواجهة الافتراضية»). المعالج ادناه يبقى يفهم ‎__default‎ كي لا ينكسر
+       من كان مفتوحا عنده القائمة القديمة، والاعادة سطر واحد. */
     return '<div class="app-orgbox" title="' + escapeHtml(sidebarLabel(PACK_LABELS)) + '">' +
              '<span class="app-orglabel">' + escapeHtml(sidebarLabel(PACK_LABELS)) + "</span>" +
              '<select class="app-orgselect" id="topPackSelect">' + opts + "</select>" +
