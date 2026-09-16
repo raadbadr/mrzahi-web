@@ -153,6 +153,7 @@
   app.setMyPack = setMyPack;
   app.setMemberPack = setMemberPack;
   app.setMemberAllowedPacks = setMemberAllowedPacks;
+  app.errorSay = errorSay;
   app.connectDrive = driveAccessToken;
   /* مجلد درايف الخاص بالشركة الحالية: ينشأ إن لم يوجد، ويعاد معرفه ورابطه لعرضه في الإعدادات */
   app.driveFolder = function () {
@@ -710,10 +711,16 @@
        اختياره يخرج من حساب الشركة الى المساحة الشخصية لصاحبه. */
     var hasPersonal = false;
     for (var oi = 0; oi < orgs.length; oi++) if (isPersonType(orgs[oi].entity_type)) hasPersonal = true;
-    /* الشخصي اول القائمة دائما (المهندس رعد 2026-09-16)، وترتيب الباقي كما هو */
-    var ordered = orgs.slice().sort(function (a, b) {
-      return (isPersonType(a.entity_type) ? 0 : 1) - (isPersonType(b.entity_type) ? 0 : 1);
-    });
+    /* الشخصي اول القائمة دائما، ثم الترتيب بحسب التحكم: ما يملكه، فما يشرف
+       عليه، فما هو موظف فيه (امر المهندس رعد 2026-09-16: «ترتيب بناء على
+       التحكم والقدرة على الادارة»). القائمة نفسها في البوت (ترحيل 0145). */
+    var rank = function (o) {
+      if (isPersonType(o.entity_type)) return 0;
+      if (o.role === "owner") return 1;
+      if (o.role === "admin") return 2;
+      return 3;
+    };
+    var ordered = orgs.slice().sort(function (a, b) { return rank(a) - rank(b); });
     var opts = ordered.map(function (o) {
       var person = isPersonType(o.entity_type);
       var type = o.entity_type ? entityLabel(o.entity_type) : "";

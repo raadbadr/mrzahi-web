@@ -53,7 +53,12 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       saved: "تم الحفظ.",
       deleted: "تم الحذف.",
       accountDeletionCancelled: "سجلت الدخول، فألغينا طلب حذف حسابك.",
-      notAllowed: "لا تملك صلاحية هذا الإجراء."
+      notAllowed: "لا تملك صلاحية هذا الإجراء.",
+      errDuplicate: "هذه القيمة مسجلة من قبل، اختر غيرها.",
+      errLinkMissing: "عنصر مرتبط غير موجود. حدّث الصفحة ثم أعد المحاولة.",
+      errExpired: "انتهت جلستك. سجّل الدخول من جديد.",
+      errOffline: "انقطع الاتصال. تحقق من اتصالك ثم أعد المحاولة.",
+      errSlow: "تأخر الاتصال ولم يكتمل الطلب. أعد المحاولة."
     },
     en: {
       serviceUnavailableTitle: "Could not reach the service",
@@ -65,7 +70,12 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       saved: "Saved.",
       deleted: "Deleted.",
       accountDeletionCancelled: "You signed in, so we cancelled your account deletion request.",
-      notAllowed: "You do not have permission for this action."
+      notAllowed: "You do not have permission for this action.",
+      errDuplicate: "This value is already registered. Choose another.",
+      errLinkMissing: "A linked item is missing. Refresh the page and try again.",
+      errExpired: "Your session ended. Sign in again.",
+      errOffline: "The connection dropped. Check your connection and try again.",
+      errSlow: "The request took too long. Try again."
     },
     fr: {
       serviceUnavailableTitle: "Service injoignable",
@@ -77,7 +87,12 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       saved: "Enregistré.",
       deleted: "Supprimé.",
       accountDeletionCancelled: "Vous vous êtes connecté, la demande de suppression de votre compte a donc été annulée.",
-      notAllowed: "Vous n'avez pas l'autorisation pour cette action."
+      notAllowed: "Vous n'avez pas l'autorisation pour cette action.",
+      errDuplicate: "Cette valeur est deja enregistree. Choisissez-en une autre.",
+      errLinkMissing: "Un element lie est introuvable. Actualisez la page et reessayez.",
+      errExpired: "Votre session a pris fin. Reconnectez-vous.",
+      errOffline: "La connexion a ete perdue. Verifiez votre connexion et reessayez.",
+      errSlow: "La requete a pris trop de temps. Reessayez."
     },
     ur: {
       serviceUnavailableTitle: "سروس تک رسائی نہیں ہو سکی",
@@ -89,7 +104,12 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       saved: "محفوظ ہو گیا۔",
       deleted: "حذف ہو گیا۔",
       accountDeletionCancelled: "آپ سائن ان ہوئے، اس لیے ہم نے آپ کے اکاؤنٹ حذف کرنے کی درخواست منسوخ کر دی۔",
-      notAllowed: "آپ کے پاس اس کارروائی کی اجازت نہیں ہے۔"
+      notAllowed: "آپ کے پاس اس کارروائی کی اجازت نہیں ہے۔",
+      errDuplicate: "یہ قدر پہلے سے درج ہے، دوسری منتخب کریں۔",
+      errLinkMissing: "منسلک عنصر موجود نہیں۔ صفحہ تازہ کر کے دوبارہ کوشش کریں۔",
+      errExpired: "آپ کا سیشن ختم ہو گیا۔ دوبارہ سائن ان کریں۔",
+      errOffline: "رابطہ منقطع ہو گیا۔ اپنا رابطہ چیک کر کے دوبارہ کوشش کریں۔",
+      errSlow: "درخواست میں بہت دیر لگی۔ دوبارہ کوشش کریں۔"
     }
   };
 
@@ -427,6 +447,28 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
                      lang: lang(), tz: TIME_ZONE, time_format: "24", is_platform_admin: false, _offline: true };
           });
       });
+  }
+
+  /* مترجم الاخطاء الوحيد: ما يخرج من القاعدة او الشبكة لا يعرض كما هو ابدا.
+     «new row violates row-level security policy for table …» ليست رسالة
+     لمستخدم (المهندس رعد 2026-09-16: «ما نبغى المستخدم يحس انو رخيص»). */
+  function errorSay(err, fallbackKey) {
+    if (!err) return t(fallbackKey || "genericError");
+    if (err.code === "PLAN_LIMIT") return t(err.limit === "members" ? "planLimitMembers" : "planLimitItems");
+    if (err.code === "NO_ORG") return t("noOrg");
+    var m = String((err.message || err.error_description || err.details || err.code || "")).toLowerCase();
+    var sb = String(err.sbCode || err.code || "");
+    if (!m) return t(fallbackKey || "genericError");
+    if (sb === "23505" || m.indexOf("duplicate key") !== -1 || m.indexOf("unique constraint") !== -1) return t("errDuplicate");
+    if (sb === "23503" || m.indexOf("foreign key") !== -1) return t("errLinkMissing");
+    if (sb === "42501" || m.indexOf("row-level security") !== -1 || m.indexOf("permission denied") !== -1 ||
+        m.indexOf("not allowed") !== -1 || m.indexOf("forbidden") !== -1) return t("notAllowed");
+    if (m.indexOf("jwt") !== -1 || m.indexOf("expired") !== -1 || m.indexOf("invalid token") !== -1 ||
+        m.indexOf("refresh_token") !== -1) return t("errExpired");
+    if (m.indexOf("abort") !== -1 || m.indexOf("timeout") !== -1 || m.indexOf("timed out") !== -1) return t("errSlow");
+    if (m.indexOf("failed to fetch") !== -1 || m.indexOf("networkerror") !== -1 || m.indexOf("network request failed") !== -1 ||
+        m.indexOf("load failed") !== -1) return t("errOffline");
+    return t(fallbackKey || "genericError");
   }
 
   function loadOrgs(client, user) {

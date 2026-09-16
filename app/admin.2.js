@@ -45,8 +45,8 @@
 
       function errorText(err) {
         if (err && err.code === "PLAN_LIMIT") return T(err.limit === "members" ? "planLimitMembers" : "planLimitItems");
-        const msg = err && err.message ? String(err.message) : "";
-        return T("genericError") + (msg ? " (" + msg + ")" : "");
+        if (window.mrzahiApp && window.mrzahiApp.errorSay) return window.mrzahiApp.errorSay(err);
+        return T("genericError");
       }
 
       /* ---------- helpers ---------- */

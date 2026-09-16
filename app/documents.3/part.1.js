@@ -1,8 +1,10 @@
     (function () {
       /* كانت تستدعى ولا تعرف في أي سكربت تحمله الصفحة، فينكسر مسار الخطأ نفسه. */
+      /* رسالة القاعدة لا تعرض كما هي: المترجم الموحد في common يقولها بلغة
+         صاحبها (المهندس رعد 2026-09-16). */
       function errorMessage(err) {
-        var m = err && (err.message || err.error_description || err.code);
-        return m ? String(m) : t("genericError");
+        if (app && app.errorSay) return app.errorSay(err);
+        return t("genericError");
       }
       "use strict";
       var app = null;

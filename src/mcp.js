@@ -84,7 +84,9 @@ const KIND_AR = { case: "قضايا", session: "جلسات", violation: "مخا�
 function overviewText(r) {
   const records = (r.records || []).map((t) => "• " + t.name + ": " + (t.open || 0) + " مفتوح" + (t.done ? "، " + t.done + " منجز" : "") + (t.next_due ? " — الأقرب " + dmy(t.next_due) : "")).join("\n");
   const kinds = (r.kinds || []).filter((k) => (k.open || 0) + (k.done || 0) > 0).map((k) => (KIND_AR[k.kind] || k.kind) + " " + (k.open || 0) + (k.done ? " (+" + k.done + " منجز)" : "")).join("، ");
-  return (r.org_name ? r.org_name + ": " : "") + (r.total || 0) + " عنصر (" + (r.open || 0) + " مفتوح، " + (r.done || 0) + " منجز)" + (records ? "\n" + records : "") + (kinds ? "\nبحسب النوع: " + kinds : "");
+  /* الحساب الشخصي يكتب «شخصي» لا اسم صاحبه (امر المهندس رعد 2026-09-16) */
+  const head = r.personal ? "شخصي" : (r.org_name || "");
+  return (head ? head + ": " : "") + (r.total || 0) + " عنصر (" + (r.open || 0) + " مفتوح، " + (r.done || 0) + " منجز)" + (records ? "\n" + records : "") + (kinds ? "\nبحسب النوع: " + kinds : "");
 }
 function describeRows(rows) {
   if (!rows || !rows.length) return "No items.";
@@ -156,7 +158,7 @@ export async function callTool(name, args, ctx) {
       const shown = mine.length ? mine : orgs.slice(0, 1);
       const lines = [];
       for (const o of shown) {
-        lines.push(o.legal_name || o.name);
+        lines.push(o.entity_type === "individual" ? "شخصي" : (o.legal_name || o.name));
         if (o.cr_number) lines.push("رقم السجل التجاري: " + o.cr_number);
         if (o.unified_number) lines.push("الرقم الموحد: " + o.unified_number);
         if (o.vat_number) lines.push("الرقم الضريبي: " + o.vat_number);

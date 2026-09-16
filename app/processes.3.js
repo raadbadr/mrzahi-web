@@ -601,8 +601,15 @@
           var d = readForm();
           if (!d.name) { $("fName").focus(); return; }
           $("saveBtn").disabled = true;
-          app.saveProcess(d).then(function () { return load(); }).then(function () { show("editorCard", false); show("listCard", true); })
-            .catch(function () { var m = $("msg"); m.textContent = t("saveFailed"); m.hidden = false; })
+          $("msg").hidden = true;   /* محاولة جديدة تبدأ نظيفة */
+          app.saveProcess(d).then(function () { return load(); }).then(function () { $("msg").hidden = true; show("editorCard", false); show("listCard", true); })
+            /* الخطأ لا يبتلع: يقال سببه بلغة صاحبه، والرسالة تمحى عند اول نجاح
+               فلا تبقى حمراء فوق عمل تم (المهندس رعد 2026-09-16). */
+            .catch(function (err) {
+              var m = $("msg");
+              m.textContent = (app && app.errorSay) ? app.errorSay(err, "saveFailed") : t("saveFailed");
+              m.hidden = false;
+            })
             .finally(function () { $("saveBtn").disabled = false; });
         });
         $("cancelBtn").addEventListener("click", function () { show("editorCard", false); show("listCard", true); });

@@ -248,8 +248,15 @@
           var d = readForm();
           if (!d.title) { $("fTitle").focus(); return; }
           $("saveBtn").disabled = true;
-          app.saveRisk(d).then(syncActionItems).then(load).then(function () { show("editorCard", false); show("registerCard", true); show("overviewCard", true); })
-            .catch(function () { var m = $("msg"); m.textContent = t("saveFailed"); m.hidden = false; })
+          $("msg").hidden = true;   /* محاولة جديدة تبدأ نظيفة */
+          app.saveRisk(d).then(syncActionItems).then(load).then(function () { $("msg").hidden = true; show("editorCard", false); show("registerCard", true); show("overviewCard", true); })
+            /* الخطأ لا يبتلع: يقال سببه بلغة صاحبه، والرسالة تمحى عند اول نجاح
+               فلا تبقى حمراء فوق عمل تم (المهندس رعد 2026-09-16). */
+            .catch(function (err) {
+              var m = $("msg");
+              m.textContent = (app && app.errorSay) ? app.errorSay(err, "saveFailed") : t("saveFailed");
+              m.hidden = false;
+            })
             .finally(function () { $("saveBtn").disabled = false; });
         });
         $("cancelBtn").addEventListener("click", function () { show("editorCard", false); show("registerCard", true); show("overviewCard", true); });

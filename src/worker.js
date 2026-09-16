@@ -342,7 +342,7 @@ async function greetLinked(env, chatId, userId, fallbackLang, fallbackName) {
   try { target = await notifyTarget(env, userId, "telegram"); } catch {}
   const lang = (target && target.lang) || fallbackLang || "ar";
   const name = targetDisplayName(target, lang, fallbackName);
-  try { await sendTelegram(env, chatId, channelText(lang).linked(name, target && target.org_name), menuKeyboard(lang)); } catch {}
+  try { await sendTelegram(env, chatId, channelText(lang).linked(name, accountLabel(lang, target)), menuKeyboard(lang)); } catch {}
   return lang;
 }
 
@@ -399,7 +399,7 @@ async function telegramAssistantReply(env, chatId, userId, text, attachment) {
   try { overdue = await telegramItems(env, userId, "overdue", 15); } catch {}
   const lang = (target && target.lang) || "ar";
   const facts = {
-    user: { name: targetDisplayName(target, lang, ""), company: (target && target.org_name) || "" },
+    user: { name: targetDisplayName(target, lang, ""), company: accountLabel(lang, target) },
     now_riyadh: new Date().toLocaleString("en-GB", { timeZone: "Asia/Riyadh" }),
     upcoming_items: upcoming, overdue_items: overdue,
     counts: { upcoming: Array.isArray(upcoming) ? upcoming.length : 0, overdue: Array.isArray(overdue) ? overdue.length : 0 },
@@ -533,7 +533,7 @@ async function smartReply(env, chatId, userId, text, lang, tgName, attachment, p
   try {
     let target = null;
     try { target = await notifyTarget(env, userId, "telegram"); } catch {}
-    agent = await agentReply(env, { chatId, userId, text, lang, name: tgName, orgName: (target && target.org_name) || "", attachment, userTimeZone });
+    agent = await agentReply(env, { chatId, userId, text, lang, name: tgName, orgName: accountLabel(lang, target), attachment, userTimeZone });
   } catch (e) { console.log("agent failed", String(e && e.message || e).slice(0, 200)); agent = null; }
   /* النموذج أراد كتابة (إنجاز/إضافة/إسناد): لا ينفذ؛ يعرض ما فهمه وينتظر زر التأكيد */
   if (agent && agent.pending) {
@@ -574,12 +574,21 @@ const ORG_TEXT = {
   fr: { pick: "De quelle societe parlons-nous ?", set: (n) => "Societe : " + n },
   ur: { pick: "کس کمپنی کی بات کریں؟", set: (n) => "کمپنی اب: " + n },
 };
+/* الحساب الشخصي يكتب «شخصي» لا اسم صاحبه، بنفس كلمات الموقع في اللغات الاربع
+   (امر المهندس رعد 2026-09-16: «لا ابغاه يكتب شخصي») */
+const PERSONAL_LABEL = { ar: "شخصي", en: "Individual", fr: "Particulier", ur: "انفرادی" };
+function accountLabel(lang, row) {
+  if (!row) return "";
+  const personal = row.personal === true || row.org_personal === true;
+  if (personal) return PERSONAL_LABEL[lang] || PERSONAL_LABEL.ar;
+  return row.name || row.org_name || "";
+}
 async function orgChoices(env, userId) {
   try { return (await rpc(env, "telegram_org_choices", { p_secret: env.WORKER_SECRET, p_user_id: userId })) || []; } catch { return []; }
 }
 async function sendOrgChooser(env, chatId, lang, choices) {
   const t = ORG_TEXT[lang] || ORG_TEXT.ar;
-  const rows = choices.map((o) => [{ text: (o.active ? "✓ " : "") + o.name, callback_data: "org:" + o.id }]);
+  const rows = choices.map((o) => [{ text: (o.active ? "✓ " : "") + accountLabel(lang, o), callback_data: "org:" + o.id }]);
   await sendTelegram(env, chatId, t.pick, { reply_markup: { inline_keyboard: rows } });
 }
 async function needsOrgChoice(env, chatId, userId, lang) {
@@ -643,7 +652,7 @@ async function handleTelegramWebhook(request, env) {
     if (userId) {
       await greetLinked(env, chatId, userId, tgLang, tgName);
       let tgt = null; try { tgt = await notifyTarget(env, userId, "telegram"); } catch {}
-      await notifyAdmins(env, "linked", { chatId, actorUserId: userId, name: targetDisplayName(tgt, tgLang, tgName), org: (tgt && tgt.org_name) || "", username: from.username || "" });
+      await notifyAdmins(env, "linked", { chatId, actorUserId: userId, name: targetDisplayName(tgt, tgLang, tgName), org: accountLabel(tgLang, tgt), username: from.username || "" });
     }
     else { try { await sendTelegram(env, chatId, channelText(tgLang).badCode); } catch {} }
     await logMessage();
@@ -662,7 +671,7 @@ async function handleTelegramWebhook(request, env) {
     if (userId) {
       await greetLinked(env, chatId, userId, tgLang, tgName);
       let tgt = null; try { tgt = await notifyTarget(env, userId, "telegram"); } catch {}
-      await notifyAdmins(env, "linked", { chatId, actorUserId: userId, name: targetDisplayName(tgt, tgLang, tgName), org: (tgt && tgt.org_name) || "", username: from.username || "" });
+      await notifyAdmins(env, "linked", { chatId, actorUserId: userId, name: targetDisplayName(tgt, tgLang, tgName), org: accountLabel(tgLang, tgt), username: from.username || "" });
     }
     else { try { await sendTelegram(env, chatId, botText(tgLang).phoneNotFound, { reply_markup: { remove_keyboard: true } }); } catch {} }
     await logMessage();
@@ -781,7 +790,7 @@ async function handleTelegramCallback(env, cq) {
     let r = null;
     try { r = await rpc(env, "telegram_set_org", { p_secret: env.WORKER_SECRET, p_user_id: owner, p_org: data.slice(4) }); } catch {}
     const t = ORG_TEXT[lang] || ORG_TEXT.ar;
-    try { await sendTelegram(env, chatId, r && r.status === "ok" ? t.set(r.name) : t.pick, menuKeyboard(lang)); } catch {}
+    try { await sendTelegram(env, chatId, r && r.status === "ok" ? t.set(accountLabel(lang, r)) : t.pick, menuKeyboard(lang)); } catch {}
     return json({ ok: true });
   }
   if (/^(doc|prof):/.test(data) && await handleDocCallback(env, { chatId, userId: owner, lang, data })) return json({ ok: true });

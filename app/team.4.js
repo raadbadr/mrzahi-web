@@ -200,7 +200,7 @@
           if (row) { upsert(row); markSeen(state.thread); render(); }
           if (!$("chatFiles").hidden) renderFiles();
         }).catch(function (err) {
-          $("chatError").textContent = err && err.message ? err.message : t("chatLoadError"); show("chatError", true);
+          $("chatError").textContent = (app && app.errorSay) ? app.errorSay(err, "chatLoadError") : t("chatLoadError"); show("chatError", true);
         }).finally(function () { btn.disabled = false; btn.textContent = t("chatSendFile"); });
       }
 
@@ -340,9 +340,12 @@
         app.sendTeamMessage(body, to, null).then(function (row) {
           input.value = "";
           autosize(input);
+          /* نجاح يمحو خطأ ما قبله: سطر احمر باق فوق رسالة وصلت يقول للقارئ
+             ان شيئا ما زال معطلا (المهندس رعد 2026-09-16). */
+          show("chatError", false);
           if (row) { upsert(row); markSeen(state.thread); render(); }
         }).catch(function (err) {
-          $("chatError").textContent = err && err.message ? err.message : t("chatLoadError");
+          $("chatError").textContent = (app && app.errorSay) ? app.errorSay(err, "chatLoadError") : t("chatLoadError");
           show("chatError", true);
         }).finally(function () { btn.disabled = false; input.focus(); });
       }
@@ -415,7 +418,7 @@
           });
         }).catch(function (err) {
           
-          $("chatError").textContent = err && err.message ? err.message : t("chatLoadError");
+          $("chatError").textContent = (app && app.errorSay) ? app.errorSay(err, "chatLoadError") : t("chatLoadError");
           show("chatError", true);
           show("chatCard", true);
         });

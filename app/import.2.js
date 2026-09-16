@@ -706,7 +706,8 @@
             msg = t("planLimitItems");
             show(els.planUpgrade, true);
           } else {
-            msg = fmt("importFailed", { error: (err && err.message) ? err.message : t("genericError") });
+            msg = fmt("importFailed", { error: (window.mrzahiApp && window.mrzahiApp.errorSay)
+              ? window.mrzahiApp.errorSay(err) : t("genericError") });
           }
           if (inserted > 0) msg += " " + fmt("importPartial", { done: inserted });
           setMsg(els.importProgress, msg, "error");
