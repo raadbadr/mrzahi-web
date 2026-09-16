@@ -973,6 +973,15 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
 
+    // مضيف واحد لا اثنان: www يحول دائما الى mrzahi.com. الجلسة والـ CSP وواجهات API كلها على
+    // الجذر، ومن دخل عبر www كان يعلق بعد جوجل بلا جلسة لان الصفحة على www تمنع من الاتصال
+    // بـ mrzahi.com/auth (عطل 2026-09-15، امر المهندس رعد 2026-09-16). المتصفح يحفظ الجزء
+    // بعد # عبر التحويل، فرموز الجلسة تصل الى الجذر سليمة.
+    if (url.hostname === "www.mrzahi.com") {
+      url.hostname = "mrzahi.com";
+      return Response.redirect(url.toString(), 301);
+    }
+
     // قناة الجهاز — /api/device/<token>: مواعيد بصيغة شاشة زاهي، يقرؤها الجسر المحلي
     const dev = path.match(/^\/api\/device\/([a-f0-9]{16,64})$/i);
     if (dev && request.method === "GET") {
