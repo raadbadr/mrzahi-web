@@ -593,12 +593,20 @@
       /* العنوان يتبع الحزمة: في الحساب الشخصي «أوراقي الرسمية» لا «مستندات
          الشركة» — التسمية من ui_packs.labels لا من الشيفرة (المهندس رعد
          2026-09-16: «في الشخصي ما يطلع اشياء تخص الشركات»). */
+      var docTitleEl = null;
       function applyPackTitle() {
         if (!app.packLabel) return;
-        var el = document.querySelector('[data-i18n="docListTitle"]');
-        if (!el) return;
+        if (!docTitleEl) docTitleEl = document.querySelector('[data-i18n="docListTitle"],[data-pack-title="docListTitle"]');
+        if (!docTitleEl) return;
         var name = app.packLabel("documentsTitle", "");
-        if (name) el.textContent = name;
+        if (!name) return;
+        /* تنزع السمة فلا يكتب مطبق الترجمة «مستندات الشركة» فوقها بعد الرسم،
+           ويبقى المرجع محفوظا فتضبط التسمية بلغتها في كل رسم لاحق. */
+        if (docTitleEl.hasAttribute("data-i18n")) {
+          docTitleEl.setAttribute("data-pack-title", "docListTitle");
+          docTitleEl.removeAttribute("data-i18n");
+        }
+        docTitleEl.textContent = name;
       }
 
       function render() {
