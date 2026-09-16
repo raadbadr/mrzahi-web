@@ -284,9 +284,23 @@ curl -H "Authorization: Bearer mz_live_..." "https://mrzahi.com/api/v1/items?rec
           </div>
           <div class="storage-bar" aria-hidden="true"><i id="storageBarFill"></i></div>
         </div>
-        <div class="drive-row" id="storageDriveRow">
-          <span class="drive-mark" aria-hidden="true">
-            <svg viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+        <!-- اختيار مكان الحفظ صريح لا مفتاح واحد (امر المهندس رعد 2026-09-16:
+             «لو المستخدم حب يحفظ ملفات عندنا ليش مافي الخيار دا»، و«لازم الربط
+             يكون واضح وصحيح وحقيقي»): خياران، والمجلد الحقيقي في درايف باسمه. -->
+        <div class="store-pick" id="storagePick">
+          <button type="button" class="drive-row store-opt is-on" data-store-pick="platform" aria-pressed="true">
+            <span class="drive-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a1 1 0 011 1v5a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1zm0 9h16a1 1 0 011 1v5a1 1 0 01-1 1H4a1 1 0 01-1-1v-5a1 1 0 011-1zm2.5-6.5h2v2h-2v-2zm0 9h2v2h-2v-2z"/></svg>
+            </span>
+            <span class="drive-text">
+              <span class="drive-title" data-i18n="storePickPlatform">خادم مستر زاهي داخل المملكة (جدة)</span>
+              <span class="drive-note" data-i18n="storePickPlatformHint">ملفاتك تحفظ على خادمنا المحلي في جدة، ضمن حصة باقتك.</span>
+            </span>
+            <span class="store-tick" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></span>
+          </button>
+          <button type="button" class="drive-row store-opt" data-store-pick="drive" aria-pressed="false" id="storageDriveOpt">
+            <span class="drive-mark" aria-hidden="true">
+              <svg viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
               <path fill="#0066da" d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z"/>
               <path fill="#00ac47" d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z"/>
               <path fill="#ea4335" d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75L86.1 57.4c.8-1.4 1.2-2.95 1.2-4.5H59.79l5.85 11.5z"/>
@@ -294,18 +308,16 @@ curl -H "Authorization: Bearer mz_live_..." "https://mrzahi.com/api/v1/items?rec
               <path fill="#2684fc" d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z"/>
               <path fill="#ffba00" d="M73.4 26.5l-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
             </svg>
-          </span>
-          <span class="drive-text">
-            <span class="drive-title" data-i18n="storageDrive">الحفظ في Google Drive الخاص بك</span>
-            <span class="drive-note" id="storageDriveStatus"></span>
-            <a class="drive-folder" id="storageDriveFolderLink" href="#" target="_blank" rel="noopener" dir="ltr" hidden></a>
-            <span class="drive-note" id="storageDriveCount" hidden></span>
-          </span>
-          <label class="drive-switch">
-            <input type="checkbox" id="storageDriveToggle">
-            <i aria-hidden="true"></i>
-            <span class="visually-hidden" data-i18n="storageDrive">الحفظ في Google Drive الخاص بك</span>
-          </label>
+            </span>
+            <span class="drive-text">
+              <span class="drive-title" data-i18n="storePickDrive">Google Drive الخاص بك</span>
+              <span class="drive-note" data-i18n="storePickDriveHint">في مجلد 00-MrZahi داخل Drive الخاص بك، خارج حصة الباقة.</span>
+              <span class="drive-note" id="storageDriveStatus"></span>
+              <a class="drive-folder" id="storageDriveFolderLink" href="#" target="_blank" rel="noopener" dir="ltr" hidden></a>
+              <span class="drive-note" id="storageDriveCount" hidden></span>
+            </span>
+            <span class="store-tick" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></span>
+          </button>
         </div>
         <p class="waitlist-msg" id="storageMsg" style="display:none" role="status" aria-live="polite"></p>
       </div>

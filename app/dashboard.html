@@ -211,6 +211,13 @@
               <label class="form-field span-6" data-field="contract_renewal"><span data-i18n="fieldCRenewal">التجديد</span><select class="waitlist-input" id="editContractRenewal"></select></label>
               <label class="form-field span-6" data-field="contract_notice"><span data-i18n="fieldCNotice">مهلة الإشعار قبل الانتهاء (أيام)</span><input type="number" min="0" step="1" class="waitlist-input" id="editContractNotice" dir="ltr"></label>
             </div>
+            <div class="form-grid" data-view="health" hidden>
+              <label class="form-field span-4" data-field="health_kind"><span data-i18n="fieldHealthKind">نوع العنصر الصحي</span><select class="waitlist-input" id="editHealthKind"></select></label>
+              <label class="form-field span-4" data-field="health_dose"><span data-i18n="fieldHealthDose">الجرعة أو التفصيل</span><input type="text" class="waitlist-input" id="editHealthDose" maxlength="80" dir="auto" placeholder="حبة واحدة، 500 ملغم، حصة ساعة"></label>
+              <label class="form-field span-4" data-field="health_repeat"><span data-i18n="fieldHealthRepeat">التكرار</span><select class="waitlist-input" id="editHealthRepeat"></select></label>
+              <label class="form-field span-6" data-field="health_provider"><span data-i18n="fieldHealthProvider">الطبيب أو الجهة</span><input type="text" class="waitlist-input" id="editHealthProvider" maxlength="160" dir="auto"></label>
+              <label class="form-field span-6" data-field="health_note"><span data-i18n="fieldHealthNote">ملاحظة</span><input type="text" class="waitlist-input" id="editHealthNote" maxlength="200" dir="auto"></label>
+            </div>
             <div class="waitlist-form form-actions">
               <button type="submit" class="waitlist-btn" id="editSaveBtn" data-i18n="save">حفظ</button>
               <button type="button" class="chat-option-btn" id="editCancelBtn" data-i18n="cancel">إلغاء</button>
@@ -272,6 +279,13 @@
                 <label class="form-field span-4" data-field="contract_start"><span data-i18n="fieldCStart">تاريخ البدء</span><input type="date" class="waitlist-input" id="addContractStart" dir="ltr"></label>
                 <label class="form-field span-6" data-field="contract_renewal"><span data-i18n="fieldCRenewal">التجديد</span><select class="waitlist-input" id="addContractRenewal"></select></label>
                 <label class="form-field span-6" data-field="contract_notice"><span data-i18n="fieldCNotice">مهلة الإشعار قبل الانتهاء (أيام)</span><input type="number" min="0" step="1" class="waitlist-input" id="addContractNotice" dir="ltr"></label>
+              </div>
+              <div class="form-grid" data-view="health" hidden>
+                <label class="form-field span-4" data-field="health_kind"><span data-i18n="fieldHealthKind">نوع العنصر الصحي</span><select class="waitlist-input" id="addHealthKind"></select></label>
+                <label class="form-field span-4" data-field="health_dose"><span data-i18n="fieldHealthDose">الجرعة أو التفصيل</span><input type="text" class="waitlist-input" id="addHealthDose" maxlength="80" dir="auto" placeholder="حبة واحدة، 500 ملغم، حصة ساعة"></label>
+                <label class="form-field span-4" data-field="health_repeat"><span data-i18n="fieldHealthRepeat">التكرار</span><select class="waitlist-input" id="addHealthRepeat"></select></label>
+                <label class="form-field span-6" data-field="health_provider"><span data-i18n="fieldHealthProvider">الطبيب أو الجهة</span><input type="text" class="waitlist-input" id="addHealthProvider" maxlength="160" dir="auto"></label>
+                <label class="form-field span-6" data-field="health_note"><span data-i18n="fieldHealthNote">ملاحظة</span><input type="text" class="waitlist-input" id="addHealthNote" maxlength="200" dir="auto"></label>
               </div>
               <datalist id="contractTypeSuggest"></datalist>
               <datalist id="categorySuggest"></datalist>

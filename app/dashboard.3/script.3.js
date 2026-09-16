@@ -26,6 +26,12 @@
         /* data تستبدل كاملة عند الحفظ، فتدمج بيانات العقد فوق ما كان لا بدلا منه. */
         var cdata = contractRowData("edit");
         if (cdata) patch.data = Object.assign({}, state.editing.data || {}, cdata);
+        var hdata = healthRowData("edit");
+        if (hdata) {
+          patch.data = Object.assign({}, patch.data || state.editing.data || {}, hdata);
+          if (patch.data.repeat === null) delete patch.data.repeat;   /* الغاء التكرار يمحوه فعلا */
+          if (!patch.category) patch.category = healthCategoryFor("edit");
+        }
         var id = state.editing.id;
         guard(function () {
           $("editSaveBtn").disabled = true;

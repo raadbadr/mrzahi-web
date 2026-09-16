@@ -543,8 +543,18 @@
 
   function adminListOrgs() {
     return run(function (client) {
-      return client.from("organizations").select("*, subscriptions(*)")
-        .order("created_at", { ascending: false }).then(unwrap);
+      /* نوع الكيان يفصل الشركات عن الحسابات الشخصية في لوحة الادارة
+         (امر المهندس رعد 2026-09-16: «شركات لحال مستخدمين لحال») */
+      return client.from("organizations").select("*, subscriptions(*), org_profiles(entity_type)")
+        .order("created_at", { ascending: false }).then(unwrap)
+        .then(function (rows) {
+          return (rows || []).map(function (o) {
+            var prof = o.org_profiles;
+            if (Array.isArray(prof)) prof = prof[0];
+            o.entity_type = (prof && prof.entity_type) || null;
+            return o;
+          });
+        });
     });
   }
 

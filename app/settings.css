@@ -476,6 +476,14 @@
       transition: border-color 0.25s, box-shadow 0.25s;
     }
     .drive-row.is-on { border-color: var(--primary); box-shadow: 0 6px 18px var(--primary-shadow); }
+    /* خياران بعرض واحد وارتفاع واحد، لا يتحرك احدهما بطول نص الاخر */
+    .store-pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.9rem; align-items: stretch; }
+    .store-opt { width: 100%; text-align: start; font: inherit; color: inherit; cursor: pointer; }
+    .store-opt .drive-title { color: var(--text-primary); }
+    .store-opt .store-tick { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--glass-border); color: transparent; }
+    .store-opt.is-on .store-tick { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .store-opt .store-tick svg { width: 16px; height: 16px; display: block; }
+    .store-opt[disabled] { opacity: 0.55; cursor: not-allowed; }
     .drive-mark svg { display: block; width: 40px; height: 40px; }
     .drive-text { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
     .drive-title { font-weight: 600; line-height: 1.5; }

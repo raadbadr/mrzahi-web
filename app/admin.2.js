@@ -226,22 +226,33 @@
           '</div>';
       }
 
-      function renderOrgs() {
-        const grid = $("orgsGrid");
-        const countEl = $("orgsCount");
+      /* الشركات في بطاقتها والحسابات الشخصية في بطاقتها (امر المهندس رعد
+         2026-09-16: «شركات لحال مستخدمين لحال، شغل منظم مرتب»). */
+      function isPersonalOrg(o) { return o && o.entity_type === "individual"; }
+
+      function renderOrgGrid(gridId, countId, statusId, rows, all, emptyKey, countKey) {
+        const grid = $(gridId), countEl = $(countId);
         if (!grid) return;
-        if (!orgs.length) {
+        if (!all.length) {
           grid.innerHTML = "";
-          countEl.textContent = "";
-          setStatus($("orgsStatus"), T("orgsEmpty"));
+          if (countEl) countEl.textContent = "";
+          setStatus($(statusId), T(emptyKey));
           return;
         }
-        const list = orgs.filter(matchesFilter);
-        grid.innerHTML = list.map(orgCard).join("");
-        countEl.textContent = T("orgsCountLabel") + " " + list.length + (filterText ? " / " + orgs.length : "");
+        grid.innerHTML = rows.map(orgCard).join("");
+        if (countEl) countEl.textContent = T(countKey) + " " + rows.length + (filterText ? " / " + all.length : "");
         grid.querySelectorAll("[data-activate]").forEach(btn => {
           btn.addEventListener("click", () => openActivate(btn.getAttribute("data-activate")));
         });
+      }
+
+      function renderOrgs() {
+        const companies = orgs.filter(o => !isPersonalOrg(o));
+        const personal = orgs.filter(isPersonalOrg);
+        renderOrgGrid("orgsGrid", "orgsCount", "orgsStatus",
+          companies.filter(matchesFilter), companies, "orgsEmpty", "orgsCountLabel");
+        renderOrgGrid("personalOrgsGrid", "personalOrgsCount", "personalOrgsStatus",
+          personal.filter(matchesFilter), personal, "personalOrgsEmpty", "personalOrgsCountLabel");
       }
 
       function refreshCountCells() {
@@ -588,6 +599,7 @@
         });
         $("orgsRefresh").addEventListener("click", () => { loadOrgs(); });
         $("orgsGrid").addEventListener("change", onPackChange);
+        $("personalOrgsGrid").addEventListener("change", onPackChange);
         $("userFilter").addEventListener("input", () => {
           userFilterText = String($("userFilter").value || "").trim().toLowerCase();
           renderUsers();

@@ -513,6 +513,83 @@
         fillRenewalOptions($(prefix + "ContractRenewal"), f.renewal);
       }
 
+      /* ــ «صحتي»: نموذج متخصص لا نموذج عام (امر المهندس رعد 2026-09-16: «صحتي
+         ابغى اضيف عنصر، ليش الاضافة العامة الغبية، فين الاضافة المتخصصة») ــ
+         النوع والجرعة والتكرار والطبيب، تكتب في data كما تفعل العقود بلا عمود
+         جديد. و«التكرار» هو المفتاح data.repeat الذي يقرؤه مشغل القاعدة
+         (ترحيل 0146) فينشئ الجرعة التالية وحدها عند اتمام الحالية. */
+      var HEALTH_KINDS = [
+        { value: "medicine", key: "healthKindMedicine", category: "دواء" },
+        { value: "appointment", key: "healthKindAppointment", category: "موعد طبي" },
+        { value: "lab", key: "healthKindLab", category: "فحص" },
+        { value: "vaccine", key: "healthKindVaccine", category: "تطعيم" },
+        { value: "fitness", key: "healthKindFitness", category: "تمرين" },
+        { value: "insurance", key: "healthKindInsurance", category: "تأمين صحي" }
+      ];
+      var HEALTH_REPEATS = [
+        { value: "", key: "healthRepeatNone" },
+        { value: "daily", key: "healthRepeatDaily" },
+        { value: "weekly", key: "healthRepeatWeekly" },
+        { value: "monthly", key: "healthRepeatMonthly" }
+      ];
+      function fillHealthOptions(prefix) {
+        var kind = $(prefix + "HealthKind"), rep = $(prefix + "HealthRepeat");
+        if (kind) {
+          var kv = kind.value;
+          kind.innerHTML = HEALTH_KINDS.map(function (o) {
+            return '<option value="' + o.value + '">' + T(o.key) + "</option>";
+          }).join("");
+          if (kv) kind.value = kv;
+        }
+        if (rep) {
+          var rv = rep.value;
+          rep.innerHTML = HEALTH_REPEATS.map(function (o) {
+            return '<option value="' + o.value + '">' + T(o.key) + "</option>";
+          }).join("");
+          if (rv) rep.value = rv;
+        }
+      }
+      function healthRowData(prefix) {
+        if (state.viewType !== "health") return null;
+        var kind = $(prefix + "HealthKind"), dose = $(prefix + "HealthDose");
+        var rep = $(prefix + "HealthRepeat"), who = $(prefix + "HealthProvider"), note = $(prefix + "HealthNote");
+        var out = {};
+        if (kind && kind.value) out.health_kind = kind.value;
+        if (dose && dose.value.trim()) out.dose = dose.value.trim();
+        /* repeat فارغ يمحى صراحة فلا يبقى تكرار قديم بعد الغائه */
+        out.repeat = rep && rep.value ? rep.value : null;
+        if (who && who.value.trim()) out.provider = who.value.trim();
+        if (note && note.value.trim()) out.health_note = note.value.trim();
+        return out;
+      }
+      /* تصنيف العنصر يتبع نوعه الصحي، فيعرف التقويم والقوائم ما هو */
+      function healthCategoryFor(prefix) {
+        if (state.viewType !== "health") return null;
+        var kind = $(prefix + "HealthKind");
+        if (!kind || !kind.value) return null;
+        for (var i = 0; i < HEALTH_KINDS.length; i++) if (HEALTH_KINDS[i].value === kind.value) return HEALTH_KINDS[i].category;
+        return null;
+      }
+      function fillHealthFields(prefix, item) {
+        fillHealthOptions(prefix);
+        var d = (item && item.data) || {};
+        var kind = $(prefix + "HealthKind"), dose = $(prefix + "HealthDose");
+        var rep = $(prefix + "HealthRepeat"), who = $(prefix + "HealthProvider"), note = $(prefix + "HealthNote");
+        if (kind) kind.value = d.health_kind || "medicine";
+        if (dose) dose.value = d.dose || "";
+        if (rep) rep.value = d.repeat || "";
+        if (who) who.value = d.provider || "";
+        if (note) note.value = d.health_note || "";
+      }
+      function clearHealthFields(prefix) {
+        ["HealthDose", "HealthProvider", "HealthNote"].forEach(function (k) {
+          var el = $(prefix + k);
+          if (el) el.value = "";
+        });
+        var rep = $(prefix + "HealthRepeat");
+        if (rep) rep.value = "";
+      }
+
       function clearContractFields(prefix) {
         ["ContractNumber", "ContractType", "ContractStart", "ContractNotice"].forEach(function (k) {
           var el = $(prefix + k);
@@ -1343,6 +1420,7 @@
         }
         applyViewFields();
         if (state.viewType === "contracts") fillRenewalOptions($("addContractRenewal"), $("addContractRenewal").value);
+        if (state.viewType === "health") fillHealthOptions("add");
         var p = $("addItemPanel");
         p.hidden = !p.hidden;
         clearMsg("addMsg");
@@ -1371,6 +1449,11 @@
         };
         var cdata = contractRowData("add");
         if (cdata) row.data = cdata;
+        var hdata = healthRowData("add");
+        if (hdata) {
+          row.data = Object.assign({}, row.data || {}, hdata);
+          if (!row.category) row.category = healthCategoryFor("add");
+        }
         if (state.pendingParent) row.parent_id = state.pendingParent;
         guard(function () {
           $("addSaveBtn").disabled = true;
@@ -1384,6 +1467,7 @@
             $("addClientEn").value = "";
             $("addCaseNumber").value = "";
             clearContractFields("add");
+            clearHealthFields("add");
             state.pendingParent = "";
             return refresh();
           });
@@ -1539,6 +1623,7 @@
         $("editCaseNumber").value = item.case_number || "";
         applyViewFields();
         if (state.viewType === "contracts") fillContractFields("edit", item);
+        if (state.viewType === "health") fillHealthFields("edit", item);
         fillRemindOptions($("editRemind"), item.remind_before);
         clearMsg("editMsg");
         show("editPanel");

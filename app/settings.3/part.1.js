@@ -750,19 +750,29 @@
         }).catch(function () { value.textContent = "—"; });
       }
 
+      /* خياران صريحان لا مفتاح واحد: «عندنا» و«درايف»، والمختار عليه علامة،
+         والمجلد الحقيقي في درايف يكتب باسمه ورابطه (امر المهندس رعد 2026-09-16). */
       function renderDriveSwitch() {
-        var box = el("storageDriveToggle"), status = el("storageDriveStatus");
-        if (!box || !status) return;
+        var box = el("storagePick");
+        if (!box) return;
+        var optPlatform = box.querySelector('[data-store-pick="platform"]');
+        var optDrive = box.querySelector('[data-store-pick="drive"]');
+        var status = el("storageDriveStatus");
         /* تخزين المنشاة قرار مالك او مشرف منذ 2026-09-16: القاعدة ترفض غيرهما
-           بـ not_admin، فلا يعرض عليه مفتاح يوهمه انه يملكه. */
+           بـ not_admin، فلا يعرض عليه خيار يوهمه انه يملكه. */
         var mayDrive = !(app.isOrgAdmin && !app.isOrgAdmin());
         var available = !!(app.driveOAuthAvailable && app.driveOAuthAvailable()) && mayDrive;
-        var on = !!(app.profile && app.profile.storage_mode === "drive");
-        box.checked = on && available;
-        box.disabled = !available;
-        status.textContent = !mayDrive ? t("storageDriveAdminOnly") : (!available ? t("storageDriveUnavailable") : (on ? "" : t("storageDriveOff")));
-        var row = el("storageDriveRow");
-        if (row) row.classList.toggle("is-on", box.checked);
+        var on = !!(app.profile && app.profile.storage_mode === "drive") && available;
+        if (optDrive) {
+          optDrive.disabled = !available;
+          optDrive.classList.toggle("is-on", on);
+          optDrive.setAttribute("aria-pressed", on ? "true" : "false");
+        }
+        if (optPlatform) {
+          optPlatform.classList.toggle("is-on", !on);
+          optPlatform.setAttribute("aria-pressed", !on ? "true" : "false");
+        }
+        if (status) status.textContent = !mayDrive ? t("storageDriveAdminOnly") : (!available ? t("storageDriveUnavailable") : (on ? t("storageDriveOn") : ""));
         var link = el("storageDriveFolderLink");
         var f = on && app.driveFolderCached ? app.driveFolderCached() : null;
         if (link) { link.hidden = !f; if (f) { link.href = f.url; link.textContent = f.path; link.title = t("storageDriveFolder"); } }
@@ -771,7 +781,7 @@
           countEl.hidden = true;
           if (f && app.driveFolderFileCount) {
             app.driveFolderFileCount(f.id).then(function (n) {
-              if (!box.checked || el("storageDriveCount") !== countEl) return;
+              if (!on || el("storageDriveCount") !== countEl) return;
               countEl.textContent = t("storageDriveCount").replace("{n}", String(n));
               countEl.hidden = false;
             }).catch(function () { /* المجلد فارغ أو تعذر العد: يبقى العدد مخفيا بلا رسالة خطأ */ });
@@ -780,25 +790,28 @@
       }
 
       /* التفويض يطلب بنقرة المستخدم نفسها، ولا يحفظ الخيار إلا بعد الإذن */
-      function onDriveToggle() {
-        var box = el("storageDriveToggle");
+      function onDriveToggle(ev) {
+        var opt = ev && ev.target && ev.target.closest ? ev.target.closest("[data-store-pick]") : null;
+        if (!opt || opt.disabled) return;
+        var want = opt.getAttribute("data-store-pick");
+        var now = (app.profile && app.profile.storage_mode === "drive") ? "drive" : "platform";
         show("storageMsg", false);
-        if (!box.checked) {
+        if (want === now) return;
+        if (want === "platform") {
           return app.updateProfile({ storage_mode: "platform" }).then(renderDriveSwitch)
-            .catch(function () { box.checked = true; setMsg("storageMsg", t("genericError"), "error"); });
+            .catch(function () { setMsg("storageMsg", t("genericError"), "error"); });
         }
-        box.disabled = true;
         /* الربط من الخادم: موافقة واحدة تعطينا رمز تحديث دائم، فلا يطلب
            الاذن مرة اخرى ابدا. المتصفح ينتقل بنفسه لان التصفح لا يحمل الجلسة. */
         if (config.driveServer && app.driveServerConnect) {
+          opt.disabled = true;
           return app.driveServerConnect().then(function (url) { window.location.href = url; })
             .catch(function () {
-              box.checked = false; box.disabled = false; renderDriveSwitch();
+              opt.disabled = false; renderDriveSwitch();
               setMsg("storageMsg", t("storageDriveDenied"), "error");
             });
         }
-        /* لا مسار اذن داخل المتصفح بعد اليوم: بلا تفويض الخادم يبقى درايف غير متاح */
-        box.checked = false; box.disabled = false; renderDriveSwitch();
+        renderDriveSwitch();
         setMsg("storageMsg", t("storageDriveUnavailable"), "error");
         return Promise.resolve();
       }
