@@ -626,11 +626,13 @@
         app = window.mrzahiApp;
         if (!app || !app.ready) { show("loadingCard", false); show("unavailableCard", true); return; }
         app.ready.then(function (res) {
-          show("loadingCard", false);
-          if (!res || res.unavailable || app.unavailable) { show("unavailableCard", true); return; }
-          if (!app.org) { show("noOrgCard", true); return; }
+          if (!res || res.unavailable || app.unavailable) { show("loadingCard", false); show("unavailableCard", true); return; }
+          if (!app.org) { show("loadingCard", false); show("noOrgCard", true); return; }
           loadAreas();   /* مجالات المكتبة بحسب واجهة الحساب قبل أول رسم */
-          wire(); show("view", true); return load();
+          /* الشاشة تكشف بعد وصول بياناتها لا قبلها (المهندس رعد 2026-09-16). */
+          wire();
+          var reveal = function () { show("loadingCard", false); show("view", true); };
+          return load().then(reveal, function (e) { reveal(); throw e; });
         }).catch(function () { show("loadingCard", false); show("unavailableCard", true); });
       }
       if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
