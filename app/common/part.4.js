@@ -750,15 +750,10 @@
     return role === "owner" || role === "admin";
   }
 
-  /* الواجهة لم تعد اختيارا في الشريط العلوي: هي نتيجة نوع الحساب، وتخصص الكيان
-     التجاري يغير من داخل اعدادات الحساب (امر المهندس رعد 2026-09-16:
-     «ايش الواجهة الافتراضية دي»). الدالة تبقى معطلة لا محذوفة كي لا يتغير شيء
-     اخر في بناء الشريط. */
+  /* شريحة الواجهة في الشريط العلوي: اعيدت بامر المهندس رعد 2026-09-16
+     («رجع شاشة اختيار الواجهة»). بلا خيار «الواجهة الافتراضية» الذي امر بحذفه،
+     والقائمة تعرض ما يقبله نوع الحساب فقط لان القاعدة ترفض غيره. */
   function packBoxHtml() {
-    return "";
-  }
-
-  function packBoxHtmlDisabled() {
     if (!canChangePack()) return "";
     if (!packsCache) {
       if (!packsAsked && app && typeof app.listPacks === "function") {
@@ -788,7 +783,7 @@
     opts += '<option value="__default">' + escapeHtml(sidebarLabel(PACK_DEFAULT_LABELS)) + "</option>";
     return '<div class="app-orgbox" title="' + escapeHtml(sidebarLabel(PACK_LABELS)) + '">' +
              '<span class="app-orglabel">' + escapeHtml(sidebarLabel(PACK_LABELS)) + "</span>" +
-             '<select class="app-orgselect" id="topPackSelect">' + opts + "</select>" +
+             '<select class="app-orgselect" id="topPackSelect"' + (list.length < 2 ? " disabled" : "") + ">" + opts + "</select>" +
            "</div>";
   }
 
@@ -827,6 +822,7 @@
       '<nav class="app-topnav">' + nav + "</nav>" +
       '<div class="app-userbox">' +
         planTagHtml() +
+        packBoxHtml() +
         orgBoxHtml() +
         '<a class="app-username" id="topUserName" href="/app/settings.html#profileCard" title="' + escapeHtml(userDisplayName()) + '">' + escapeHtml(userDisplayName()) + "</a>" +
         '<button type="button" class="app-iconbtn" id="topBellBtn" aria-label="' + escapeHtml(sidebarLabel(BELL_LABELS)) + '">' +
