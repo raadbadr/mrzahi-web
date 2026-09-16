@@ -131,6 +131,14 @@
 
       /* ---------- members ---------- */
 
+      /* العضو غير المضبوط: بلا قسم او بلا نوع. المالك والمدير خارج الحساب —
+         قسمهما «الإدارة» بحكم دورهما، ونوعهما لا يغير خدماتهما. */
+      function needsSetup(m) {
+        if (!m || m.status !== "active") return false;
+        if (m.role === "owner" || m.role === "admin") return false;
+        return !m.department || !m.person_kind;
+      }
+
       function departmentName(m) {
         if (m.role === "owner" || m.role === "admin") return t("dept_management");
         if (!m.department) return t("deptUnset");
@@ -157,13 +165,26 @@
         if (!state.loaded) { grid.innerHTML = ""; show("membersEmpty", false); return; }
 
         var me = (app && app.user) ? app.user.id : null;
-        grid.innerHTML = state.members.map(function (m) {
+        /* عضو جديد يدخل بلا قسم ولا نوع، وهذا وضع لحظي لا يترك على حاله:
+           تنبيه للمدير يبقى ظاهرا حتى يضبط كل عضو (المهندس رعد 2026-09-16:
+           «ماينفع يفضل كدا طاير»). المالك والمدير قسمهما «الإدارة» بحكم دورهما. */
+        var unset = state.members.filter(needsSetup);
+        var notice = (state.canManage && unset.length)
+          ? '<div class="platform-stat-detail-row team-setup-note" style="grid-column:1/-1;display:block;padding:.85rem 1rem;border:1px solid var(--warn,#e0a33e);border-radius:14px;margin-bottom:.75rem">' +
+              '<strong>' + esc(String(unset.length) + " " + t("setupNeeded")) + "</strong><br>" +
+              '<span style="opacity:.85">' + esc(t("setupNote")) + "</span>" +
+              '<br><span style="opacity:.85">' + esc(unset.map(memberName).join(" · ")) + "</span>" +
+            "</div>"
+          : "";
+        grid.innerHTML = notice + state.members.map(function (m) {
           var isOwner = m.role === "owner";
           var isSelf = !!me && m.user_id === me;
+          var wants = needsSetup(m);
           var name = memberName(m);
           var email = memberEmail(m);
 
           var badges = '<span class="chat-option-btn" style="cursor:default">' + esc(roleName(m.role)) + "</span>";
+          if (wants && state.canManage) badges += ' <span class="chat-option-btn" style="cursor:default;border-color:var(--warn,#e0a33e);color:var(--warn,#e0a33e)">' + esc(t("setupBadge")) + "</span>";
           if (isSelf) badges += ' <span class="chat-option-btn" style="cursor:default">' + esc(t("you")) + "</span>";
           if (m.status && m.status !== "active") badges += ' <span class="chat-option-btn" style="cursor:default">' + esc(t("statusInvited")) + "</span>";
 

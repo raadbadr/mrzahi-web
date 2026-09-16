@@ -170,3 +170,4 @@
 20260916193000	every_member_picks_own_pack	0143_every_member_picks_own_pack.sql	added
 20260916200000	no_duplicate_accounts	0144_no_duplicate_accounts.sql	added
 20260916200000	member_allowed_packs	0144_member_allowed_packs.sql	added
+20260916203000	task_on_new_member	0145_task_on_new_member.sql	added
