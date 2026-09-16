@@ -5,6 +5,16 @@ These rules apply to every AI agent, developer, and automated tool working on th
 
 ---
 
+## القاعدة الحية: جدة وحدها — لندن ملغاة (المهندس رعد 2026-09-17)
+
+- **القاعدة الحية هي Supabase المستضاف ذاتيا على خادم جدة** (`193.122.83.98`). كل ترحيل وكل استعلام وكل تحقق يمر بها وحدها.
+- **مشروع Supabase السحابي `nblacxmdancucuxdttbb` (لندن) ملغى نهائيا**: لا يقرأ ولا يكتب، ولا يعد مرجعا.
+- **ممنوع استعمال ادوات Supabase MCP في هذا المشروع**: هي موصولة بلندن، وما يطبق بها لا يصل المستخدمين ابدا.
+- **قبل ان تعلن اي اصلاح في القاعدة**: تحقق منه على mrzahi.com نفسه — `POST /rest/v1/rpc/<name>` بمفتاح `/api/config`؛ رد `PGRST202` يعني ان ترحيلك لم يصل الحي.
+- **الدفع الى main لا ينشر ولا يطبق ترحيلا**: النشر `npx wrangler deploy` بيدك، والترحيل على جدة بيدك.
+
+---
+
 ## IMMUTABLE COMPONENTS — Never Touch Without Explicit Approval
 
 | File / Path | What it is | Why it's locked |
