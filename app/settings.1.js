@@ -155,7 +155,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
         opTypeCompany: "شركة",
         opTypeEstablishment: "مؤسسة فردية",
         opTypeFreelance: "وثيقة عمل حر",
-        opTypeIndividual: "شخص",
+        opTypeIndividual: "شخصي",
         opFullName: "الاسم الكامل",
         opTypeNonprofit: "جمعية أو منظمة غير ربحية",
         opTypeGovernment: "جهة حكومية",

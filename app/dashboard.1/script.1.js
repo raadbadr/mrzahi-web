@@ -41,7 +41,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
         newOrgSubmit: "إنشاء",
         cancel: "إلغاء",
         createOrgTitle: "ابدأ حسابك",
-        createOrgIntro: "اختر نوع الحساب: شركة أو مؤسسة أو وثيقة عمل حر، أو شخصا يريد ترتيب أوراقه.",
+        createOrgIntro: "اختر نوع الحساب: شركة أو مؤسسة أو وثيقة عمل حر، أو شخصي لمن يرتب أوراقه.",
         packPickLine: "اختر الواجهة التي تناسب تخصصك.",
         packChoose: "اختيار",
         orgCreated: "تم إنشاء الحساب بنجاح.",

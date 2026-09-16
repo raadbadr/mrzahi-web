@@ -826,11 +826,11 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
 
   /* ---------- بطاقة المنشأة وأوراقها الرسمية (نواة مشتركة لكل قطاع) ---------- */
 
-  /* من يستعمل المنصة: منشأة تجارية أو شخص يرتب أوراقه. نفس القيم في القاعدة. */
-  /* الترتيب من الأرخص إلى الأغلى: شخص ثم وثيقة عمل حر ثم مؤسسة ثم شركة،
+  /* من يستعمل المنصة: منشأة تجارية أو حساب شخصي يرتب أوراقه. نفس القيم في القاعدة. */
+  /* الترتيب من الأرخص إلى الأغلى: شخصي ثم وثيقة عمل حر ثم مؤسسة ثم شركة،
      وما لا سعر له (جمعية، جهة حكومية) في الآخر. */
   var ENTITY_TYPES = [
-    { value: "individual",    ar: "شخص",                      en: "Individual",          fr: "Particulier",         ur: "انفرادی" },
+    { value: "individual",    ar: "شخصي",                     en: "Individual",          fr: "Particulier",         ur: "انفرادی" },
     { value: "freelance",     ar: "وثيقة عمل حر",             en: "Freelance permit",    fr: "Travail indépendant", ur: "فری لانس اجازت" },
     { value: "establishment", ar: "مؤسسة",                    en: "Establishment",       fr: "Établissement",       ur: "ادارہ" },
     { value: "company",       ar: "شركة",                     en: "Company",             fr: "Société",             ur: "کمپنی" },
