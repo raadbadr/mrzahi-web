@@ -227,14 +227,28 @@
                 "</select>" +
                 /* الواجهات المسموحة لهذا العضو: لا يرى في قائمته سواها، وبلا
                    تحديد يرى الكل (المهندس رعد 2026-09-16). */
-                '<select class="waitlist-input" multiple size="4" data-allow-user="' + esc(m.user_id) + '" ' +
-                  'aria-label="' + esc(t("allowLabel")) + '" title="' + esc(t("allowLabel") + " — " + t("allowNote")) + '">' +
+                /* شرائح لا قائمة متعددة: صندوق القائمة المتعددة يرسمه المتصفح
+                   باسود وبارتفاع لا يشبه اي حقل في المنصة (امر المهندس رعد
+                   2026-09-16: «التصميم السيء يعدل»). الشريحة الخضراء مسموحة،
+                   والرمادية لا، وبلا اختيار يرى العضو الكل. */
+                /* صناديق اختيار لا قائمة متعددة (امر المهندس رعد 2026-09-16:
+                   «اقدر اختار الواجهات التي تظهر للمستخدم بطريقة تشك بوكس،
+                   واي شي مانختارو مايظهر اصلا في اللسته»): المؤشر عليه يظهر
+                   للعضو، وما لا مؤشر عليه لا يظهر في قائمته اصلا. وبلا اي
+                   اختيار يرى الكل. */
+                '<fieldset class="allow-checks" data-allow-user="' + esc(m.user_id) + '">' +
+                  '<legend class="allow-legend">' + esc(t("allowLabel")) + "</legend>" +
                   (state.packs || []).filter(function (pk) { return pk.key !== "individual"; }).map(function (pk) {
                     var nm = (pk.names && (pk.names[app.lang()] || pk.names.ar)) || pk.key;
                     var on = Array.isArray(m.allowed_packs) && m.allowed_packs.indexOf(pk.key) !== -1;
-                    return '<option value="' + esc(pk.key) + '"' + (on ? " selected" : "") + ">" + esc(nm) + "</option>";
+                    return '<label class="allow-check' + (on ? " is-on" : "") + '">' +
+                             '<input type="checkbox" data-allow-pack="' + esc(pk.key) + '"' + (on ? " checked" : "") + ">" +
+                             '<span class="allow-box" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></span>' +
+                             '<span class="allow-name">' + esc(nm) + "</span>" +
+                           "</label>";
                   }).join("") +
-                "</select>" +
+                  '<span class="allow-hint">' + esc(t("allowNote")) + "</span>" +
+                "</fieldset>" +
               "</div>";
           }
           if (state.canManage && !isOwner && !isSelf) {
@@ -293,26 +307,36 @@
           .finally(function () { node.disabled = false; });
       }
 
+      /* الواجهات المسموحة بشرائح: نقرة تبدل الشريحة ثم تحفظ. بلا اختيار يرفع
+         التضييق فيرى العضو الكل. */
+      /* مؤشر يتبدل فيحفظ فورا؛ والرفض يعيده كما كان فلا يظن صاحبه انه حفظ */
+      function onAllowCheck(ev) {
+        var input = ev.target && ev.target.matches && ev.target.matches("[data-allow-pack]") ? ev.target : null;
+        if (!input) return false;
+        var box = input.closest("[data-allow-user]");
+        if (!box) return false;
+        var aUser = box.getAttribute("data-allow-user"), aMember = findMember(aUser);
+        var was = !input.checked;
+        var wrap = input.closest(".allow-check");
+        if (wrap) wrap.classList.toggle("is-on", input.checked);
+        var picked = [];
+        box.querySelectorAll("[data-allow-pack]").forEach(function (c) { if (c.checked) picked.push(c.getAttribute("data-allow-pack")); });
+        box.querySelectorAll("[data-allow-pack]").forEach(function (c) { c.disabled = true; });
+        app.setMemberAllowedPacks(aUser, picked).then(function () {
+          if (aMember) aMember.allowed_packs = picked.length ? picked : null;
+          box.querySelectorAll("[data-allow-pack]").forEach(function (c) { c.disabled = false; });
+          toast(t("allowUpdated"), "success");
+        }).catch(function (err) {
+          input.checked = was;
+          if (wrap) wrap.classList.toggle("is-on", was);
+          box.querySelectorAll("[data-allow-pack]").forEach(function (c) { c.disabled = false; });
+          toast(errorMessage(err), "error");
+        });
+        return true;
+      }
+
       function onMembersChange(ev) {
-        /* الواجهات المسموحة: بلا اختيار يرفع التضييق فيرى العضو الكل */
-        var allowSel = ev.target.closest("[data-allow-user]");
-        if (allowSel) {
-          var aUser = allowSel.getAttribute("data-allow-user"), aMember = findMember(aUser);
-          var picked = [];
-          for (var ai = 0; ai < allowSel.options.length; ai++) {
-            if (allowSel.options[ai].selected) picked.push(allowSel.options[ai].value);
-          }
-          allowSel.disabled = true;
-          app.setMemberAllowedPacks(aUser, picked).then(function () {
-            if (aMember) aMember.allowed_packs = picked.length ? picked : null;
-            allowSel.disabled = false;
-            toast(t("allowUpdated"), "success");
-          }).catch(function (err) {
-            allowSel.disabled = false;
-            toast(errorMessage(err), "error");
-          });
-          return;
-        }
+        if (onAllowCheck(ev)) return;
         /* توزيع الواجهات: المالك أو الإداري يسند لكل عضو واجهته */
         var packSel = ev.target.closest("[data-pack-user]");
         if (packSel) {
