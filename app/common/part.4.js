@@ -749,7 +749,15 @@
     return role === "owner" || role === "admin";
   }
 
+  /* الواجهة لم تعد اختيارا في الشريط العلوي: هي نتيجة نوع الحساب، وتخصص الكيان
+     التجاري يغير من داخل اعدادات الحساب (امر المهندس رعد 2026-09-16:
+     «ايش الواجهة الافتراضية دي»). الدالة تبقى معطلة لا محذوفة كي لا يتغير شيء
+     اخر في بناء الشريط. */
   function packBoxHtml() {
+    return "";
+  }
+
+  function packBoxHtmlDisabled() {
     if (!canChangePack()) return "";
     if (!packsCache) {
       if (!packsAsked && app && typeof app.listPacks === "function") {
@@ -818,7 +826,6 @@
       '<nav class="app-topnav">' + nav + "</nav>" +
       '<div class="app-userbox">' +
         planTagHtml() +
-        packBoxHtml() +
         orgBoxHtml() +
         '<a class="app-username" id="topUserName" href="/app/settings.html#profileCard" title="' + escapeHtml(userDisplayName()) + '">' + escapeHtml(userDisplayName()) + "</a>" +
         '<button type="button" class="app-iconbtn" id="topBellBtn" aria-label="' + escapeHtml(sidebarLabel(BELL_LABELS)) + '">' +

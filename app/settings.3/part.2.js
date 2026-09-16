@@ -22,9 +22,14 @@
         if (!sel || !field || !app.listPacks) return;
         (packsLoaded ? Promise.resolve(packsLoaded) : app.listPacks()).then(function (rows) {
           packsLoaded = rows || [];
-          if (packsLoaded.length < 2) { field.hidden = true; return; }
+          /* التخصص للكيان التجاري وحده: الحساب الشخصي واجهته تتبع نوعه، والقاعدة
+             ترفض غيرها برسالة حارس (امر المهندس رعد 2026-09-16). */
+          var type = (el("opEntityType") && el("opEntityType").value) || (profile && profile.entity_type) || "company";
+          if (app.isPersonType && app.isPersonType(type)) { field.hidden = true; return; }
+          var allowed = packsLoaded.filter(function (pk) { return pk.key !== "individual"; });
+          if (allowed.length < 2) { field.hidden = true; return; }
           var cur = (profile && profile.ui_pack) || (app.pack && app.pack.pack) || "";
-          var html = packsLoaded.map(function (pk) {
+          var html = allowed.map(function (pk) {
             var name = (pk.names && (pk.names[app.lang()] || pk.names.ar)) || pk.key;
             return '<option value="' + esc(pk.key) + '"' + (pk.key === cur ? " selected" : "") + ">" + esc(name) + "</option>";
           }).join("");
@@ -69,8 +74,11 @@
         var packWanted = packSel && !el("opPackField").hidden ? packSel.value : null;
         var packChanged = !!packWanted && packWanted !== ((app.pack && app.pack.pack) || "");
         el("opSaveBtn").disabled = true;
+        var typeChanged = row.entity_type !== ((state.orgProfile && state.orgProfile.entity_type) || "");
         app.saveOrgProfile(row).then(function (saved) {
           state.orgProfile = saved;
+          /* نوع الحساب يغير الواجهة في القاعدة وحدها، فتعاد الصفحة لتظهر الجديدة */
+          if (typeChanged) { window.location.reload(); return null; }
           if (!packChanged) return null;
           /* الواجهة تتبدل كاملة، فتعاد الصفحة مرة واحدة بدل إعادة رسم كل شيء أمام المستخدم */
           return app.setOrgPack(packWanted).then(function () { window.location.reload(); });

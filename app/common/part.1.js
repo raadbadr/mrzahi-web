@@ -874,6 +874,102 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
   }
   function isValidPhone(p) { return /^\+[1-9]\d{7,14}$/.test(p); }
 
+  /* ── مفاتيح الدول: قائمة تختار منها، والرقم بجانبها كما يكتبه صاحبه ─────────
+     امر المهندس رعد 2026-09-16: «خلي ادخال رقم الجوال بطريقة ذكية، المفتاح حسب
+     الدول في لست والرقم مباشرة جنبه». كان الحقل واحدا يبتلع ما يكتب ويخرجه
+     بصيغة اخرى («0565516030» تصير «+966565516030») فيظن كاتبه ان رقمه بتر.
+     ما يحفظ في القاعدة يبقى دوليا كما هو (E.164) لانه ما تطلبه بوابات الرسائل
+     ورموز الدخول، وما يعرض للعين يرجع الى صورته المحلية بصفره.
+     ‎trunk‎: الصفر الوطني الذي يسقط في الصيغة الدولية ويرد في العرض. */
+  var PHONE_COUNTRIES = [
+    { iso: "SA", dial: "966", flag: "🇸🇦", ar: "السعودية", en: "Saudi Arabia" },
+    { iso: "AE", dial: "971", flag: "🇦🇪", ar: "الإمارات", en: "United Arab Emirates" },
+    { iso: "KW", dial: "965", flag: "🇰🇼", ar: "الكويت", en: "Kuwait", trunk: "" },
+    { iso: "QA", dial: "974", flag: "🇶🇦", ar: "قطر", en: "Qatar", trunk: "" },
+    { iso: "BH", dial: "973", flag: "🇧🇭", ar: "البحرين", en: "Bahrain", trunk: "" },
+    { iso: "OM", dial: "968", flag: "🇴🇲", ar: "عمان", en: "Oman", trunk: "" },
+    { iso: "YE", dial: "967", flag: "🇾🇪", ar: "اليمن", en: "Yemen" },
+    { iso: "EG", dial: "20", flag: "🇪🇬", ar: "مصر", en: "Egypt" },
+    { iso: "JO", dial: "962", flag: "🇯🇴", ar: "الأردن", en: "Jordan" },
+    { iso: "SY", dial: "963", flag: "🇸🇾", ar: "سوريا", en: "Syria" },
+    { iso: "LB", dial: "961", flag: "🇱🇧", ar: "لبنان", en: "Lebanon" },
+    { iso: "IQ", dial: "964", flag: "🇮🇶", ar: "العراق", en: "Iraq" },
+    { iso: "PS", dial: "970", flag: "🇵🇸", ar: "فلسطين", en: "Palestine" },
+    { iso: "SD", dial: "249", flag: "🇸🇩", ar: "السودان", en: "Sudan" },
+    { iso: "LY", dial: "218", flag: "🇱🇾", ar: "ليبيا", en: "Libya" },
+    { iso: "TN", dial: "216", flag: "🇹🇳", ar: "تونس", en: "Tunisia", trunk: "" },
+    { iso: "DZ", dial: "213", flag: "🇩🇿", ar: "الجزائر", en: "Algeria" },
+    { iso: "MA", dial: "212", flag: "🇲🇦", ar: "المغرب", en: "Morocco" },
+    { iso: "MR", dial: "222", flag: "🇲🇷", ar: "موريتانيا", en: "Mauritania", trunk: "" },
+    { iso: "SO", dial: "252", flag: "🇸🇴", ar: "الصومال", en: "Somalia" },
+    { iso: "DJ", dial: "253", flag: "🇩🇯", ar: "جيبوتي", en: "Djibouti", trunk: "" },
+    { iso: "KM", dial: "269", flag: "🇰🇲", ar: "جزر القمر", en: "Comoros", trunk: "" },
+    { iso: "IN", dial: "91", flag: "🇮🇳", ar: "الهند", en: "India" },
+    { iso: "PK", dial: "92", flag: "🇵🇰", ar: "باكستان", en: "Pakistan" },
+    { iso: "BD", dial: "880", flag: "🇧🇩", ar: "بنغلاديش", en: "Bangladesh" },
+    { iso: "LK", dial: "94", flag: "🇱🇰", ar: "سريلانكا", en: "Sri Lanka" },
+    { iso: "NP", dial: "977", flag: "🇳🇵", ar: "نيبال", en: "Nepal" },
+    { iso: "PH", dial: "63", flag: "🇵🇭", ar: "الفلبين", en: "Philippines" },
+    { iso: "ID", dial: "62", flag: "🇮🇩", ar: "إندونيسيا", en: "Indonesia" },
+    { iso: "MY", dial: "60", flag: "🇲🇾", ar: "ماليزيا", en: "Malaysia" },
+    { iso: "TR", dial: "90", flag: "🇹🇷", ar: "تركيا", en: "Türkiye" },
+    { iso: "IR", dial: "98", flag: "🇮🇷", ar: "إيران", en: "Iran" },
+    { iso: "ET", dial: "251", flag: "🇪🇹", ar: "إثيوبيا", en: "Ethiopia" },
+    { iso: "KE", dial: "254", flag: "🇰🇪", ar: "كينيا", en: "Kenya" },
+    { iso: "NG", dial: "234", flag: "🇳🇬", ar: "نيجيريا", en: "Nigeria" },
+    { iso: "ZA", dial: "27", flag: "🇿🇦", ar: "جنوب إفريقيا", en: "South Africa" },
+    { iso: "GB", dial: "44", flag: "🇬🇧", ar: "المملكة المتحدة", en: "United Kingdom" },
+    { iso: "US", dial: "1", flag: "🇺🇸", ar: "الولايات المتحدة", en: "United States", trunk: "" },
+    { iso: "CA", dial: "1", flag: "🇨🇦", ar: "كندا", en: "Canada", trunk: "" },
+    { iso: "FR", dial: "33", flag: "🇫🇷", ar: "فرنسا", en: "France" },
+    { iso: "DE", dial: "49", flag: "🇩🇪", ar: "ألمانيا", en: "Germany" },
+    { iso: "IT", dial: "39", flag: "🇮🇹", ar: "إيطاليا", en: "Italy", trunk: "" },
+    { iso: "ES", dial: "34", flag: "🇪🇸", ar: "إسبانيا", en: "Spain", trunk: "" },
+    { iso: "NL", dial: "31", flag: "🇳🇱", ar: "هولندا", en: "Netherlands" },
+    { iso: "SE", dial: "46", flag: "🇸🇪", ar: "السويد", en: "Sweden" },
+    { iso: "CH", dial: "41", flag: "🇨🇭", ar: "سويسرا", en: "Switzerland" },
+    { iso: "RU", dial: "7", flag: "🇷🇺", ar: "روسيا", en: "Russia", trunk: "8" },
+    { iso: "CN", dial: "86", flag: "🇨🇳", ar: "الصين", en: "China" },
+    { iso: "JP", dial: "81", flag: "🇯🇵", ar: "اليابان", en: "Japan" },
+    { iso: "KR", dial: "82", flag: "🇰🇷", ar: "كوريا الجنوبية", en: "South Korea" },
+    { iso: "AU", dial: "61", flag: "🇦🇺", ar: "أستراليا", en: "Australia" },
+    { iso: "BR", dial: "55", flag: "🇧🇷", ar: "البرازيل", en: "Brazil", trunk: "" }
+  ];
+  var PHONE_DEFAULT_ISO = "SA";
+
+  function phoneCountry(iso) {
+    for (var i = 0; i < PHONE_COUNTRIES.length; i++) if (PHONE_COUNTRIES[i].iso === iso) return PHONE_COUNTRIES[i];
+    return PHONE_COUNTRIES[0];
+  }
+  function phoneTrunk(c) { return c && typeof c.trunk === "string" ? c.trunk : "0"; }
+
+  /* يفصل رقما دوليا الى دولته وجزئه الوطني بصورته المحلية (بصفره ان كان لها صفر).
+     المفتاح الاطول يفوز كي لا يبتلع ‎+1‎ ما هو ‎+1xxx‎، والمجهول يرجع بلا دولة. */
+  function splitPhone(e164) {
+    var p = normalizePhone(e164);
+    if (!/^\+\d+$/.test(p)) return { iso: PHONE_DEFAULT_ISO, national: String(e164 || "").replace(/\D/g, "") };
+    var digits = p.slice(1), best = null;
+    for (var i = 0; i < PHONE_COUNTRIES.length; i++) {
+      var c = PHONE_COUNTRIES[i];
+      if (digits.indexOf(c.dial) === 0 && (!best || c.dial.length > best.dial.length)) best = c;
+    }
+    if (!best) return { iso: PHONE_DEFAULT_ISO, national: digits };
+    return { iso: best.iso, national: phoneTrunk(best) + digits.slice(best.dial.length) };
+  }
+
+  /* يركب الدولية من الدولة والرقم الوطني: يسقط الصفر الوطني ولا يسقط رقما بعده */
+  function joinPhone(iso, national) {
+    var c = phoneCountry(iso);
+    var n = String(national || "");
+    n = n.replace(/[\u0660-\u0669]/g, function (d) { return String(d.charCodeAt(0) - 0x0660); });
+    n = n.replace(/[\u06F0-\u06F9]/g, function (d) { return String(d.charCodeAt(0) - 0x06F0); });
+    n = n.replace(/\D/g, "");
+    var tr = phoneTrunk(c);
+    if (tr && n.indexOf(tr) === 0) n = n.slice(tr.length);
+    if (!n) return "";
+    return "+" + c.dial + n;
+  }
+
   var ORG_PROFILE_FIELDS = ["entity_type", "legal_name", "cr_number", "vat_number", "unified_number",
     "license_number", "national_address", "phone", "email", "website", "account_number", "iban", "bank_name", "account_name", "notes"];
 
