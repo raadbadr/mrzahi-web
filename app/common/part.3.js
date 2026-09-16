@@ -577,28 +577,22 @@
     });
   }
 
+  /* التفعيل عمل واحد في القاعدة لا خطوتين في المتصفح. كانت الخطوة الثانية (تحديث
+     organizations) تصمت حين لا يكون مدير المنصة مالكا للمنشاة ولا مديرا فيها، لان
+     سياسة orgs_update هي is_org_admin(id) وحدها وPostgREST لا يعد «صفر صف» خطا.
+     فبقيت Test تجريبية بعد ان فعل لها المهندس رعد enterprise (2026-09-17: «الشركة
+     دي ماهي ترايل، انا بنفسي معدلها امس»). الدالة SECURITY DEFINER في ترحيل 0155
+     تكتب الاشتراك وتحدث المنشاة معا، فاما ان ينجح الاثنان او لا شيء. */
   function adminActivate(input) {
     return run(function (client) {
       var a = input || {};
       if (!a.org_id || !a.plan_code) throw new Error("org_id and plan_code required");
-      var months = Number(a.months) || 0;
-      var expiresAt = months > 0 ? addMonths(new Date(), months).toISOString() : null;
-      var sub = {
-        org_id: a.org_id,
-        plan_code: a.plan_code,
-        status: "active",
-        expires_at: expiresAt,
-        activated_by: app.user.id,
-        note: a.note || null
-      };
-      return client.from("subscriptions").insert(sub).select("*").single().then(unwrap)
-        .then(function (row) {
-          return client.from("organizations")
-            .update({ plan_code: a.plan_code, plan_expires_at: expiresAt })
-            .eq("id", a.org_id)
-            .then(unwrap)
-            .then(function () { return row; });
-        });
+      return client.rpc("admin_activate_subscription", {
+        p_org: a.org_id,
+        p_plan: a.plan_code,
+        p_months: Number(a.months) || 0,
+        p_note: a.note || null
+      }).then(unwrap);
     });
   }
 
