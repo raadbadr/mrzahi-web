@@ -158,3 +158,4 @@
 20260911150000	ledger_audit_trail	0131_ledger_audit_trail.sql	added
 20260911160000	payments_vat_at_checkout	0132_payments_vat_at_checkout.sql	added
 20260911163000	vat_included_individuals	0133_vat_included_individuals.sql	added
+20260916120000	service_name_and_admin_pack	0134_service_name_and_admin_pack.sql	added
