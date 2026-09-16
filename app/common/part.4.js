@@ -768,11 +768,14 @@
     /* my_pack_config يعيد المفتاح باسم pack؛ قراءته باسم key كانت تترك القائمة
        بلا خيار معلم فيظهر أول خيار («شخصي») مهما كانت الواجهة الحقيقية. */
     var cur = (app.pack && (app.pack.pack || app.pack.key)) || "";
-    /* الواجهة تتبع نوع الحساب: حساب الفرد واجهته شخصية وحدها، وحساب الكيان
-       لا تظهر فيه الشخصية أصلا. القاعدة ترفض ما سوى ذلك على أي حال. */
-    var personal = !!(app.isPersonType && app.isPersonType(app.org && app.org.entity_type));
+    /* القائمة مرجعها entity_choices في القاعدة، لا قاعدة مكتوبة هنا، فلا
+       يتناقض موضعان: 0139 اعاد للحساب الشخصي خيارات التخصص (محاماة، تدريب،
+       تصميم)، والمنع الباقي وحده ان تعطى الواجهة الشخصية لكيان تجاري — وهو
+       محفوظ لان حزمة individual لا تقبل سوى individual في entity_choices. */
+    var ent = (app.org && app.org.entity_type) || "company";
     var list = packsCache.filter(function (pk) {
-      return personal ? pk.key === "individual" : pk.key !== "individual";
+      var choices = pk.entity_choices;
+      return (choices && choices.length) ? choices.indexOf(ent) !== -1 : true;
     });
     if (!list.length) list = packsCache;
     var opts = list.map(function (pk) {
@@ -780,7 +783,6 @@
       return '<option value="' + escapeHtml(pk.key) + '"' + (pk.key === cur ? " selected" : "") + ">" +
              escapeHtml(name) + "</option>";
     }).join("");
-    opts += '<option value="__default">' + escapeHtml(sidebarLabel(PACK_DEFAULT_LABELS)) + "</option>";
     return '<div class="app-orgbox" title="' + escapeHtml(sidebarLabel(PACK_LABELS)) + '">' +
              '<span class="app-orglabel">' + escapeHtml(sidebarLabel(PACK_LABELS)) + "</span>" +
              '<select class="app-orgselect" id="topPackSelect"' + (list.length < 2 ? " disabled" : "") + ">" + opts + "</select>" +
