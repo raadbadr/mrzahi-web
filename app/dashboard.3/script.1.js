@@ -187,11 +187,21 @@
                    words: ["حكم", "أحكام", "احكام", "ruling", "rulings", "judgment", "judgement", "jugement", "فیصلہ"] },
         contracts: { titleKey: "viewContracts", defaultCategory: "عقد",
                      words: ["عقد", "عقود", "contract", "contracts", "contrat", "معاہدہ"] },
-        /* صحتي: ادوية وعلاجات ومواعيد مراجعة. الدواء المنتظم يحمل data.repeat
-           فتنشأ جرعته التالية وحدها عند اتمامه (المهندس رعد 2026-09-16). */
-        health: { titleKey: "viewHealth", defaultCategory: "دواء",
-                  words: ["دواء", "ادوية", "أدوية", "علاج", "علاجات", "جرعة", "مراجعة طبية", "موعد طبي",
-                          "medicine", "medication", "treatment", "dose", "medicament", "médicament", "دوا"] },
+        /* صحتي: كل ما يخص صحة صاحبها لا الدواء وحده — ادوية وعلاجات وجرعات،
+           ومواعيد الطبيب والفحوص والتحاليل والتطعيم، واشتراك النادي وحصص
+           التمرين واللياقة (المهندس رعد 2026-09-16: «حط النادي الجيم، مو شرط
+           ادوية وعلاجات فقط»). وكل ما ينتظم منها يحمل data.repeat فتنشأ مرته
+           التالية وحدها عند اتمامه: جرعة يومية، حصة اسبوعية، اشتراك شهري. */
+        health: { titleKey: "viewHealth", defaultCategory: "صحة",
+                  words: ["صحة", "صحتي", "دواء", "ادوية", "أدوية", "علاج", "علاجات", "جرعة", "وصفة",
+                          "مراجعة طبية", "موعد طبي", "طبيب", "عيادة", "فحص", "فحوصات", "تحليل", "تحاليل",
+                          "اشعة", "أشعة", "تطعيم", "لقاح", "تأمين صحي",
+                          "نادي", "النادي", "جيم", "الجيم", "تمرين", "تمارين", "رياضة", "لياقة", "حصة",
+                          "اشتراك النادي", "مدرب",
+                          "health", "medicine", "medication", "treatment", "dose", "prescription",
+                          "checkup", "clinic", "doctor", "lab", "vaccine", "gym", "fitness", "workout",
+                          "training", "coach", "sport", "medicament", "médicament", "salle", "sante", "santé",
+                          "دوا", "جم", "صحت", "ورزش"] },
         meetings: { titleKey: "viewMeetings", defaultCategory: "اجتماع",
                     /* «جلسة» في مكتب المحاماة جلسة محكمة لا اجتماعا، فلا تدخل هنا */
                     words: ["اجتماع", "اجتماعات", "meeting", "meetings", "reunion", "réunion", "میٹنگ"] }
