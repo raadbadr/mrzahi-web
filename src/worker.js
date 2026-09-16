@@ -259,16 +259,22 @@ function targetDisplayName(target, lang, fallbackName) {
 
 // --- رمز ربط موقع (HMAC بسر الـ Worker، الدالة hmacHex في telegram-documents.js): زر داخل البوت يفتح الإعدادات فتربط الجلسة المحادثة بلا أي كتابة ---
 async function makeLinkToken(env, chatId) {
-  const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24; // صالح يوما
-  const body = `${chatId}.${exp}`;
-  return `${body}.${await hmacHex(env.WORKER_SECRET, body)}`;
+  /* الرمز لا يحمل معرف المحادثة: يحمل معرف سطر في القاعدة يستهلك مرة واحدة ويموت
+     بعد عشر دقائق. كان يوقع معرف المحادثة ويبقى يوما ويقبل من اي جلسة، فمن كتب
+     للبوت اخذ رابطا لمحادثته هو وارسله للضحية فتحول صفها اليه بنقرة واحدة. */
+  const out = await rpc(env, "tglink_issue", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_minutes: 10 });
+  if (!out || !out.id) throw new Error("tglink_issue failed");
+  return `${out.id}.${await hmacHex(env.WORKER_SECRET, String(out.id))}`;
+}
+function parseLinkToken(token) {
+  const m = String(token || "").match(/^([0-9a-f-]{36})\.([a-f0-9]{64})$/i);
+  return m ? { id: m[1], sig: m[2] } : null;
 }
 async function readLinkToken(env, token) {
-  const m = String(token || "").match(/^(-?\d{1,20})\.(\d{1,12})\.([a-f0-9]{64})$/);
-  if (!m) return null;
-  if (Number(m[2]) < Math.floor(Date.now() / 1000)) return null;
-  const expect = await hmacHex(env.WORKER_SECRET, `${m[1]}.${m[2]}`);
-  return safeEqual(expect, m[3]) ? m[1] : null;
+  const p = parseLinkToken(token);
+  if (!p) return null;
+  const expect = await hmacHex(env.WORKER_SECRET, p.id);
+  return safeEqual(expect, p.sig) ? p.id : null;
 }
 
 /** الترحيب بعد الربط: باسم المستخدم وشركته وبلغة ملفه، مع لوحة الأزرار */
@@ -646,7 +652,10 @@ async function handleTelegramWebhook(request, env) {
 
   // 2) مشاركة جهة الاتصال (رقم صاحب المحادثة نفسه): الربط بالرقم المسجل في الملف الشخصي
   const contact = msg && msg.contact;
-  if (contact && contact.phone_number && (!contact.user_id || String(contact.user_id) === String(from.id))) {
+  /* بطاقة بلا user_id هي بطاقة من دفتر عناوين المرسل لا بطاقته هو، وتيليغرام لا
+   يرسل الحقل الا حين تخص حسابا معروفا. قبولها كان يربط محادثة المهاجم بحساب
+   صاحب الرقم فيصير صاحبه امام النظام (فحص الصلاحيات 2026-09-16). */
+  if (contact && contact.phone_number && contact.user_id && String(contact.user_id) === String(from.id)) {
     userId = null;
     try { userId = await linkChannelByPhone(env, "telegram", contact.phone_number, chatId); } catch {}
     action = userId ? "linked" : "bad_code";
@@ -859,14 +868,31 @@ async function handleIntent(request, env) {
 }
 
 /** POST /api/telegram/link { token } — المستخدم المسجل يربط محادثة البوت بضغطة الزر الذي أرسله البوت */
-async function handleTelegramLink(request, env) {
+async function handleTelegramLink(request, env, url) {
   const user = await authedUser(request, env);
   if (!user) return json({ error: "unauthorized" }, 401);
   if (!env.WORKER_SECRET) return json({ error: "not configured" }, 503);
+
+  /* GET: اطلاع لا ربط. الصفحة تعرض المحادثة وتطلب تاكيدا صريحا، فلا يربط احد
+     محادثة غيره بنقرة على رابط وصله (فحص الصلاحيات 2026-09-16). */
+  if (request.method === "GET") {
+    const id = await readLinkToken(env, url.searchParams.get("token"));
+    if (!id) return json({ error: "bad_token" }, 400);
+    let peek = null;
+    try { peek = await rpc(env, "tglink_peek", { p_secret: env.WORKER_SECRET, p_id: id }); } catch { peek = null; }
+    if (!peek || peek.status !== "ok") return json({ error: "bad_token" }, 400);
+    return json({ ok: true, chat_id: String(peek.chat_id) });
+  }
+
   let body;
   try { body = await request.json(); } catch { body = {}; }
-  const chatId = await readLinkToken(env, body && body.token);
-  if (!chatId) return json({ error: "bad_token" }, 400);
+  const id = await readLinkToken(env, body && body.token);
+  if (!id) return json({ error: "bad_token" }, 400);
+  if (body.confirm !== true) return json({ error: "confirm_required" }, 400);
+  let used = null;
+  try { used = await rpc(env, "tglink_consume", { p_secret: env.WORKER_SECRET, p_id: id, p_user: user.id }); } catch { used = null; }
+  if (!used || used.status !== "ok") return json({ error: "bad_token" }, 400);
+  const chatId = String(used.chat_id);
   try { await linkChannelDirect(env, user.id, "telegram", chatId); } catch (e) {
     console.log("telegram link failed", String((e && e.message) || e).slice(0, 200));
     return json({ error: "link_failed" }, 502);
@@ -1144,7 +1170,7 @@ export default {
         return await handleNotifyTest(request, env);
       }
       if (path === "/api/telegram/webhook" && request.method === "POST") return await handleTelegramWebhook(request, env);
-      if (path === "/api/telegram/link" && request.method === "POST") return await handleTelegramLink(request, env);
+      if (path === "/api/telegram/link" && (request.method === "POST" || request.method === "GET")) return await handleTelegramLink(request, env, url);
       if (path === "/api/intent" && request.method === "POST") return await handleIntent(request, env);
       if (path === "/api/whatsapp/webhook") return await handleWhatsappWebhook(request, env, url);
       return json({ error: "not found" }, 404);

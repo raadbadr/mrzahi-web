@@ -99,18 +99,13 @@ function describeRows(rows) {
 }
 
 async function resolveActor(ctx, a) {
+  /* المفتاح يتصرف باسم صاحبه وحده. كان telegram_user_id ينتحل اي عضو، وبعد قبول
+     الانتحال تستخرج دوال telegram_* المنشأة من المنتحل لا من المفتاح، فيعبر حامل
+     المفتاح الى منشأة اخرى ينتمي اليها ذلك العضو، ولو انتحل مدير منصة عادت اليه
+     ارقام المنصة كلها. الانتحال ملغى (فحص الصلاحيات 2026-09-16)؛ ويبقى معرف
+     تيليغرام لاداة الربط وحدها لانها تطلب رمز الاعدادات اثباتا. */
   const tg = a && a.telegram_user_id ? String(a.telegram_user_id).trim() : "";
-  if (!tg) return { user: ctx.who.user_id, name: null, tg: "" };
-  let hit = null;
-  try { hit = await ctx.rpc("channel_user_lookup", { p_secret: ctx.env.WORKER_SECRET, p_channel: "telegram", p_external_id: tg }); } catch (e) { hit = null; }
-  if (!hit || !hit.user_id) return { user: null, name: null, tg };
-  /* المفتاح يعمل لشركة واحدة: مستخدم تيليغرام من شركة أخرى لا يتصرف باسمه */
-  if (ctx.who && ctx.who.org_id) {
-    let orgs = [];
-    try { orgs = (await ctx.rpc("telegram_org_choices", { p_secret: ctx.env.WORKER_SECRET, p_user_id: hit.user_id })) || []; } catch (e) { orgs = []; }
-    if (!orgs.some((o) => o && String(o.id) === String(ctx.who.org_id))) return { user: null, name: hit.name || null, tg, notMember: true };
-  }
-  return { user: hit.user_id, name: hit.name || null, tg };
+  return { user: ctx.who.user_id, name: null, tg };
 }
 
 export async function callTool(name, args, ctx) {
