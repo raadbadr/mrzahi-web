@@ -37,6 +37,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
   var LOGIN_PATH = "/login.html";
   var ORG_KEY = "mrzahi_org";
   var LANG_KEY = "mrzahi_lang";
+  var LANGS = ["ar", "en", "fr", "ur"];
   var TIME_ZONE = "Asia/Riyadh";
   var ITEM_COLUMNS = "id,item_number,title,category,due_at,status,assignee_id,amount,client_name,client_name_en,case_number,data,record_id,records(name),remind_before,created_at,updated_at";
   var INSERT_CHUNK = 200;
@@ -55,8 +56,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       accountDeletionCancelled: "سجلت الدخول، فألغينا طلب حذف حسابك.",
       notAllowed: "لا تملك صلاحية هذا الإجراء.",
       errDuplicate: "هذه القيمة مسجلة من قبل، اختر غيرها.",
-      errLinkMissing: "عنصر مرتبط غير موجود. حدّث الصفحة ثم أعد المحاولة.",
-      errExpired: "انتهت جلستك. سجّل الدخول من جديد.",
+      errLinkMissing: "عنصر مرتبط غير موجود. حدث الصفحة ثم أعد المحاولة.",
+      errExpired: "انتهت جلستك. سجل الدخول من جديد.",
       errOffline: "انقطع الاتصال. تحقق من اتصالك ثم أعد المحاولة.",
       errSlow: "تأخر الاتصال ولم يكتمل الطلب. أعد المحاولة."
     },
@@ -603,6 +604,23 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     else document.addEventListener("DOMContentLoaded", mount);
   }
 
+  /* اللغة التي يختارها المستخدم ترفع الى الملف الشخصي فور اختيارها، فلا يبقى في القاعدة
+     اختيار قديم يعاد فرضه عند اعادة التحميل، ويصل البوت باللغة نفسها. */
+  function saveProfileLang(code) {
+    if (!code || LANGS.indexOf(code) === -1) return Promise.resolve();
+    if (app.profile) app.profile.lang = code;
+    if (!app.client || !app.user) return Promise.resolve();
+    return app.client.from("profiles").update({ lang: code }).eq("id", app.user.id)
+      .then(function () { }, function () { /* ignore */ });
+  }
+  app.saveProfileLang = saveProfileLang;
+
+  document.addEventListener("click", function (ev) {
+    var node = ev.target;
+    var item = (node && node.closest) ? node.closest("#langDropdown [data-lang]") : null;
+    if (item) saveProfileLang(item.getAttribute("data-lang"));
+  });
+
   function init() {
     var auth = window.mrzahiAuth;
     if (!auth || !auth.ready) {
@@ -625,12 +643,19 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
         initStep = "profile";
         return withTimeout(loadProfile(app.client, app.user), 8000, "profile").then(function (profile) {
           app.profile = profile;
-          /* لغة الملف الشخصي هي المرجع: واجهة واحدة بلغة واحدة على كل جهاز (لا «Account» وسط صفحة عربية) */
+          /* اختيار اللغة يفضل محفوظا: المحفوظ في هذا المتصفح هو الاحدث فيرفع الى الملف الشخصي
+             (رسائل البوت تقرا lang منه)، ولا يكتب القديم فوقه. ومتصفح بلا اختيار محفوظ يتبع
+             الملف الشخصي فتتوحد اللغة عند اول دخول. امر المهندس رعد 2026-09-16: «غيرت انجليزي
+             خلاص يفضل انجليزي مو يرجعني عربي». */
           try {
-            var wanted = profile && profile.lang;
-            if (wanted && ["ar", "en", "fr", "ur"].indexOf(wanted) !== -1 && wanted !== lang()) {
-              localStorage.setItem(LANG_KEY, wanted);
-              if (typeof window.setLang === "function") window.setLang(wanted);
+            var storedLang = null;
+            try { storedLang = localStorage.getItem(LANG_KEY); } catch (e) { storedLang = null; }
+            var profileLang = profile && profile.lang;
+            if (storedLang && LANGS.indexOf(storedLang) !== -1) {
+              if (storedLang !== profileLang) saveProfileLang(storedLang);
+            } else if (profileLang && LANGS.indexOf(profileLang) !== -1) {
+              localStorage.setItem(LANG_KEY, profileLang);
+              if (typeof window.setLang === "function") window.setLang(profileLang);
             }
           } catch (e) { /* ignore */ }
           /* الدخول خلال فترة السماح يلغي طلب حذف الحساب تلقائيا (معيار باركينزي بالضبط) */
