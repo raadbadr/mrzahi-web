@@ -263,16 +263,44 @@
               "</div>";
           }
 
+          /* البطاقة كانت 666 بكسل للعضو الواحد، فخمسة اعضاء جدار صناديق. الاسم
+             والدور والمسمى والتاريخ تبقى ظاهرة، وادوات الضبط تطوى خلف زر
+             (امر المهندس رعد 2026-09-17: «اطو اعدادات العضو»). المفتوح يبقى
+             مفتوحا بعد اعادة الرسم فلا ينغلق تحت يد من يضبط. */
+          var open = openSettings[m.user_id] === true;
+          var foldable = controls
+            ? '<button type="button" class="chat-option-btn member-more" data-more-user="' + esc(m.user_id) + '" aria-expanded="' + (open ? "true" : "false") + '">' +
+                '<span class="member-more-text">' + esc(t("memberSettings")) + "</span>" +
+                '<svg class="member-more-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></svg>' +
+              "</button>" +
+              '<div class="member-settings" data-settings-user="' + esc(m.user_id) + '"' + (open ? "" : " hidden") + ">" + controls + "</div>"
+            : "";
           return '<div class="feature-card" role="listitem">' +
                    "<h3>" + esc(name) + "</h3>" +
                    "<p>" + badges + "</p>" +
-                   '<div class="platform-stat-detail">' + rows + controls + "</div>" +
+                   '<div class="platform-stat-detail">' + rows + "</div>" +
+                   foldable +
                  "</div>";
         }).join("");
         show("membersEmpty", !state.members.length);
       }
 
+      /* من فتح اعدادات عضو يبقى مفتوحا حتى يغلقه هو، ولو اعيد رسم القائمة */
+      var openSettings = {};
+
       function onMembersClick(ev) {
+        var more = ev.target.closest ? ev.target.closest("[data-more-user]") : null;
+        if (more) {
+          var mUser = more.getAttribute("data-more-user");
+          var panel = document.querySelector('[data-settings-user="' + mUser + '"]');
+          if (panel) {
+            var willOpen = panel.hidden;
+            panel.hidden = !willOpen;
+            more.setAttribute("aria-expanded", willOpen ? "true" : "false");
+            openSettings[mUser] = willOpen;
+          }
+          return;
+        }
         var btn = ev.target.closest("[data-remove-user]");
         if (!btn) return;
         var userId = btn.getAttribute("data-remove-user");
