@@ -763,6 +763,9 @@
      والقائمة تعرض ما يقبله نوع الحساب فقط لان القاعدة ترفض غيره. */
   function packBoxHtml() {
     if (!canChangePack()) return "";
+    /* الواجهات للشركات وحدها: الحساب الشخصي واجهته شخصية ثابتة فلا قائمة فيه
+       (المهندس رعد 2026-09-16: «دا حساب ودا حساب»). */
+    if (isPersonType(app.org && app.org.entity_type)) return "";
     if (!packsCache) {
       if (!packsAsked && app && typeof app.listPacks === "function") {
         packsAsked = true;
