@@ -127,6 +127,7 @@
   app.entityTypes = function () { return ENTITY_TYPES.slice(); };
   app.entityLabel = entityLabel;
   app.isPersonType = isPersonType;
+  app.peekTelegramLink = peekTelegramLink;
   app.isOrgOwner = isOrgOwner;
   app.isOrgAdmin = isOrgAdmin;
   app.normalizePhone = normalizePhone;

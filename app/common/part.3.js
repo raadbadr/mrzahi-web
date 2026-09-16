@@ -198,21 +198,37 @@
   }
 
   /* ربط محادثة Telegram من زر داخل البوت: الرمز الموقع يأتي في رابط الإعدادات (?tglink=) */
-  function linkTelegramByToken(token) {
+  /* الربط يجري بخطوتين منذ 2026-09-16: قراءة المحادثة اولا بلا ربط ولا استهلاك،
+     ثم ربط بتاكيد صريح من صاحب الحساب. الرمز يستهلك مرة واحدة ويموت بعد عشر
+     دقائق، لان رمزا يوقع المحادثة وحدها كان يمكن ارساله للضحية فتربط بمحادثة
+     غيرها بنقرة واحدة. */
+  function telegramLinkRequest(token, confirm) {
     return app.ready.then(function () {
       requireClient();
       return window.mrzahiAuth.getSession();
     }).then(function (session) {
       var jwt = session && session.access_token;
       if (!jwt) return redirectToLogin();
-      return fetch("/api/telegram/link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: "Bearer " + jwt },
-        body: JSON.stringify({ token: token })
-      }).then(function (res) {
+      var url = "/api/telegram/link";
+      var opts = { headers: { Accept: "application/json", Authorization: "Bearer " + jwt } };
+      if (confirm) {
+        opts.method = "POST";
+        opts.headers["Content-Type"] = "application/json";
+        opts.body = JSON.stringify({ token: token, confirm: true });
+      } else {
+        opts.method = "GET";
+        url += "?token=" + encodeURIComponent(token);
+      }
+      return fetch(url, opts).then(function (res) {
         return res.json().catch(function () { return { error: "HTTP " + res.status }; });
       });
     });
+  }
+
+  function peekTelegramLink(token) { return telegramLinkRequest(token, false); }
+
+  function linkTelegramByToken(token) {
+    return telegramLinkRequest(token, true);
   }
 
   /* ---------- مصفوفة RASI: أدوار الأعضاء على العناصر ---------- */

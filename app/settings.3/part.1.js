@@ -183,10 +183,19 @@
         params.delete("tglink");
         var clean = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
         try { window.history.replaceState(null, "", clean); } catch (e) { /* ignore */ }
-        return app.linkTelegramByToken(token).then(function (res) {
-          if (res && res.ok) { toast(t("tgLinked"), "success"); expanded.telegram = true; }
-          else toast(t("tgLinkFailed"), "error");
-          return reloadLinks();
+        /* لا يربط بنقرة الرابط وحدها: يقرا المحادثة ثم يسال صاحب الحساب صراحة،
+           فرابط ارسله غيره لا يربط حسابه بمحادثة ذلك الغير (امر 2026-09-16). */
+        return app.peekTelegramLink(token).then(function (peek) {
+          if (!peek || !peek.ok || !peek.chat_id) { toast(t("tgLinkFailed"), "error"); return null; }
+          if (!window.confirm(t("tgLinkConfirm").split("{id}").join(String(peek.chat_id)))) {
+            toast(t("tgLinkCancelled"), "error");
+            return null;
+          }
+          return app.linkTelegramByToken(token).then(function (res) {
+            if (res && res.ok) { toast(t("tgLinked"), "success"); expanded.telegram = true; }
+            else toast(res && res.error === "confirm_required" ? t("tgLinkConfirmRequired") : t("tgLinkFailed"), "error");
+            return reloadLinks();
+          });
         }).catch(function () { toast(t("tgLinkFailed"), "error"); });
       }
 
@@ -735,11 +744,14 @@
       function renderDriveSwitch() {
         var box = el("storageDriveToggle"), status = el("storageDriveStatus");
         if (!box || !status) return;
-        var available = !!(app.driveOAuthAvailable && app.driveOAuthAvailable());
+        /* تخزين المنشاة قرار مالك او مشرف منذ 2026-09-16: القاعدة ترفض غيرهما
+           بـ not_admin، فلا يعرض عليه مفتاح يوهمه انه يملكه. */
+        var mayDrive = !(app.isOrgAdmin && !app.isOrgAdmin());
+        var available = !!(app.driveOAuthAvailable && app.driveOAuthAvailable()) && mayDrive;
         var on = !!(app.profile && app.profile.storage_mode === "drive");
         box.checked = on && available;
         box.disabled = !available;
-        status.textContent = !available ? t("storageDriveUnavailable") : (on ? "" : t("storageDriveOff"));
+        status.textContent = !mayDrive ? t("storageDriveAdminOnly") : (!available ? t("storageDriveUnavailable") : (on ? "" : t("storageDriveOff")));
         var row = el("storageDriveRow");
         if (row) row.classList.toggle("is-on", box.checked);
         var link = el("storageDriveFolderLink");
