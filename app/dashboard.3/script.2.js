@@ -531,6 +531,51 @@
         fillRenewalOptions($(prefix + "ContractRenewal"), f.renewal);
       }
 
+      /* ــ المبيعات: الصفقة بمراحلها لا بحالة «مفتوح/منجز» (امر المهندس رعد
+         2026-09-17: «المبيعات تحتاج اعادة تصميم، مو معقول كل الواجهات نحصل نفس
+         الشي العام الخاص بالمحامين») ــ المرحلة واحتمال الاغلاق ومصدر العميل تكتب
+         في data كما تفعل العقود وصحتي بلا عمود جديد. والقيمة هي amount، والعميل
+         client_name، وتاريخ الاغلاق المتوقع due_at، ورقم الصفقة case_number —
+         كلها اعمدة قائمة. */
+      var DEAL_STAGES = [
+        { value: "lead", key: "dealStageLead" },
+        { value: "contact", key: "dealStageContact" },
+        { value: "proposal", key: "dealStageProposal" },
+        { value: "negotiation", key: "dealStageNegotiation" },
+        { value: "won", key: "dealStageWon" },
+        { value: "lost", key: "dealStageLost" }
+      ];
+      function fillDealOptions(prefix) {
+        var sel = $(prefix + "DealStage");
+        if (!sel) return;
+        var v = sel.value;
+        sel.innerHTML = DEAL_STAGES.map(function (o) {
+          return '<option value="' + o.value + '">' + T(o.key) + "</option>";
+        }).join("");
+        sel.value = v || "lead";
+      }
+      function dealStageLabel(v) {
+        for (var i = 0; i < DEAL_STAGES.length; i++) if (DEAL_STAGES[i].value === v) return T(DEAL_STAGES[i].key);
+        return v || "-";
+      }
+      function dealRowData(prefix) {
+        if (state.viewType !== "deals") return null;
+        var stage = $(prefix + "DealStage"), prob = $(prefix + "DealProbability"), src = $(prefix + "DealSource");
+        var out = {};
+        if (stage && stage.value) out.deal_stage = stage.value;
+        out.deal_probability = (prob && prob.value !== "") ? Math.max(0, Math.min(100, Number(prob.value))) : null;
+        if (src && src.value.trim()) out.deal_source = src.value.trim();
+        return out;
+      }
+      function fillDealFields(prefix, item) {
+        fillDealOptions(prefix);
+        var d = (item && item.data) || {};
+        var stage = $(prefix + "DealStage"), prob = $(prefix + "DealProbability"), src = $(prefix + "DealSource");
+        if (stage) stage.value = d.deal_stage || "lead";
+        if (prob) prob.value = (d.deal_probability === 0 || d.deal_probability) ? d.deal_probability : "";
+        if (src) src.value = d.deal_source || "";
+      }
+
       /* ــ «صحتي»: نموذج متخصص لا نموذج عام (امر المهندس رعد 2026-09-16: «صحتي
          ابغى اضيف عنصر، ليش الاضافة العامة الغبية، فين الاضافة المتخصصة») ــ
          النوع والجرعة والتكرار والطبيب، تكتب في data كما تفعل العقود بلا عمود
@@ -1623,6 +1668,7 @@
         applyViewFields();
         if (state.viewType === "contracts") fillRenewalOptions($("addContractRenewal"), $("addContractRenewal").value);
         if (state.viewType === "health") { fillHealthOptions("add"); ensureHealthRecord(); }
+        if (state.viewType === "deals") fillDealOptions("add");
         var p = $("addItemPanel");
         p.hidden = !p.hidden;
         clearMsg("addMsg");
@@ -1651,6 +1697,8 @@
         };
         var cdata = contractRowData("add");
         if (cdata) row.data = cdata;
+        var ddata = dealRowData("add");
+        if (ddata) row.data = Object.assign({}, row.data || {}, ddata);
         var hdata = healthRowData("add");
         if (hdata) {
           row.data = Object.assign({}, row.data || {}, hdata);
@@ -1826,6 +1874,7 @@
         applyViewFields();
         if (state.viewType === "contracts") fillContractFields("edit", item);
         if (state.viewType === "health") fillHealthFields("edit", item);
+        if (state.viewType === "deals") fillDealFields("edit", item);
         fillRemindOptions($("editRemind"), item.remind_before);
         clearMsg("editMsg");
         show("editPanel");

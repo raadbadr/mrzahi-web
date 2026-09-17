@@ -26,6 +26,8 @@
         /* data تستبدل كاملة عند الحفظ، فتدمج بيانات العقد فوق ما كان لا بدلا منه. */
         var cdata = contractRowData("edit");
         if (cdata) patch.data = Object.assign({}, state.editing.data || {}, cdata);
+        var ddata = dealRowData("edit");
+        if (ddata) patch.data = Object.assign({}, patch.data || state.editing.data || {}, ddata);
         var hdata = healthRowData("edit");
         if (hdata) {
           patch.data = Object.assign({}, patch.data || state.editing.data || {}, hdata);

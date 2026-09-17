@@ -676,6 +676,10 @@
     { href: "/app/dashboard.html?type=contracts", path: "type=contracts", service: "contracts", packOnly: true,
       icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h5v-2H6V4h7v5h5v2h2V8l-6-6zM8 13h5v2H8v-2z"/><path d="M21.7 14.3l-1-1a1 1 0 00-1.4 0l-.9.9 2.4 2.4.9-.9a1 1 0 000-1.4zM13 19.9V22h2.1l6-6-2.4-2.4-5.7 5.7z"/>',
       labels: { ar: "العقود", en: "Contracts", fr: "Contrats", ur: "معاہدے" } },
+    /* الصفقات: لواجهة المبيعات وحدها (packOnly) فلا تظهر عند غيرها */
+    { href: "/app/dashboard.html?type=deals", path: "type=deals", service: "deals", packOnly: true,
+      icon: '<path d="M3 3h2v18H3V3zm4 12h3v6H7v-6zm5-6h3v12h-3V9zm5-4h3v16h-3V5z"/>',
+      labels: { ar: "الصفقات", en: "Deals", fr: "Affaires", ur: "سودے" } },
     { href: "/app/dashboard.html?type=violations", path: "type=violations", service: "violations",
       icon: '<path d="M12 2L1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/>',
       labels: { ar: "المخالفات", en: "Violations", fr: "Infractions", ur: "خلاف ورزیاں" } },
