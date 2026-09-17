@@ -544,8 +544,16 @@
         { value: "fitness", key: "healthKindFitness", category: "تمرين" },
         { value: "insurance", key: "healthKindInsurance", category: "تأمين صحي" }
       ];
+      /* التكرار يصف وصفة الطبيب لا درجات عامة (امر المهندس رعد 2026-09-17: «لازم
+         يكون فيه التكرار حسب وصفة الطبيب»): جرعة تتكرر داخل اليوم بالساعات، ومعها
+         «حتى تاريخ» فتنتهي الوصفة ولا تستمر الجرعات الى الابد. المشغل في القاعدة
+         (ترحيل 0160) يفهم الخطوات السبع و data.repeat_until. */
       var HEALTH_REPEATS = [
         { value: "", key: "healthRepeatNone" },
+        { value: "every_4h", key: "healthRepeat4h" },
+        { value: "every_6h", key: "healthRepeat6h" },
+        { value: "every_8h", key: "healthRepeat8h" },
+        { value: "every_12h", key: "healthRepeat12h" },
         { value: "daily", key: "healthRepeatDaily" },
         { value: "weekly", key: "healthRepeatWeekly" },
         { value: "monthly", key: "healthRepeatMonthly" }
@@ -576,6 +584,9 @@
         if (dose && dose.value.trim()) out.dose = dose.value.trim();
         /* repeat فارغ يمحى صراحة فلا يبقى تكرار قديم بعد الغائه */
         out.repeat = rep && rep.value ? rep.value : null;
+        /* نهاية الوصفة: بعدها لا تنشا جرعة تالية. تمحى ايضا حين تفرغ */
+        var until = $(prefix + "HealthUntil");
+        out.repeat_until = (until && until.value) ? until.value : null;
         if (who && who.value.trim()) out.provider = who.value.trim();
         if (note && note.value.trim()) out.health_note = note.value.trim();
         return out;
@@ -596,6 +607,8 @@
         if (kind) kind.value = d.health_kind || "medicine";
         if (dose) dose.value = d.dose || "";
         if (rep) rep.value = d.repeat || "";
+        var until = $(prefix + "HealthUntil");
+        if (until) until.value = d.repeat_until || "";
         if (who) who.value = d.provider || "";
         if (note) note.value = d.health_note || "";
       }
