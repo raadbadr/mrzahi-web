@@ -93,9 +93,13 @@
     if (profileComplete()) return;
 
     var t = profileText();
-    /* الملف لم يقرا من القاعدة (انقطاع او اعادة تشغيل): الحقيقة «تعذر الاتصال»
-       لا «بياناتك ناقصة» — فلا يطلب من المستخدم اكمال ما هو مكتمل ثم يفشل حفظه. */
-    if (app.profile && app.profile._offline) {
+    /* الملف لم يقرا من القاعدة (انقطاع او اعادة تشغيل او فشل النداء فبقي null):
+       الحقيقة «تعذر الاتصال» لا «بياناتك ناقصة» — فلا يطلب من المستخدم اكمال ما
+       هو مكتمل ثم يفشل حفظه. كان الشرط يفحص العلامة على ملف موجود وحده، فاذا
+       فشلت القراءة راسا وبقي app.profile فارغا سقط الى نموذج «اكمل بياناتك»
+       (شكوى المهندس رعد 2026-09-17: «في مشكلة في الاتصال تطلع شاشة غبية لتسجيل
+       المستخدم واضافة رقم الجوال»). */
+    if (!app.profile || app.profile._offline) {
       var os = document.createElement("style"); os.textContent = PROFILE_CSS; document.head.appendChild(os);
       var og = document.createElement("div"); og.id = "appProfileGate"; og.className = "app-gate";
       og.innerHTML = '<div class="app-gate-card" role="dialog" aria-modal="true"><h2>' + escapeHtml(t.offlineTitle) + "</h2><p>" +
@@ -104,45 +108,10 @@
       document.getElementById("gateRetry").addEventListener("click", function () { window.location.reload(); });
       return;
     }
-    var style = document.createElement("style");
-    style.textContent = PROFILE_CSS;
-    document.head.appendChild(style);
-
-    var gate = document.createElement("div");
-    gate.id = "appProfileGate";
-    gate.className = "app-gate";
-    gate.innerHTML =
-      '<div class="app-gate-card" role="dialog" aria-modal="true">' +
-        "<h2>" + escapeHtml(t.title) + "</h2><p>" + escapeHtml(t.intro) + "</p>" +
-        "<label>" + escapeHtml(t.name) + '<input type="text" id="gateName" maxlength="120" autocomplete="name" value="' +
-          escapeHtml(String((app.profile || {}).full_name || "")) + '" dir="auto"></label>' +
-        "<label>" + escapeHtml(t.phone) + '<input type="tel" id="gatePhone" dir="ltr" placeholder="0512345678" autocomplete="tel" value="' +
-          escapeHtml(String((app.profile || {}).phone || "")) + '"></label>' +
-        '<button type="button" id="gateSave">' + escapeHtml(t.save) + "</button>" +
-        '<div class="app-gate-msg" id="gateMsg"></div>' +
-      "</div>";
-    document.body.appendChild(gate);
-
-    document.getElementById("gateSave").addEventListener("click", function () {
-      var name = String(document.getElementById("gateName").value || "").trim();
-      var phone = normalizePhone(document.getElementById("gatePhone").value);
-      var msg = document.getElementById("gateMsg");
-      if (name.split(/\s+/).length < 2 || !isValidPhone(phone)) { msg.textContent = t.invalid; return; }
-      document.getElementById("gatePhone").value = phone;
-      var btn = document.getElementById("gateSave");
-      btn.disabled = true;
-      msg.textContent = "";
-      updateProfile({ full_name: name, phone: phone }).then(function () {
-        /* المساحة الشخصية تنشا من الاسم، والاسم لم يكن معروفا وقت الاقلاع: من لا
-           مساحة له تعاد صفحته ليجد مساحته جاهزة بدل شاشة «انشئ حسابا» (ملاحظة
-           وكيل القاعدة 2026-09-16). */
-        if (!(app.orgs && app.orgs.length)) { window.location.reload(); return; }
-        gate.remove();
-      }).catch(function () {
-        btn.disabled = false;
-        msg.textContent = t.error;
-      });
-    });
+    /* ولا شاشة تعترض من دخل وملفه موجود (امر المهندس رعد 2026-09-17: «الملف
+       موجود والمستخدم دخل، الشاشة دي غبية ومالها داعي»): الاسم والجوال يكملان
+       من بطاقة «الملف الشخصي» في الاعدادات متى شاء صاحبها، ولا يحجز عليه
+       التطبيق. هذا يبطل ما كان في القاعدة 3 من ايجاب تسجيلهما عند اول دخول. */
   }
 
   var JOINED_LABELS = {
