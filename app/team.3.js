@@ -155,7 +155,9 @@
       function emailHtml(value) {
         var text = String(value == null ? "" : value);
         if (!text) return "-";
-        return esc(text).replace(/@/g, "<wbr>@").replace(/\./g, "<wbr>.");
+        /* الكسر عند @ وحدها: الكسر عند كل نقطة كان ينزل «.com» سطرا وحده
+           (شكوى المهندس رعد 2026-09-17). */
+        return esc(text).replace(/@/g, "<wbr>@");
       }
 
       function renderMembers() {
@@ -306,7 +308,7 @@
               "</button>" +
               '<div class="member-settings" data-settings-user="' + esc(m.user_id) + '"' + (open ? "" : " hidden") + ">" + controls + "</div>"
             : "";
-          return '<div class="feature-card" role="listitem">' +
+          return '<div class="feature-card' + (open ? " is-open" : "") + '" role="listitem" data-card-user="' + esc(m.user_id) + '">' +
                    "<h3>" + esc(name) + "</h3>" +
                    "<p>" + badges + "</p>" +
                    '<div class="platform-stat-detail">' + rows + "</div>" +
@@ -326,9 +328,31 @@
           var panel = document.querySelector('[data-settings-user="' + mUser + '"]');
           if (panel) {
             var willOpen = panel.hidden;
+            /* عضو واحد قيد التعديل: فتح بطاقة يغلق ما سواها، فلا تبقى الصفحة
+               جدارا من الصناديق المفتوحة (امر المهندس رعد 2026-09-17). */
+            Array.prototype.forEach.call(document.querySelectorAll("[data-settings-user]"), function (other) {
+              if (other === panel) return;
+              other.hidden = true;
+              var ou = other.getAttribute("data-settings-user");
+              openSettings[ou] = false;
+              var ob = document.querySelector('[data-more-user="' + ou + '"]');
+              if (ob) ob.setAttribute("aria-expanded", "false");
+              var oc = document.querySelector('[data-card-user="' + ou + '"]');
+              if (oc) oc.classList.remove("is-open");
+            });
             panel.hidden = !willOpen;
             more.setAttribute("aria-expanded", willOpen ? "true" : "false");
             openSettings[mUser] = willOpen;
+            /* البطاقة قيد التعديل تاخذ عرض الصفحة كاملا لا طرفها، فتتسع حقولها
+               ولا تنكسر اسماء الواجهات في منتصف الكلمة (امر المهندس رعد
+               2026-09-17: «يكبر ويسير بكامل الصفحة مو في الطرف»). */
+            var card = document.querySelector('[data-card-user="' + mUser + '"]');
+            if (card) {
+              card.classList.toggle("is-open", willOpen);
+              if (willOpen && card.scrollIntoView) {
+                try { card.scrollIntoView({ behavior: "smooth", block: "nearest" }); } catch (e) { card.scrollIntoView(); }
+              }
+            }
           }
           return;
         }
