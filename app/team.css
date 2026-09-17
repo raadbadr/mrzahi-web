@@ -274,6 +274,46 @@
     /* البطاقة المفتوحة كانت تمط جاراتها الى طولها فتظهر فراغات فارغة تحت
        كل بطاقة مغلقة (شكوى المهندس رعد 2026-09-17). كل بطاقة بطولها هي. */
     #membersGrid { align-items: start; }
+    /* وقياس البطاقة المغلقة ثابت لا يتبع طول البيانات (امر المهندس رعد
+       2026-09-17: «الكروت دي لازم حجمها وتصميمها ثابت مايتغير حسب البيانات،
+       البيانات تتغير حسب الكرت»): الاسم وكل قيمة يحجزان سطرين، فبريد طويل او
+       مسمى وظيفي من كلمتين لا يطيل بطاقته دون جاراتها. والمعلومة كاملة: تلتف
+       داخل السطرين ولا تقص. */
+    #membersGrid .feature-card h3 {
+      min-height: 2.6em; display: flex; align-items: center; justify-content: flex-end;
+      text-align: end; margin: 0 0 0.5rem;
+    }
+    #membersGrid .platform-stat-detail-val {
+      min-height: 2.9em; display: flex; align-items: center; justify-content: flex-end; text-align: end;
+    }
+    #membersGrid .platform-stat-detail-row { align-items: center; }
+    /* قياس البطاقة محجوز: كل البطاقات على طول واحد ولو اختصرت بيانات احدها */
+    #membersGrid .feature-card { min-height: 34.5rem; }
+    @media (max-width: 640px) { #membersGrid .feature-card { min-height: 42rem; } }
+    /* البريد يمتد بعرض البطاقة (اسمه فوقه) بدل ان ينحشر في نصفها فيلتف ثلاثة
+       سطور ويطيل بطاقته وحدها. */
+    #membersGrid .platform-stat-detail-row:first-child {
+      flex-direction: column; align-items: stretch; gap: 0.15rem;
+    }
+    #membersGrid .platform-stat-detail-row:first-child .platform-stat-detail-val {
+      justify-content: flex-start; text-align: start; min-height: 1.6em; width: 100%;
+    }
+    /* على الجوال يصغر خط الاسم بدل ان يلتف ثلاثة سطور فيطيل بطاقته وحدها
+       (قاعدة 2-هـ: يصغر الخط ولا يقص، والمعلومة كاملة). */
+    @media (max-width: 640px) {
+      #membersGrid .feature-card h3 { font-size: 1rem; line-height: 1.35; min-height: 2.9em; }
+      /* على الجوال كل صف اسمه فوق وقيمته تحته بعرض البطاقة: القيمة في نصف
+         بطاقة ضيقة تلتف ثلاثة سطور فتطيل بطاقتها دون جاراتها. */
+      #membersGrid .platform-stat-detail-row { flex-direction: column; align-items: stretch; gap: 0.1rem; }
+      /* كل قيمة تحجز سطرين على الجوال: البطاقة الضيقة تلتف فيها قيم كثيرة
+         (البريد، المسمى الوظيفي، القسم)، فالحجز الموحد يجعل البطاقات متطابقة
+         مهما اختلفت بياناتها. */
+      #membersGrid .platform-stat-detail-val {
+        justify-content: flex-start; text-align: start; width: 100%; min-height: 3.2em;
+        font-size: 0.88rem;
+      }
+      #membersGrid .platform-stat-detail-row > span:first-child { font-size: 0.78rem; }
+    }
     .feature-card {
       background: var(--glass);
       backdrop-filter: blur(30px) saturate(180%);
