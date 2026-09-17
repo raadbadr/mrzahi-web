@@ -195,10 +195,28 @@
           return { value: m.user_id, label: state.names[m.user_id] || m.user_id };
         }));
       }
+      /* لكل مربع فلتره في القائمة: المفتوحة والمستحقة خلال سبعة ايام والمتاخرة
+         والمكتملة. (امر المهندس رعد 2026-09-17) */
+      var TILE_FILTER = {
+        "count.open": "open",
+        "count.due7": "due7",
+        "count.overdue": "overdue",
+        "count.done": "done",
+        "count.total": ""
+      };
+      /* مربعات الاوراق لا تفلتر قائمة العناصر بل تنقل الى شاشة الاوراق مصفاة
+         بحالتها، فسلوكها كسلوك اخواتها: رقم يفتح ما وراءه. */
+      var TILE_PAPER = {
+        "count.papers_expiring": "expiring",
+        "count.papers_missing": "missing",
+        "count.papers_valid": "valid"
+      };
+
       function statusOptions(withAll) {
         var list = withAll ? [{ value: "", label: T("filterAllStatuses") }] : [];
         list.push({ value: "open", label: T("statusOpen") });
         if (withAll) list.push({ value: "overdue", label: T("statusOverdue") });
+        if (withAll) list.push({ value: "due7", label: T("statDue7") });   /* مربع «تستحق خلال 7 ايام» يفلتر بها */
         list.push({ value: "done", label: T("statusDone") });
         list.push({ value: "cancelled", label: T("statusCancelled") });
         return list;
@@ -938,10 +956,12 @@
       function statsReady() {
         var sec = document.querySelector(".stats-section");
         if (!sec) return;
-        /* مربع «العناصر المفتوحة» مدخل إلى قائمتها لا رقم صامت (أمر المهندس رعد):
-           يعلم هنا لأن مقياس المربع قد يتغير بتغير الواجهة. */
+        /* المربعات الاربعة سلوكها واحد: كل واحد مدخل الى قائمته مفلترة بمقياسه لا
+           رقم صامت (امر المهندس رعد 2026-09-17: «المفروض كلهم نفس السلوك، مو اضغط
+           على الاول يشتغل والباقين مايشتغلو»). كان «count.open» وحده يعلم. */
         sec.querySelectorAll(".platform-stat-card").forEach(function (card) {
-          var on = card.getAttribute("data-metric") === "count.open";
+          var m = card.getAttribute("data-metric");
+          var on = (m in TILE_FILTER) || !!TILE_PAPER[m];
           card.classList.toggle("is-link", on);
           if (on) {
             card.setAttribute("role", "button");

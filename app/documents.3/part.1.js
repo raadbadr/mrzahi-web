@@ -710,6 +710,13 @@
         if (app.translateNodes) app.translateNodes($("listCard"));
         focusFromHash();
       }
+      /* قادم من مربع في لوحة التحكم: يفتح الاوراق مصفاة بالحالة نفسها التي عدها
+         المربع، فالرقم يفتح ما وراءه (امر المهندس رعد 2026-09-17). */
+      (function paperStateFromHash() {
+        var m = /(?:^|#|&)papers=([a-z]+)/.exec(String(window.location.hash || ""));
+        if (m && ["valid", "expiring", "expired", "missing"].indexOf(m[1]) !== -1) state.paperState = m[1];
+      })();
+
       /* قادم من التقويم: يفتح المستند نفسه ويبرزه ويعرض بياناته */
       function focusFromHash() {
         var id = String(window.location.hash || "").replace(/^#/, "");

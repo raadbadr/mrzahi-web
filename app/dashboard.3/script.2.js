@@ -417,11 +417,14 @@
       $("filterRecord").addEventListener("change", function () { state.filters.record = this.value; loadItems(); });
       $("filterStatus").addEventListener("change", function () { state.filters.status = this.value; loadItems(); });
 
-      /* الضغط على مربع «العناصر المفتوحة» ينقل إلى قائمتها مفلترة (أمر المهندس رعد) */
-      function openTileGo() {
-        state.filters.status = "open";
+      /* الضغط على اي مربع ينقل الى قائمته مفلترة بمقياسه (امر المهندس رعد) */
+      function openTileGo(metric) {
+        var paper = TILE_PAPER[metric];
+        if (paper) { window.location.href = "/app/documents.html#papers=" + encodeURIComponent(paper); return; }
+        var want = (metric in TILE_FILTER) ? TILE_FILTER[metric] : "open";
+        state.filters.status = want;
         var sel = $("filterStatus");
-        if (sel) sel.value = "open";
+        if (sel) sel.value = want;
         loadItems();
         var panel = $("listPanel");
         if (panel) panel.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -430,14 +433,14 @@
       if (statsSection) {
         statsSection.addEventListener("click", function (ev) {
           var card = ev.target.closest(".platform-stat-card.is-link");
-          if (card) openTileGo();
+          if (card) openTileGo(card.getAttribute("data-metric"));
         });
         statsSection.addEventListener("keydown", function (ev) {
           if (ev.key !== "Enter" && ev.key !== " ") return;
           var card = ev.target.closest(".platform-stat-card.is-link");
           if (!card) return;
           ev.preventDefault();
-          openTileGo();
+          openTileGo(card.getAttribute("data-metric"));
         });
       }
       $("filterSearch").addEventListener("input", function () {
@@ -472,10 +475,18 @@
         var f = state.filters;
         var q = { recordId: f.record || undefined, search: f.search || undefined };
         if (f.status === "overdue") { q.status = "open"; q.to = new Date().toISOString(); }
+        else if (f.status === "due7") {
+          /* المستحقة خلال سبعة ايام: من الان الى سبعة ايام، بالحدود نفسها التي
+             يعد بها مربعها فلا يختلف الرقم عن القائمة. */
+          var nowD = new Date();
+          q.status = "open";
+          q.from = nowD.toISOString();
+          q.to = new Date(nowD.getTime() + 7 * 86400000).toISOString();
+        }
         else if (f.status) q.status = f.status;
         return retryOnce(function () { return app.listItems(q); }).then(function (items) {
           state.items = (items || []).filter(matchesView);
-          if (f.status === "overdue") state.items = state.items.filter(function (it) { return !!it.due_at; });
+          if (f.status === "overdue" || f.status === "due7") state.items = state.items.filter(function (it) { return !!it.due_at; });
           clearMsg("listMsg");
           safeRender("list", renderList);
           if (pendingOpenItem) {
