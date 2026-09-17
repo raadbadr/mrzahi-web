@@ -120,6 +120,8 @@
   app.orgDisplayName = orgDisplayName;
   app.paint = paint;
   app.exportXlsx = exportXlsx;
+  app.exportXlsxBook = exportXlsxBook;
+  app.importTemplateBook = importTemplateBook;
   app.setMemberPerson = setMemberPerson;
   app.departments = departments;
   app.openNewOrgDialog = openNewOrgDialog;
@@ -431,6 +433,119 @@
     if (value === null || value === undefined) return "";
     if (typeof value === "object") return JSON.stringify(value);
     return value;
+  }
+
+  /* ورقة واحدة داخل مصنف: نفس بناء exportXlsx حتى لا يختلف شكل الجدولين. */
+  function buildSheet(XLSX, rows, columns) {
+    var cols = columns || Object.keys((rows && rows[0]) || {});
+    var header = cols.map(function (col) { return String(col.label || col); });
+    var body = (rows || []).map(function (row) {
+      return cols.map(function (col) {
+        var value = cellValue(row, col);
+        var text = typeof value === "string" ? value.trim() : value;
+        var isCount = typeof text === "string" && text !== "" && isFinite(Number(text)) &&
+                      text.length <= 15 && !/^0\d/.test(text) && !/^\+/.test(text);
+        return isCount ? Number(text) : value;
+      });
+    });
+    var ws = XLSX.utils.aoa_to_sheet([header].concat(body));
+    ws["!cols"] = header.map(function (label, i) {
+      var longest = label.length;
+      body.forEach(function (r) { var len = String(r[i] == null ? "" : r[i]).length; if (len > longest) longest = len; });
+      return { wch: Math.min(60, Math.max(10, longest + 2)) };
+    });
+    return ws;
+  }
+
+  /* قالب الاستيراد: ورقة لكل نوع عنصر باعمدته وحدها، لا ورقة واحدة باعمدة
+     المخالفات (امر المهندس رعد 2026-09-17: «حاليا يخدم فقط المحامي في المخالفات…
+     المفروض يكون قالب اكسل وفيه صفحات كتير تخدم كل العناصر»). الاوراق تتبع خدمات
+     واجهة الحساب، فلا يرى الشخصي ورقة قضايا ولا مخالفات. والمستورد يقرا الاوراق
+     كلها ويختار منها. */
+  var TPL_COL_LABELS = {
+    title:    { ar: "العنوان", en: "Title", fr: "Titre", ur: "عنوان" },
+    due:      { ar: "تاريخ الاستحقاق", en: "Due date", fr: "Date d'echeance", ur: "مقررہ تاریخ" },
+    category: { ar: "التصنيف", en: "Category", fr: "Categorie", ur: "زمرہ" },
+    assignee: { ar: "بريد المسؤول", en: "Assignee email", fr: "E-mail du responsable", ur: "ذمہ دار کا ای میل" },
+    amount:   { ar: "المبلغ", en: "Amount", fr: "Montant", ur: "رقم" },
+    client:   { ar: "الجهة", en: "Party", fr: "Partie", ur: "فریق" },
+    casenum:  { ar: "رقم الدعوى", en: "Case number", fr: "Numero de dossier", ur: "مقدمہ نمبر" },
+    vnumber:  { ar: "رقم المخالفة", en: "Violation number", fr: "Numero d'infraction", ur: "خلاف ورزی نمبر" },
+    location: { ar: "الموقع", en: "Location", fr: "Lieu", ur: "مقام" },
+    status:   { ar: "الحالة", en: "Status", fr: "Statut", ur: "حالت" }
+  };
+  var TPL_SHEET_NAMES = {
+    cases:      { ar: "القضايا", en: "Cases", fr: "Affaires", ur: "مقدمات" },
+    violations: { ar: "المخالفات", en: "Violations", fr: "Infractions", ur: "خلاف ورزیاں" },
+    rulings:    { ar: "الأحكام", en: "Rulings", fr: "Jugements", ur: "فیصلے" },
+    contracts:  { ar: "العقود", en: "Contracts", fr: "Contrats", ur: "معاہدے" },
+    expenses:   { ar: "المصاريف", en: "Expenses", fr: "Depenses", ur: "اخراجات" },
+    tasks:      { ar: "المهام", en: "Tasks", fr: "Taches", ur: "کام" },
+    meetings:   { ar: "الاجتماعات", en: "Meetings", fr: "Reunions", ur: "میٹنگز" },
+    health:     { ar: "صحتي", en: "My health", fr: "Ma sante", ur: "میری صحت" },
+    documents:  { ar: "المستندات", en: "Documents", fr: "Documents", ur: "دستاویزات" }
+  };
+  var TPL_SAMPLE = { ar: "مثال", en: "Example", fr: "Exemple", ur: "مثال" };
+  var TPL_SHEETS = [
+    { service: "cases",      cat: "قضية",   cols: ["title", "due", "category", "client", "casenum", "assignee", "status"] },
+    { service: "violations", cat: "مخالفة", cols: ["title", "due", "category", "vnumber", "amount", "location", "client", "status"] },
+    { service: "rulings",    cat: "حكم",    cols: ["title", "due", "category", "client", "casenum", "status"] },
+    { service: "contracts",  cat: "عقد",    cols: ["title", "due", "category", "client", "amount", "status"] },
+    { service: "expenses",   cat: "مصروف",  cols: ["title", "due", "category", "amount", "client", "status"] },
+    { service: "tasks",      cat: "مهمة",   cols: ["title", "due", "category", "assignee", "status"] },
+    { service: "meetings",   cat: "اجتماع", cols: ["title", "due", "category", "location", "assignee", "status"] },
+    { service: "health",     cat: "صحة",    cols: ["title", "due", "category", "status"] },
+    { service: "documents",  cat: "مستند",  cols: ["title", "due", "category", "client", "status"] }
+  ];
+
+  function importTemplateSheets() {
+    var l = lang();
+    var pick = function (map) { return map[l] || map.ar; };
+    var services = (app.pack && Array.isArray(app.pack.services))
+      ? app.pack.services.map(function (r) { return r.service; })
+      : null;
+    var list = TPL_SHEETS.filter(function (sh) { return !services || services.indexOf(sh.service) !== -1; });
+    if (!list.length) list = TPL_SHEETS;
+    var due = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    return list.map(function (sh) {
+      var name = pick(TPL_SHEET_NAMES[sh.service] || { ar: sh.service });
+      var row = {};
+      sh.cols.forEach(function (k) { row[k] = ""; });
+      row.title = pick(TPL_SAMPLE) + ": " + name;
+      row.due = due;
+      if ("category" in row) row.category = sh.cat;
+      if ("status" in row) row.status = "open";
+      if ("amount" in row) row.amount = "0";
+      return {
+        name: name,
+        columns: sh.cols.map(function (k) { return { key: k, label: pick(TPL_COL_LABELS[k] || { ar: k }) }; }),
+        rows: [row]
+      };
+    });
+  }
+
+  function importTemplateBook(filename) {
+    return exportXlsxBook(filename || "mrzahi-template.xlsx", importTemplateSheets());
+  }
+
+  /* مصنف باوراق متعددة: ورقة لكل نوع عنصر (امر المهندس رعد 2026-09-17: «قالب
+     الاكسل الحالي يخدم شي واحد فقط، المفروض فيه صفحات كتير تخدم كل العناصر»).
+     sheets = [{ name, columns, rows }] — واسم الورقة يقص الى 28 حرفا كما يقبل Excel. */
+  function exportXlsxBook(filename, sheets) {
+    var list = (sheets || []).filter(function (sh) { return sh && sh.columns && sh.columns.length; });
+    if (!list.length) return Promise.resolve(false);
+    return loadXlsx().then(function (XLSX) {
+      var wb = XLSX.utils.book_new();
+      var used = {};
+      list.forEach(function (sh, i) {
+        var name = String(sh.name || "").replace(/[\\\/\?\*\[\]:]/g, " ").slice(0, 28).trim() || ("Sheet" + (i + 1));
+        while (used[name]) name = name.slice(0, 26) + " " + (i + 1);
+        used[name] = true;
+        XLSX.utils.book_append_sheet(wb, buildSheet(XLSX, sh.rows || [], sh.columns), name);
+      });
+      XLSX.writeFile(wb, filename || "template.xlsx");
+      return true;
+    });
   }
 
   /* نفس توقيع exportCsv تماما: (اسم الملف، الصفوف، الأعمدة) */

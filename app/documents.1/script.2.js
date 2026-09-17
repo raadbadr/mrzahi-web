@@ -438,8 +438,6 @@
       });
       applyPlaceholders(code);
       document.title = (translations[code] && translations[code].title ? translations[code].title : "Team") + " | MrZahi";
-      const templateLink = document.getElementById("docTemplateBtn");
-      if (templateLink) templateLink.href = "/api/documents/template?lang=" + code;
       if (typeof window.__mrzahiAuthRefresh === "function") window.__mrzahiAuthRefresh();
       if (typeof window.__docsRefresh === "function") window.__docsRefresh();
     }
@@ -488,7 +486,8 @@
       if (translations[l] && translations[l][k]) el.innerHTML = translations[l][k];
     });
     applyPlaceholders(l);
-    (function () { const templateLink = document.getElementById("docTemplateBtn"); if (templateLink) templateLink.href = "/api/documents/template?lang=" + l; })();
+    /* القالب صار مصنفا باوراق يولد محليا (app.importTemplateBook)، فلا رابط له
+       يضبط بلغة الصفحة — الاوراق والاعمدة تتبع لغة الواجهة عند التوليد. */
     document.getElementById("currentLangDisplay").textContent = langNames[l] || l;
     ["ar","en","fr","ur"].forEach(c => {
       const el = document.getElementById("check-" + c);

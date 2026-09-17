@@ -118,16 +118,11 @@
       }
 
       /* القالب: رأس بأسماء الحقول بلغة الصفحة وصف مثال */
+      /* القالب مصنف باوراق: المنطق كله في app.importTemplateBook (common) فلا
+         يكرر في صفحتين (امر المهندس رعد 2026-09-17). */
       function downloadTemplate() {
-        const heads = FIELDS.map((f) => t(f.labelKey));
-        const sample = ["مثال: جلسة محكمة", new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10), "قضية", "", "0", "", "", "", "", "open"];
-        const q = (v) => '"' + String(v).replace(/"/g, '""') + '"';
-        const csv = "\ufeff" + heads.map(q).join(",") + "\r\n" + sample.map(q).join(",") + "\r\n";
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-        a.download = "mrzahi-template.csv";
-        document.body.appendChild(a); a.click();
-        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        if (!app || typeof app.importTemplateBook !== "function") return;
+        app.importTemplateBook("mrzahi-template.xlsx").catch(function () { /* ignore */ });
       }
 
       function fileExt(name) {

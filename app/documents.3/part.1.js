@@ -659,6 +659,21 @@
         docTitleEl.textContent = name;
       }
 
+      /* القالب مصنف باوراق: ورقة لكل نوع عنصر في واجهة الحساب، لا ورقة واحدة
+         باعمدة المخالفات (امر المهندس رعد 2026-09-17). */
+      (function wireTemplateBtn() {
+        var btn = document.getElementById("docTemplateBtn");
+        if (!btn) return;
+        btn.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          if (!app || typeof app.importTemplateBook !== "function") return;
+          btn.disabled = true;
+          app.importTemplateBook("mrzahi-template.xlsx")
+            .catch(function () { /* ignore */ })
+            .then(function () { btn.disabled = false; });
+        });
+      })();
+
       function render() {
         applyPackTitle();
         var rows = state.items.filter(function (it) {
