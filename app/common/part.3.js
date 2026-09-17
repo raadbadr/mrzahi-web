@@ -155,6 +155,42 @@
     });
   }
 
+  /* تذكير السجل اكثر من مرة: قبل شهر وقبل اسبوع وقبل يوم معا ان شاء صاحبه.
+     الجدول يقبل ذلك اصلا (لا قيد فريد على السجل) ومولد التنبيهات يمر على كل
+     قاعدة، فالتعدد بيانات لا بنية. تحل قواعد السجل محل بعضها دفعة واحدة:
+     تحذف القديمة وتدرج واحدة لكل موعد مختار (المهندس رعد 2026-09-17:
+     «التذكير مو بس مرة وحدة، المفروض فيه اكثر من خيار»). */
+  function saveRules(recordId, offsets, channels, target) {
+    return run(function (client) {
+      var orgId = requireOrg();
+      if (!recordId) throw new Error("record_id required");
+      var list = (offsets && offsets.length ? offsets : [1440])
+        .map(Number).filter(function (n) { return n > 0; });
+      /* بلا تكرار، ومرتبة من الابعد الى الاقرب فيقرؤها صاحبها كما يتوقع */
+      var seen = {}, clean = [];
+      list.forEach(function (n) { if (!seen[n]) { seen[n] = 1; clean.push(n); } });
+      clean.sort(function (a, b) { return b - a; });
+      var ch = (channels && channels.length) ? channels : ["telegram"];
+      var tg = target === "all" ? "all" : "assignee";
+      return client.from("reminder_rules").delete()
+        .eq("org_id", orgId).eq("record_id", recordId).is("item_id", null).then(unwrap)
+        .then(function () {
+          return client.from("reminder_rules").insert(clean.map(function (n) {
+            return { org_id: orgId, record_id: recordId, item_id: null,
+                     offset_minutes: n, channels: ch, target: tg };
+          })).select("*").then(unwrap);
+        });
+    });
+  }
+
+  function deleteRules(recordId) {
+    return run(function (client) {
+      var orgId = requireOrg();
+      return client.from("reminder_rules").delete()
+        .eq("org_id", orgId).eq("record_id", recordId).is("item_id", null).then(unwrap);
+    });
+  }
+
   function deleteRule(id) {
     return run(function (client) {
       var orgId = requireOrg();

@@ -452,6 +452,16 @@
       }
 
       /* Record-level rule (item_id null); rules come newest first so the first match wins. */
+      /* كل قواعد السجل مرتبة من الابعد الى الاقرب */
+      function rulesForRecord(recordId) {
+        var out = [];
+        (state.rules || []).forEach(function (r) {
+          if (r.record_id === recordId && !r.item_id) out.push(r);
+        });
+        out.sort(function (a, b) { return (Number(b.offset_minutes) || 0) - (Number(a.offset_minutes) || 0); });
+        return out;
+      }
+
       function ruleForRecord(recordId) {
         for (var i = 0; i < state.rules.length; i++) {
           var r = state.rules[i];
@@ -479,21 +489,29 @@
           "</tr></thead><tbody>";
 
         state.records.forEach(function (record) {
-          var rule = ruleForRecord(record.id);
-          var offset = rule ? Number(rule.offset_minutes) || 1440 : 1440;
+          /* قواعد السجل كلها لا واحدة: صاحبه قد يريد التذكير قبل شهر وقبل
+             اسبوع وقبل يوم معا (المهندس رعد 2026-09-17). */
+          var rules = rulesForRecord(record.id);
+          var rule = rules[0] || null;
+          var chosen = rules.map(function (r) { return Number(r.offset_minutes) || 1440; });
+          if (!chosen.length) chosen = [1440];
           var channels = rule && Array.isArray(rule.channels) ? rule.channels : ["telegram"];
           var target = rule && rule.target === "all" ? "all" : "assignee";
           var offsets = OFFSETS.slice();
-          if (offsets.indexOf(offset) === -1) offsets.push(offset);
+          chosen.forEach(function (o) { if (offsets.indexOf(o) === -1) offsets.push(o); });
+          offsets.sort(function (a, b) { return b - a; });
 
           html += '<tr data-record="' + esc(record.id) + '"' + (rule ? ' data-rule="' + esc(rule.id) + '"' : "") + ">";
           html += '<td><span class="highlight">' + esc(record.name) + "</span>" +
                   (rule ? ' <span class="settings-note" style="color:var(--success)">' + esc(t("ruleActive")) + "</span>" : "") + "</td>";
-          html += '<td><select class="waitlist-input rule-offset">';
+          /* اكثر من موعد لكل سجل: مربعات لا قائمة واحدة، بالمكون نفسه الذي
+             تستعمله القنوات (rule-check) فلا شكل جديد. */
+          html += '<td><div class="rule-channels rule-offsets">';
           offsets.forEach(function (o) {
-            html += '<option value="' + o + '"' + (o === offset ? " selected" : "") + ">" + esc(offsetLabel(o)) + "</option>";
+            html += '<label class="rule-check"><input type="checkbox" class="rule-offset" value="' + o + '"' +
+                    (chosen.indexOf(o) !== -1 ? " checked" : "") + "><span>" + esc(offsetLabel(o)) + "</span></label>";
           });
-          html += "</select></td>";
+          html += "</div></td>";
           html += '<td><div class="rule-channels">';
           CHANNELS.forEach(function (ch) {
             var on = channels.indexOf(ch) !== -1;
@@ -546,17 +564,17 @@
           });
           if (!channels.length) channels = ["telegram"];
           btn.disabled = true;
-          app.saveRule({
-            id: ruleId,
-            record_id: recordId,
-            offset_minutes: Number(row.querySelector(".rule-offset").value) || 1440,
-            channels: channels,
-            target: row.querySelector(".rule-target").value
-          }).then(function () {
+          var offsets = [];
+          row.querySelectorAll(".rule-offset").forEach(function (cb) {
+            if (cb.checked) offsets.push(Number(cb.value));
+          });
+          if (!offsets.length) offsets = [1440];
+          app.saveRules(recordId, offsets, channels, row.querySelector(".rule-target").value)
+          .then(function () {
             toast(t("ruleSaved"), "success");
             return loadRules();
           }).catch(function (err) { btn.disabled = false; toast(errorMessage(err), "error"); });
-        } else if (action === "delete" && ruleId) {
+        } else if (action === "delete" && recordId) {
           /* الحذف دائما عليه تاكيد، بحوار المنصة لا بنافذة المتصفح (امره نفسه) */
           var ask = app.confirmDanger
             ? app.confirmDanger(t("deleteRuleBtn"), { warn: t("deleteRuleConfirm") })
@@ -564,7 +582,7 @@
           ask.then(function (ok) {
             if (!ok) return;
             btn.disabled = true;
-            app.deleteRule(ruleId).then(function () {
+            app.deleteRules(recordId).then(function () {
               toast(t("ruleDeleted"), "success");
               return loadRules();
             }).catch(function (err) { btn.disabled = false; toast(errorMessage(err), "error"); });

@@ -73,6 +73,8 @@
   app.setMemberRole = setMemberRole;
   app.listRules = listRules;
   app.saveRule = saveRule;
+  app.saveRules = saveRules;
+  app.deleteRules = deleteRules;
   app.deleteRule = deleteRule;
   app.channelLinks = channelLinks;
   app.requestChannelCode = requestChannelCode;
