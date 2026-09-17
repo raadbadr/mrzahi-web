@@ -764,13 +764,9 @@
       gap: 0.5rem 0.6rem; align-items: end;
     }
     .member-settings .member-field { width: 100%; flex: 0 1 auto; }
-    /* صندوق الواجهات المسموحة كان 268 بكسل وحده، اي ثلثي تمدد البطاقة. يبقى
-       بعمودين كما امر، لكن بسقف ارتفاع يمرر داخله فلا تنفجر البطاقة بالضغطة
-       (قاعدة 2-هـ: التمرير داخل الحاوية لا القص). */
-    .member-settings .allow-checks {
-      grid-column: 1 / -1; max-height: 150px; overflow-y: auto;
-      scrollbar-width: thin;
-    }
+    /* بلا سقف ولا تمرير: المعلومة كاملة امام صاحبها (امر المهندس رعد
+       2026-09-17: «ليش مسوي سكرول»). السقف كان اجتهادا مني لم يطلبه. */
+    .member-settings .allow-checks { grid-column: 1 / -1; }
     .member-settings .chat-option-btn { grid-column: 1 / -1; justify-self: start; }
     @media (max-width: 640px) {
       .member-settings .waitlist-form { grid-template-columns: minmax(0, 1fr); }
