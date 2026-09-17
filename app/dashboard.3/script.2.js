@@ -245,7 +245,11 @@
           };
           return Promise.all(tiles.map(function (t) {
             var m = String(t.metric || "");
-            if (m === "count.papers_expiring") return paperCount(["expiring", "expired"]);
+            /* «تنتهي قريبا» تعد ما ينتهي قريبا وحده: كانت تضم المنتهية ايضا
+               بينما الضغط يفتح «تنتهي قريبا» فقط، فيختلف الرقم عما وراءه
+               (رصده الوكيل 06-mrzahi-31، وقاعدة المهندس رعد ان كل رقم يفتح ما
+               وراءه). المنتهية تظهر في مؤشر «اوراقي ومواعيدي» بعمودها. */
+            if (m === "count.papers_expiring") return paperCount(["expiring"]);
             if (m === "count.papers_missing") return paperCount(["missing"]);
             if (m === "count.papers_valid") return paperCount(["valid", "stored"]);
             return counts[m] ? counts[m]() : 0;
