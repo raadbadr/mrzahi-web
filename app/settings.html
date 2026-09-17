@@ -133,17 +133,6 @@
         </form>
       </div>
 
-      <!-- حذف الحساب: بطاقة مستقلة كبطاقة حذف الشركة، بنفس معيار باركينزي (راجع delete-account.html العام) -->
-      <div class="content" id="accountDangerCard">
-        <h2 data-i18n="accountDangerTitle">الحساب</h2>
-        <p class="waitlist-note" data-i18n="deleteAccountNote">يدخل حسابك فترة سماح 30 يوما تلغى تلقائيا بمجرد تسجيل الدخول مجددا، ثم يحذف نهائيا.</p>
-        <!-- منطقة الحذف: اخر البطاقة، بلون الخطر (امر المهندس رعد 2026-09-17) -->
-        <div class="danger-zone">
-          <button type="button" class="chat-option-btn is-danger" id="accountDeleteBtn" data-i18n="deleteAccountBtn">حذف الحساب</button>
-        </div>
-        <p class="waitlist-msg" id="accountDeleteMsg" style="display:none" role="status" aria-live="polite"></p>
-      </div>
-
       <!-- (2) Notification channels -->
       <div class="content" id="channelsCard">
         <h2 data-i18n="channelsTitle">قنوات التنبيه</h2>
@@ -414,6 +403,18 @@ curl -H "Authorization: Bearer mz_live_..." "https://mrzahi.com/api/v1/items?rec
         <div class="danger-zone">
           <button type="button" class="chat-option-btn is-danger" id="orgDeleteBtn" data-i18n="deleteOrgBtn">حذف الشركة</button>
         </div>
+      </div>
+
+      <!-- حذف الحساب اخر شيء في الصفحة (امر المهندس رعد 2026-09-17: «انقلها تحت اخر شي»):
+           ما لا رجعة فيه يكون في اسفل الصفحة لا في اولها. -->
+      <div class="content" id="accountDangerCard">
+        <h2 data-i18n="accountDangerTitle">الحساب</h2>
+        <p class="waitlist-note" data-i18n="deleteAccountNote">يدخل حسابك فترة سماح 30 يوما تلغى تلقائيا بمجرد تسجيل الدخول مجددا، ثم يحذف نهائيا.</p>
+        <!-- منطقة الحذف: اخر البطاقة، بلون الخطر (امر المهندس رعد 2026-09-17) -->
+        <div class="danger-zone">
+          <button type="button" class="chat-option-btn is-danger" id="accountDeleteBtn" data-i18n="deleteAccountBtn">حذف الحساب</button>
+        </div>
+        <p class="waitlist-msg" id="accountDeleteMsg" style="display:none" role="status" aria-live="polite"></p>
       </div>
 
       <!-- تسجيل الخروج موجود في الشريط العلوي وحده، فلا يتكرر هنا -->
