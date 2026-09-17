@@ -25,6 +25,9 @@
         contractParty: "",
         contractType: "",
         contractState: "",
+        financeDir: "",
+        financeState: "",
+        financeParty: "",
         calMode: (function () { try { return localStorage.getItem("mrzahi_cal_mode") || "greg"; } catch (e) { return "greg"; } })(),
         calAnchor: new Date(),
         /* مدى العرض: شهر او اسبوع او يوم. calDay هو اليوم المرساة في الاسبوع واليوم. */
@@ -258,6 +261,17 @@
                           "checkup", "clinic", "doctor", "lab", "vaccine", "gym", "fitness", "workout",
                           "training", "coach", "sport", "medicament", "médicament", "salle", "sante", "santé",
                           "دوا", "جم", "صحت", "ورزش"] },
+        /* المالية: الفاتورة لا «بند مصروف» (حزمة finance وحدها). الشاشة تميز
+           مستحقا ومحصلا ومتاخرا، ومدينا ودائنا، وتحمل ضريبتها المخزنة لا
+           المحسوبة من جديد. تصنيفها الافتراضي «فاتورة»، وحين يختار صاحبها
+           اتجاهها يصير «فاتورة مدينة» او «فاتورة دائنة»، وكلاهما يحمل كلمة
+           «فاتورة» فيطابق. */
+        invoices: { titleKey: "viewInvoices", defaultCategory: "فاتورة",
+                    words: ["فاتورة", "فواتير", "مستحق", "مستحقات", "تحصيل",
+                            "سند قبض", "سند صرف", "اشعار مدين", "اشعار دائن",
+                            "invoice", "invoices", "bill", "billing", "receivable", "payable",
+                            "facture", "factures", "creance", "encaissement",
+                            "رسید", "بل"] },
         meetings: { titleKey: "viewMeetings", defaultCategory: "اجتماع",
                     /* «جلسة» في مكتب المحاماة جلسة محكمة لا اجتماعا، فلا تدخل هنا */
                     words: ["اجتماع", "اجتماعات", "meeting", "meetings", "reunion", "réunion", "میٹنگ"] }
@@ -1040,6 +1054,7 @@
         if (state.viewType === "violations") { if (hasViolations) addChart("violationsChart"); }
         else if (state.viewType === "cases") { if (hasCases) addChart("casesChart"); }
         else if (state.viewType === "expenses") { if (hasExpenses) addChart("expensesChart"); }
+        else if (state.viewType === "invoices") { if (packHasService("invoices")) addChart("financeChart"); }
         else if (!state.viewType) {
           if (hasViolations) addChart("violationsChart");
           if (hasCases) addChart("casesChart");

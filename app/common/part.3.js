@@ -685,6 +685,10 @@
       labels: { ar: "المخالفات", en: "Violations", fr: "Infractions", ur: "خلاف ورزیاں" } },
     { href: "/app/dashboard.html?type=expenses", path: "type=expenses", service: "expenses", iconMask: true,
       labels: { ar: "مصاريف التشغيل", en: "Expenses", fr: "Charges", ur: "اخراجات" } },
+    /* الفواتير: لواجهة المالية وحدها (packOnly) فلا تظهر عند غيرها */
+    { href: "/app/dashboard.html?type=invoices", path: "type=invoices", service: "invoices", packOnly: true,
+      icon: '<path d="M18 17H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2zM3 22l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20z"/>',
+      labels: { ar: "الفواتير", en: "Invoices", fr: "Factures", ur: "رسیدیں" } },
     { href: "/app/dashboard.html?type=health", path: "type=health", service: "health", packOnly: true,
       icon: '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
       labels: { ar: "صحتي", en: "My health", fr: "Ma sante", ur: "میری صحت" } },

@@ -222,6 +222,17 @@
               <label class="form-field span-6" data-field="health_provider"><span data-i18n="fieldHealthProvider">الطبيب أو الجهة</span><input type="text" class="waitlist-input" id="editHealthProvider" maxlength="160" dir="auto"></label>
               <label class="form-field span-6" data-field="health_note"><span data-i18n="fieldHealthNote">ملاحظة</span><input type="text" class="waitlist-input" id="editHealthNote" maxlength="200" dir="auto"></label>
             </div>
+            <!-- بيانات الفاتورة: لا تظهر الا في شاشة الفواتير -->
+            <div class="form-grid" data-view="invoices" hidden>
+              <label class="form-field span-3" data-field="fin_number"><span data-i18n="fieldFinNumber">رقم الفاتورة</span><input type="text" class="waitlist-input" id="editFinNumber" maxlength="120" dir="ltr"></label>
+              <label class="form-field span-3" data-field="fin_dir"><span data-i18n="fieldFinDir">اتجاه الفاتورة</span><select class="waitlist-input" id="editFinDir"></select></label>
+              <label class="form-field span-3" data-field="fin_issued"><span data-i18n="fieldFinIssued">تاريخ الاصدار</span><input type="date" class="waitlist-input" id="editFinIssued" dir="ltr"></label>
+              <label class="form-field span-3" data-field="fin_vat"><span data-i18n="fieldFinVat">الضريبة</span><select class="waitlist-input" id="editFinVat"></select></label>
+              <label class="form-field span-3" data-field="fin_amount"><span data-i18n="fieldFinAmount">مبلغ الفاتورة</span><input type="number" step="0.01" min="0" class="waitlist-input" id="editFinAmount" dir="ltr"></label>
+              <label class="form-field span-3" data-field="fin_paid"><span data-i18n="fieldFinPaid">المحصل حتى الان</span><input type="number" step="0.01" min="0" class="waitlist-input" id="editFinPaid" dir="ltr"></label>
+              <label class="form-field span-3" data-field="fin_paid_at"><span data-i18n="fieldFinPaidAt">تاريخ التحصيل</span><input type="date" class="waitlist-input" id="editFinPaidAt" dir="ltr"></label>
+              <label class="form-field span-3" data-field="fin_method"><span data-i18n="fieldFinMethod">طريقة السداد</span><input type="text" class="waitlist-input" id="editFinMethod" list="finMethodSuggest" maxlength="80" dir="auto" autocomplete="off"></label>
+            </div>
             <div class="waitlist-form form-actions">
               <button type="submit" class="waitlist-btn" id="editSaveBtn" data-i18n="save">حفظ</button>
               <button type="button" class="chat-option-btn" id="editCancelBtn" data-i18n="cancel">إلغاء</button>
@@ -295,7 +306,19 @@
                 <label class="form-field span-6" data-field="health_provider"><span data-i18n="fieldHealthProvider">الطبيب أو الجهة</span><input type="text" class="waitlist-input" id="addHealthProvider" maxlength="160" dir="auto"></label>
                 <label class="form-field span-6" data-field="health_note"><span data-i18n="fieldHealthNote">ملاحظة</span><input type="text" class="waitlist-input" id="addHealthNote" maxlength="200" dir="auto"></label>
               </div>
+              <!-- بيانات الفاتورة: لا تظهر الا في شاشة الفواتير -->
+              <div class="form-grid" data-view="invoices" hidden>
+                <label class="form-field span-3" data-field="fin_number"><span data-i18n="fieldFinNumber">رقم الفاتورة</span><input type="text" class="waitlist-input" id="addFinNumber" maxlength="120" dir="ltr"></label>
+                <label class="form-field span-3" data-field="fin_dir"><span data-i18n="fieldFinDir">اتجاه الفاتورة</span><select class="waitlist-input" id="addFinDir"></select></label>
+                <label class="form-field span-3" data-field="fin_issued"><span data-i18n="fieldFinIssued">تاريخ الاصدار</span><input type="date" class="waitlist-input" id="addFinIssued" dir="ltr"></label>
+                <label class="form-field span-3" data-field="fin_vat"><span data-i18n="fieldFinVat">الضريبة</span><select class="waitlist-input" id="addFinVat"></select></label>
+                <label class="form-field span-3" data-field="fin_amount"><span data-i18n="fieldFinAmount">مبلغ الفاتورة</span><input type="number" step="0.01" min="0" class="waitlist-input" id="addFinAmount" dir="ltr"></label>
+                <label class="form-field span-3" data-field="fin_paid"><span data-i18n="fieldFinPaid">المحصل حتى الان</span><input type="number" step="0.01" min="0" class="waitlist-input" id="addFinPaid" dir="ltr"></label>
+                <label class="form-field span-3" data-field="fin_paid_at"><span data-i18n="fieldFinPaidAt">تاريخ التحصيل</span><input type="date" class="waitlist-input" id="addFinPaidAt" dir="ltr"></label>
+                <label class="form-field span-3" data-field="fin_method"><span data-i18n="fieldFinMethod">طريقة السداد</span><input type="text" class="waitlist-input" id="addFinMethod" list="finMethodSuggest" maxlength="80" dir="auto" autocomplete="off"></label>
+              </div>
               <datalist id="contractTypeSuggest"></datalist>
+              <datalist id="finMethodSuggest"></datalist>
               <datalist id="categorySuggest"></datalist>
               <div class="waitlist-form form-actions">
                 <button type="submit" class="waitlist-btn" id="addSaveBtn" data-i18n="add">إضافة</button>
@@ -429,6 +452,38 @@
                 </tr>
               </thead>
               <tbody id="healthBody"></tbody>
+            </table>
+          </div>
+
+          <!-- الفواتير: شاشة المحاسب — الاتجاه والحالة والجهة، ثم المجاميع -->
+          <div id="financeBar" hidden>
+            <div class="waitlist-form violations-toolbar">
+              <select class="waitlist-input" id="financeDirFilter" aria-label="اتجاه الفاتورة"></select>
+              <select class="waitlist-input" id="financeStateFilter" aria-label="حالة الفاتورة"></select>
+              <select class="waitlist-input" id="financePartyFilter" aria-label="الجهة"></select>
+            </div>
+            <div class="totals-row" id="financeTotals"></div>
+          </div>
+
+          <div class="table-wrap" id="financeWrap" hidden>
+            <table class="items-table" id="financeTable">
+              <thead>
+                <tr>
+                  <th data-i18n="colFinNumber">رقم الفاتورة</th>
+                  <th data-i18n="colFinSubject">البيان</th>
+                  <th data-i18n="colFinParty">الجهة</th>
+                  <th data-i18n="colFinIssued">تاريخ الاصدار</th>
+                  <th data-i18n="colFinDue">تاريخ الاستحقاق</th>
+                  <th data-i18n="colFinBase">قبل الضريبة</th>
+                  <th data-i18n="colFinVat">الضريبة</th>
+                  <th data-i18n="colFinTotal">الاجمالي</th>
+                  <th data-i18n="colFinPaid">المحصل</th>
+                  <th data-i18n="colFinRemain">المتبقي</th>
+                  <th data-i18n="colStatus">الحالة</th>
+                  <th data-i18n="colActions">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="financeBody"></tbody>
             </table>
           </div>
 

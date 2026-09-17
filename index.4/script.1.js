@@ -755,16 +755,9 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       }
       wire("platformStatItemsBtn", "platformStatDetailItems");
       wire("platformStatNotifsBtn", "platformStatDetailNotifs");
-      /* الرقم الذي له تفصيل يعرض تفصيله معه: لا رقم مبهم ينتظر نقرة (أمر المهندس رعد 2026-09-06) */
-      [["platformStatItemsBtn", "platformStatDetailItems"], ["platformStatNotifsBtn", "platformStatDetailNotifs"]]
-        .forEach(([btnId, detailId]) => {
-          const btn = document.getElementById(btnId), detail = document.getElementById(detailId);
-          if (!btn || !detail) return;
-          detail.hidden = false;
-          btn.setAttribute("aria-expanded", "true");
-          const card = btn.closest(".platform-stat-card");
-          if (card) card.classList.add("is-expanded");
-        });
+      /* البطاقتان تبدآن مطويتين، ومن اراد التفصيل ضغط «⋯» (امر المهندس رعد
+         2026-09-17: «تبدا مطوية»). كانتا تفتحان قسرا عند التحميل بامره في
+         2026-09-06 «لا رقم مبهم ينتظر نقرة»، وقد نقضه اليوم. */
     })();
 
     // Detect if device is mobile

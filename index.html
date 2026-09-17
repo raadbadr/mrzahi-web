@@ -212,7 +212,7 @@
         <span class="platform-stat-value" id="statValueRecords"></span>
       </div>
       <div class="platform-stat-card platform-stat-card--expandable platform-stat-card--tile" data-accent="spots" data-stat-expand="items">
-        <button type="button" class="platform-stat-main" id="platformStatItemsBtn" aria-expanded="true" aria-controls="platformStatDetailItems">
+        <button type="button" class="platform-stat-main" id="platformStatItemsBtn" aria-expanded="false" aria-controls="platformStatDetailItems">
           <span class="platform-stat-expand-ellipsis" aria-hidden="true">⋯</span>
           <div class="platform-stat-icon" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h5v5H7z"/></svg>
@@ -220,7 +220,7 @@
           <span class="platform-stat-label" data-i18n="statItems">العناصر المسجلة</span>
           <span class="platform-stat-value" id="statValueItems"></span>
         </button>
-        <div class="platform-stat-detail" id="platformStatDetailItems">
+        <div class="platform-stat-detail" id="platformStatDetailItems" hidden>
           <div class="platform-stat-detail-row"><span data-i18n="statItemsUpcoming">قادمة</span><span class="platform-stat-detail-val" id="statItemsUpcoming"></span></div>
           <div class="platform-stat-detail-row"><span data-i18n="statItemsOverdue">متأخرة</span><span class="platform-stat-detail-val" id="statItemsOverdue"></span></div>
           <div class="platform-stat-detail-row"><span data-i18n="statItemsNoDue">بلا موعد</span><span class="platform-stat-detail-val" id="statItemsNoDue"></span></div>
@@ -228,7 +228,7 @@
         </div>
       </div>
       <div class="platform-stat-card platform-stat-card--expandable platform-stat-card--tile" data-accent="cars" data-stat-expand="notifs">
-        <button type="button" class="platform-stat-main" id="platformStatNotifsBtn" aria-expanded="true" aria-controls="platformStatDetailNotifs">
+        <button type="button" class="platform-stat-main" id="platformStatNotifsBtn" aria-expanded="false" aria-controls="platformStatDetailNotifs">
           <span class="platform-stat-expand-ellipsis" aria-hidden="true">⋯</span>
           <div class="platform-stat-icon" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
@@ -236,7 +236,7 @@
           <span class="platform-stat-label" data-i18n="statNotifs">التنبيهات المرسلة</span>
           <span class="platform-stat-value" id="statValueNotifs"></span>
         </button>
-        <div class="platform-stat-detail" id="platformStatDetailNotifs">
+        <div class="platform-stat-detail" id="platformStatDetailNotifs" hidden>
           <div class="platform-stat-detail-row"><span data-i18n="statNotifInapp">داخل المنصة</span><span class="platform-stat-detail-val" id="statNotifInapp"></span></div>
           <div class="platform-stat-detail-row"><span data-i18n="statNotifEmail">بريد إلكتروني</span><span class="platform-stat-detail-val" id="statNotifEmail"></span></div>
           <div class="platform-stat-detail-row"><span data-i18n="statNotifTelegram">Telegram</span><span class="platform-stat-detail-val" id="statNotifTelegram"></span></div>
@@ -405,7 +405,7 @@
     </p>
   </footer>
 
-  <script src="/index.4.js?v=8"></script>
+  <script src="/index.4.js?v=9"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/app.js?v=6" defer></script>
 <script src="/brand-logo.js?v=9" defer></script>

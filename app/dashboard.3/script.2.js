@@ -908,6 +908,10 @@
         document.querySelectorAll('[data-field="record"]').forEach(function (el) {
           if (state.viewType === "health") el.hidden = true;
         });
+        /* الفواتير: مبلغ الفاتورة يحسب من اساسها وضريبتها، فلا يسال عن المبلغ مرتين */
+        document.querySelectorAll('[data-field="amount"]').forEach(function (el) {
+          if (state.viewType === "invoices") el.hidden = true;
+        });
       }
 
       /* سجل «صحتي»: يبحث عنه فان لم يوجد انشئ مرة واحدة، ثم يختار في النموذجين */
@@ -1056,6 +1060,331 @@
         var kind = $("healthKindFilter"), st = $("healthStateFilter");
         if (kind) kind.addEventListener("change", function () { state.healthKind = this.value; renderHealth(); });
         if (st) st.addEventListener("change", function () { state.healthState = this.value; renderHealth(); });
+      })();
+
+      /* ــ المالية: الفاتورة لا «بند مصروف» ــ
+         حقولها كلها في data كما تفعل العقود وصحتي، و items.amount يبقى الاجمالي
+         شامل الضريبة فلا تتاثر مجاميع اللوحة ولا التقويم ولا المربعات الاربعة.
+         تاريخ الاستحقاق هو due_at نفسه، فالفاتورة تدخل التقويم والتذكير مجانا. */
+
+      var FIN_VAT_RATE = 0.15;
+      var FIN_DIRS = [
+        { value: "in",  key: "financeDirIn",  shortKey: "financeDirInShort",  category: "فاتورة مدينة" },
+        { value: "out", key: "financeDirOut", shortKey: "financeDirOutShort", category: "فاتورة دائنة" }
+      ];
+      /* الضريبة 15% كقاعدة المشروع: المنشات تضاف عليها (وحزمة المالية لا تقبل
+         حساب فرد اصلا)، و«شامل» لمن كتب سعرا شاملا، و«معفاة» لما لا ضريبة عليه. */
+      var FIN_VAT_MODES = [
+        { value: "exclusive", key: "financeVatExclusive" },
+        { value: "inclusive", key: "financeVatInclusive" },
+        { value: "exempt",    key: "financeVatExempt" }
+      ];
+      var FIN_STATES = ["", "due", "partial", "overdue", "collected", "cancelled"];
+      var FIN_STATE_KEYS = {
+        "": "financeStateAll", due: "financeStateDue", partial: "financeStatePartial",
+        overdue: "financeStateOverdue", collected: "financeStateCollected", cancelled: "financeStateCancelled"
+      };
+
+      function fin2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+
+      /* تحسب مرة واحدة عند الحفظ وتخزن، ولا تحسب من جديد عند القراءة ابدا
+         (قاعدة الضريبة في المشروع، وجدول payments يخزنها هكذا). */
+      function finVatSplit(entered, mode) {
+        var v = Number(entered) || 0, base, vat, rate = FIN_VAT_RATE;
+        if (mode === "exempt") { base = fin2(v); vat = 0; rate = 0; }
+        else if (mode === "inclusive") { base = fin2(v / (1 + rate)); vat = fin2(v - base); }
+        else { base = fin2(v); vat = fin2(v * rate); }
+        return { base: base, vat: vat, total: fin2(base + vat), rate: rate };
+      }
+
+      function financeFields(item) {
+        var d = (item && item.data) || {};
+        var total = d.total_sar != null ? Number(d.total_sar) : (Number(item && item.amount) || 0);
+        var paid = Number(d.paid_sar) || 0;
+        return {
+          number: dataOf(item, ["invoice_number", "رقم الفاتورة"]) || item.case_number || "",
+          dir: d.fin_dir === "out" ? "out" : "in",
+          party: (app.clientDisplayName ? app.clientDisplayName(item) : item.client_name) ||
+                 dataOf(item, ["الجهة", "العميل", "المورد", "party"]),
+          issued: dataOf(item, ["invoice_date", "تاريخ الاصدار", "تاريخ الفاتورة"]),
+          vatMode: d.vat_mode || "",   /* فارغ = عنصر سابق لهذه الشاشة، لا ضريبة مصرحة له */
+          base: d.base_sar != null ? Number(d.base_sar) : total,
+          vat: Number(d.vat_sar) || 0,
+          total: total,
+          paid: paid,
+          remain: fin2(total - paid),
+          paidAt: d.paid_at || "",
+          method: dataOf(item, ["pay_method", "طريقة السداد", "طريقة الدفع"])
+        };
+      }
+
+      /* ما يكتبه صاحبها في خانة «مبلغ الفاتورة»: الاجمالي ان كان السعر شاملا،
+         والاساس فيما عداه. فما يقرؤه هو ما كتبه لا رقما اخر. */
+      function finEntered(f) { return f.vatMode === "inclusive" ? f.total : f.base; }
+
+      function financeState(item) {
+        if (item.status === "cancelled") return "cancelled";
+        var f = financeFields(item);
+        if (item.status === "done" || (f.total > 0 && f.remain <= 0)) return "collected";
+        if (item.due_at && new Date(item.due_at).getTime() < Date.now()) return "overdue";
+        if (f.paid > 0) return "partial";
+        return "due";
+      }
+
+      function finDirLabel(dir, short) {
+        for (var i = 0; i < FIN_DIRS.length; i++) {
+          if (FIN_DIRS[i].value === dir) return T(short ? FIN_DIRS[i].shortKey : FIN_DIRS[i].key);
+        }
+        return "-";
+      }
+
+      function fillFinanceOptions(prefix) {
+        fillSelect($(prefix + "FinDir"),
+          FIN_DIRS.map(function (o) { return { value: o.value, label: T(o.key) }; }),
+          ($(prefix + "FinDir") && $(prefix + "FinDir").value) || "in");
+        fillSelect($(prefix + "FinVat"),
+          FIN_VAT_MODES.map(function (o) { return { value: o.value, label: T(o.key) }; }),
+          ($(prefix + "FinVat") && $(prefix + "FinVat").value) || "exclusive");
+      }
+
+      function financeRowData(prefix) {
+        if (state.viewType !== "invoices") return null;
+        var num = $(prefix + "FinNumber"), dir = $(prefix + "FinDir"), issued = $(prefix + "FinIssued");
+        var vatSel = $(prefix + "FinVat"), amount = $(prefix + "FinAmount");
+        var paidEl = $(prefix + "FinPaid"), paidAt = $(prefix + "FinPaidAt"), method = $(prefix + "FinMethod");
+        var mode = (vatSel && vatSel.value) || "exclusive";
+        var split = finVatSplit(amount ? amount.value : 0, mode);
+        var paid = Math.max(0, Number(numOrNull(paidEl ? paidEl.value : "")) || 0);
+        var prev = (prefix === "edit" && state.editing && state.editing.data) || {};
+        var out = {
+          fin_dir: (dir && dir.value === "out") ? "out" : "in",
+          vat_mode: mode,
+          vat_rate: split.rate,
+          base_sar: split.base,
+          vat_sar: split.vat,
+          total_sar: split.total,
+          paid_sar: paid
+        };
+        if (num && num.value.trim()) out.invoice_number = num.value.trim();
+        if (issued && issued.value) out.invoice_date = issued.value;
+        if (method && method.value.trim()) out.pay_method = method.value.trim();
+        /* يوم التحصيل: عليه يقوم «المحصل هذا الشهر» و«متوسط ايام التحصيل». يكتب
+           كما كتبه صاحبه، وان حصل مبلغا ولم يكتب يوما فاليوم، وان عاد المحصل الى
+           صفر محي التاريخ فلا يبقى تحصيل لا مقابل له. */
+        if (paidAt && paidAt.value) out.paid_at = paidAt.value;
+        else if (!paid) out.paid_at = null;
+        else if (paid > (Number(prev.paid_sar) || 0)) out.paid_at = new Date().toISOString().slice(0, 10);
+        return out;
+      }
+
+      /* تصنيف العنصر يتبع اتجاه فاتورته، فيعرف التقويم والقوائم ما هو */
+      function financeCategoryFor(prefix) {
+        if (state.viewType !== "invoices") return null;
+        var dir = $(prefix + "FinDir");
+        var v = (dir && dir.value) || "in";
+        for (var i = 0; i < FIN_DIRS.length; i++) if (FIN_DIRS[i].value === v) return FIN_DIRS[i].category;
+        return null;
+      }
+
+      function fillFinanceFields(prefix, item) {
+        fillFinanceOptions(prefix);
+        var f = financeFields(item || {});
+        var dir = $(prefix + "FinDir"), vatSel = $(prefix + "FinVat");
+        var num = $(prefix + "FinNumber"), issued = $(prefix + "FinIssued");
+        var amount = $(prefix + "FinAmount"), paidEl = $(prefix + "FinPaid");
+        var paidAt = $(prefix + "FinPaidAt"), method = $(prefix + "FinMethod");
+        if (num) num.value = f.number || "";
+        if (dir) dir.value = f.dir;
+        if (issued) issued.value = f.issued || "";
+        /* عنصر انشئ قبل هذه الشاشة يفتح «معفاة» فلا يزيد مبلغه 15% بحفظة واحدة،
+           والفاتورة الجديدة تفتح على «تضاف 15%» كقاعدة المنشات في المشروع. */
+        if (vatSel) vatSel.value = f.vatMode || ((item && item.id) ? "exempt" : "exclusive");
+        if (amount) amount.value = (f.total || f.base) ? String(finEntered(f)) : "";
+        if (paidEl) paidEl.value = f.paid ? String(f.paid) : "";
+        if (paidAt) paidAt.value = f.paidAt || "";
+        if (method) method.value = f.method || "";
+      }
+
+      function clearFinanceFields(prefix) {
+        ["FinNumber", "FinIssued", "FinAmount", "FinPaid", "FinPaidAt", "FinMethod"].forEach(function (k) {
+          var el = $(prefix + k);
+          if (el) el.value = "";
+        });
+        var dir = $(prefix + "FinDir");
+        if (dir) dir.value = "in";
+        var vatSel = $(prefix + "FinVat");
+        if (vatSel) vatSel.value = "exclusive";
+      }
+
+      /* طرق السداد تقترح ما استعمله صاحب الحساب فعلا، وتبقى قابلة للكتابة الحرة */
+      function renderFinanceMethodSuggest(items) {
+        var box = $("finMethodSuggest");
+        if (!box) return;
+        var seen = {}, list = [];
+        items.forEach(function (it) {
+          var m = financeFields(it).method;
+          if (!m || seen[m]) return;
+          seen[m] = true; list.push(m);
+        });
+        paintEl(box).html = list.sort().map(function (m) { return '<option value="' + esc(m) + '"></option>'; }).join("");
+      }
+
+      function renderFinanceFilters(items) {
+        fillSelect($("financeDirFilter"),
+          [{ value: "", label: T("financeDirAll") }].concat(FIN_DIRS.map(function (o) {
+            return { value: o.value, label: T(o.shortKey) };
+          })), state.financeDir || "");
+        fillSelect($("financeStateFilter"),
+          FIN_STATES.map(function (v) { return { value: v, label: T(FIN_STATE_KEYS[v]) }; }),
+          state.financeState || "");
+        var parties = {};
+        items.forEach(function (it) { var p = financeFields(it).party; if (p) parties[p] = true; });
+        fillSelect($("financePartyFilter"),
+          [{ value: "", label: T("financePartyAll") }].concat(Object.keys(parties).sort().map(function (p) {
+            return { value: p, label: p };
+          })), state.financeParty || "");
+      }
+
+      function financeFiltered(items) {
+        return items.filter(function (it) {
+          var f = financeFields(it);
+          if (state.financeDir && f.dir !== state.financeDir) return false;
+          if (state.financeState && financeState(it) !== state.financeState) return false;
+          if (state.financeParty && f.party !== state.financeParty) return false;
+          return true;
+        });
+      }
+
+      /* مجاميع المحاسب: كم فاتورة، وكم لنا، وكم علينا، وكم تاخر */
+      function renderFinanceTotals(items) {
+        var box = $("financeTotals");
+        if (!box) return;
+        var recv = 0, pay = 0, late = 0, now = Date.now();
+        items.forEach(function (it) {
+          var f = financeFields(it), st = financeState(it);
+          if (st === "collected" || st === "cancelled") return;
+          if (f.dir === "in") recv += f.remain; else pay += f.remain;
+          if (it.due_at && new Date(it.due_at).getTime() < now) late += f.remain;
+        });
+        paintEl(box).html =
+          '<div class="total-card"><span class="total-label">' + esc(T("finTotalCount")) + '</span><span class="total-value">' + esc(String(items.length)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("finTotalReceivable")) + '</span><span class="total-value">' + money(recv) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("finTotalPayable")) + '</span><span class="total-value">' + money(pay) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("finTotalOverdue")) + '</span><span class="total-value">' + money(late) + "</span></div>";
+      }
+
+      /* اكبر المدينين: الجهات التي عليها مبلغ متبق، بالمبلغ لا بعدد الفواتير */
+      function debtorBreakdown(items) {
+        var sums = {};
+        items.forEach(function (it) {
+          var f = financeFields(it), st = financeState(it);
+          if (f.dir !== "in" || st === "collected" || st === "cancelled" || f.remain <= 0) return;
+          var name = f.party || T("noAssignee");
+          sums[name] = (sums[name] || 0) + f.remain;
+        });
+        return Object.keys(sums).map(function (k) { return { label: k, value: Math.round(sums[k]) }; })
+          .sort(function (a, b) { return b.value - a.value; }).slice(0, 6);
+      }
+
+      function renderFinanceChart() {
+        var card = document.getElementById("financeChart");
+        if (!card) return;
+        var items = financeFiltered(state.items || []);
+        var year = String(new Date().getFullYear());
+        var months = EXP_MONTHS.map(function () { return 0; });
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        var dueToday = 0, late = 0, monthSum = 0, daysSum = 0, daysCount = 0;
+        var thisMonth = today.getFullYear() + "-" + EXP_MONTHS[today.getMonth()];
+        items.forEach(function (it) {
+          var f = financeFields(it), st = financeState(it);
+          if (f.paid > 0 && f.paidAt) {
+            var pd = new Date(f.paidAt);
+            if (!isNaN(pd.getTime())) {
+              if (String(pd.getFullYear()) === year) months[pd.getMonth()] += f.paid;
+              if (String(f.paidAt).slice(0, 7) === thisMonth) monthSum += f.paid;
+              if (f.issued) {
+                var id = new Date(f.issued);
+                if (!isNaN(id.getTime())) {
+                  daysSum += Math.max(0, Math.round((pd - id) / 86400000));
+                  daysCount++;
+                }
+              }
+            }
+          }
+          if (st === "collected" || st === "cancelled") return;
+          if (it.due_at) {
+            var d = new Date(it.due_at);
+            if (!isNaN(d.getTime())) {
+              if (d.getTime() < today.getTime()) late += f.remain;
+              else if (d.toDateString() === today.toDateString()) dueToday += f.remain;
+            }
+          }
+        });
+        var debtors = debtorBreakdown(items);
+        var donut = donutHtml(debtors, "noDebtorData");
+        paintEl(card).html =
+          "<h2>" + esc(T("finIndicatorsTitle")) + "</h2>" +
+          '<div class="ind-grid">' +
+            '<div class="ind-card"><h3>' + esc(T("finMonthlyTitle").replace("{y}", year)) + "</h3>" + monthBarsHtml(months) + "</div>" +
+            '<div class="ind-card"><h3>' + esc(T("finTopDebtorsTitle")) + "</h3>" + donut.html + "</div>" +
+          "</div>" +
+          '<div class="ind-totals">' +
+            '<div class="ind-total"><b>' + shortMoney(dueToday) + "</b><span>" + esc(T("finDueToday")) + "</span></div>" +
+            '<div class="ind-total"><b>' + shortMoney(late) + "</b><span>" + esc(T("finTotalOverdue")) + "</span></div>" +
+            '<div class="ind-total"><b>' + shortMoney(monthSum) + "</b><span>" + esc(T("finCollectedMonth")) + "</span></div>" +
+            '<div class="ind-total"><b>' + esc(String(daysCount ? Math.round(daysSum / daysCount) : 0)) + "</b><span>" + esc(T("finAvgDays")) + "</span></div>" +
+          "</div>";
+      }
+
+      function renderFinance() {
+        renderFinanceFilters(state.items);
+        renderFinanceMethodSuggest(state.items);
+        var items = financeFiltered(state.items).sort(function (a, b) {
+          return new Date(b.due_at || 0).getTime() - new Date(a.due_at || 0).getTime();
+        });
+        renderFinanceTotals(items);
+        var body = $("financeBody");
+        if (!body) return;
+        body.innerHTML = "";
+        $("financeWrap").hidden = items.length === 0;
+        $("emptyList").hidden = items.length > 0;
+        items.forEach(function (item) {
+          var f = financeFields(item);
+          var st = financeState(item);
+          var sk = st === "overdue" ? "overdue" : (st === "collected" ? "done" : (st === "cancelled" ? "cancelled" : "open"));
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            '<td class="cell-num">' + esc(f.number || "-") +
+              '<span class="item-cat">' + esc(finDirLabel(f.dir, true)) + "</span></td>" +
+            '<td><span class="item-title" data-tr>' + esc(item.title) + "</span></td>" +
+            '<td data-tr>' + esc(f.party || "-") + "</td>" +
+            '<td class="cell-num">' + esc(shortDate(f.issued)) + "</td>" +
+            '<td class="cell-num">' + (item.due_at
+              ? '<div class="cell-stack"><span>' + esc(app.fmtDate(item.due_at)) + '</span>' +
+                '<span class="item-cat due-left" data-due="' + esc(item.due_at) + '"' +
+                (st === "collected" ? ' data-due-done="1"' : "") + "></span></div>"
+              : "-") + "</td>" +
+            '<td class="cell-num">' + money(f.base) + "</td>" +
+            '<td class="cell-num">' + (f.vat ? money(f.vat) : "-") + "</td>" +
+            '<td class="cell-num">' + money(f.total) + "</td>" +
+            '<td class="cell-num">' + (f.paid ? money(f.paid) : "-") + "</td>" +
+            '<td class="cell-num">' + (f.remain > 0 ? money(f.remain) : "-") + "</td>" +
+            '<td><span class="status-' + sk + '">' + esc(T(FIN_STATE_KEYS[st])) + "</span></td>" +
+            '<td><div class="chat-options row-actions">' +
+              (item.status === "done" ? actionBtn(item, "reopen", "actionReopen") : actionBtn(item, "done", "finActionCollect")) +
+              actionBtn(item, "edit", "actionEdit") +
+              actionBtn(item, "delete", "actionDelete", "is-danger") +
+            "</div></td>";
+          body.appendChild(tr);
+        });
+        translateView();
+      }
+
+      (function wireFinanceFilters() {
+        var dir = $("financeDirFilter"), st = $("financeStateFilter"), party = $("financePartyFilter");
+        if (dir) dir.addEventListener("change", function () { state.financeDir = this.value; renderFinance(); });
+        if (st) st.addEventListener("change", function () { state.financeState = this.value; renderFinance(); });
+        if (party) party.addEventListener("change", function () { state.financeParty = this.value; renderFinance(); });
       })();
 
       /* ---------- مصاريف التشغيل: شاشتها لا تشبه القضايا ---------- */
@@ -1516,6 +1845,7 @@
         renderCasesChart();
         renderOwnChart();      /* مؤشر الواجهة التي لا قضايا فيها */
         renderExpensesChart();
+        renderFinanceChart();
         if (state.viewType === "violations") {
           $("violationsBar").hidden = false;
           $("tableWrap").hidden = true;
@@ -1523,6 +1853,8 @@
           $("expensesWrap").hidden = true;
           $("contractsBar").hidden = true;
           $("contractsWrap").hidden = true;
+          $("financeBar").hidden = true;
+          $("financeWrap").hidden = true;
           renderViolations();
           return;
         }
@@ -1535,6 +1867,8 @@
           $("contractsWrap").hidden = true;
           $("healthBar").hidden = true;
           $("healthWrap").hidden = true;
+          $("financeBar").hidden = true;
+          $("financeWrap").hidden = true;
           renderExpenses();
           return;
         }
@@ -1547,6 +1881,8 @@
           $("expensesWrap").hidden = true;
           $("healthBar").hidden = true;
           $("healthWrap").hidden = true;
+          $("financeBar").hidden = true;
+          $("financeWrap").hidden = true;
           renderContracts();
           return;
         }
@@ -1559,7 +1895,23 @@
           $("expensesWrap").hidden = true;
           $("contractsBar").hidden = true;
           $("contractsWrap").hidden = true;
+          $("financeBar").hidden = true;
+          $("financeWrap").hidden = true;
           renderHealth();
+          return;
+        }
+        if (state.viewType === "invoices") {
+          $("financeBar").hidden = false;
+          $("tableWrap").hidden = true;
+          $("violationsBar").hidden = true;
+          $("violationsWrap").hidden = true;
+          $("expensesBar").hidden = true;
+          $("expensesWrap").hidden = true;
+          $("contractsBar").hidden = true;
+          $("contractsWrap").hidden = true;
+          $("healthBar").hidden = true;
+          $("healthWrap").hidden = true;
+          renderFinance();
           return;
         }
         $("expensesBar").hidden = true;
@@ -1570,6 +1922,8 @@
         $("contractsWrap").hidden = true;
         $("healthBar").hidden = true;
         $("healthWrap").hidden = true;
+        $("financeBar").hidden = true;
+        $("financeWrap").hidden = true;
         if (renderPackTable()) return;
         var body = $("itemsBody");
         body.innerHTML = "";
@@ -1668,6 +2022,7 @@
         applyViewFields();
         if (state.viewType === "contracts") fillRenewalOptions($("addContractRenewal"), $("addContractRenewal").value);
         if (state.viewType === "health") { fillHealthOptions("add"); ensureHealthRecord(); }
+        if (state.viewType === "invoices") fillFinanceOptions("add");
         if (state.viewType === "deals") fillDealOptions("add");
         var p = $("addItemPanel");
         p.hidden = !p.hidden;
@@ -1704,6 +2059,12 @@
           row.data = Object.assign({}, row.data || {}, hdata);
           if (!row.category) row.category = healthCategoryFor("add");
         }
+        var fdata = financeRowData("add");
+        if (fdata) {
+          row.data = Object.assign({}, row.data || {}, fdata);
+          row.amount = fdata.total_sar || null;   /* الاجمالي شامل الضريبة هو مبلغ العنصر */
+          if (!row.category) row.category = financeCategoryFor("add");
+        }
         if (state.pendingParent) row.parent_id = state.pendingParent;
         guard(function () {
           $("addSaveBtn").disabled = true;
@@ -1718,6 +2079,7 @@
             $("addCaseNumber").value = "";
             clearContractFields("add");
             clearHealthFields("add");
+            clearFinanceFields("add");
             state.pendingParent = "";
             return refresh();
           });
@@ -1874,6 +2236,7 @@
         applyViewFields();
         if (state.viewType === "contracts") fillContractFields("edit", item);
         if (state.viewType === "health") fillHealthFields("edit", item);
+        if (state.viewType === "invoices") fillFinanceFields("edit", item);
         if (state.viewType === "deals") fillDealFields("edit", item);
         fillRemindOptions($("editRemind"), item.remind_before);
         clearMsg("editMsg");

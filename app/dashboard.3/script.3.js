@@ -34,6 +34,14 @@
           if (patch.data.repeat === null) delete patch.data.repeat;   /* الغاء التكرار يمحوه فعلا */
           if (!patch.category) patch.category = healthCategoryFor("edit");
         }
+        var fdata = financeRowData("edit");
+        if (fdata) {
+          patch.data = Object.assign({}, patch.data || state.editing.data || {}, fdata);
+          /* مبلغ العنصر هو اجمالي الفاتورة شامل الضريبة، لا الرقم المكتوب وحده */
+          patch.amount = fdata.total_sar || null;
+          if (patch.data.paid_at === null) delete patch.data.paid_at;   /* الغاء التحصيل يمحو يومه */
+          if (!patch.category) patch.category = financeCategoryFor("edit");
+        }
         var id = state.editing.id;
         guard(function () {
           $("editSaveBtn").disabled = true;

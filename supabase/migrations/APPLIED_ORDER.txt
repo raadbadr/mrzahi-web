@@ -192,3 +192,4 @@
 20260917080000	drop_create_org_overload	0159_drop_create_org_overload.sql	added
 20260917090000	health_repeat_prescription	0160_health_repeat_prescription.sql	added
 20260917100000	sales_deals_view	0161_sales_deals_view.sql	added
+20260917120000	finance_view	0163_finance_view.sql	added
