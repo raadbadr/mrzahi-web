@@ -748,6 +748,34 @@
     /* لكل حقل عنوانه فوقه: «موظف» صفة الشخص و«عضو» صلاحيته، وبلا عنوان يظن
        القارئ انهما شيء واحد (سؤال المهندس رعد 2026-09-17: «ايش الفرق بين
        الاثنين دول، احس في تكرار وتداخل»). */
+    /* زر «اعدادات العضو»: سطر واحد بارتفاع بقية الازرار، والرمز بجواره لا تحته،
+       ويدور عند الفتح فيعرف صاحبه ان البطاقة مفتوحة (شكوى المهندس رعد
+       2026-09-17: «الضغط على اعدادات العضو صار سيء» — كان الزر 61 بكسل). */
+    .member-more {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      height: var(--field-h, 42px); min-height: var(--field-h, 42px); margin-top: 0.9rem;
+    }
+    .member-more-mark { width: 18px; height: 18px; flex: 0 0 auto; transition: transform 0.2s ease; }
+    .member-more[aria-expanded="true"] .member-more-mark { transform: rotate(180deg); }
+    /* الادوات في عمودين فلا تتمدد البطاقة بجدار صناديق عند الفتح (كان التمدد
+       417 بكسل دفعة واحدة). ومربعات الواجهات المسموحة تبقى بعرض الصف كاملا. */
+    .member-settings .waitlist-form {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem 0.6rem; align-items: end;
+    }
+    .member-settings .member-field { width: 100%; flex: 0 1 auto; }
+    /* صندوق الواجهات المسموحة كان 268 بكسل وحده، اي ثلثي تمدد البطاقة. يبقى
+       بعمودين كما امر، لكن بسقف ارتفاع يمرر داخله فلا تنفجر البطاقة بالضغطة
+       (قاعدة 2-هـ: التمرير داخل الحاوية لا القص). */
+    .member-settings .allow-checks {
+      grid-column: 1 / -1; max-height: 150px; overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    .member-settings .chat-option-btn { grid-column: 1 / -1; justify-self: start; }
+    @media (max-width: 640px) {
+      .member-settings .waitlist-form { grid-template-columns: minmax(0, 1fr); }
+    }
+
     .member-field { display: flex; flex-direction: column; gap: 0.25rem; flex: 1 1 220px; min-width: 0; }
     .member-field-label { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); padding-inline-start: 0.25rem; }
     .member-field .waitlist-input { width: 100%; }
