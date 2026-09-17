@@ -32,6 +32,15 @@ These rules apply to every AI agent, developer, and automated tool working on th
 
 ---
 
+## كل دالة جديدة تسحب من PUBLIC (2026-09-17)
+
+- **Postgres يمنح كل دالة جديدة لـ `PUBLIC` تلقائيا.** فدالة داخلية تصير قابلة للنداء من المتصفح بلا تسجيل دخول ما لم تسحب من `PUBLIC` صراحة — و`revoke ... from anon` وحده **لا يكفي**.
+- كل ترحيل ينشئ دالة يتبعها بـ: `revoke execute on function <fn> from public, anon;` ثم `grant execute ... to <الدور الذي يحتاجها وحده>`.
+- **الفحص قبل النشر**: `select proname from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.prosecdef and has_function_privilege('anon', p.oid,'EXECUTE')` — كل اسم في الناتج اما محمي بـ `check_worker_secret` او بـ `auth.uid()`، او مقصود عاما (`platform_stats`، `calendar_feed`)، او فهو ثغرة.
+- السابقة: `tasks_record_for` و`member_name_for` و`packs_allowed_for` انشئت 2026-09-16 وبقيت مكشوفة لغير المسجلين حتى 0156؛ واولاها تنشئ سجلا في اي حساب بنداء واحد.
+
+---
+
 ## IMMUTABLE COMPONENTS — Never Touch Without Explicit Approval
 
 | File / Path | What it is | Why it's locked |
