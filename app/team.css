@@ -710,7 +710,15 @@
          «الشك بوكس خليه اصغر حط عمودين جنب بعض، وصغر الطول الزايد دا») */
       display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.3rem 0.6rem;
     }
-    .allow-legend { grid-column: 1 / -1; padding: 0; font-size: 0.78rem; color: var(--text-secondary); }
+    /* عنوان الصندوق كان يركب على حده ويقطعه: المتصفح يرسم legend في موضعه الخاص
+       فوق الحد ولا يعده عنصرا في الشبكة، فيتداخل النص مع الاطار (شكوى المهندس
+       رعد 2026-09-17: «تداخل مقيت»). float يخرجه من ذلك الرسم فيصير عنصرا عاديا
+       في الشبكة داخل الصندوق، ويحجز سطره كاملا فوق المربعات. */
+    .allow-legend {
+      float: inline-start; width: 100%;
+      grid-column: 1 / -1; padding: 0; margin: 0 0 0.35rem;
+      font-size: 0.78rem; color: var(--text-secondary);
+    }
     .allow-hint { grid-column: 1 / -1; font-size: 0.72rem; color: var(--text-secondary); line-height: 1.45; }
     .allow-check {
       display: flex; align-items: center; gap: 0.4rem; min-height: 26px;
