@@ -427,7 +427,6 @@
     }
     .table-wrap { overflow-x: auto; }
     .rules-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    .rules-table td { white-space: nowrap; }
     .rules-table th, .rules-table td {
       padding: 0.75rem 0.5rem;
       border-bottom: 1px solid var(--glass-border);
@@ -436,9 +435,9 @@
     }
     .rules-table th { color: var(--text-secondary); font-weight: 600; white-space: nowrap; }
     .rules-table .waitlist-input { min-width: 150px; width: 100%; }
-    /* القنوات الاربع على سطر واحد، والصف يتمرر افقيا في الشاشة الضيقة بدل
-       ان يلتف (امر المهندس رعد 2026-09-17: «ابغاهم على سطر واحد»). */
-    .rule-channels { display: flex; flex-wrap: nowrap; gap: 0.4rem 0.9rem; }
+    /* رجع كما كان بامر المهندس رعد 2026-09-17 («رجعوه زي ماكان»): الاجبار على
+       سطر واحد كان يفيض بالصف خارج البطاقة فيقص اوله واخره. */
+    .rule-channels { display: flex; flex-wrap: wrap; gap: 0.4rem 0.9rem; }
     .rule-check { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; white-space: nowrap; }
     .rule-check input { accent-color: var(--primary); }
     .rule-check input:disabled + span { opacity: 0.5; }
@@ -516,9 +515,8 @@
       overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
     }
     .rules-table .chat-options { margin-top: 0; flex-wrap: nowrap; }
-    /* ازرار الصف جنب بعضها لا فوق بعضها، ولا تلفها قاعدة الجوال العامة
-       (امر المهندس رعد 2026-09-17: «الازرار تجي جنب بعض»). */
-    .rules-table .row-actions, .rules-table td .chat-options { flex-wrap: nowrap !important; white-space: nowrap; }
+    /* زرا الصف (الرمزان) جنب بعضهما، بلا اجبار على بقية الخلايا */
+    .rules-table .row-actions { flex-wrap: nowrap; }
     .rules-table .row-actions .chat-option-btn { flex: 0 0 auto; }
     .plan-limits { list-style: none; margin-bottom: 1.5rem; }
     .plan-limits li {
