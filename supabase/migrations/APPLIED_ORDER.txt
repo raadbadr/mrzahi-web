@@ -188,3 +188,4 @@
 20260917070000	legal_without_opex	0157_legal_without_opex.sql	added
 20260917010000	tiles_per_pack	0155_tiles_per_pack.sql	added
 20260917020000	revoke_internal_functions	0156_revoke_internal_functions.sql	added
+20260917060000	revoke_trigger_fn_from_public	0158_revoke_trigger_fn_from_public.sql	added

@@ -531,6 +531,11 @@
       background: transparent;
       background: color-mix(in srgb, currentColor 12%, transparent);
       white-space: nowrap;
+      /* الوسمان على سطر واحد وبمحاذاة واحدة: عنصران سطريان يتحاذيان على خط
+         الاساس، وداخل احدهما نقطة وداخل الاخر ايقونة، فيعلو احدهما وينزل
+         الاخر (امر المهندس رعد 2026-09-17: «ليش واحد طالع وواحد نازل»).
+         middle يحاذي مركزيهما فيستويان. */
+      vertical-align: middle;
     }
     .plan-tag { color: var(--tag-trial); }
     .plan-tag::before {
