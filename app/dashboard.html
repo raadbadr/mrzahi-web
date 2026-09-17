@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Monoton&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/header.css?v=88">
   <link rel="stylesheet" href="/footer.css?v=75">
-  <link rel="stylesheet" href="/app/dashboard.css?v=76">
+  <link rel="stylesheet" href="/app/dashboard.css?v=77">
 </head>
 <body class="has-site-header">
   <header class="site-header">
@@ -446,15 +446,25 @@
 
         <div id="calendarPanel">
           <div class="cal-nav">
-            <!-- سطر واحد: السهمان حول التاريخ في طرف، وادوات العرض في الطرف الاخر.
+            <!-- الصف الاول: شرائح التصفية في طرف والشهر وسهماه في الطرف الاخر
+                 (امر المهندس رعد 2026-09-17: «حط الشهر مكان ميلادي هجري واسحب
+                 الشريط كامل مكان الشهر»). وادوات العرض في الصف الذي تحته.
                  السهمان بلا data-i18n: مترجم النص يكتب فوق محتوى العنصر فيمحو الرسم،
                  واسمهما يضبط في syncCalNavLabels بحسب المدى. -->
             <div class="cal-line">
+              <!-- الفلاتر تبنى من خدمات واجهة الحساب نفسها (renderCalFilters)، فلا
+                   يرى الشخصي قضايا ولا مخالفات، ولكل واجهة فلاترها (المهندس رعد 2026-09-16) -->
+              <div class="cal-nav-group" id="calFilters" role="group" hidden>
+                <div class="cal-modes" id="calFilterList"></div>
+              </div>
               <div class="cal-when">
                 <button type="button" class="cal-arrow" id="calPrevBtn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
                 <strong class="cal-title" id="calTitle" aria-live="polite"></strong>
                 <button type="button" class="cal-arrow" id="calNextBtn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg></button>
               </div>
+            </div>
+            <!-- صف ثان: ادوات العرض ثم المسؤولون -->
+            <div class="cal-line cal-line--sub" id="calSubLine">
               <div class="cal-ctls">
                 <div class="cal-modes" role="group">
                   <button type="button" class="cal-mode" id="calTodayBtn" data-i18n="calToday">اليوم</button>
@@ -469,14 +479,6 @@
                   <button type="button" class="cal-mode" id="calHijriBtn" data-cal-mode="hijri" data-i18n="calHijri">هجري</button>
                 </div>
               </div>
-            </div>
-            <!-- سطر ثان بنفس الحواف وبنفس التبويبات: التصنيف في طرف والمسؤولون في الطرف الاخر -->
-            <div class="cal-line cal-line--sub" id="calSubLine">
-              <!-- الفلاتر تبنى من خدمات واجهة الحساب نفسها (renderCalFilters)، فلا
-                   يرى الشخصي قضايا ولا مخالفات، ولكل واجهة فلاترها (المهندس رعد 2026-09-16) -->
-              <div class="cal-nav-group" id="calFilters" role="group" hidden>
-                <div class="cal-modes" id="calFilterList"></div>
-              </div>
               <div class="cal-people" id="calPeople" hidden></div>
             </div>
           </div>
@@ -490,7 +492,7 @@
 
   <script src="/app/dashboard.1.js?v=80"></script>
   <script src="/app/dashboard.2.js?v=80"></script>
-  <script src="/app/dashboard.3.js?v=81"></script>
+  <script src="/app/dashboard.3.js?v=82"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/app.js?v=78" defer></script>
 <script src="/app/common.js?v=89" defer></script>
