@@ -505,8 +505,12 @@
          ومصاريفها وصحتها ان كانت من خدماتها — بديل يناسبها لا فراغ. */
       function ownMetrics() {
         var items = state.items || [];
+        /* البطاقة اسمها «اوراقي ومواعيدي» فتعد الاثنين: كانت اعمدتها الاربعة
+           كلها عن الاوراق، ورابعها «عناصر مفتوحة» لفظ عام مكرر مع المربعات
+           اعلى الشاشة (المهندس رعد 2026-09-17: «كيف اوراقي ومواعيدي وهو بس
+           يسجل الاوراق؟»). المواعيد: ما له موعد قادم وليس ورقة. */
         var now = Date.now(), soon = now + 30 * 24 * 3600 * 1000;
-        var papers = 0, expiring = 0, expired = 0, openItems = 0;
+        var papers = 0, expiring = 0, expired = 0, appts = 0;
         items.forEach(function (it) {
           var d = it.data || {};
           var due = it.due_at ? new Date(it.due_at).getTime() : null;
@@ -514,14 +518,15 @@
             papers++;
             if (due && due < now) expired++;
             else if (due && due <= soon) expiring++;
+            return;
           }
-          if (it.status === "open") openItems++;
+          if (it.status === "open" && due && due >= now) appts++;
         });
         return [
           { key: "indPapers", value: papers },
           { key: "indPapersSoon", value: expiring },
           { key: "indPapersExpired", value: expired },
-          { key: "indOpenItems", value: openItems }
+          { key: "indMyAppts", value: appts }
         ];
       }
       function renderOwnChart() {
