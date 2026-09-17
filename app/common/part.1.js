@@ -569,8 +569,12 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     ur: { title: "صفحہ لوڈ نہیں ہو سکا", hint: "لوڈنگ کے دوران رابطہ منقطع ہوا۔ دوبارہ کوشش کریں۔", retry: "دوبارہ کوشش", login: "دوبارہ سائن ان" }
   };
 
+  /* السبب التقني يرسل الى الخادم في reportClientError ولا يكتب على الشاشة ابدا:
+     العميل لا يرى «stuck at session» ولا اي انجليزية، بل رسالة عربية وزرين
+     (امر المهندس رعد 2026-09-17). */
   function showBootFailure(detail) {
     if (document.getElementById("appBootFail")) return;
+    if (window.console && detail) console.warn("boot failure:", detail);
     var tx = BOOT_FAIL_TEXT[lang()] || BOOT_FAIL_TEXT.ar;
     var box = document.createElement("div");
     box.id = "appBootFail";
@@ -585,7 +589,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
       'background:var(--primary,#00a0d2);color:#fff;font:inherit;font-weight:700;cursor:pointer">' + escapeHtml(tx.retry) + "</button>" +
       '<button type="button" id="appBootLogin" style="width:100%;margin-top:.6rem;padding:.7rem 1rem;border:1px solid var(--glass-border,rgba(255,255,255,.12));' +
       'border-radius:12px;background:transparent;color:var(--text-secondary,#9fb3c0);font:inherit;cursor:pointer">' + escapeHtml(tx.login) + "</button>" +
-      '<p style="margin:.9rem 0 0;font-size:.7rem;color:var(--text-secondary,#9fb3c0);opacity:.7" dir="ltr">' + escapeHtml(String(detail || "").slice(0, 80)) + "</p></div>";
+      "</div>";
     var mount = function () {
       document.body.appendChild(box);
       document.getElementById("appBootRetry").addEventListener("click", function () { window.location.reload(); });
@@ -731,14 +735,22 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
 
   /* حارس أخير مستقل عن كل ما سبق: إن بقيت بطاقة التحميل ظاهرة بعد اثنتي عشرة ثانية
      فشيء ما لم يحسم — تخفى وتظهر بطاقة فيها زر إعادة. لا شاشة تحميل بلا نهاية. */
-  setTimeout(function () {
+  /* المهلة الثابتة كانت تطرد من يقلع ببطء: خطوات الاقلاع وحدها تحتمل اكثر من
+     اثنتي عشرة ثانية على شبكة جوال ضعيفة، فيرى من كان اتصاله بطيئا بطاقة فشل
+     بينما كانت صفحته ستفتح بعد ثانيتين. الان لا تظهر البطاقة الا اذا توقفت
+     الخطوة نفسها ولم تتقدم (امر المهندس رعد 2026-09-17). */
+  var stepSeen = initStep, stepSeenAt = Date.now();
+  var bootWatch = setInterval(function () {
+    if (initStep !== stepSeen) { stepSeen = initStep; stepSeenAt = Date.now(); }
     var card = document.getElementById("loadingCard");
-    if (!card || card.hidden || initStep === "done" || initStep === "redirect") return;
-    if (document.getElementById("appBootFail")) return;
+    if (initStep === "done" || initStep === "redirect" || document.getElementById("appBootFail")) { clearInterval(bootWatch); return; }
+    if (!card || card.hidden) { clearInterval(bootWatch); return; }
+    if (Date.now() - stepSeenAt < 14000) return;   /* الخطوة ما زالت تتقدم */
+    clearInterval(bootWatch);
     card.hidden = true;
     reportClientError("loading_stuck", "still at " + initStep);
     showBootFailure("stuck at " + initStep);
-  }, 12000);
+  }, 2000);
 
   app.ready = init();
 

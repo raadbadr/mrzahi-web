@@ -28,6 +28,50 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
   var GSI_SRC = "https://accounts.google.com/gsi/client";
   var googleClientId = null;   /* عام؛ يأتي من /api/config */
   var googleDirect = false;    /* هل نطلب رمز الهوية من جوجل مباشرة؟ */
+  var AUTH_FAIL_KEY = "mrzahi_auth_fail";
+
+  /* ---------- عودة متعثرة من مزود الدخول ----------
+     حين ينقطع التبادل مع جوجل يعيد سوبابيس المتصفح الى الصفحة الداخلية ومعه
+     error=server_error&error_description=Unable to exchange external code…
+     فتفتح لوحة بلا جلسة، ويقرا العميل كلاما انجليزيا لا يعنيه ثم يطرد الى
+     الدخول بلا تفسير. هنا يلتقط الخطا قبل اقلاع اي صفحة: ينظف العنوان، ويعاد
+     الى صفحة الدخول برسالة عربية واحدة (امر المهندس رعد 2026-09-17). */
+  function readAuthFailure() {
+    var found = null;
+    [window.location.search, window.location.hash].forEach(function (raw) {
+      if (found || !raw) return;
+      var params;
+      try { params = new URLSearchParams(String(raw).replace(/^[#?]/, "")); } catch (e) { return; }
+      var code = params.get("error_code") || params.get("error");
+      if (!code) return;
+      found = { code: String(code), desc: String(params.get("error_description") || "") };
+    });
+    return found;
+  }
+
+  function stripAuthFailureFromUrl() {
+    try {
+      var url = new URL(window.location.href);
+      ["error", "error_code", "error_description", "sb"].forEach(function (k) { url.searchParams.delete(k); });
+      if (/error/i.test(String(url.hash || ""))) url.hash = "";
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    } catch (e) { /* ignore */ }
+  }
+
+  function guardAuthFailure() {
+    var f = readAuthFailure();
+    if (!f) return;
+    var cancelled = /access_denied|cancel/i.test(f.code + " " + f.desc);
+    var key = cancelled ? "statusOauthCancelled" : "statusOauthFailed";
+    try {
+      window.sessionStorage.setItem(AUTH_FAIL_KEY, key);
+      window.sessionStorage.removeItem("mrzahi_auth_pending");   /* لا ننتظر جلسة لن تاتي */
+    } catch (e) { /* ignore */ }
+    stripAuthFailureFromUrl();
+    if (!/\/login/.test(String(window.location.pathname || ""))) window.location.replace("/login");
+  }
+
+  guardAuthFailure();
 
   /* Arabic fallbacks, used only when the page has no `translations` object. */
   var FALLBACK = {
@@ -45,7 +89,9 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     statusRateLimit: "محاولات كثيرة، حاول مرة أخرى بعد قليل.",
     statusInvalidEmail: "أدخل بريدا إلكترونيا صحيحا.",
     statusInvalidPhone: "أدخل رقم الجوال بالصيغة الدولية، مثل +9665xxxxxxx",
-    statusError: "حدث خطأ، حاول مرة أخرى."
+    statusError: "حدث خطأ، حاول مرة أخرى.",
+    statusOauthFailed: "لم يكتمل تسجيل الدخول عبر Google، إذ انقطع الاتصال قبل اكتماله. أعد المحاولة.",
+    statusOauthCancelled: "أُلغي تسجيل الدخول عبر Google قبل اكتماله."
   };
 
   var auth = {
@@ -470,6 +516,15 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     window.addEventListener("pageshow", function (ev) {
       if (ev.persisted) setBusy(false);
     });
+
+    /* عودة متعثرة من جوجل: الرسالة العربية تقال هنا، فلا يعود العميل بلا تفسير. */
+    try {
+      var failKey = window.sessionStorage.getItem(AUTH_FAIL_KEY);
+      if (failKey) {
+        window.sessionStorage.removeItem(AUTH_FAIL_KEY);
+        setStatus(failKey, "error");
+      }
+    } catch (e) { /* ignore */ }
 
     if (googleBtn) googleBtn.addEventListener("click", function () {
       if (guardUnavailable()) return;
