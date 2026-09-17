@@ -765,8 +765,14 @@
     }
     .member-settings .member-field { width: 100%; flex: 0 1 auto; }
     /* بلا سقف ولا تمرير: المعلومة كاملة امام صاحبها (امر المهندس رعد
-       2026-09-17: «ليش مسوي سكرول»). السقف كان اجتهادا مني لم يطلبه. */
-    .member-settings .allow-checks { grid-column: 1 / -1; }
+       2026-09-17: «ليش مسوي سكرول»). وثلاثة اعمدة على الشاشة العريضة بامره
+       («سوي ثلاثة اعمدة»): الواجهات كلها ظاهرة والصندوق اقصر. */
+    .member-settings .allow-checks { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 900px) {
+      .member-settings .allow-checks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    /* وعلى الجوال يبقى عمودان كما امر سابقا («حط عمودين جنب بعض»): عمود واحد
+       يطيل الصندوق 422 بكسل، وهو اسوا لا احسن. */
     .member-settings .chat-option-btn { grid-column: 1 / -1; justify-self: start; }
     @media (max-width: 640px) {
       .member-settings .waitlist-form { grid-template-columns: minmax(0, 1fr); }
