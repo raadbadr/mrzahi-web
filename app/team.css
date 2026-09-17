@@ -703,6 +703,9 @@
        يرسمها المتصفح (امر المهندس رعد 2026-09-16). كلها بارتفاع واحد واستدارة
        واحدة كبقية الحقول، والمؤشر مربع اخضر واضح. */
     .allow-checks {
+      /* بعرض الصف الذي فوقه لا اضيق منه (امر المهندس رعد 2026-09-17): الاب flex
+         فلا ينفع grid-column وحده. */
+      flex: 1 1 100%; width: 100%; box-sizing: border-box;
       grid-column: 1 / -1; margin: 0; padding: 0.55rem 0.7rem;
       border: 1px solid var(--glass-border); border-radius: var(--field-r, 12px);
       background: var(--glass);
@@ -710,14 +713,12 @@
          «الشك بوكس خليه اصغر حط عمودين جنب بعض، وصغر الطول الزايد دا») */
       display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.3rem 0.6rem;
     }
-    /* عنوان الصندوق كان يركب على حده ويقطعه: المتصفح يرسم legend في موضعه الخاص
-       فوق الحد ولا يعده عنصرا في الشبكة، فيتداخل النص مع الاطار (شكوى المهندس
-       رعد 2026-09-17: «تداخل مقيت»). float يخرجه من ذلك الرسم فيصير عنصرا عاديا
-       في الشبكة داخل الصندوق، ويحجز سطره كاملا فوق المربعات. */
+    /* العنوان span داخل الصندوق لا legend على حده: legend ترسمه المتصفحات فوق
+       الحد فيقطعه مهما قيل له في CSS (شكوى المهندس رعد 2026-09-17: «تداخل مقيت»،
+       ثم «العنوان حقو متداخل»). */
     .allow-legend {
-      float: inline-start; width: 100%;
-      grid-column: 1 / -1; padding: 0; margin: 0 0 0.35rem;
-      font-size: 0.78rem; color: var(--text-secondary);
+      grid-column: 1 / -1; width: 100%; padding: 0; margin: 0 0 0.4rem;
+      font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
     }
     .allow-hint { grid-column: 1 / -1; font-size: 0.72rem; color: var(--text-secondary); line-height: 1.45; }
     .allow-check {
@@ -739,3 +740,14 @@
     .allow-check input:focus-visible + .allow-box { outline: 2px solid var(--primary); outline-offset: 2px; }
     .allow-check input:disabled + .allow-box { opacity: 0.5; }
     .allow-name { overflow-wrap: anywhere; }
+
+    /* «كل الواجهات» مربع صريح في راس الصندوق: لا حالة غامضة بلا تحديد (امر
+       المهندس رعد 2026-09-17: «غلط اصلا بلا تحديد يعني الكل»). */
+    .allow-all { grid-column: 1 / -1; padding-bottom: 0.4rem; margin-bottom: 0.2rem; border-bottom: 1px solid var(--glass-border); }
+
+    /* لكل حقل عنوانه فوقه: «موظف» صفة الشخص و«عضو» صلاحيته، وبلا عنوان يظن
+       القارئ انهما شيء واحد (سؤال المهندس رعد 2026-09-17: «ايش الفرق بين
+       الاثنين دول، احس في تكرار وتداخل»). */
+    .member-field { display: flex; flex-direction: column; gap: 0.25rem; flex: 1 1 220px; min-width: 0; }
+    .member-field-label { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); padding-inline-start: 0.25rem; }
+    .member-field .waitlist-input { width: 100%; }

@@ -201,30 +201,50 @@
               '<span class="platform-stat-detail-val">' + esc(fmtDate(m.created_at) || "-") + "</span></div>";
 
           var controls = "";
+          /* لكل حقل عنوانه فوقه: «موظف» صفة الشخص و«عضو» صلاحيته في الحساب، وبلا
+             عنوان يظنهما القارئ شيئا واحدا (سؤال المهندس رعد 2026-09-17: «ايش
+             الفرق بين الاثنين دول، احس في تكرار وتداخل»). */
+          function fieldWrap(labelText, innerHtml) {
+            return '<label class="member-field"><span class="member-field-label">' + esc(labelText) + "</span>" + innerHtml + "</label>";
+          }
           if (state.canManage) {
             controls +=
               '<div class="waitlist-form">' +
+                fieldWrap(t("departmentLabel"),
                 '<select class="waitlist-input" data-dept-user="' + esc(m.user_id) + '" aria-label="' + esc(t("departmentLabel")) + '"' + (isOwner ? " disabled" : "") + '>' +
                   '<option value=""' + (!m.department ? " selected" : "") + ">" + esc(t("deptUnset")) + "</option>" +
                   (app && app.departments ? app.departments() : []).map(function (d) {
                     return '<option value="' + d.value + '"' + (m.department === d.value ? " selected" : "") + ">" + esc(app.departmentLabel(d.value)) + "</option>";
                   }).join("") +
-                "</select>" +
+                "</select>") +
+                fieldWrap(t("personKindLabel"),
                 '<select class="waitlist-input" data-person-user="' + esc(m.user_id) + '" aria-label="' + esc(t("personKindLabel")) + '">' +
                   '<option value=""' + (!m.person_kind ? " selected" : "") + ">" + esc(t("personUnset")) + "</option>" +
                   ["partner", "manager", "employee", "contractor"].map(function (k) {
                     return '<option value="' + k + '"' + (m.person_kind === k ? " selected" : "") + ">" + esc(personKindName(k)) + "</option>";
                   }).join("") +
-                "</select>" +
-                '<input type="text" class="waitlist-input" data-title-user="' + esc(m.user_id) + '" maxlength="80" value="' + esc(m.job_title || "") + '" placeholder="' + esc(t("jobTitleLabel")) + '" dir="auto">' +
+                "</select>") +
+                fieldWrap(t("jobTitleLabel"),
+                '<input type="text" class="waitlist-input" data-title-user="' + esc(m.user_id) + '" maxlength="80" value="' + esc(m.job_title || "") + '" placeholder="' + esc(t("jobTitleLabel")) + '" dir="auto">') +
                 /* صاحب الحساب يوزع الواجهات على فريقه: واجهة لكل عضو، ومن لا واجهة له يأخذ واجهة الحساب */
+                fieldWrap(t("packLabel"),
                 '<select class="waitlist-input" data-pack-user="' + esc(m.user_id) + '" aria-label="' + esc(t("packLabel")) + '">' +
                   '<option value=""' + (!m.ui_pack ? " selected" : "") + ">" + esc(t("packUnset")) + "</option>" +
                   (state.packs || []).map(function (pk) {
                     var nm = (pk.names && (pk.names[app.lang()] || pk.names.ar)) || pk.key;
                     return '<option value="' + esc(pk.key) + '"' + (m.ui_pack === pk.key ? " selected" : "") + ">" + esc(nm) + "</option>";
                   }).join("") +
-                "</select>" +
+                "</select>") +
+                /* الصلاحية في الحساب: عضو او مشرف. صعدت الى صف الحقول بعنوانها
+                   فلا تبقى وحدها تحت الصندوق بلا اسم (امر المهندس رعد 2026-09-17:
+                   «شيل العضو دا من تحت»). */
+                ((state.canManage && !isOwner && !isSelf)
+                  ? fieldWrap(t("changeRoleLabel"),
+                      '<select class="waitlist-input" data-role-user="' + esc(m.user_id) + '" aria-label="' + esc(t("changeRoleLabel")) + '">' +
+                        '<option value="member"' + (m.role === "member" ? " selected" : "") + ">" + esc(t("roleMember")) + "</option>" +
+                        '<option value="admin"' + (m.role === "admin" ? " selected" : "") + ">" + esc(t("roleAdmin")) + "</option>" +
+                      "</select>")
+                  : "") +
                 /* الواجهات المسموحة لهذا العضو: لا يرى في قائمته سواها، وبلا
                    تحديد يرى الكل (المهندس رعد 2026-09-16). */
                 /* شرائح لا قائمة متعددة: صندوق القائمة المتعددة يرسمه المتصفح
@@ -236,8 +256,23 @@
                    واي شي مانختارو مايظهر اصلا في اللسته»): المؤشر عليه يظهر
                    للعضو، وما لا مؤشر عليه لا يظهر في قائمته اصلا. وبلا اي
                    اختيار يرى الكل. */
-                '<fieldset class="allow-checks" data-allow-user="' + esc(m.user_id) + '" title="' + esc(t("allowNote")) + '">' +
-                  '<legend class="allow-legend">' + esc(t("allowLabel")) + "</legend>" +
+                /* عنوان الصندوق span لا legend: المتصفح يرسم legend على حد الـ
+                   fieldset فيقطعه مهما قيل له في CSS، وهو التداخل الذي شكا منه
+                   المهندس رعد. span عنصر عادي داخل الصندوق، و aria-labelledby
+                   يحفظ الدلالة لقارئ الشاشة. */
+                '<div class="allow-checks" role="group" aria-labelledby="allowT-' + esc(m.user_id) + '" data-allow-user="' + esc(m.user_id) + '" title="' + esc(t("allowNote")) + '">' +
+                  '<span class="allow-legend" id="allowT-' + esc(m.user_id) + '">' + esc(t("allowLabel")) + "</span>" +
+                  /* «كل الواجهات» مربع صريح: لا حالة غامضة بلا تحديد (امر المهندس
+                     رعد 2026-09-17: «غلط اصلا بلا تحديد يعني الكل، المفروض تحط
+                     بوكس الكل»). مؤشر = كل الواجهات، وتاشير اي واجهة يرفعه. */
+                  (function () {
+                    var allOn = !Array.isArray(m.allowed_packs) || !m.allowed_packs.length;
+                    return '<label class="allow-check allow-all' + (allOn ? " is-on" : "") + '">' +
+                             '<input type="checkbox" data-allow-all="1"' + (allOn ? " checked" : "") + ">" +
+                             '<span class="allow-box" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></span>' +
+                             '<span class="allow-name">' + esc(t("allowAll")) + "</span>" +
+                           "</label>";
+                  })() +
                   (state.packs || []).filter(function (pk) { return pk.key !== "individual"; }).map(function (pk) {
                     var nm = (pk.names && (pk.names[app.lang()] || pk.names.ar)) || pk.key;
                     var on = Array.isArray(m.allowed_packs) && m.allowed_packs.indexOf(pk.key) !== -1;
@@ -247,7 +282,7 @@
                              '<span class="allow-name">' + esc(nm) + "</span>" +
                            "</label>";
                   }).join("") +
-                "</fieldset>" +
+                "</div>" +
               "</div>";
           }
           if (state.canManage && !isOwner && !isSelf) {
@@ -255,10 +290,6 @@
                فيبقى كل موظف بلا قسم، والقسم هو ما يحدد الخدمات التي يراها. */
             controls +=
               '<div class="waitlist-form">' +
-                '<select class="waitlist-input" data-role-user="' + esc(m.user_id) + '" aria-label="' + esc(t("changeRoleLabel")) + '">' +
-                  '<option value="member"' + (m.role === "member" ? " selected" : "") + ">" + esc(t("roleMember")) + "</option>" +
-                  '<option value="admin"' + (m.role === "admin" ? " selected" : "") + ">" + esc(t("roleAdmin")) + "</option>" +
-                "</select>" +
                 '<button type="button" class="chat-option-btn" data-remove-user="' + esc(m.user_id) + '" data-name="' + esc(name) + '">' + esc(t("removeBtn")) + "</button>" +
               "</div>";
           }
@@ -337,8 +368,23 @@
       /* الواجهات المسموحة بشرائح: نقرة تبدل الشريحة ثم تحفظ. بلا اختيار يرفع
          التضييق فيرى العضو الكل. */
       /* مؤشر يتبدل فيحفظ فورا؛ والرفض يعيده كما كان فلا يظن صاحبه انه حفظ */
+      /* «كل الواجهات» ومربعات الواجهات في بوابة واحدة: تاشير «الكل» يرفع الباقي،
+         وتاشير واجهة يرفع «الكل»، وان لم يبق شيء مؤشرا عاد «الكل» تلقائيا — فلا
+         تبقى حالة غامضة بلا تحديد (امر المهندس رعد 2026-09-17). */
+      function syncAllowAll(box) {
+        var all = box.querySelector("[data-allow-all]");
+        var any = false;
+        box.querySelectorAll("[data-allow-pack]").forEach(function (c) { if (c.checked) any = true; });
+        if (!all) return;
+        all.checked = !any;
+        var w = all.closest(".allow-check");
+        if (w) w.classList.toggle("is-on", all.checked);
+      }
+
       function onAllowCheck(ev) {
-        var input = ev.target && ev.target.matches && ev.target.matches("[data-allow-pack]") ? ev.target : null;
+        var tgt = ev.target && ev.target.matches ? ev.target : null;
+        var isAll = tgt && tgt.matches("[data-allow-all]");
+        var input = tgt && (isAll || tgt.matches("[data-allow-pack]")) ? tgt : null;
         if (!input) return false;
         var box = input.closest("[data-allow-user]");
         if (!box) return false;
@@ -346,17 +392,28 @@
         var was = !input.checked;
         var wrap = input.closest(".allow-check");
         if (wrap) wrap.classList.toggle("is-on", input.checked);
+        if (isAll) {
+          /* «الكل» لا يرفع الا بتحديد واجهة: رفعه وحده يترك العضو بلا شيء */
+          if (!input.checked) { input.checked = true; if (wrap) wrap.classList.add("is-on"); return true; }
+          box.querySelectorAll("[data-allow-pack]").forEach(function (c) {
+            c.checked = false;
+            var w = c.closest(".allow-check");
+            if (w) w.classList.remove("is-on");
+          });
+        }
         var picked = [];
         box.querySelectorAll("[data-allow-pack]").forEach(function (c) { if (c.checked) picked.push(c.getAttribute("data-allow-pack")); });
-        box.querySelectorAll("[data-allow-pack]").forEach(function (c) { c.disabled = true; });
+        syncAllowAll(box);
+        box.querySelectorAll("input").forEach(function (c) { c.disabled = true; });
         app.setMemberAllowedPacks(aUser, picked).then(function () {
           if (aMember) aMember.allowed_packs = picked.length ? picked : null;
-          box.querySelectorAll("[data-allow-pack]").forEach(function (c) { c.disabled = false; });
+          box.querySelectorAll("input").forEach(function (c) { c.disabled = false; });
           toast(t("allowUpdated"), "success");
         }).catch(function (err) {
           input.checked = was;
           if (wrap) wrap.classList.toggle("is-on", was);
-          box.querySelectorAll("[data-allow-pack]").forEach(function (c) { c.disabled = false; });
+          syncAllowAll(box);
+          box.querySelectorAll("input").forEach(function (c) { c.disabled = false; });
           toast(errorMessage(err), "error");
         });
         return true;
