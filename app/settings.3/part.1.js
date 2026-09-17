@@ -506,9 +506,15 @@
                   '<option value="assignee"' + (target === "assignee" ? " selected" : "") + ">" + esc(t("targetAssignee")) + "</option>" +
                   '<option value="all"' + (target === "all" ? " selected" : "") + ">" + esc(t("targetAll")) + "</option>" +
                   "</select></td>";
-          html += '<td><div class="chat-options">' +
-                  '<button type="button" class="waitlist-btn" data-rule-action="save">' + esc(t("saveRuleBtn")) + "</button>" +
-                  (rule ? '<button type="button" class="chat-option-btn" data-rule-action="delete">' + esc(t("deleteRuleBtn")) + "</button>" : "") +
+          /* رموز لا كلمات، على سطر واحد، والحذف احمر بسلة (امر المهندس رعد
+             2026-09-17: «غير دي الى رموز، الحفظ ايقونة حفظ، والحذف زبالة
+             بالاحمر، وحطهم على سطر واحد»). الاسم يبقى في التلميح ولقارئ
+             الشاشة، والمكون هو chat-option-btn is-icon القائم في المنصة. */
+          html += '<td><div class="row-actions chat-options">' +
+                  '<button type="button" class="chat-option-btn is-icon" data-rule-action="save"' +
+                    ' title="' + esc(t("saveRuleBtn")) + '" aria-label="' + esc(t("saveRuleBtn")) + '">' + RULE_ICON.save + "</button>" +
+                  (rule ? '<button type="button" class="chat-option-btn is-icon is-danger" data-rule-action="delete"' +
+                    ' title="' + esc(t("deleteRuleBtn")) + '" aria-label="' + esc(t("deleteRuleBtn")) + '">' + RULE_ICON.trash + "</button>" : "") +
                   "</div></td>";
           html += "</tr>";
         });
@@ -516,6 +522,12 @@
         html += "</tbody></table></div>";
         wrap.innerHTML = html;
       }
+
+      /* ايقونتا الصف: من مجموعة المنصة نفسها (صفحة المستندات) لا رسم جديد */
+      var RULE_ICON = {
+        save: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg>',
+        trash: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>'
+      };
 
       function onRuleAction(ev) {
         var btn = ev.target.closest("[data-rule-action]");
@@ -545,12 +557,18 @@
             return loadRules();
           }).catch(function (err) { btn.disabled = false; toast(errorMessage(err), "error"); });
         } else if (action === "delete" && ruleId) {
-          if (!window.confirm(t("deleteRuleConfirm"))) return;
-          btn.disabled = true;
-          app.deleteRule(ruleId).then(function () {
-            toast(t("ruleDeleted"), "success");
-            return loadRules();
-          }).catch(function (err) { btn.disabled = false; toast(errorMessage(err), "error"); });
+          /* الحذف دائما عليه تاكيد، بحوار المنصة لا بنافذة المتصفح (امره نفسه) */
+          var ask = app.confirmDanger
+            ? app.confirmDanger(t("deleteRuleBtn"), { warn: t("deleteRuleConfirm") })
+            : Promise.resolve(window.confirm(t("deleteRuleConfirm")));
+          ask.then(function (ok) {
+            if (!ok) return;
+            btn.disabled = true;
+            app.deleteRule(ruleId).then(function () {
+              toast(t("ruleDeleted"), "success");
+              return loadRules();
+            }).catch(function (err) { btn.disabled = false; toast(errorMessage(err), "error"); });
+          });
         }
       }
 

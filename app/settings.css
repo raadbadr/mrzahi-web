@@ -622,3 +622,10 @@
       .drive-row { grid-template-columns: 32px minmax(0, 1fr) 52px; gap: 0.7rem; padding: 0.9rem; }
       .drive-mark svg { width: 32px; height: 32px; }
     }
+
+    /* زر الرمز في صفوف الجداول: مربع بلا كلمات، واسم الفعل في التلميح ولقارئ
+       الشاشة. المكون نفسه المستعمل في المستندات ولوحة التحكم، والحذف يرث
+       is-danger فيصير احمر بمتغير الثيم (امر المهندس رعد 2026-09-17). */
+    .chat-option-btn.is-icon { width: 34px; height: 34px; min-height: 34px; padding: 0; justify-content: center; }
+    .chat-option-btn.is-icon svg { width: 17px; height: 17px; display: block; }
+    .row-actions { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; margin-top: 0; }
