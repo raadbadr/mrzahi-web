@@ -229,6 +229,10 @@
       .features-grid .feature-card.plan-trial h3,
       .features-grid .feature-card.plan-trial > p { grid-column: 1; margin: 0 0 .35rem; }
       .features-grid .feature-card.plan-trial ul { grid-column: 1; display: flex; flex-wrap: wrap; gap: .35rem 1.5rem; margin: .35rem 0 0; flex: 0 0 auto; }
+      /* كل ميزة وحدة واحدة لا تنكسر في منتصفها ولا تنضغط: كانت المتصفحات
+         تضيق البنود بالتساوي فتقرا «مستخدم» ثم «واحد» في سطر تحته
+         (امر المهندس رعد 2026-09-20: «التصميم سيء وغريب»). */
+      .features-grid .feature-card.plan-trial ul li { flex: 0 0 auto; white-space: nowrap; }
       .features-grid .feature-card.plan-trial .waitlist-btn { grid-column: 2; grid-row: 1 / -1; margin: 0; align-self: center; white-space: nowrap; }
     }
     /* الشريحة الموصى بها تعرف بحدها لا بحجمها، فيبقى الصف على خط واحد */
