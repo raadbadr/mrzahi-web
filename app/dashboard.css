@@ -358,10 +358,25 @@
     .platform-stat-icon svg path {
       fill: currentColor;
     }
+    /* رمز الريال السعودي في مربع المال: القناع الرسمي نفسه المستعمل في الاسعار
+       (rial-symbol.png) بلون المربع، بحجم رسوم الايقونات (امر المهندس رعد
+       2026-09-20: «المفروض تستخدم رمز الريال»). */
+    .platform-stat-icon .sar-symbol {
+      display: block; width: 26px; height: 26px; margin: 0;
+      background-color: currentColor;
+      -webkit-mask: url(/rial-symbol.png) center/contain no-repeat;
+      mask: url(/rial-symbol.png) center/contain no-repeat;
+      transition: transform 0.5s ease;
+    }
+    .platform-stat-card:hover .platform-stat-icon .sar-symbol { transform: scale(1.1); }
     [data-accent="users"] .platform-stat-icon { color: rgb(51, 128, 230); }
     [data-accent="spots"] .platform-stat-icon { color: rgb(242, 140, 26); }
     [data-accent="cars"] .platform-stat-icon { color: rgb(52, 199, 89); }
     [data-accent="overdue"] .platform-stat-icon { color: var(--error); }
+    /* المربعات الاربعة بارتفاع واحد يثبته التخطيط لا طول التسمية (امر المهندس
+       رعد 2026-09-20: «تكون متساوية، ليش عدم تساوي»): التسمية تحجز سطرين
+       دائما وتتوسطهما، والرقم يلتصق باسفل المربع فيصطف مع اخوته، والشبكة تمد
+       مربعات الصف كله الى ارتفاع اطولها. */
     .platform-stat-label {
       font-size: 0.95rem;
       font-weight: 700;
@@ -369,8 +384,11 @@
       line-height: 1.35;
       margin: 0;
       max-width: 16rem;
+      min-height: 2.7em;
+      display: flex; align-items: center; justify-content: center;
       transition: color 0.3s ease, transform 0.3s ease;
     }
+    .stats-section.stats-top .platform-stats-list { align-items: stretch; }
     .platform-stat-card:hover .platform-stat-label {
       color: var(--primary);
       transform: translateY(-2px);
@@ -392,6 +410,8 @@
     [data-accent="spots"] .platform-stat-value { color: rgb(242, 140, 26); }
     [data-accent="cars"] .platform-stat-value { color: rgb(52, 199, 89); }
     [data-accent="overdue"] .platform-stat-value { color: var(--error); }
+    /* الرقم في اسفل المربع دائما (يغلب قاعدة الشاشة الضيقة بخصوصيته) */
+    .stats-section .platform-stat-card .platform-stat-value { margin-top: auto; padding-top: 0.35rem; }
 
     /* Tabs / filters / inline glass forms (layout only; panel look = header.css .menu-dropdown glass) */
     .tabs-row { margin-top: 0; margin-bottom: 1.25rem; }
@@ -589,9 +609,14 @@
       .tlx-nav-btn { width: 28px; height: 28px; }
     }
     .ach-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.7rem; margin-bottom: 0.5rem; }
-    .ach-card { padding: 0.8rem 0.9rem; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); text-align: center; }
-    .ach-card b { display: block; font-size: 1.3rem; color: var(--primary); font-variant-numeric: tabular-nums; }
-    .ach-card span { font-size: 0.74rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; }
+        /* بطاقات الارقام كلها بقياس واحد (امر المهندس رعد 2026-09-20: «وتصميم
+       البلاطات يكون متساوي»): المعيار .total-card السائد — حشو 0.9/1.1،
+       استدارة 16، الرقم 1.25rem وزن 800، التسمية 0.78rem، والظل نفسه.
+       كانت الارقام باربعة احجام (1.25 و1.3 و1.6 و1.9) واستدارتين وثلاثة احشية. */
+    .ach-card { padding: 0.9rem 1.1rem; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); text-align: center;
+      box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light); }
+    .ach-card b { display: block; font-size: 1.25rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+    .ach-card span { font-size: 0.78rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; }
 
     /* المرفقات */
     .attach-block { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--glass-border); }
@@ -629,12 +654,12 @@
     }
     .ind-total { text-align: center; padding: 0.25rem 1rem; border-inline-end: 1px solid var(--glass-border); }
     .ind-total:last-child { border-inline-end: 0; }
-    .ind-total b { display: block; font-size: 1.9rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+    .ind-total b { display: block; font-size: 1.25rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
     /* الابن المباشر وحده: كانت تصيب رمز الريال داخل <b> فتحسب حجمه من
        0.82rem لا من 1.9rem فيقرا اصغر من الرقم (امر المهندس رعد). */
     /* الكلام فوق الرقم في كل الموقع (امر المهندس رعد 2026-09-20: «نوحد ذلك
        في كل الموقع بنفس الطريقة»)، كنمط .total-card السائد في 44 موضعا. */
-    .ind-total > span { font-size: 0.82rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; }
+    .ind-total > span { font-size: 0.78rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; }
     .chart-bars { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; align-items: end; min-height: 210px; padding-top: 0.75rem; max-width: 900px; margin: 0 auto; }
     .chart-col { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; height: 100%; justify-content: flex-end; }
     .chart-val { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
