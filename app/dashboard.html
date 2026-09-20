@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Monoton&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/header.css?v=88">
   <link rel="stylesheet" href="/footer.css?v=75">
-  <link rel="stylesheet" href="/app/dashboard.css?v=82">
+  <link rel="stylesheet" href="/app/dashboard.css?v=83">
 </head>
 <body class="has-site-header">
   <header class="site-header">
@@ -713,10 +713,12 @@
                 <div class="cal-modes" role="group">
                   <button type="button" class="cal-mode" id="calTodayBtn" data-i18n="calToday">اليوم</button>
                 </div>
+                <!-- الترتيب بامر المهندس رعد 2026-09-20: «جيب اليوم وجنبها يوم
+                     بعدها اسبوع بعدها شهر»؛ الشهر يبقى المدى الافتراضي. -->
                 <div class="cal-modes" role="group" id="calZoom">
-                  <button type="button" class="cal-mode is-active" data-cal-zoom="month" data-i18n="calZoomMonth">شهر</button>
-                  <button type="button" class="cal-mode" data-cal-zoom="week" data-i18n="calZoomWeek">أسبوع</button>
                   <button type="button" class="cal-mode" data-cal-zoom="day" data-i18n="calZoomDay">يوم</button>
+                  <button type="button" class="cal-mode" data-cal-zoom="week" data-i18n="calZoomWeek">أسبوع</button>
+                  <button type="button" class="cal-mode is-active" data-cal-zoom="month" data-i18n="calZoomMonth">شهر</button>
                 </div>
                 <div class="cal-modes" role="group">
                   <button type="button" class="cal-mode is-active" id="calGregBtn" data-cal-mode="greg" data-i18n="calGregorian">ميلادي</button>
@@ -724,10 +726,10 @@
                 </div>
               </div>
             </div>
-            <!-- صف ثان: منسدلة الانواع وبجانبها منسدلة الفريق -->
+            <!-- صف ثان: شرائح الانواع وبجانبها منسدلة الفريق -->
             <div class="cal-line cal-line--sub" id="calSubLine">
-              <div class="cal-nav-group" id="calFilters" hidden>
-                <select class="waitlist-input" id="calFilterList"></select>
+              <div class="cal-nav-group" id="calFilters" role="group" hidden>
+                <div class="cal-modes" id="calFilterList"></div>
               </div>
               <div class="cal-people" id="calPeople" hidden></div>
             </div>
@@ -741,7 +743,7 @@
 
   <script src="/app/dashboard.1.js?v=83"></script>
   <script src="/app/dashboard.2.js?v=80"></script>
-  <script src="/app/dashboard.3.js?v=92"></script>
+  <script src="/app/dashboard.3.js?v=93"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/app.js?v=79" defer></script>
 <script src="/app/common.js?v=95" defer></script>
