@@ -950,8 +950,12 @@
     @media (max-width: 480px) {
       .cal-nav #calZoom .cal-mode { min-width: var(--cal-u, 4.3rem); }
     }
+    /* فلتر الفريق منسدلة واحدة بجانب شرائح الانواع في السطر نفسه (امر المهندس
+       رعد 2026-09-20: «ابغى الفلتر وجنبو دروب لست»)، بارتفاع الحقول نفسه وبعرض
+       اسمائه لا بعرض الصف. */
+    .cal-people select.waitlist-input.cal-person { flex: 0 0 auto; width: auto; min-width: 9rem; max-width: 16rem; height: var(--field-h, 42px); padding-block: 0; cursor: pointer; }
     .cal-person.is-drop { background: var(--primary); color: var(--btn-ink); }
-    body.cal-dragging .cal-people .cal-modes { box-shadow: 0 0 0 1px var(--primary); }
+    body.cal-dragging .cal-people select.cal-person[data-user] { box-shadow: 0 0 0 1px var(--primary); }
 
     /* ICS card */
 

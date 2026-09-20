@@ -170,17 +170,25 @@
          لاحقا يلحق بالقائمة وحده فلا يسقط صامتا. */
       var CAL_KIND_ORDER = ["cases", "violations", "expenses", "rulings", "contracts", "deals", "invoices", "health", "meetings"];
       Object.keys(VIEW_TYPES).forEach(function (k) { if (CAL_KIND_ORDER.indexOf(k) === -1) CAL_KIND_ORDER.push(k); });
-      function calKind(it) {
+      /* التصنيف بانواع هذه الحزمة وحدها (ما له زر فلتر فيها): نوع لا زر له
+         كان يخطف العنصر من «مهام» او «اجتماعات» فلا يظهر الا مع «الكل»
+         (مراجعة 2026-09-20: «بل» الاردية في كلمات الفواتير تطابق حرف العطف). */
+      function calKinds() {
+        var keys = calFilterKeys();
+        return CAL_KIND_ORDER.filter(function (k) { return VIEW_TYPES[k] && keys.indexOf(k) !== -1; });
+      }
+      function calKind(it, kinds) {
         if (it && it.data && it.data.document_kind) return "documents";
-        for (var i = 0; i < CAL_KIND_ORDER.length; i++) {
-          if (HR_VIEWS[CAL_KIND_ORDER[i]] && !packHasService(CAL_KIND_ORDER[i])) continue;   /* انواع الموارد البشرية لحزمتها وحدها */
-          if (VIEW_TYPES[CAL_KIND_ORDER[i]] && isOfType(it, CAL_KIND_ORDER[i])) return CAL_KIND_ORDER[i];
+        kinds = kinds || calKinds();
+        for (var i = 0; i < kinds.length; i++) {
+          if (HR_VIEWS[kinds[i]] && !packHasService(kinds[i])) continue;   /* انواع الموارد البشرية لحزمتها وحدها */
+          if (isOfType(it, kinds[i])) return kinds[i];
         }
         return "tasks";
       }
       function applyCalFilter(list) {
-        var f = state.calFilter || "all", who = state.calWho || "";
-        var out = f === "all" ? (list || []) : (list || []).filter(function (it) { return calKind(it) === f; });
+        var f = state.calFilter || "all", who = state.calWho || "", kinds = calKinds();
+        var out = f === "all" ? (list || []) : (list || []).filter(function (it) { return calKind(it, kinds) === f; });
         if (!who) return out;
         return out.filter(function (it) { return it.assignee_id === who; });
       }
@@ -411,45 +419,39 @@
         return h.indexOf("assignee") !== -1;
       }
 
-      /* شريط المسؤولين: امر المهندس رعد «نغير المسؤول عن المهمة او الكتلة
-         بطريقة السحب». اسماؤه من نفس قائمة النموذج، فلا يفترقان. */
+      /* شريط المسؤولين قائمة منسدلة واحدة بجانب شرائح الانواع (امر المهندس رعد
+         2026-09-20: «ابغى الفلتر وجنبو دروب لست»): الانواع ثابتة العدد فتبقى
+         شرائح، والفريق يكبر بلا حد فيصير منسدلة. اسماؤه من نفس قائمة النموذج،
+         فلا يفترقان. «كامل الفريق» اول خياراتها كما «الكل» اول الفلاتر. وتبقى
+         هدف افلات (امره «نغير المسؤول بطريقة السحب»): الموعد المسحوب اليها
+         ينتقل الى العضو المختار فيها، ولا شيء مع «كامل الفريق» فلا تضيء ولا
+         تعد بما لا تفعله (data-user لا يوضع الا لعضو). */
       function renderCalPeople() {
         var box = $("calPeople");
         if (!box) return;
         box.textContent = "";
         box.hidden = assigneeHidden() || !state.members || state.members.length < 2;
         if (!box.hidden) {
-          /* لا كلمة داخل مجموعة الازرار: كل ما بداخلها زر ينقر ويفعل، تماما
-             كمجموعة الفلاتر بجانبها. معنى المجموعة في وصفها وتلميحها لا في
-             لافتة صماء يظنها المستخدم زرا (امر المهندس رعد 2026-09-09). */
-          var list = document.createElement("div");
-          list.className = "cal-modes";
-          list.title = T("calAssignHint");
-          list.setAttribute("role", "group");
-          list.setAttribute("aria-label", T("fieldAssignee"));
-          /* «كامل الفريق» اول الكتلة كما «الكل» اول الفلاتر: يرفع الفلتر ويعلم
-             حين لا فلتر. لا يحمل data-user فلا يكون هدف افلات، فلا يضيء تحت
-             موعد مسحوب ولا يعد بشيء لا يفعله. */
-          var all = document.createElement("button");
-          all.type = "button";
-          all.className = "cal-mode cal-person" + (state.calWho ? "" : " is-active");
-          all.dataset.all = "1";
+          var sel = document.createElement("select");
+          sel.className = "waitlist-input cal-person";
+          sel.id = "calWho";
+          sel.title = T("calAssignHint");
+          sel.setAttribute("aria-label", T("fieldAssignee"));
+          var all = document.createElement("option");
+          all.value = "";
           all.textContent = T("calWhoAll");
-          all.title = T("calWhoAll");
-          all.setAttribute("aria-pressed", state.calWho ? "false" : "true");
-          list.appendChild(all);
+          sel.appendChild(all);
           memberOptions().forEach(function (o) {
             if (!o.value) return;   /* «غير محدد» لا مكان له هنا (امر المهندس رعد) */
-            var pill = document.createElement("button");
-            pill.type = "button";
-            pill.className = "cal-mode cal-person" + (state.calWho === o.value ? " is-active" : "");
-            pill.dataset.user = o.value;
-            pill.textContent = o.label;
-            pill.title = o.label;
-            pill.setAttribute("aria-pressed", state.calWho === o.value ? "true" : "false");
-            list.appendChild(pill);
+            var opt = document.createElement("option");
+            opt.value = o.value;
+            opt.textContent = o.label;
+            sel.appendChild(opt);
           });
-          box.appendChild(list);
+          sel.value = state.calWho || "";
+          if (sel.value !== (state.calWho || "")) { state.calWho = ""; sel.value = ""; }   /* عضو غادر */
+          if (state.calWho) sel.dataset.user = state.calWho;
+          box.appendChild(sel);
         }
         /* الصف الثاني يحمل شرائح التصفية وفلتر الفريق (امر المهندس رعد
            2026-09-17)، فيخفى حين لا يوجد اي منهما ولا يترك فراغا. */
@@ -457,17 +459,15 @@
         if (sub) sub.hidden = box.hidden && (!filters || filters.hidden);
       }
 
-      /* الاسم فعل لا لافتة: نقرة تفلتر التقويم عليه، ونقرة ثانية ترفع الفلتر،
-         وهو نفسه هدف الافلات لنقل المسؤولية. */
+      /* الاختيار يفلتر التقويم على العضو، و«كامل الفريق» يرفع الفلتر. */
       (function wireCalPeople() {
         var box = $("calPeople");
         if (!box) return;
-        box.addEventListener("click", function (ev) {
-          if (suppressCalClick) return;   /* هذه نهاية سحب لا نقرة */
-          var pill = ev.target.closest(".cal-person");
-          if (!pill) return;
-          var who = pill.dataset.all ? "" : (pill.dataset.user || "");
-          state.calWho = (who && state.calWho === who) ? "" : who;
+        box.addEventListener("change", function (ev) {
+          var sel = ev.target.closest("select.cal-person");
+          if (!sel) return;
+          state.calWho = sel.value || "";
+          if (state.calWho) sel.dataset.user = state.calWho; else delete sel.dataset.user;
           state.calItems = applyCalFilter(state.calAll || state.calItems);
           renderCalendar();
           refreshTiles();
