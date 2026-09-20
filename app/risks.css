@@ -656,9 +656,11 @@
     .risk-top { display: grid; grid-template-columns: 1fr; gap: 1.25rem; align-items: start; margin-top: 1rem; }
     @media (min-width: 1000px) { .risk-top { grid-template-columns: minmax(0, 1fr) 520px; } }
     .risk-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.8rem; }
-    .kpi { padding: 1rem; border-radius: 18px; background: var(--glass); border: 1px solid var(--glass-border); text-align: center;
+        /* بقياس .total-card نفسه (امر المهندس رعد 2026-09-20: «وتصميم البلاطات
+       يكون متساوي») */
+    .kpi { padding: 0.9rem 1.1rem; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); text-align: center;
       box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light); }
-    .kpi b { display: block; font-size: 1.6rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+    .kpi b { display: block; font-size: 1.25rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
     .heat-card { padding: 1rem 1.1rem 1.1rem; border-radius: 18px; background: var(--glass); border: 1px solid var(--glass-border);
       box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light); }
     .heat-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.75rem; }
@@ -667,7 +669,7 @@
     .cal-mode.is-active { background: var(--primary); color: #fff; }
     /* الكلام فوق الرقم في كل الموقع (امر المهندس رعد 2026-09-20: «نوحد ذلك
        في كل الموقع بنفس الطريقة»)، كنمط .total-card السائد في 44 موضعا. */
-    .kpi span { font-size: 0.72rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; }
+    .kpi span { font-size: 0.78rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; }
     .action-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 150px auto auto; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
     @media (max-width: 800px) { .action-row { grid-template-columns: 1fr; } }
     .toolbar { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin: 0.75rem 0 1rem; }
