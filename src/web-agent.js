@@ -103,7 +103,7 @@ export async function handleAgentChat(request, env, user) {
   if (out.pending) {
     const pending = cleanPending(out.pending);
     if (!pending) return json({ text: out.text || "" });
-    return json({ pending, ask: describeAction(lang, pending, "Asia/Riyadh", false), org: org ? { id: org.id, name: org.name } : null });
+    return json({ pending, ask: describeAction(lang, pending, "Asia/Riyadh", false) });
   }
   return json({ text: String(out.text || "") });
 }
