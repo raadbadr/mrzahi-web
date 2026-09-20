@@ -231,43 +231,38 @@
         if (CAL_FILTER_WORD[key]) return T(CAL_FILTER_WORD[key]);
         return viewTitleText(key) || key;
       }
+      /* فلتر الانواع قائمة منسدلة واحدة (امر المهندس رعد 2026-09-20: «حتى دي
+         سويها دروب لست») بجانب منسدلة الفريق: خياراتها من مصدر الشرائح نفسه
+         (خدمات الحزمة بتسمياتها) و«الكل» اولها وهو الافتراضي. */
       function renderCalFilters() {
-        var box = $("calFilters"), list = $("calFilterList");
-        if (!box || !list) return;
+        var box = $("calFilters"), sel = $("calFilterList");
+        if (!box || !sel) return;
         var keys = calFilterKeys();
-        /* لا فلتر يصنف في هذه الواجهة: لا صف فارغ ولا زر «الكل» وحيد */
+        /* لا فلتر يصنف في هذه الواجهة: لا منسدلة بخيار «الكل» وحيد */
         if (!keys.length) { box.hidden = true; return; }
         keys = ["all"].concat(keys);
         if (keys.indexOf(state.calFilter || "all") === -1) state.calFilter = "all";
         var sig = keys.map(function (k) { return k + ":" + calFilterLabel(k); }).join("|") + "#" + (state.calFilter || "all");
-        if (list.dataset.sig === sig) return;   /* لا اعادة كتابة بلا تغيير (قاعدة الثبات) */
-        list.textContent = "";
+        if (sel.dataset.sig === sig) return;   /* لا اعادة كتابة بلا تغيير (قاعدة الثبات) */
+        sel.textContent = "";
         keys.forEach(function (key) {
-          var btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "cal-mode" + ((state.calFilter || "all") === key ? " is-active" : "");
-          btn.dataset.calFilter = key;
-          btn.textContent = calFilterLabel(key);
-          btn.title = btn.textContent;
-          btn.setAttribute("aria-pressed", (state.calFilter || "all") === key ? "true" : "false");
-          list.appendChild(btn);
+          var opt = document.createElement("option");
+          opt.value = key;
+          opt.textContent = calFilterLabel(key);
+          sel.appendChild(opt);
         });
-        list.dataset.sig = sig;
+        sel.value = state.calFilter || "all";
+        sel.setAttribute("aria-label", T("fieldCategory"));
+        sel.dataset.sig = sig;
       }
       function wireCalFilters() {
-        var box = $("calFilters");
-        if (!box) return;
+        var box = $("calFilters"), sel = $("calFilterList");
+        if (!box || !sel) return;
         box.hidden = !!currentViewType();   /* الرئيسية وحدها: هي التقويم الماستر */
         renderCalFilters();
-        box.addEventListener("click", function (ev) {
-          var btn = ev.target.closest("[data-cal-filter]");
-          if (!btn) return;
-          state.calFilter = btn.getAttribute("data-cal-filter") || "all";
-          if (box.querySelector("#calFilterList")) box.querySelector("#calFilterList").dataset.sig = "";
-          box.querySelectorAll("[data-cal-filter]").forEach(function (b) {
-            b.classList.toggle("is-active", b === btn);
-            b.setAttribute("aria-pressed", b === btn ? "true" : "false");
-          });
+        sel.addEventListener("change", function () {
+          state.calFilter = sel.value || "all";
+          sel.dataset.sig = "";
           state.calItems = applyCalFilter(state.calAll || state.calItems);
           renderCalendar();
           refreshTiles();   /* المربعات فوق تتبع الفلتر (امر المهندس رعد 2026-09-20) */

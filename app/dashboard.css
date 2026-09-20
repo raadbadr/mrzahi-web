@@ -757,19 +757,12 @@
     .cal-when { display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
     .cal-ctls { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     .cal-nav > .cal-line > #calFilters[hidden] { display: none; }
-    /* صف الفلاتر نسخة من الصف الاول (امر المهندس رعد 2026-09-16: «التصميم يكون
-       ثابت»): مجموعة واحدة بارتفاع الحقول نفسه وعرض تبويب ثابت، لا تتمدد ولا
-       ترتفع مهما زاد عدد الفلاتر ولا مهما ضاقت الشاشة؛ وان ضاق المكان مررت
-       افقيا داخل المجموعة بلا قص ولا ثلاث نقاط (قاعدة 2-هـ). */
-    /* الفلاتر هي التي تتقلص حين يضيق الصف، فيبقى الشهر والادوات في سطر واحد
-       معها ما وسع العرض، وتمرر هي افقيا داخل مجموعتها بلا قص (قاعدة 2-هـ). */
-    #calFilters { max-width: 100%; min-width: 0; flex: 0 1 auto; }
-    #calFilters .cal-modes {
-      height: var(--field-h, 42px); min-height: var(--field-h, 42px); max-height: var(--field-h, 42px);
-      flex-wrap: nowrap; justify-content: flex-start; max-width: 100%;
-      overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none;
-    }
-    #calFilters .cal-modes::-webkit-scrollbar { width: 0; height: 0; }
+    /* الصف الثاني منسدلتان متجاورتان: الانواع ثم الفريق (امر المهندس رعد
+       2026-09-20: «ابغى الفلتر وجنبو دروب لست» ثم «حتى دي سويها دروب لست»)،
+       بارتفاع الحقول وبعرض خياراتهما لا بعرض الصف، من الحافة نفسها التي يبدا
+       منها سطر الادوات. */
+    #calFilters { max-width: 100%; min-width: 0; flex: 0 0 auto; }
+    .cal-line--sub select.waitlist-input { flex: 0 0 auto; width: auto; min-width: 9rem; max-width: 16rem; height: var(--field-h, 42px); padding-block: 0; cursor: pointer; }
     /* السهم دائرة بحجم بقية الادوات، ورسمه ينعكس مع اتجاه الصفحة */
     .cal-arrow {
       flex: 0 0 auto; width: var(--field-h, 42px); height: var(--field-h, 42px);
@@ -953,7 +946,6 @@
     /* فلتر الفريق منسدلة واحدة بجانب شرائح الانواع في السطر نفسه (امر المهندس
        رعد 2026-09-20: «ابغى الفلتر وجنبو دروب لست»)، بارتفاع الحقول نفسه وبعرض
        اسمائه لا بعرض الصف. */
-    .cal-people select.waitlist-input.cal-person { flex: 0 0 auto; width: auto; min-width: 9rem; max-width: 16rem; height: var(--field-h, 42px); padding-block: 0; cursor: pointer; }
     .cal-person.is-drop { background: var(--primary); color: var(--btn-ink); }
     body.cal-dragging .cal-people select.cal-person[data-user] { box-shadow: 0 0 0 1px var(--primary); }
 
