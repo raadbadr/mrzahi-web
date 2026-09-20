@@ -422,7 +422,7 @@
     }
 
     /* بلاطات الأوراق الرسمية: نفس بلاطات لوحة التحكم بحجم أقصر، وكل بلاطة زر يفلتر الجدول */
-    #papersStats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gap); align-items: stretch; margin: 0 0 1.1rem; }
+    #papersStats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gap); align-items: stretch; margin: 0 0 1.1rem; max-width: none; }
     @media (max-width: 600px) { #papersStats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; } }
     #papersStats .paper-tile {
       appearance: none; -webkit-appearance: none; font: inherit; cursor: pointer; width: 100%;
@@ -446,7 +446,7 @@
     }
     #papersStats .paper-tile:hover { transform: translateY(-4px); border-color: var(--primary); }
     #papersStats .paper-tile:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-    #papersStats .paper-tile.is-on { border-color: currentColor; box-shadow: 0 0 0 2px var(--primary) inset, 0 8px 32px var(--shadow-dark); }
+    #papersStats .paper-tile.is-on { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary) inset, 0 8px 32px var(--shadow-dark); }
     #papersStats .platform-stat-icon {
       width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
       flex-shrink: 0; margin: 0;
