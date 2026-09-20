@@ -591,7 +591,7 @@
     .ach-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.7rem; margin-bottom: 0.5rem; }
     .ach-card { padding: 0.8rem 0.9rem; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); text-align: center; }
     .ach-card b { display: block; font-size: 1.3rem; color: var(--primary); font-variant-numeric: tabular-nums; }
-    .ach-card span { font-size: 0.74rem; color: var(--text-secondary); }
+    .ach-card span { font-size: 0.74rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; }
 
     /* المرفقات */
     .attach-block { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--glass-border); }
@@ -632,7 +632,9 @@
     .ind-total b { display: block; font-size: 1.9rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
     /* الابن المباشر وحده: كانت تصيب رمز الريال داخل <b> فتحسب حجمه من
        0.82rem لا من 1.9rem فيقرا اصغر من الرقم (امر المهندس رعد). */
-    .ind-total > span { font-size: 0.82rem; color: var(--text-secondary); }
+    /* الكلام فوق الرقم في كل الموقع (امر المهندس رعد 2026-09-20: «نوحد ذلك
+       في كل الموقع بنفس الطريقة»)، كنمط .total-card السائد في 44 موضعا. */
+    .ind-total > span { font-size: 0.82rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; }
     .chart-bars { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; align-items: end; min-height: 210px; padding-top: 0.75rem; max-width: 900px; margin: 0 auto; }
     .chart-col { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; height: 100%; justify-content: flex-end; }
     .chart-val { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }

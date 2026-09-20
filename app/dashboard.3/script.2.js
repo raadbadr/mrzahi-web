@@ -1427,10 +1427,10 @@
             '<div class="ind-card"><h3>' + esc(T("finTopDebtorsTitle")) + "</h3>" + donut.html + "</div>" +
           "</div>" +
           '<div class="ind-totals">' +
-            '<div class="ind-total"><b>' + shortMoney(dueToday) + "</b><span>" + esc(T("finDueToday")) + "</span></div>" +
-            '<div class="ind-total"><b>' + shortMoney(late) + "</b><span>" + esc(T("finTotalOverdue")) + "</span></div>" +
-            '<div class="ind-total"><b>' + shortMoney(monthSum) + "</b><span>" + esc(T("finCollectedMonth")) + "</span></div>" +
-            '<div class="ind-total"><b>' + esc(String(daysCount ? Math.round(daysSum / daysCount) : 0)) + "</b><span>" + esc(T("finAvgDays")) + "</span></div>" +
+            '<div class="ind-total"><span>' + esc(T("finDueToday")) + '</span><b>' + shortMoney(dueToday) + "</b></div>" +
+            '<div class="ind-total"><span>' + esc(T("finTotalOverdue")) + '</span><b>' + shortMoney(late) + "</b></div>" +
+            '<div class="ind-total"><span>' + esc(T("finCollectedMonth")) + '</span><b>' + shortMoney(monthSum) + "</b></div>" +
+            '<div class="ind-total"><span>' + esc(T("finAvgDays")) + '</span><b>' + esc(String(daysCount ? Math.round(daysSum / daysCount) : 0)) + "</b></div>" +
           "</div>";
       }
 
@@ -2318,10 +2318,10 @@
             '<div class="ind-card"><h3>' + esc(T("expByCatTitle").replace("{n}", String(byCat.length))) + "</h3>" + donut.html + "</div>" +
           "</div>" +
           '<div class="ind-totals">' +
-            '<div class="ind-total"><b>' + shortMoney(t.sum) + "</b><span>" + esc(T("expTotal")) + "</span></div>" +
-            '<div class="ind-total"><b>' + shortMoney(t.due) + "</b><span>" + esc(T("expDue")) + "</span></div>" +
-            '<div class="ind-total"><b>' + shortMoney(t.overdue) + "</b><span>" + esc(T("expOverdue")) + "</span></div>" +
-            '<div class="ind-total"><b>' + shortMoney(monthsWith ? yearSum / monthsWith : 0) + "</b><span>" + esc(T("expAvgMonth")) + "</span></div>" +
+            '<div class="ind-total"><span>' + esc(T("expTotal")) + '</span><b>' + shortMoney(t.sum) + "</b></div>" +
+            '<div class="ind-total"><span>' + esc(T("expDue")) + '</span><b>' + shortMoney(t.due) + "</b></div>" +
+            '<div class="ind-total"><span>' + esc(T("expOverdue")) + '</span><b>' + shortMoney(t.overdue) + "</b></div>" +
+            '<div class="ind-total"><span>' + esc(T("expAvgMonth")) + '</span><b>' + shortMoney(monthsWith ? yearSum / monthsWith : 0) + "</b></div>" +
           "</div>";
       }
 

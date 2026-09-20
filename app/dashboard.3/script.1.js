@@ -544,8 +544,8 @@
             '<div class="ind-card"><h3>' + esc((legal ? T("clientsTitle") : T("byPartyTitle").replace("{name}", clientWord())).replace("{n}", String(donut.total))) + "</h3>" + donut.html + "</div>" +
           "</div>" +
           '<div class="ind-totals">' +
-            '<div class="ind-total"><b>' + shortMoney(totalAmount) + "</b><span>" + esc(legal ? T("caseAmount") : T("indAmountTotal")) + "</span></div>" +
-            '<div class="ind-total"><b>' + shortMoney(doneAmount) + "</b><span>" + esc(legal ? T("caseDoneAmount") : T("indAmountDone")) + "</span></div>" +
+            '<div class="ind-total"><span>' + esc(legal ? T("caseAmount") : T("indAmountTotal")) + '</span><b>' + shortMoney(totalAmount) + "</b></div>" +
+            '<div class="ind-total"><span>' + esc(legal ? T("caseDoneAmount") : T("indAmountDone")) + '</span><b>' + shortMoney(doneAmount) + "</b></div>" +
           "</div>";
       }
 
@@ -596,8 +596,8 @@
           "<h2>" + esc(T("indMine")) + "</h2>" +
           '<div class="ind-grid">' + cards + "</div>" +
           (packHasService("expenses")
-            ? '<div class="ind-totals"><div class="ind-total"><b>' + shortMoney(spent) + "</b><span>" +
-              esc(viewTitleText("expenses") || T("viewExpenses")) + "</span></div></div>"
+            ? '<div class="ind-totals"><div class="ind-total"><span>' +
+              esc(viewTitleText("expenses") || T("viewExpenses")) + '</span><b>' + shortMoney(spent) + "</b></div></div>"
             : "");
       }
 
@@ -634,8 +634,8 @@
             '<div class="ind-card"><h3>' + esc(T("courtsTitle").replace("{n}", String(courtTotal))) + "</h3>" + donut + "</div>" +
           "</div>" +
           '<div class="ind-totals">' +
-            '<div class="ind-total"><b>' + shortMoney(totalAmount) + "</b><span>" + esc(T("totalAmount")) + "</span></div>" +
-            '<div class="ind-total"><b>' + shortMoney(cancelledAmount) + "</b><span>" + esc(T("cancelledAmount")) + "</span></div>" +
+            '<div class="ind-total"><span>' + esc(T("totalAmount")) + '</span><b>' + shortMoney(totalAmount) + "</b></div>" +
+            '<div class="ind-total"><span>' + esc(T("cancelledAmount")) + '</span><b>' + shortMoney(cancelledAmount) + "</b></div>" +
           "</div>";
       }
 
@@ -691,10 +691,10 @@
         var html = "<h2>" + esc(T("timelineTitle")) + "</h2>";
         if (stats) {
           html += '<div class="ach-row">' +
-            '<div class="ach-card"><b>' + esc(String(stats.done_this_month || 0)) + "</b><span>" + esc(T("achDoneMonth")) + "</span></div>" +
-            '<div class="ach-card"><b>' + esc(String(stats.items_total || 0)) + "</b><span>" + esc(T("achItems")) + "</span></div>" +
-            '<div class="ach-card"><b>' + esc(String(stats.files_total || 0)) + "</b><span>" + esc(T("achFiles")) + "</span></div>" +
-            '<div class="ach-card"><b>' + esc(String(stats.imports_total || 0)) + "</b><span>" + esc(T("achImports")) + "</span></div>" +
+            '<div class="ach-card"><span>' + esc(T("achDoneMonth")) + '</span><b>' + esc(String(stats.done_this_month || 0)) + "</b></div>" +
+            '<div class="ach-card"><span>' + esc(T("achItems")) + '</span><b>' + esc(String(stats.items_total || 0)) + "</b></div>" +
+            '<div class="ach-card"><span>' + esc(T("achFiles")) + '</span><b>' + esc(String(stats.files_total || 0)) + "</b></div>" +
+            '<div class="ach-card"><span>' + esc(T("achImports")) + '</span><b>' + esc(String(stats.imports_total || 0)) + "</b></div>" +
             "</div>";
         }
         var events = (rows || []).map(function (r) {

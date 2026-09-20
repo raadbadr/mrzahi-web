@@ -665,7 +665,9 @@
     .cal-modes { display: inline-flex; padding: 0.2rem; border-radius: 12px; background: var(--glass-border); gap: 0.15rem; }
     .cal-mode { padding: 0.35rem 0.8rem; border: 0; border-radius: 10px; background: transparent; color: var(--text-secondary); font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer; -webkit-appearance: none; appearance: none; }
     .cal-mode.is-active { background: var(--primary); color: #fff; }
-    .kpi span { font-size: 0.72rem; color: var(--text-secondary); }
+    /* الكلام فوق الرقم في كل الموقع (امر المهندس رعد 2026-09-20: «نوحد ذلك
+       في كل الموقع بنفس الطريقة»)، كنمط .total-card السائد في 44 موضعا. */
+    .kpi span { font-size: 0.72rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; }
     .action-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 150px auto auto; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
     @media (max-width: 800px) { .action-row { grid-template-columns: 1fr; } }
     .toolbar { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin: 0.75rem 0 1rem; }

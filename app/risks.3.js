@@ -57,11 +57,11 @@
           (r.actions || []).forEach(function (a) { if (!a.done) actions++; });
         });
         $("kpis").innerHTML =
-          '<div class="kpi"><b>' + state.list.length + "</b><span>" + esc(t("kpiTotal")) + "</span></div>" +
-          '<div class="kpi"><b>' + open + "</b><span>" + esc(t("kpiOpen")) + "</span></div>" +
-          '<div class="kpi"><b style="color:#e5484d">' + critical + "</b><span>" + esc(t("kpiCritical")) + "</span></div>" +
-          '<div class="kpi"><b style="color:#f2a33c">' + overdue + "</b><span>" + esc(t("kpiReviewOverdue")) + "</span></div>" +
-          '<div class="kpi"><b>' + actions + "</b><span>" + esc(t("kpiActions")) + "</span></div>";
+          '<div class="kpi"><span>' + esc(t("kpiTotal")) + '</span><b>' + state.list.length + "</b></div>" +
+          '<div class="kpi"><span>' + esc(t("kpiOpen")) + '</span><b>' + open + "</b></div>" +
+          '<div class="kpi"><span>' + esc(t("kpiCritical")) + '</span><b style="color:#e5484d">' + critical + "</b></div>" +
+          '<div class="kpi"><span>' + esc(t("kpiReviewOverdue")) + '</span><b style="color:#f2a33c">' + overdue + "</b></div>" +
+          '<div class="kpi"><span>' + esc(t("kpiActions")) + '</span><b>' + actions + "</b></div>";
       }
       function renderList() {
         var rows = state.list.filter(function (r) {
