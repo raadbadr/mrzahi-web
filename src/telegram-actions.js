@@ -204,6 +204,16 @@ export function describeAction(lang, intent, userTimeZone, userHour12) {
   }
   if (intent.action === "done") return `${b.actDoneTitle} «${intent.query || ""}»\n\n${b.confirmAsk}`;
   if (intent.action === "assign") return `${b.actAssignTitle} «${intent.query || ""}» → ${intent.member || ""}\n\n${b.confirmAsk}`;
+  if (intent.action === "update") {
+    const p = intent.patch || {};
+    const lines = [`${b.actUpdateTitle} «${intent.query || intent.item_id || ""}»`];
+    if (p.due_at) lines.push(`• ${b.fWhen}: ${fmtWhen(p.due_at, lang, userTimeZone, userHour12)}`);
+    if (p.title) lines.push(`• ${b.fTitle}: ${p.title}`);
+    if (p.client_name) lines.push(`• ${b.fClient}: ${p.client_name}`);
+    if (p.amount != null && p.amount !== "") lines.push(`• ${b.fAmount}: ${money(p.amount)}`);
+    if (p.notes) lines.push(`• ${b.fNotes}: ${p.notes}`);
+    return lines.join("\n") + "\n\n" + b.confirmAsk;
+  }
   return "";
 }
 
@@ -257,6 +267,18 @@ export async function executeAction(env, userId, intent, lang) {
       try { await sendTelegram(env, r.member_chat, ml.assignedToYou(r.title, null), urlButton(ml.openDash, DASHBOARD_URL)); } catch {}
     }
     return { text: b.actAssignOk(r.title, r.member_name, !!r.member_chat), extra: menuKeyboard(lang) };
+  }
+  if (intent.action === "update") {
+    if (!intent.item_id && !String(intent.query || "").trim()) return { text: b.notFound(""), extra: menuKeyboard(lang) };
+    const r = await rpc(env, "telegram_update_item", { p_secret: env.WORKER_SECRET, p_user_id: userId, p_query: intent.query || "", p_item_id: intent.item_id || null, p_patch: intent.patch || {} });
+    if (!r || r.status === "not_found") return { text: b.notFound(intent.query || ""), extra: menuKeyboard(lang) };
+    if (r.status === "ambiguous") {
+      const rows = (r.candidates || []).map((c) => `${c.title}${c.client_name ? " — " + c.client_name : ""}`);
+      return { text: b.manyFound + "\n" + rows.map((x, i) => `${i + 1}. ${x}`).join("\n") + "\n\n" + b.manyHint, extra: menuKeyboard(lang) };
+    }
+    if (r.status === "bad_date" || r.status === "bad_amount" || r.status === "nothing") return { text: b.updateBad, extra: menuKeyboard(lang) };
+    const when = (intent.patch && intent.patch.due_at && r.due_at) ? fmtWhen(r.due_at, lang) : null;
+    return { text: b.actUpdateOk(r.title, when), extra: menuKeyboard(lang) };
   }
   return { text: b.help, extra: menuKeyboard(lang) };
 }

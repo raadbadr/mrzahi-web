@@ -12,7 +12,7 @@ const INSTRUCTIONS =
   "MrZahi: cases, violations and tasks for one company. Numbers/identifiers are never translated. " +
   "On Telegram ALWAYS pass telegram_user_id (the numeric id of the person you are talking to) to every tool so you act as that member with their permissions. " +
   "If a tool answers status=unlinked, ask the person for the 8-character link code shown in Settings → Telegram on the site and call mrzahi_link_telegram with it; there is no other way to link. status=not_member means they belong to another company: do not act for them. " +
-  "Writing tools (mrzahi_add, mrzahi_complete, mrzahi_assign, mrzahi_remind) need user_message = the person's exact words; they are refused when those words do not explicitly ask for the action (praise or thanks is not a request). They first answer needs_confirmation with a preview — show it, and only after the person confirms call again with confirm=true. " +
+  "Writing tools (mrzahi_add, mrzahi_complete, mrzahi_assign, mrzahi_remind, mrzahi_update) need user_message = the person's exact words; they are refused when those words do not explicitly ask for the action (praise or thanks is not a request). They first answer needs_confirmation with a preview — show it, and only after the person confirms call again with confirm=true. " +
   "Use mrzahi_search before completing or assigning; when mrzahi_add returns needs_parent, ask which case/violation the task belongs to and call again with parent_id.";
 
 const buckets = new Map();
@@ -59,6 +59,8 @@ export const TOOLS = [
       location: { type: "string" }, notes: { type: "string" }, category: { type: "string" },
       parent_id: { type: "string", description: "Item id of the parent case/violation (tasks only)" } },
       required: ["kind", "title"], additionalProperties: false } },
+  { name: "mrzahi_update", description: "Change an open item: move its due date (reschedule), rename it, change its client or amount, or set notes. Identify it by query (title, case number, violation number, item number) or an exact item_id; ambiguous queries return candidates. Pass only the fields that change; due_at as ISO 8601 date or datetime.",
+    inputSchema: { type: "object", properties: { user_message: { type: "string", description: "The person's exact words that ask for this action (required)" }, confirm: { type: "boolean", description: "true only after the person confirmed the needs_confirmation preview" }, telegram_user_id: { type: "string", description: "Telegram user id of the person talking (Telegram only)" }, query: { type: "string", description: "Item number, title, case number or client" }, item_id: { type: "string" }, due_at: { type: "string", description: "New due date or datetime, ISO 8601" }, title: { type: "string" }, client_name: { type: "string" }, amount: { type: "number" }, notes: { type: "string" } }, additionalProperties: false } },
   { name: "mrzahi_complete", description: "Mark an item done. Give a query (item number, title, case number) or an exact item_id; ambiguous queries return candidates.",
     inputSchema: { type: "object", properties: { user_message: { type: "string", description: "The person's exact words that ask for this action (required)" }, confirm: { type: "boolean", description: "true only after the person confirmed the needs_confirmation preview" }, telegram_user_id: { type: "string", description: "Telegram user id of the person talking (Telegram only)" }, query: { type: "string" }, item_id: { type: "string" } }, additionalProperties: false } },
   { name: "mrzahi_assign", description: "Assign an item to a team member (by name or email) as responsible.",
@@ -134,7 +136,7 @@ export async function callTool(name, args, ctx) {
   const user = actor.user;
   /* الكتابة من عميل MCP تخضع لنفس قاعدة البوت: كلمات المستخدم نفسها تطلبها صراحة، ثم تأكيد قبل التنفيذ.
      البوت الداخلي يمر من هنا موثوقا لأنه طبق البوابة وزر التأكيد قبل النداء. */
-  if (!ctx.trusted && ["mrzahi_add", "mrzahi_complete", "mrzahi_assign", "mrzahi_remind"].includes(name)) {
+  if (!ctx.trusted && ["mrzahi_add", "mrzahi_complete", "mrzahi_assign", "mrzahi_remind", "mrzahi_update"].includes(name)) {
     if (!String(a.user_message || "").trim()) return fail("user_message is required: pass the person's exact words so the request can be checked.", { status: "needs_user_message" });
     const gate = writeGate(name, a, a.user_message);
     if (gate.blocked) return fail(gate.reason, { status: "refused" });
@@ -218,6 +220,17 @@ export async function callTool(name, args, ctx) {
       if (r && r.status === "needs_parent") return result(r, "needs_parent: a task must belong to a case or violation. Candidates:\n" + describeRows(r.candidates || []) + "\nCall mrzahi_add again with parent_id.");
       if (r && r.status && r.status !== "ok" && r.status !== "created") return fail("Could not add: " + r.status, r);
       return result(r, `Added ${item.kind}: ${item.title}`);
+    }
+    case "mrzahi_update": {
+      const patch = {};
+      for (const k of ["due_at", "title", "client_name", "amount", "notes"]) if (a[k] != null && a[k] !== "") patch[k] = a[k];
+      const r = await ctx.rpc("telegram_update_item", { p_secret: secret, p_user_id: user, p_query: String(a.query || ""), p_item_id: a.item_id || null, p_patch: patch });
+      if (!r || r.status === "not_found") return fail("No open item matched.", { status: "not_found" });
+      if (r.status === "ambiguous") return result({ status: "ambiguous", candidates: r.candidates || [] }, "Several items match — ask which one:\n" + describeRows(r.candidates || []));
+      if (r.status === "bad_date") return fail("The new date could not be read; ask for a clear date.", { status: "bad_date" });
+      if (r.status === "bad_amount") return fail("The new amount could not be read.", { status: "bad_amount" });
+      if (r.status === "nothing") return fail("Nothing to change was given (due_at, title, client_name, amount or notes).", { status: "nothing" });
+      return result({ status: "updated", id: r.id, title: r.title, due_at: r.due_at || null }, "Updated: " + (r.title || "") + (r.due_at ? " — due " + dmy(r.due_at) : ""));
     }
     case "mrzahi_complete": {
       const r = await ctx.rpc("telegram_complete", { p_secret: secret, p_user_id: user, p_query: String(a.query || ""), p_item_id: a.item_id || null });

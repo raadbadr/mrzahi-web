@@ -95,6 +95,7 @@ const BOT = {
         btnSave: "✅ حفظ", btnCancel: "❌ إلغاء",
         kindViolation: "مخالفة", kindSession: "جلسة", kindTask: "مهمة", fWhen: "الموعد", fClient: "العميل", fCase: "رقم الدعوى", fViolation: "رقم المخالفة", fAmount: "المبلغ", fPlace: "الجهة/المكان", fNotes: "ملاحظات",
         actAddTitle: "📝 سأسجل هذا:", actDoneTitle: "✔️ سأعلم كمنجز:", actAssignTitle: "👤 سأسند:", confirmAsk: "أؤكد؟",
+        actUpdateTitle: "✏️ سأعدل:", fTitle: "العنوان", actUpdateOk: (title, when) => `✅ عدل: ${title}${when ? ` — الموعد الجديد ${when}` : ""}`, updateBad: "لم أفهم القيمة الجديدة (تاريخ أو مبلغ واضح).",
         actSaved: (num, title, record, isNew) => `✅ سجل${num ? ` (${num})` : ""}: ${title}\nفي «${record}»${isNew ? " — سجل جديد مع تذكير قبل الموعد بيوم" : ""}.`,
         actDoneOk: (num, title) => `✅ أنجز${num ? ` (${num})` : ""}: ${title}`,
         actAssignOk: (title, member, notified) => `✅ أسند «${title}» إلى ${member}${notified ? " وأبلغ على تلغرام" : ""}.`,
@@ -123,6 +124,7 @@ const BOT = {
         btnSave: "✅ Save", btnCancel: "❌ Cancel",
         kindViolation: "Violation", kindSession: "Session", kindTask: "Task", fWhen: "When", fClient: "Client", fCase: "Case no.", fViolation: "Violation no.", fAmount: "Amount", fPlace: "Authority/place", fNotes: "Notes",
         actAddTitle: "📝 I will record this:", actDoneTitle: "✔️ I will mark as done:", actAssignTitle: "👤 I will assign:", confirmAsk: "Confirm?",
+        actUpdateTitle: "✏️ I will update:", fTitle: "Title", actUpdateOk: (title, when) => `✅ Updated: ${title}${when ? ` — new due ${when}` : ""}`, updateBad: "I could not read the new value (a clear date or amount).",
         actSaved: (num, title, record, isNew) => `✅ Saved${num ? ` (${num})` : ""}: ${title}\nin “${record}”${isNew ? " — new record with a reminder one day before" : ""}.`,
         actDoneOk: (num, title) => `✅ Done${num ? ` (${num})` : ""}: ${title}`,
         actAssignOk: (title, member, notified) => `✅ “${title}” assigned to ${member}${notified ? " and notified on Telegram" : ""}.`,
@@ -151,6 +153,7 @@ const BOT = {
         btnSave: "✅ Enregistrer", btnCancel: "❌ Annuler",
         kindViolation: "Infraction", kindSession: "Audience", kindTask: "Tâche", fWhen: "Quand", fClient: "Client", fCase: "N° d’affaire", fViolation: "N° d’infraction", fAmount: "Montant", fPlace: "Autorité/lieu", fNotes: "Notes",
         actAddTitle: "📝 Je vais enregistrer :", actDoneTitle: "✔️ Je vais marquer comme terminé :", actAssignTitle: "👤 Je vais attribuer :", confirmAsk: "Confirmer ?",
+        actUpdateTitle: "✏️ Je vais modifier :", fTitle: "Titre", actUpdateOk: (title, when) => `✅ Modifié : ${title}${when ? ` — nouvelle échéance ${when}` : ""}`, updateBad: "Je n'ai pas compris la nouvelle valeur (date ou montant clair).",
         actSaved: (num, title, record, isNew) => `✅ Enregistré${num ? ` (${num})` : ""} : ${title}\ndans « ${record} »${isNew ? " — nouveau suivi avec rappel la veille" : ""}.`,
         actDoneOk: (num, title) => `✅ Terminé${num ? ` (${num})` : ""} : ${title}`,
         actAssignOk: (title, member, notified) => `✅ « ${title} » attribué à ${member}${notified ? " et notifié sur Telegram" : ""}.`,
@@ -179,6 +182,7 @@ const BOT = {
         btnSave: "✅ محفوظ کریں", btnCancel: "❌ منسوخ",
         kindViolation: "خلاف ورزی", kindSession: "سماعت", kindTask: "کام", fWhen: "کب", fClient: "کلائنٹ", fCase: "مقدمہ نمبر", fViolation: "خلاف ورزی نمبر", fAmount: "رقم", fPlace: "ادارہ/جگہ", fNotes: "نوٹس",
         actAddTitle: "📝 میں یہ درج کروں گا:", actDoneTitle: "✔️ مکمل کے طور پر نشان لگاؤں گا:", actAssignTitle: "👤 تفویض کروں گا:", confirmAsk: "تصدیق؟",
+        actUpdateTitle: "✏️ ترمیم کروں گا:", fTitle: "عنوان", actUpdateOk: (title, when) => `✅ ترمیم: ${title}${when ? ` — نئی تاریخ ${when}` : ""}`, updateBad: "نئی قدر سمجھ نہیں آئی (واضح تاریخ یا رقم)۔",
         actSaved: (num, title, record, isNew) => `✅ محفوظ${num ? ` (${num})` : ""}: ${title}\n«${record}» میں${isNew ? " — نیا رجسٹر، یاد دہانی ایک دن پہلے" : ""}۔`,
         actDoneOk: (num, title) => `✅ مکمل${num ? ` (${num})` : ""}: ${title}`,
         actAssignOk: (title, member, notified) => `✅ «${title}» ${member} کو تفویض${notified ? " اور ٹیلیگرام پر مطلع" : ""}۔`,
@@ -378,11 +382,15 @@ export const VERBS = {
   done: /(أنجزت|انجزت|أنجزنا|انجزنا|تم إنجاز|تم انجاز|تم إنهاء|تم انهاء|أنهيت|انهيت|أنهينا|انهينا|أقفل|اقفل|أغلق|اغلق|إقفال|اقفال|إغلاق|اغلاق|خلصت|خلصنا|انتهت|انتهى|انتهينا|اعتبرها منجزة|اعتبره منجزا|كمنجز|منجزة|سددت|سددت|تم سداد|تم دفع|دفعنا|دفعت|تم الدفع|تم السداد|\bdone\b|complete|finish|\bclose|paid|termin|clôtur|مکمل|ختم کر)/i,
   assign: /(?:^|[\s،.:؛])(?:أسند|اسند|إسناد|اسناد|كلف|كلف|تكليف|حول|حول|عين|عين|assign|delegate|hand (?:it )?to|attribue|confie|تفویض|سونپ)/i,
   remind: /(ذكرني|ذكرني|ذكرنا|ذكرنا|نبهني|نبهني|نبهنا|remind (?:me|us)|rappelle|یاد دلا)/i,
+  /* «عدل موعد» (المهندس رعد 2026-09-20): تعديل عنصر قائم — موعده او عنوانه او عميله او مبلغه */
+  update: /(عدل|عدّل|تعديل|غير|غيّر|تغيير|اجل|أجل|أجّل|تأجيل|تاجيل|قدم|قدّم|تقديم|حرك|حرّك|بدل|بدّل|رحل|رحّل|اخر|أخر|أخّر|تأخير|انقل|أنقل|reschedul|update|change|modify|\bmove\b|postpone|reporte|décale|decale|modifie|تبدیل|ملتوی|بدل دو)/i,
 };
 /* التذكير ينفذ مباشرة، لذلك يشترط طلبا موجبا بمهلة، ولا إلغاء ولا نفي ولا سؤال في الرسالة */
 const REMIND_LEAD = /(\d+|يوم|أيام|ساعة|ساعات|أسبوع|أسبوعين|شهر|قبل|day|hour|week|month|before|jour|heure|semaine|دن|گھنٹ|ہفت)/i;
 const REMIND_NEG = /(ألغ|الغ|احذف|أزل|ازل|شيل|لا تذكر|لا تنبه|بدون|هل |؟|\?|cancel|remove|delete|stop|don't|do not|is there|annule|supprime)/i;
-const WRITE_TOOLS = { mrzahi_add: "add", mrzahi_complete: "done", mrzahi_assign: "assign", mrzahi_remind: "remind" };
+const WRITE_TOOLS = { mrzahi_add: "add", mrzahi_complete: "done", mrzahi_assign: "assign", mrzahi_remind: "remind", mrzahi_update: "update" };
+/* حقول التعديل المقبولة: الاعمدة الاربعة والملاحظات (تخزن داخل data) — كما تقبلها telegram_update_item */
+const UPDATE_KEYS = ["due_at", "title", "client_name", "amount", "notes"];
 /* يحكم نداء أداة كتابة: ممنوع بلا فعل صريح، وإلا يتحول إلى نية تنتظر تأكيد المستخدم (لا تنفيذ هنا) */
 export function writeGate(name, args, text) {
   const action = WRITE_TOOLS[name];
@@ -400,6 +408,18 @@ export function writeGate(name, args, text) {
   if (action === "assign" && (!q || !String(a.member || "").trim())) return { blocked: true, reason: "حدد العنصر واسم العضو، واسأل المستخدم سؤالا واحدا إن لم يتضح." };
   if (action === "done") return { pending: { action: "done", query: q, item_id: a.item_id || null } };
   if (action === "assign") return { pending: { action: "assign", query: q, member: String(a.member || "").trim() } };
+  if (action === "update") {
+    const id = a.item_id ? String(a.item_id).slice(0, 64) : null;
+    const patch = {};
+    for (const k of UPDATE_KEYS) {
+      const v = a[k];
+      if (v == null || v === "") continue;
+      patch[k] = typeof v === "number" ? v : String(v).slice(0, k === "notes" ? 2000 : 300);
+    }
+    if (!q && !id) return { blocked: true, reason: "حدد العنصر المطلوب تعديله (عنوانه أو رقم القضية أو المخالفة)، واسأل المستخدم سؤالا واحدا إن لم يتضح." };
+    if (!Object.keys(patch).length) return { blocked: true, reason: "حدد ما الذي يتغير (الموعد الجديد أو العنوان أو العميل أو المبلغ)، واسأل المستخدم سؤالا واحدا إن لم يتضح." };
+    return { pending: { action: "update", query: q, item_id: id, patch } };
+  }
   const item = {};
   for (const k of ["kind", "title", "client_name", "case_number", "violation_number", "amount", "due_at", "location", "notes", "category", "parent_id"]) if (a[k] != null && a[k] !== "") item[k] = a[k];
   return { pending: { action: "add", item } };
@@ -409,6 +429,7 @@ export function describePending(p) {
   if (!p) return "";
   if (p.action === "done") return "mark as done: " + (p.query || p.item_id || "");
   if (p.action === "assign") return "assign «" + p.query + "» to " + p.member;
+  if (p.action === "update") { const c = p.patch || {}; return "update «" + (p.query || p.item_id || "") + "»" + (c.due_at ? " — new due " + dmy(c.due_at) : "") + (c.title ? " — title: " + c.title : "") + (c.client_name ? " — client: " + c.client_name : "") + (c.amount != null ? " — amount: " + c.amount : ""); }
   const it = p.item || {};
   return "add " + (it.kind || "task") + ": " + (it.title || "") + (it.due_at ? " — due " + dmy(it.due_at) : "") + (it.client_name ? " — " + it.client_name : "");
 }
