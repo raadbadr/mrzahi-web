@@ -203,6 +203,16 @@
         return Array.isArray(list) && list.length ? list.slice(0, 4) : null;
       }
 
+      /* مع فلتر نوع تسمى المربعات بنوعها وحالتها: «مخالفات مفتوحة»، «مخالفات
+         خلال 7 ايام»، «مخالفات متاخرة»، «مخالفات اغلقت» (امر المهندس رعد
+         2026-09-20: «دي المفروض يتغير معاها»). بلا فلتر تسمية الحزمة كما هي. */
+      var TILE_STATE_WORD = { "count.open": "tileOpenWord", "count.due7": "tileDue7Word", "count.overdue": "tileOverdueWord", "count.done": "tileDoneWord" };
+      function tileWord(tile, base) {
+        var kind = state.viewType ? "all" : (state.calFilter || "all");
+        if (kind === "all" || !TILE_STATE_WORD[tile.metric]) return base;
+        var kindWord = calFilterLabel(kind);
+        return kindWord ? T(TILE_STATE_WORD[tile.metric]).replace("{k}", kindWord) : base;
+      }
       /* الأرقام تكتب مرة واحدة بعد اكتمالها كلها: لا صفر ثم قيمة */
       function paintTiles(values) {
         var tiles = packTiles();
@@ -213,7 +223,7 @@
         tiles.forEach(function (tile, i) {
           var card = cards[i]; if (!card) return;
           var label = card.querySelector(".platform-stat-label");
-          var word = tile.label && (tile.label[l] || tile.label.ar);
+          var word = tileWord(tile, (tile.label && (tile.label[l] || tile.label.ar)) || "");
           if (label && word && label.textContent !== word) { label.textContent = word; label.removeAttribute("data-i18n"); }
           if (tile.metric && card.getAttribute("data-metric") !== tile.metric) card.setAttribute("data-metric", tile.metric);
           var path = card.querySelector(".platform-stat-icon path");
@@ -297,9 +307,19 @@
         });
       }
       /* حزمة بلا مربعات معرفة تعد بالمقاييس الاربعة الاصلية نفسها */
-      var DEFAULT_TILES = [{ metric: "count.open" }, { metric: "count.due7" }, { metric: "count.overdue" }, { metric: "count.done" }];
+      var DEFAULT_TILES = [{ metric: "count.open", key: "statOpen" }, { metric: "count.due7", key: "statDue7" }, { metric: "count.overdue", key: "statOverdue" }, { metric: "count.done", key: "statDone" }];
+      function paintTileLabels() {
+        if (packTiles()) { if (lastTiles) paintTiles(); return; }
+        var cards = document.querySelectorAll(".stats-section .platform-stat-card");
+        DEFAULT_TILES.forEach(function (tile, i) {
+          var label = cards[i] && cards[i].querySelector(".platform-stat-label");
+          var word = tileWord(tile, T(tile.key));
+          if (label && label.textContent !== word) label.textContent = word;
+        });
+      }
       function writeTileValues(values) {
         if (packTiles()) { paintTiles(values); return; }
+        paintTileLabels();
         TILE_VALUE_IDS.forEach(function (id, i) {
           var el = $(id), text = values[i] == null ? "" : String(values[i]);
           if (el && el.textContent !== text) el.textContent = text;
@@ -310,6 +330,7 @@
       function refreshTiles() {
         var tiles = packTiles() || DEFAULT_TILES;
         var seq = ++tileSeq;
+        safeRender("tiles", paintTileLabels);   /* التسمية فورا، والرقم حين يصل */
         return retryOnce(function () { return tileValuesFiltered(tiles); }).then(function (values) {
           if (seq !== tileSeq) return;
           safeRender("tiles", function () { writeTileValues(values); });

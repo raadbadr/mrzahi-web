@@ -319,11 +319,30 @@ function repairVisualOrder(line) {
   return b > a ? flipped : joined;
 }
 
+/* خط بعض الملفات الرسمية (بطاقة الهوية من توكلنا) يرسم الحرف المنقوط حرفا
+   بلا نقاط (ٮ ڡ) يتبعه رمز لاتيني مكان النقاط: «ٮ+ﺪر» = بدر، «اﻟﺮڡ"ﻢ» = الرقم.
+   نص كهذا لا يقرأ ولا يفك بيقين (رصده المهندس رعد 2026-09-17: «تعرف كلو
+   غلط»)، فيعد مشوها: يسقط عربيه وتقرأ صورة الصفحة بدله، وتبقى أرقامه
+   وتواريخه ولاتينيه لأنها سليمة. */
+const DOTLESS_LETTERS = /[\u066E\u06A1\u06BA]/g;
+const DOT_MARKERS = /[\u0621-\u064A\u066E\u06A1\u06BA][+"$19O](?=[\u0621-\u064A\u066E\u06A1\u06BA\s]|$)/g;
+function dotlessMangled(value) {
+  const dotless = (value.match(DOTLESS_LETTERS) || []).length;
+  const markers = (value.match(DOT_MARKERS) || []).length;
+  return dotless >= 3 || markers >= 4;
+}
 export function looksMangledArabic(text) {
   var value = normalizeArabicText(text);
+  if (dotlessMangled(value)) return true;
   var singles = (value.match(/(?:^|\s)[\u0600-\u06FF](?=\s|$)/g) || []).length;
   var words = (value.match(/\S+/g) || []).length;
   return words > 10 && singles / words > 0.3;
+}
+/* يسقط كل كلمة فيها حرف عربي من نص مشوه ويبقي اللاتيني والأرقام والفواصل */
+export function dropMangledArabic(text) {
+  return String(text || "").split(/\r?\n/).map((line) =>
+    line.split(/\s+/).filter((tok) => tok && !/[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(tok)).join(" ")
+  ).filter((line) => line.trim()).join("\n");
 }
 
 const AR_DIGITS = { "٠":"0","١":"1","٢":"2","٣":"3","٤":"4","٥":"5","٦":"6","٧":"7","٨":"8","٩":"9","۰":"0","۱":"1","۲":"2","۳":"3","۴":"4","۵":"5","۶":"6","۷":"7","۸":"8","۹":"9" };
@@ -356,8 +375,8 @@ const LB = {
   tin: ["الرقم\\s*المميز", "TIN"],
   cert: ["رقم\\s*الشهادة", "Certificate\\s*(?:No\\.?|Number)"],
   issue: ["تاريخ\\s*(?:ال)?[إا]صدار", "صدر\\s*(?:في|بتاريخ)", "Issue\\s*Date", "Issued\\s*on", "Release\\s*Date", "Date\\s*of\\s*Issue"],
-  expiry: ["تاريخ\\s*(?:ال)?[إا]نتهاء", "ينتهي\\s*(?:في|بتاريخ)", "صالح(?:ة)?\\s*(?:حتى|إلى|الى)", "تاريخ\\s*نهاية", "الانتهاء", "Expir(?:y|es|ation)\\s*(?:Date)?", "Valid\\s*(?:Until|To|Till)", "End\\s*Date"],
-  name: ["الاسم\\s*(?:الكامل|الرباعي)?", "Full\\s*Name", "Name"],
+  expiry: ["تاريخ\\s*(?:ال)?[إا]نتهاء", "ينتهي\\s*(?:في|بتاريخ)", "صالح(?:ة)?\\s*(?:حتى|إلى|الى)", "تاريخ\\s*نهاية", "الانتهاء", "Expir(?:y|e|es|ation)\\s*(?:Date)?", "Valid\\s*(?:Until|To|Till)", "End\\s*Date"],
+  name: ["الاسم\\s*(?:الكامل|الرباعي)?", "Full\\s*Name", "Name\\s*in\\s*(?:Arabic|English)", "Name"],
   id: ["رقم\\s*الهوية", "رقم\\s*(?:ال)?[إا]قامة", "ID\\s*(?:No\\.?|Number)", "Iqama\\s*(?:No\\.?|Number)?", "National\\s*ID(?:\\s*(?:No\\.?|Number))?"],
   dob: ["تاريخ\\s*الميلاد", "Date\\s*of\\s*Birth", "DOB", "Birth\\s*Date"],
   nationality: ["الجنسية", "Nationality"],
@@ -452,6 +471,7 @@ export const KIND_FIELDS = {
     F("id_number", "id", "رقم الهوية", "ID Number", LB.id, { pattern: ID_PAT, core: "number" }),
     F("full_name", "text", "الاسم", "Full Name", LB.name.concat(["اسم\\s*صاحب\\s*الهوية"]), { core: "party" }),
     F("date_of_birth", "date", "تاريخ الميلاد", "Date of Birth", LB.dob),
+    F("place_of_birth", "text", "مكان الميلاد", "Place of Birth", ["مكان\\s*الميلاد", "Place\\s*of\\s*Birth"]),
     issueField(), expiryField(),
     F("nationality", "text", "الجنسية", "Nationality", LB.nationality),
     F("place_of_issue", "text", "مكان الإصدار", "Place of Issue", ["مكان\\s*(?:ال)?[إا]صدار", "جهة\\s*(?:ال)?[إا]صدار", "Place\\s*of\\s*Issue"]),
@@ -634,6 +654,9 @@ function tidyText(head, cuts) {
   let value = head.split(/\n/).map((line) => line.trim()).find(Boolean) || "";
   const colon = value.indexOf(":");
   if (colon !== -1) value = value.slice(0, colon).trim().replace(/\s*\S+$/, "");
+  /* «Name in Arabic / Name / BADR»: التسمية الأولى بلا قيمة (أسقط عربيها) وتليها
+     تسمية الحقل نفسه بلغته الأخرى، فتتخطى إلى ما بعدها */
+  while (cuts.ownAtStart.test(value)) value = value.replace(cuts.ownAtStart, "");
   for (const re of [cuts.others, cuts.ownAtEnd]) {
     const stop = value.search(re);
     if (stop === 0) return null;
@@ -644,7 +667,8 @@ function tidyText(head, cuts) {
 }
 function textCuts(spec, specs) {
   const others = specs.filter((other) => other !== spec).flatMap((other) => other.labels).concat(STOP_HEADINGS).map(wrapLabel);
-  return { others: new RegExp(others.join("|"), "i"), ownAtEnd: new RegExp("(?:" + spec.labels.map(wrapLabel).join("|") + ")\\s*$", "i") };
+  const own = spec.labels.map(wrapLabel).join("|");
+  return { others: new RegExp(others.join("|"), "i"), ownAtEnd: new RegExp("(?:" + own + ")\\s*$", "i"), ownAtStart: new RegExp("^(?:" + own + ")\\s*[:\\/\\-–—]?\\s*", "i") };
 }
 function tidyLong(head) {
   const value = head.split(/\n\s*\n/)[0].replace(/\s+/g, " ").trim();
@@ -652,7 +676,7 @@ function tidyLong(head) {
 }
 
 function detailValue(spec, segment, cuts, labelText) {
-  const head = segment.replace(/^[\s:\-–—.]+/, "");
+  const head = segment.replace(/^[\s:\-–—.\/]+/, "");
   if (spec.type === "date") return isoDate(head.slice(0, 60));
   if (spec.type === "number") {
     const match = head.slice(0, 60).match(/[0-9][0-9,]*(?:\.[0-9]+)?/);
@@ -835,8 +859,8 @@ export function rulesExtract(rawText) {
   }
   /* رقم عام: "رقم ...: 123456" إن لم تجده القاعدة */
   if (!out.number) { const genericNumberMatch = text.match(/رقم\s*[^:：\n]{0,25}[:：]\s*([0-9]{5,20})/); if (genericNumberMatch) out.number = genericNumberMatch[1]; }
-  const expiryDateInfo = findDate(text, ["تاريخ\\s*(?:ال)?انتهاء", "ينتهي\\s*(?:في|بتاريخ)", "صالح(?:ة)?\\s*حتى", "تاريخ\\s*نهاية", "الانتهاء", "تاريخ\\s*(?:ال)?جلسة", "موعد\\s*(?:ال)?جلسة", "تاريخ\\s*(?:ال)?استحقاق", "تاريخ\\s*(?:ال)?سداد", "expir(?:y|es|ation)\\s*(?:date)?", "valid\\s*(?:until|to)", "due\\s*date", "hearing\\s*date"]);
-  const issueDateInfo = findDate(text, ["تاريخ\\s*(?:ال)?إصدار", "تاريخ\\s*(?:ال)?اصدار", "تاريخ\\s*التسجيل", "تاريخ\\s*(?:ال)?بداية", "تاريخ\\s*(?:ال)?تحرير", "تاريخ\\s*العقد", "صدر\\s*(?:في|بتاريخ)", "حرر\\s*(?:في|بتاريخ)", "issue\\s*date", "issued\\s*on", "registration\\s*date", "date"]);
+  const expiryDateInfo = findDate(text, ["تاريخ\\s*(?:ال)?انتهاء", "ينتهي\\s*(?:في|بتاريخ)", "صالح(?:ة)?\\s*حتى", "تاريخ\\s*نهاية", "الانتهاء", "تاريخ\\s*(?:ال)?جلسة", "موعد\\s*(?:ال)?جلسة", "تاريخ\\s*(?:ال)?استحقاق", "تاريخ\\s*(?:ال)?سداد", "expir(?:y|e|es|ation)\\s*(?:date)?", "valid\\s*(?:until|to)", "due\\s*date", "hearing\\s*date"]);
+  const issueDateInfo = findDate(text, ["تاريخ\\s*(?:ال)?إصدار", "تاريخ\\s*(?:ال)?اصدار", "تاريخ\\s*التسجيل", "تاريخ\\s*(?:ال)?بداية", "تاريخ\\s*(?:ال)?تحرير", "تاريخ\\s*العقد", "صدر\\s*(?:في|بتاريخ)", "حرر\\s*(?:في|بتاريخ)", "issue\\s*date", "issued\\s*on", "registration\\s*date", "date(?!\\s*of\\s*birth)"]);
   /* الشهادة الضريبية لا «تنتهي»: «تاريخ استحقاق أول إقرار» موعد إقرار لا انتهاء، فلا يعد انتهاء (يبقى في التفاصيل first_filing_due) */
   const vatDueNotExpiry = out.kind === "vat_certificate" && expiryDateInfo && /استحقاق|due/i.test(String(expiryDateInfo.label || ""));
   if (expiryDateInfo && !vatDueNotExpiry) { out.expiry_date = expiryDateInfo.raw; out.expiry_date_calendar = expiryDateInfo.year < 1700 ? "hijri" : "gregorian"; }
@@ -875,9 +899,13 @@ export function rulesExtract(rawText) {
 }
 export function mergeRules(model, rules) {
   const merged = model && typeof model === "object" ? { ...model } : {};
+  /* الرقم والتاريخان قرأتهما القواعد بتسميتهما ونمطهما، فهما أصدق من تخمين
+     النموذج: كان تاريخ بصيغة غير صالحة من النموذج يطمس تاريخ القواعد الصحيح
+     ثم يسقط في التنظيف، فتخرج الهوية بلا انتهاء (هوية المهندس رعد 2026-09-20). */
+  const RULES_FIRST = ["number", "issue_date", "issue_date_calendar", "expiry_date", "expiry_date_calendar"];
   for (const key of Object.keys(rules)) {
     const isMissing = merged[key] == null || merged[key] === "" || merged[key] === 0 || (key === "kind" && merged[key] === "other");
-    if (isMissing) merged[key] = rules[key];
+    if (isMissing || (RULES_FIRST.includes(key) && rules[key] != null)) merged[key] = rules[key];
   }
   /* التفاصيل: ما قرأته القواعد بتسميته ونمطه يغلب، والنموذج يكمل الفراغات فقط */
   const modelDetails = merged.details && typeof merged.details === "object" ? merged.details : {};
@@ -936,11 +964,19 @@ export async function handleDocumentAnalyze(request, env) {
   if (!body) return new Response(JSON.stringify({ error: "invalid_body" }), { status: 400, headers });
 
   let text = normalizeArabicText(String(body.text || "")).slice(0, MAX_TEXT);
-  /* نص PDF عربي مشوه (أشكال عرض أو حروف مفرقة) لا يفهم: تقرأ صورة الصفحة بدله */
+  /* نص PDF عربي مشوه (أشكال عرض أو حروف مفرقة أو حروف بلا نقاط) لا يفهم:
+     يبقى منه اللاتيني والأرقام (سليمة ودقيقة)، وتقرأ صورة الصفحة للعربي.
+     الجزء السليم أولا فتؤخذ الأرقام والتواريخ منه لا من قراءة الصورة. */
   const mangled = text.trim() ? looksMangledArabic(text) : false;
+  const sound = mangled ? dropMangledArabic(text) : "";
   try {
-    if ((!text.trim() || mangled) && body.image) text = (await readImage(env, body.image)).slice(0, MAX_TEXT);
-    else if (mangled) return new Response(JSON.stringify({ error: "mangled_text" }), { status: 422, headers });
+    if ((!text.trim() || mangled) && body.image) {
+      const seen = await readImage(env, body.image);
+      text = (mangled ? sound + "\n" + seen : seen).slice(0, MAX_TEXT);
+    } else if (mangled) {
+      if (sound.replace(/[^0-9A-Za-z]/g, "").length < 12) return new Response(JSON.stringify({ error: "mangled_text" }), { status: 422, headers });
+      text = sound.slice(0, MAX_TEXT);
+    }
   } catch (e) {
     return new Response(JSON.stringify({ error: "image_read_failed" }), { status: 502, headers });
   }

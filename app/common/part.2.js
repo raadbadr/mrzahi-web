@@ -144,6 +144,10 @@
      بترتيب بصري) لا يقرأ: نكتشفه ونرسل صورة الصفحة ليقرأها نموذج الرؤية. */
   function textLooksMangled(text) {
     var value = String(text || "");
+    /* حروف بلا نقاط يتبعها رمز النقاط («ٮ+ﺪر» = بدر): خط توكلنا، لا يقرأ فترسل الصورة معه */
+    var dotless = (value.match(/[\u066E\u06A1\u06BA]/g) || []).length;
+    var markers = (value.match(/[\u0621-\u064A\u066E\u06A1\u06BA][+"$19O](?=[\u0621-\u064A\u066E\u06A1\u06BA\s]|$)/g) || []).length;
+    if (dotless >= 3 || markers >= 4) return true;
     var singles = (value.match(/(?:^|\s)[\u0600-\u06FF](?=\s|$)/g) || []).length;
     var words = (value.match(/\S+/g) || []).length;
     return words > 10 && singles / words > 0.3;

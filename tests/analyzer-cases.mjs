@@ -2,7 +2,7 @@
    كل ورقة عرفها النظام مرة يجب أن يعرفها دائما؛ أي حالة جديدة تُضاف هنا مع إصلاحها.
    details: كل بيان في الورقة بمفتاحه (بعد التنظيف)، profile: ما يصلح منها لتحديث ملف الشركة. */
 import fs from "fs";
-import { normalizeArabicText, rulesExtract, mergeRules, clean } from "../src/documents.js";
+import { normalizeArabicText, rulesExtract, mergeRules, clean, looksMangledArabic, dropMangledArabic } from "../src/documents.js";
 const fx = (name) => fs.readFileSync(new URL("./fixtures/" + name, import.meta.url), "utf8");
 const VAT_BILINGUAL = fx("vat-bilingual.txt").trimEnd(); /* النص نفسه يستعمله tests/telegram-document-flow.mjs */
 const CASES = [
@@ -32,6 +32,11 @@ const CASES = [
     details: { permit_number: "FL-2026-000123", holder_name: "أحمد محمد", id_number: "1012345678", expiry_date: "2027-03-01" } },
   { name: "national id", text: "المملكة العربية السعودية\nوزارة الداخلية\nبطاقة الهوية الوطنية\nالاسم: أحمد محمد علي\nرقم الهوية: 1012345678\nتاريخ الانتهاء: 1450/01/01", kind: "id_document", number: "1012345678", entity: "individual",
     details: { id_number: "1012345678", full_name: "أحمد محمد علي", expiry_date: /^2028-0[45]-\d{2}$/ } },
+  /* هوية من توكلنا: خطها يرسم الحروف المنقوطة بلا نقاط ورمزا مكانها («ٮ+ﺪر» = بدر)، فالعربي يسقط
+     وتبقى أرقامه وتواريخه ولاتينيه؛ الاسم العربي من قراءة صورة الصفحة على الخادم (المهندس رعد: «تعرف كلو غلط») */
+  { name: "national id — Tawakkalna PDF with dotless-letter font: mangled, numbers and dates still exact", text: fx("national-id-tawakkalna.txt"), mangled: true,
+    kind: "id_document", number: "1011057195", entity: "individual", issue: "2025-10-01", expiry: "2035-06-06",
+    details: { id_number: "1011057195", full_name: "BADR, RAAD SAMEER H", date_of_birth: "1984-08-28", issue_date: "2025-10-01", expiry_date: "2035-06-06" } },
   { name: "hearing notice", text: "المحكمة التجارية بالرياض\nإشعار بموعد جلسة\nرقم الدعوى: 4470123456\nالمدعي: شركة باركينزي\nالمدعى عليه: مؤسسة كذا\nالدائرة: التجارية الثالثة\nموعد الجلسة: 2026/10/05 الساعة 10:30 صباحا", kind: "hearing_notice", number: "4470123456",
     details: { case_number: "4470123456", plaintiff: "شركة باركينزي", defendant: "مؤسسة كذا", circuit: "الدائرة التجارية الثالثة", hearing_date: "2026-10-05", hearing_time: "10:30 صباحا", court: "المحكمة التجارية بالرياض" } },
   { name: "tax invoice — carries a VAT number and the word ضريبة but is an invoice, not a VAT certificate; the seller's name repeats its own label", text: "فاتورة ضريبية Tax Invoice\nInvoice No: INV-2026-0042 رقم الفاتورة\nInvoice Date 2026/03/15 تاريخ الفاتورة\nالمورد: شركة المورد المحدودة\nالرقم الضريبي: 300012345600003\nالعميل: شركة باركينزي\nSubtotal 1,000.00 المجموع الفرعي\nVAT (15%) 150.00 ضريبة القيمة المضافة\nTotal 1,150.00 الإجمالي", kind: "invoice", number: "INV-2026-0042", party: "شركة باركينزي", issue: "2026-03-15",
@@ -57,9 +62,10 @@ const CASES = [
 const same = (got, want) => (want instanceof RegExp ? want.test(String(got ?? "")) : String(got) === String(want));
 let failed = 0;
 for (const c of CASES) {
-  const r = rulesExtract(normalizeArabicText(c.text));
-  const fields = clean(mergeRules(null, r));
   const problems = [];
+  if (c.mangled && !looksMangledArabic(c.text)) problems.push("must be detected as mangled");
+  const r = rulesExtract(c.mangled ? dropMangledArabic(normalizeArabicText(c.text)) : normalizeArabicText(c.text));
+  const fields = clean(mergeRules(null, r));
   if (c.kind && r.kind !== c.kind) problems.push(`kind ${r.kind} ≠ ${c.kind}`);
   if (c.notKind && r.kind === c.notKind) problems.push(`kind must not be ${c.notKind}`);
   if (c.number && String(r.number) !== c.number) problems.push(`number ${r.number} ≠ ${c.number}`);
