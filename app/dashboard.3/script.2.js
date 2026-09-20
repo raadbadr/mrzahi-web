@@ -2804,7 +2804,7 @@
       /* جدولا القائمة والمخالفات يتشاركان الأزرار نفسها، فالمستمع على المستند */
       document.addEventListener("click", function (ev) {
         var b = ev.target.closest("button[data-action]");
-        if (!b || !b.closest("#itemsBody, #violationsBody, #contractsBody, #expensesBody, #staffBody, #leavesBody, #trainingBody")) return;
+        if (!b || !b.closest("#itemsBody, #violationsBody, #contractsBody, #expensesBody, #healthBody, #financeBody, #staffBody, #leavesBody, #trainingBody")) return;
         var item = findItem(b.dataset.id);
         if (!item) return;
         var action = b.dataset.action;
