@@ -257,16 +257,75 @@
         });
       }
 
+      /* المربعات تتبع فلتر التقويم (امر المهندس رعد 2026-09-20: «لمن اختار
+         الفلتر يتغير اللي فوق»): بلا فلتر ارقام الخادم كما هي، ومع فلتر نوع
+         او عضو تحسب من العناصر المصفاة نفسها التي يعرضها التقويم، فالرقم فوق
+         يطابق ما تحته. مربعات الاوراق تتبع فلتر النوع وحده لان الورقة للمنشاة
+         لا لعضو: مع «الكل» او «المستندات» رقمها، ومع نوع اخر صفر. */
+      function calFilterActive() {
+        return !state.viewType && ((state.calFilter && state.calFilter !== "all") || !!state.calWho);
+      }
+      function tileValuesFiltered(tiles) {
+        if (!calFilterActive()) return tileValues(tiles);
+        var now = Date.now(), in7 = now + 7 * 86400000, kind = state.calFilter || "all";
+        var needPapers = tiles.some(function (t) { return String(t.metric || "").indexOf("papers") !== -1; });
+        var papers = needPapers && (kind === "all" || kind === "documents") && app.orgDocumentsStatus
+          ? app.orgDocumentsStatus().catch(function () { return null; }) : Promise.resolve(null);
+        return Promise.all([app.listItems({}), papers]).then(function (res) {
+          var items = applyCalFilter((res[0] || []).filter(matchesView));
+          var n = { open: 0, due7: 0, overdue: 0, done: 0, total: items.length };
+          items.forEach(function (it) {
+            var due = it.due_at ? new Date(it.due_at).getTime() : null;
+            if (it.status === "done") { n.done++; return; }
+            if (it.status !== "open") return;
+            n.open++;
+            if (due && due >= now && due <= in7) n.due7++;
+            if (due && due < now) n.overdue++;
+          });
+          var rows = (res[1] && res[1].papers) || [];
+          var paperCount = function (states) {
+            return rows.filter(function (p) { return states.indexOf(p.state) !== -1; }).length;
+          };
+          return tiles.map(function (t) {
+            var m = String(t.metric || "");
+            if (m === "count.papers_expiring") return paperCount(["expiring"]);
+            if (m === "count.papers_missing") return paperCount(["missing"]);
+            if (m === "count.papers_valid") return paperCount(["valid", "stored"]);
+            var key = m.replace(/^count\./, "");
+            return n[key] == null ? 0 : n[key];
+          });
+        });
+      }
+      /* حزمة بلا مربعات معرفة تعد بالمقاييس الاربعة الاصلية نفسها */
+      var DEFAULT_TILES = [{ metric: "count.open" }, { metric: "count.due7" }, { metric: "count.overdue" }, { metric: "count.done" }];
+      function writeTileValues(values) {
+        if (packTiles()) { paintTiles(values); return; }
+        TILE_VALUE_IDS.forEach(function (id, i) {
+          var el = $(id), text = values[i] == null ? "" : String(values[i]);
+          if (el && el.textContent !== text) el.textContent = text;
+        });
+      }
+      /* نقرة فلتر تعيد ارقام المربعات؛ النقرة الاحدث وحدها تكتب. */
+      var tileSeq = 0;
+      function refreshTiles() {
+        var tiles = packTiles() || DEFAULT_TILES;
+        var seq = ++tileSeq;
+        return retryOnce(function () { return tileValuesFiltered(tiles); }).then(function (values) {
+          if (seq !== tileSeq) return;
+          safeRender("tiles", function () { writeTileValues(values); });
+        }).catch(function (err) { fail(err); });
+      }
+
       function loadStats() {
-        var tiles = packTiles();
+        var tiles = packTiles() || (calFilterActive() ? DEFAULT_TILES : null);
         if (tiles) {
-          return retryOnce(function () { return tileValues(tiles); }).then(function (values) {
-            safeRender("tiles", function () { paintTiles(values); });
+          return retryOnce(function () { return tileValuesFiltered(tiles); }).then(function (values) {
+            safeRender("tiles", function () { writeTileValues(values); });
             statsReady();
           }).catch(function (err) {
             /* رقم لم يصل يقول ذلك بشرطته: الفراغ الصامت كان يقرا كأن المربع
                صمم بلا رقم اصلا (امر المهندس رعد: «وراحت الارقام»). */
-            paintTiles(tiles.map(function () { return "\u2014"; }));
+            writeTileValues(tiles.map(function () { return "\u2014"; }));
             statsReady();
             fail(err);
           });

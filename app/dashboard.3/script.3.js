@@ -252,6 +252,7 @@
           });
           state.calItems = applyCalFilter(state.calAll || state.calItems);
           renderCalendar();
+          refreshTiles();   /* المربعات فوق تتبع الفلتر (امر المهندس رعد 2026-09-20) */
         });
       }
 
@@ -459,6 +460,7 @@
           state.calWho = (who && state.calWho === who) ? "" : who;
           state.calItems = applyCalFilter(state.calAll || state.calItems);
           renderCalendar();
+          refreshTiles();
         });
       })();
 
