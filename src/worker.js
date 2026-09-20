@@ -21,6 +21,7 @@ import { runNotificationCron, purgeExpiredAccountDeletions, linkChannelByCode, n
 import { ALLOWED_EXT, fileExt, parseWorkbook, draftPayload, commitImport } from "./telegram-import.js";
 import { extractIntent, describeAction, formatSearch, executeAction, runTelegramDigests, runAbsenceNudges, runTrialCountdown } from "./telegram-actions.js";
 import { hmacHex, telegramFileRoute, handleTelegramFile, offerDocument, handleDocCallback } from "./telegram-documents.js";
+import { handleAgentChat, handleAgentConfirm } from "./web-agent.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -1201,6 +1202,17 @@ async function withNotFoundPage(env, url, res) {
       if (path === "/api/telegram/webhook" && request.method === "POST") return await handleTelegramWebhook(request, env);
       if (path === "/api/telegram/link" && (request.method === "POST" || request.method === "GET")) return await handleTelegramLink(request, env, url);
       if (path === "/api/intent" && request.method === "POST") return await handleIntent(request, env);
+      /* دردشة الاوامر داخل التطبيق: نفس وكيل البوت بجلسة الموقع، ولا كتابة الا بتاكيد ثان */
+      if (path === "/api/agent" && request.method === "POST") {
+        const u = await authedUser(request, env);
+        if (!u) return json({ error: "unauthorized" }, 401);
+        return await handleAgentChat(request, env, u);
+      }
+      if (path === "/api/agent/confirm" && request.method === "POST") {
+        const u = await authedUser(request, env);
+        if (!u) return json({ error: "unauthorized" }, 401);
+        return await handleAgentConfirm(request, env, u);
+      }
       if (path === "/api/whatsapp/webhook") return await handleWhatsappWebhook(request, env, url);
       return json({ error: "not found" }, 404);
     } catch (err) {
