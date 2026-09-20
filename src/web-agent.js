@@ -40,14 +40,17 @@ function langOf(body) {
   return LANGS.indexOf(l) === -1 ? "ar" : l;
 }
 
-/* المنظمة من عضوية المستخدم في القاعدة لا من الطلب: الواجهة تقترح والقاعدة تقرر.
-   وهي تعاد الى الواجهة كي يعرف صاحبها اين سيكتب قبل ان يؤكد. */
+/* الحساب من عضوية المستخدم في القاعدة لا من الطلب: الواجهة تقترح والقاعدة تقرر.
+   ثم يضبط حسابه النشط للمساعد (agent_set_org، الترحيل 0165) فيضيق نطاق كل دوال
+   المساعد الى هذا الحساب وحده — قراءة وكتابة. قبل 0165 كانت تعمل على حساباته كلها
+   مجتمعة، فمن فتح حسابه الشخصي وقال «انجزت الايجار» اصاب عنصرا في حساب الشركة. */
 async function orgOf(env, userId, want) {
   let choices = [];
   try { choices = (await rpc(env, "telegram_org_choices", { p_secret: env.WORKER_SECRET, p_user_id: userId })) || []; } catch { choices = []; }
   if (!Array.isArray(choices) || !choices.length) return null;
-  const pick = choices.filter((c) => c && String(c.id) === String(want || ""))[0];
-  return pick || choices[0];
+  const pick = choices.filter((c) => c && String(c.id) === String(want || ""))[0] || choices[0];
+  try { await rpc(env, "agent_set_org", { p_secret: env.WORKER_SECRET, p_user_id: userId, p_org: pick.id }); } catch { /* يبقى النطاق كما كان */ }
+  return pick;
 }
 
 /* ما ترسله الواجهة بيان لا امر: الفعل المعلق يعاد بناؤه من حقول معروفة وحدها */
@@ -117,7 +120,7 @@ export async function handleAgentChat(request, env, user) {
   if (out.pending) {
     const pending = cleanPending(out.pending);
     if (!pending) return json({ text: out.text || "" });
-    return json({ pending, ask: describeAction(lang, pending, "Asia/Riyadh", false) });
+    return json({ pending, ask: describeAction(lang, pending, "Asia/Riyadh", false), org: org ? { id: org.id, name: org.name } : null });
   }
   return json({ text: String(out.text || "") });
 }
@@ -131,6 +134,7 @@ export async function handleAgentConfirm(request, env, user) {
   if (!pending) return json({ error: "bad_request" }, 400);
   if (rateLimited("agent:" + user.id)) return json({ error: "rate_limited" }, 429);
   const lang = langOf(body);
+  await orgOf(env, user.id, body && body.org_id);
   let res;
   try { res = await executeAction(env, user.id, pending, lang); } catch (e) { return json({ error: "failed", detail: String((e && e.message) || e).slice(0, 200) }, 500); }
   /* ازرار تيليغرام (extra) لا شأن للويب بها: النص وحده يعرض، والواجهة تعيد رسم شاشتها */
