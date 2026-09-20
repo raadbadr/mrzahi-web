@@ -160,7 +160,11 @@
       /* فلاتر التقويم الماستر: تصنيف بلا إعادة جلب؛ الأوراق عناصر بنوع مستند،
          وكل نوع تعرفه الواجهة يصنف بمطابقته نفسها (isOfType) لا بقائمة ثابتة،
          والمهام ما لم يطابق نوعا. */
-      var CAL_KIND_ORDER = ["cases", "violations", "expenses", "rulings", "contracts", "health", "meetings"];
+      /* الصفقات والفواتير كانتا خارج القائمة فيعرض فلترا «الصفقات» و«الفواتير»
+         صفرا دائما (اصلاح 2026-09-20 بامر المهندس رعد)؛ وكل نوع تضيفه الواجهة
+         لاحقا يلحق بالقائمة وحده فلا يسقط صامتا. */
+      var CAL_KIND_ORDER = ["cases", "violations", "expenses", "rulings", "contracts", "deals", "invoices", "health", "meetings"];
+      Object.keys(VIEW_TYPES).forEach(function (k) { if (CAL_KIND_ORDER.indexOf(k) === -1) CAL_KIND_ORDER.push(k); });
       function calKind(it) {
         if (it && it.data && it.data.document_kind) return "documents";
         for (var i = 0; i < CAL_KIND_ORDER.length; i++) {
