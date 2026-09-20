@@ -933,6 +933,16 @@
     .cal-people[hidden] { display: none; }
     .cal-people .cal-modes { flex-wrap: wrap; height: auto; min-height: var(--field-h, 42px); }
     .cal-nav .cal-modes .cal-person { flex: 0 1 auto; width: auto; max-width: 10rem; cursor: pointer; padding-inline: 0.7rem; }
+    /* المجموعات الخمس بعرض واحد (امر المهندس رعد 2026-09-20: «دي كلها لازم تكون نفس
+       الطول والباقي يكون ديناميكي»، واختار: المجموعات الخمس بعرض واحد والشرائح
+       تتوزع داخلها). كل صندوق شرائح يمتد بعرض الشريط كاملا فتتطابق حوافه مع
+       اخوته، والشرائح تتمدد بالتساوي لتملأه؛ وان ضاقت الشاشة عن شرائحه رجعت الى
+       عرضها الادنى وتمرر افقيا داخل صندوقها بلا قص (قاعدة 2-هـ) كما كان.
+       مقيس على 375 و768 و1280: الخمسة بعرض واحد وحافة واحدة، وبلا فيض للصفحة. */
+    .cal-nav .cal-ctls { flex: 1 1 100%; flex-direction: column; align-items: stretch; }
+    .cal-nav .cal-ctls .cal-modes, .cal-nav #calFilters, .cal-nav #calFilters .cal-modes, .cal-nav .cal-people, .cal-nav .cal-people .cal-modes { width: 100%; }
+    .cal-nav #calFilters, .cal-nav .cal-people { flex: 1 1 100%; }
+    .cal-nav .cal-modes .cal-mode, .cal-nav .cal-modes .cal-person { flex: 1 1 auto; }
     .cal-person.is-drop { background: var(--primary); color: var(--btn-ink); }
     body.cal-dragging .cal-people .cal-modes { box-shadow: 0 0 0 1px var(--primary); }
 
