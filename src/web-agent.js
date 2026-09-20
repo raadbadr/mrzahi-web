@@ -5,7 +5,7 @@
    POST /api/agent          { text, org_id?, lang? } → { text } او { pending, ask }
    POST /api/agent/confirm  { pending, org_id?, lang? } → { text, done }
 
-   الكتابة تمر ببوابة writeGate في notify.js كما في تيليغرام: كل فعل (اضافة، انجاز، اسناد)
+   الكتابة تمر ببوابة writeGate في notify.js كما في تيليغرام: كل فعل (اضافة، انجاز، اسناد، تعديل)
    يعود pending فيعرض على صاحبه، ولا ينفذ الا برسالة تاكيد ثانية. */
 
 import { agentReply } from "./telegram-agent.js";
@@ -13,9 +13,11 @@ import { executeAction, describeAction } from "./telegram-actions.js";
 import { rpc } from "./notify.js";
 
 const LANGS = ["ar", "en", "fr", "ur"];
-const ACTIONS = ["add", "done", "assign"];
+const ACTIONS = ["add", "done", "assign", "update"];
 /* حقول العنصر كما تقبلها telegram_add_item لا اكثر (نفس قائمة writeGate) */
 const ITEM_KEYS = ["kind", "title", "client_name", "case_number", "violation_number", "amount", "due_at", "location", "notes", "category", "parent_id"];
+/* حقول التعديل كما تقبلها telegram_update_item (UPDATE_KEYS في notify.js) */
+const PATCH_KEYS = ["due_at", "title", "client_name", "amount", "notes"];
 const MAX_CHARS = 2000;
 const RATE_MAX_PER_MIN = 12;
 const buckets = new Map();
@@ -61,6 +63,18 @@ function cleanPending(p) {
   if (action === "assign") {
     const out = { action, query: str(p.query, 200), member: str(p.member, 120) };
     return out.query && out.member ? out : null;
+  }
+  /* «عدل موعد القضية الى الاحد»: العنصر محدد، وحقل واحد على الاقل يتغير */
+  if (action === "update") {
+    const src = p.patch && typeof p.patch === "object" ? p.patch : {};
+    const patch = {};
+    for (const k of PATCH_KEYS) {
+      const v = src[k];
+      if (v == null || v === "") continue;
+      patch[k] = typeof v === "number" ? v : str(v, k === "notes" ? 2000 : 300);
+    }
+    const out = { action, query: str(p.query, 200), item_id: p.item_id ? str(p.item_id, 64) : null, patch };
+    return (out.query || out.item_id) && Object.keys(patch).length ? out : null;
   }
   const src = p.item && typeof p.item === "object" ? p.item : {};
   const item = {};
