@@ -746,6 +746,10 @@
        ولا صف يبدا من مكان غير مكان اخيه */
     .cal-line { display: flex; align-items: center; justify-content: flex-start; gap: 0.6rem 0.75rem; flex-wrap: wrap; }
     .cal-line[hidden] { display: none; }
+    /* صف الشهر وسهميه يتوسط عرض الشريط (امر المهندس رعد 2026-09-20: «يحط التاريخ
+       الشهر فوق في النص»): تصميمه مختلف عن الشرائح فلا يلتصق بالحافة كالسطور
+       التي تحته. */
+    .cal-line--when { justify-content: center; }
     .cal-nav-group { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; min-width: 0; }
     /* الشهر وسهماه في طرف الصف والفلاتر في الطرف الاخر (امر المهندس رعد
        2026-09-17: «حط الشهر مكان ميلادي هجري واسحب الشريط كامل مكان الشهر»).
