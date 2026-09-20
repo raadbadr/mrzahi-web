@@ -765,8 +765,14 @@
        سطر الادوات، وما لم يسعه السطر يلتف الى سطر ثان داخل المجموعة نفسها بدل
        تمرير يخفي شرائح (قاعدة 2-هـ: لا قص)، والمنسدلة بارتفاع الحقول وبعرض
        اسمائها، والكل من الحافة التي يبدا منها سطر الادوات. */
-    #calFilters { max-width: 100%; min-width: 0; flex: 0 1 auto; }
-    #calFilters .cal-modes { flex-wrap: wrap; height: auto; min-height: var(--field-h, 42px); max-width: 100%; }
+    /* صف الفلاتر بعرض التقويم الذي تحته (امر المهندس رعد 2026-09-20: «افضل
+       الفلاتر تجي بنفس عرض التقويم اللي تحتها بدل ما يكون عندي فراغ غير مبرر»):
+       مجموعة الانواع تاخذ ما بقي من الصف بعد منسدلة الفريق التي تبقى بعرض
+       اسمائها، وشرائحها تتقاسم عرض المجموعة فلا يبقى فراغ في طرف الصف. الالتفاف
+       داخل المجموعة كما هو، وسطر الادوات وصف الشهر لا يمسان. */
+    #calFilters { max-width: 100%; min-width: 0; flex: 1 1 auto; }
+    #calFilters .cal-modes { display: flex; width: 100%; flex-wrap: wrap; height: auto; min-height: var(--field-h, 42px); max-width: 100%; }
+    .cal-nav #calFilterList .cal-mode { flex: 1 1 auto; }
     .cal-line--sub select.waitlist-input { flex: 0 0 auto; width: auto; min-width: 9rem; max-width: 16rem; height: var(--field-h, 42px); padding-block: 0; cursor: pointer; }
     /* السهم دائرة بحجم بقية الادوات، ورسمه ينعكس مع اتجاه الصفحة */
     .cal-arrow {
