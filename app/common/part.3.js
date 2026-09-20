@@ -692,6 +692,17 @@
     { href: "/app/dashboard.html?type=health", path: "type=health", service: "health", packOnly: true,
       icon: '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
       labels: { ar: "صحتي", en: "My health", fr: "Ma sante", ur: "میری صحت" } },
+    /* الموارد البشرية: ثلاث شاشات لحزمة hr وحدها (packOnly) فلا تظهر عند غيرها
+       (امر المهندس رعد 2026-09-20) */
+    { href: "/app/dashboard.html?type=staff", path: "type=staff", service: "staff", packOnly: true,
+      icon: '<path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 14H4V6h16v12zM9 12a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm-4 5c0-1.66 2.24-2.5 4-2.5s4 .84 4 2.5v1H5v-1zm9-7h5v2h-5v-2zm0 4h5v2h-5v-2z"/>',
+      labels: { ar: "الموظفون", en: "Employees", fr: "Employes", ur: "ملازمین" } },
+    { href: "/app/dashboard.html?type=leaves", path: "type=leaves", service: "leaves", packOnly: true,
+      icon: '<path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 16H5V9h14v11zm-8.3-2.1l-3.2-3.2 1.4-1.4 1.8 1.8 4.2-4.2 1.4 1.4-5.6 5.6z"/>',
+      labels: { ar: "الاجازات", en: "Leaves", fr: "Conges", ur: "چھٹیاں" } },
+    { href: "/app/dashboard.html?type=training", path: "type=training", service: "training", packOnly: true,
+      icon: '<path d="M12 3L1 9l11 6 9-4.9V17h2V9L12 3zm-7 9.8v4.2c0 1.1 3.1 3 7 3s7-1.9 7-3v-4.2l-7 3.8-7-3.8z"/>',
+      labels: { ar: "الدورات والمؤهلات", en: "Training and qualifications", fr: "Formations et diplomes", ur: "کورسز اور قابلیت" } },
     { href: "/app/documents.html", path: "documents", service: "documents",
       icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8 13h8v2H8v-2zm0 4h8v2H8v-2z"/>',
       labels: { ar: "المستندات", en: "Documents", fr: "Documents", ur: "دستاویزات" } },

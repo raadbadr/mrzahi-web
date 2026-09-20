@@ -2,6 +2,7 @@
       $("editForm").addEventListener("submit", function (ev) {
         ev.preventDefault();
         if (!state.editing) return;
+        if (state.viewType === "leaves") autoLeaveTitle("edit");
         var title = $("editTitle").value.trim();
         if (!title) { setMsg("editMsg", T("titleRequired"), "error"); $("editTitle").focus(); return; }
         var recordId = $("editRecord").value;
@@ -41,6 +42,10 @@
           patch.amount = fdata.total_sar || null;
           if (patch.data.paid_at === null) delete patch.data.paid_at;   /* الغاء التحصيل يمحو يومه */
           if (!patch.category) patch.category = financeCategoryFor("edit");
+        }
+        if (HR_VIEWS[state.viewType]) {
+          var hrErr = applyHrRow(patch, "edit");
+          if (hrErr) { setMsg("editMsg", T(hrErr.key), "error"); if ($(hrErr.focus)) $(hrErr.focus).focus(); return; }
         }
         var id = state.editing.id;
         guard(function () {
@@ -168,6 +173,7 @@
       function calKind(it) {
         if (it && it.data && it.data.document_kind) return "documents";
         for (var i = 0; i < CAL_KIND_ORDER.length; i++) {
+          if (HR_VIEWS[CAL_KIND_ORDER[i]] && !packHasService(CAL_KIND_ORDER[i])) continue;   /* انواع الموارد البشرية لحزمتها وحدها */
           if (VIEW_TYPES[CAL_KIND_ORDER[i]] && isOfType(it, CAL_KIND_ORDER[i])) return CAL_KIND_ORDER[i];
         }
         return "tasks";

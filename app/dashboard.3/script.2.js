@@ -569,6 +569,8 @@
         }
         else if (f.status) q.status = f.status;
         return retryOnce(function () { return app.listItems(q); }).then(function (items) {
+          return hrKeepAll(q, items);
+        }).then(function (items) {
           state.items = (items || []).filter(matchesView);
           if (f.status === "overdue" || f.status === "due7") state.items = state.items.filter(function (it) { return !!it.due_at; });
           clearMsg("listMsg");
@@ -992,6 +994,22 @@
         document.querySelectorAll('[data-field="amount"]').forEach(function (el) {
           if (state.viewType === "invoices") el.hidden = true;
         });
+        /* الموارد البشرية: كل شاشة تخفي ما لا يخصها من الحقول العامة (الموعد
+           والمبلغ والحالة تحسب من حقولها)، والحقل الاول يسمى باسمه: اسم الموظف،
+           او بيان الاجازة، او اسم الدورة */
+        if (HR_VIEWS[state.viewType]) {
+          var hrHide = { staff: ["client", "client_en", "due", "amount", "status"],
+                         leaves: ["client", "client_en", "due", "amount", "status", "case_number"],
+                         training: ["client", "client_en", "due", "status", "case_number"] }[state.viewType];
+          hrHide.forEach(function (name) {
+            document.querySelectorAll('[data-field="' + name + '"]').forEach(function (el) { el.hidden = true; });
+          });
+          var titleKey = { staff: "fieldStaffName", leaves: "fieldLeaveTitle", training: "fieldTrainName" }[state.viewType];
+          document.querySelectorAll('[data-field="title"] > span[data-i18n]').forEach(function (sp) {
+            if (sp.getAttribute("data-i18n") !== titleKey) sp.setAttribute("data-i18n", titleKey);
+            if (sp.textContent !== T(titleKey)) sp.textContent = T(titleKey);
+          });
+        }
       }
 
       /* سجل «صحتي»: يبحث عنه فان لم يوجد انشئ مرة واحدة، ثم يختار في النموذجين */
@@ -1467,6 +1485,723 @@
         if (party) party.addEventListener("change", function () { state.financeParty = this.value; renderFinance(); });
       })();
 
+      /* ==================== الموارد البشرية ====================
+         امر المهندس رعد 2026-09-20: «يقدر موظف الموارد يضيف معلومات الموظف: اسمه
+         وراتبه ووظيفته ودوراته ومؤهلاته، يعني كل الذي يحتاجه كموظف موارد،
+         واجازاته والموافقات عليها والمرضية». ثلاث شاشات لحزمة hr وحدها على نمط
+         العقود والفواتير: كل حقولها في items.data بلا عمود ولا جدول جديد.
+           الموظف   (staff):    العنوان اسمه، case_number رقمه الوظيفي، amount راتبه
+                                الاجمالي، و due_at اقرب انتهاء لاقامته او عقده فيدخل
+                                التقويم والمربعات وتنبيهات Telegram.
+           الاجازة  (leaves):   client_name اسم الموظف و data.employee_id سجله، و
+                                due_at يوم بدايتها، والاعتماد في data.leave_approval
+                                يقود status: بانتظار = open، معتمدة = done، مرفوضة
+                                او ملغاة = cancelled، فتعد المربعات ما ينتظر قرارا.
+           الدورة   (training): client_name الموظف، و due_at تاريخها ان كانت قادمة
+                                والا انتهاء شهادتها فيذكر بتجديدها. */
+      var HR_VIEWS = { staff: 1, leaves: 1, training: 1 };
+      var STAFF_CONTRACTS = [
+        { value: "", key: "staffContractNone" },
+        { value: "fixed", key: "staffContractFixed" },
+        { value: "open", key: "staffContractOpen" },
+        { value: "part", key: "staffContractPart" },
+        { value: "temp", key: "staffContractTemp" },
+        { value: "remote", key: "staffContractRemote" }
+      ];
+      var STAFF_STAGES = [
+        { value: "candidate", key: "staffStageCandidate", cls: "open" },
+        { value: "probation", key: "staffStageProbation", cls: "open" },
+        { value: "active", key: "staffStageActive", cls: "done" },
+        { value: "notice", key: "staffStageNotice", cls: "overdue" },
+        { value: "ended", key: "staffStageEnded", cls: "cancelled" }
+      ];
+      var STAFF_SOON_DAYS = 60;    /* اقامة او عقد يحتاج تجديدا: ستون يوما تكفي للمعاملة */
+      var LEAVE_KINDS = [
+        { value: "annual", key: "leaveKindAnnual", category: "اجازة سنوية" },
+        { value: "sick", key: "leaveKindSick", category: "اجازة مرضية" },
+        { value: "emergency", key: "leaveKindEmergency", category: "اجازة اضطرارية" },
+        { value: "unpaid", key: "leaveKindUnpaid", category: "اجازة بلا راتب" },
+        { value: "maternity", key: "leaveKindMaternity", category: "اجازة امومة" },
+        { value: "paternity", key: "leaveKindPaternity", category: "اجازة ابوة" },
+        { value: "marriage", key: "leaveKindMarriage", category: "اجازة زواج" },
+        { value: "bereavement", key: "leaveKindBereavement", category: "اجازة وفاة" },
+        { value: "hajj", key: "leaveKindHajj", category: "اجازة حج" },
+        { value: "study", key: "leaveKindStudy", category: "اجازة دراسية" },
+        { value: "other", key: "leaveKindOther", category: "اجازة" }
+      ];
+      var LEAVE_APPROVALS = [
+        { value: "pending", key: "leaveApprovalPending" },
+        { value: "approved", key: "leaveApprovalApproved" },
+        { value: "rejected", key: "leaveApprovalRejected" },
+        { value: "cancelled", key: "leaveApprovalCancelled" }
+      ];
+      var LEAVE_STATE_KEYS = { pending: "leaveApprovalPending", approved: "leaveApprovalApproved", ongoing: "leaveStateOngoing",
+                               finished: "leaveStateFinished", rejected: "leaveApprovalRejected", cancelled: "leaveApprovalCancelled" };
+      var LEAVE_STATE_CLS = { pending: "open", approved: "done", ongoing: "open", finished: "cancelled", rejected: "overdue", cancelled: "cancelled" };
+      var TRAIN_KINDS = [
+        { value: "course", key: "trainKindCourse", category: "دورة" },
+        { value: "degree", key: "trainKindDegree", category: "مؤهل علمي" },
+        { value: "cert", key: "trainKindCert", category: "شهادة مهنية" }
+      ];
+      var TRAIN_SOON_DAYS = 90;
+      var DEGREE_SUGGEST = ["ثانوية", "دبلوم", "بكالوريوس", "ماجستير", "دكتوراه"];
+      var HR_FILE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/></svg>';
+
+      function hrOpt(list, value) {
+        for (var i = 0; i < list.length; i++) if (list[i].value === value) return list[i];
+        return null;
+      }
+      function hrLabel(list, value) { var o = hrOpt(list, value); return o ? T(o.key) : (value || "-"); }
+      function hrFillOpts(sel, list, value) {
+        if (!sel) return;
+        fillSelect(sel, list.map(function (o) { return { value: o.value, label: T(o.key) }; }), value);
+      }
+      function hrVal(prefix, k) { var el = $(prefix + k); return el ? String(el.value || "").trim() : ""; }
+      function hrSet(prefix, k, v) { var el = $(prefix + k); if (el) el.value = (v == null ? "" : v); }
+      function dayStr(v) { return v ? String(v).slice(0, 10) : ""; }
+      /* تاريخ يوم (YYYY-MM-DD) الى منتصف ليله المحلي، او NaN */
+      function dayMs(v) {
+        var s = dayStr(v);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return NaN;
+        var d = new Date(s + "T00:00:00");
+        return isNaN(d.getTime()) ? NaN : d.getTime();
+      }
+      function todayMs() { var d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); }
+      function addDaysStr(day, n) {
+        var ms = dayMs(day);
+        if (!isFinite(ms)) return "";
+        var d = new Date(ms); d.setDate(d.getDate() + n);
+        return d.getFullYear() + "-" + (d.getMonth() < 9 ? "0" : "") + (d.getMonth() + 1) + "-" + (d.getDate() < 10 ? "0" : "") + d.getDate();
+      }
+      /* موعد العنصر من تواريخ يوم: اقرب تاريخ لم يمض، وان مضت كلها فاخرها
+         (فيظهر متاخرا كالاقامة المنتهية). الساعة الثامنة صباحا: بداية يوم العمل. */
+      function hrDue(dates) {
+        var list = (dates || []).map(dayMs).filter(function (n) { return isFinite(n); });
+        if (!list.length) return null;
+        var today = todayMs();
+        var future = list.filter(function (n) { return n >= today; }).sort(function (a, b) { return a - b; });
+        var pick = future.length ? future[0] : list.sort(function (a, b) { return b - a; })[0];
+        var d = new Date(pick); d.setHours(8, 0, 0, 0);
+        return d.toISOString();
+      }
+      function hrWithinDays(day, days) {
+        var ms = dayMs(day);
+        return isFinite(ms) && ms - todayMs() <= days * 86400000;
+      }
+      function hrStaffItems() {
+        return (state.hrAll || []).filter(function (it) { return isOfType(it, "staff"); });
+      }
+      function hrStaffById(id) {
+        if (!id) return null;
+        var lists = [state.hrAll || [], state.items || []];
+        for (var l = 0; l < lists.length; l++) for (var i = 0; i < lists[l].length; i++) if (lists[l][i].id === id) return lists[l][i];
+        return null;
+      }
+      /* شاشات الموارد البشرية تحتاج كل عناصر المنشاة (الموظف يقرا اجازاته ودوراته،
+         والاجازة تقرا قائمة الموظفين): بلا فلتر تكون القائمة نفسها، ومع فلتر
+         تجلب مرة ثانية بلا شرط. */
+      function hrKeepAll(q, items) {
+        if (!HR_VIEWS[state.viewType]) return items;
+        if (!q.recordId && !q.status && !q.search && !q.from && !q.to) { state.hrAll = items || []; return items; }
+        return retryOnce(function () { return app.listItems({}); }).then(function (all) {
+          state.hrAll = all || [];
+          return items;
+        });
+      }
+      function employeeOptions(firstKey) {
+        var opts = [{ value: "", label: T(firstKey) }];
+        hrStaffItems().slice().sort(function (a, b) { return String(a.title || "").localeCompare(String(b.title || "")); })
+          .forEach(function (it) {
+            opts.push({ value: it.id, label: String(it.title || "") + (it.case_number ? " (" + it.case_number + ")" : "") });
+          });
+        return opts;
+      }
+      function myName() { return String((app.profile && (app.profile.full_name || app.profile.email)) || "").trim(); }
+
+      /* ــ الموظف ــ */
+      function staffFields(item) {
+        var d = (item && item.data) || {};
+        var basic = Number(d.salary_basic) || 0;
+        var housing = Number(d.salary_housing) || 0, transport = Number(d.salary_transport) || 0, other = Number(d.salary_other) || 0;
+        var total = item && item.amount != null ? Number(item.amount) : fin2(basic + housing + transport + other);
+        return {
+          number: (item && item.case_number) || dataOf(item || {}, ["employee_number", "الرقم الوظيفي"]),
+          nameEn: d.name_en || (item && item.client_name_en) || "",
+          phone: d.phone || "", email: d.email || "",
+          dept: d.department || "", job: d.job_title || "",
+          contract: hrOpt(STAFF_CONTRACTS, d.contract_type || "") ? (d.contract_type || "") : "",
+          stage: hrOpt(STAFF_STAGES, d.staff_stage) ? d.staff_stage : "active",
+          hired: d.hire_date || "", nationality: d.nationality || "",
+          idNumber: d.id_number || "", idExpiry: d.id_expiry || "", contractEnd: d.contract_end || "",
+          basic: basic, housing: housing, transport: transport, other: other, total: total,
+          leaveDays: (d.leave_days != null && d.leave_days !== "") ? Number(d.leave_days) : null,
+          iban: d.iban || ""
+        };
+      }
+      function staffTotalOf(d) {
+        return fin2((Number(d.salary_basic) || 0) + (Number(d.salary_housing) || 0) + (Number(d.salary_transport) || 0) + (Number(d.salary_other) || 0));
+      }
+      function staffRowData(prefix) {
+        return {
+          name_en: hrVal(prefix, "StaffNameEn") || null,
+          phone: hrVal(prefix, "StaffPhone") || null,
+          email: hrVal(prefix, "StaffEmail") || null,
+          department: hrVal(prefix, "StaffDept") || null,
+          job_title: hrVal(prefix, "StaffJob") || null,
+          contract_type: hrVal(prefix, "StaffContract") || null,
+          staff_stage: hrVal(prefix, "StaffStage") || "active",
+          hire_date: hrVal(prefix, "StaffHired") || null,
+          nationality: hrVal(prefix, "StaffNationality") || null,
+          id_number: hrVal(prefix, "StaffId") || null,
+          id_expiry: hrVal(prefix, "StaffIdExpiry") || null,
+          contract_end: hrVal(prefix, "StaffContractEnd") || null,
+          salary_basic: numOrNull(hrVal(prefix, "StaffSalary")),
+          salary_housing: numOrNull(hrVal(prefix, "StaffHousing")),
+          salary_transport: numOrNull(hrVal(prefix, "StaffTransport")),
+          salary_other: numOrNull(hrVal(prefix, "StaffOther")),
+          leave_days: numOrNull(hrVal(prefix, "StaffLeaveDays")),
+          iban: hrVal(prefix, "StaffIban") || null
+        };
+      }
+      function fillStaffFields(prefix, item) {
+        var f = staffFields(item || {});
+        hrSet(prefix, "StaffNameEn", f.nameEn); hrSet(prefix, "StaffPhone", f.phone); hrSet(prefix, "StaffEmail", f.email);
+        hrSet(prefix, "StaffDept", f.dept); hrSet(prefix, "StaffJob", f.job); hrSet(prefix, "StaffHired", f.hired);
+        hrSet(prefix, "StaffNationality", f.nationality); hrSet(prefix, "StaffId", f.idNumber);
+        hrSet(prefix, "StaffIdExpiry", f.idExpiry); hrSet(prefix, "StaffContractEnd", f.contractEnd);
+        hrSet(prefix, "StaffSalary", f.basic || ""); hrSet(prefix, "StaffHousing", f.housing || "");
+        hrSet(prefix, "StaffTransport", f.transport || ""); hrSet(prefix, "StaffOther", f.other || "");
+        hrSet(prefix, "StaffLeaveDays", f.leaveDays == null ? "" : f.leaveDays); hrSet(prefix, "StaffIban", f.iban);
+        hrFillOpts($(prefix + "StaffContract"), STAFF_CONTRACTS, f.contract);
+        hrFillOpts($(prefix + "StaffStage"), STAFF_STAGES, item ? f.stage : "active");
+      }
+      /* رصيد الاجازة السنوية: المستحق في بطاقة الموظف ناقص ايام السنوية المعتمدة
+         التي تبدا في هذه السنة. بلا مستحق مكتوب لا رصيد يحسب. */
+      function leaveBalance(emp) {
+        var f = staffFields(emp);
+        if (f.leaveDays == null) return null;
+        var year = String(new Date().getFullYear()), used = 0;
+        (state.hrAll || []).forEach(function (it) {
+          if (!isOfType(it, "leaves")) return;
+          var lf = leaveFields(it);
+          if (lf.employeeId !== emp.id || lf.kind !== "annual" || lf.approval !== "approved") return;
+          if (String(lf.from).slice(0, 4) !== year) return;
+          used += Number(lf.days) || 0;
+        });
+        return f.leaveDays - used;
+      }
+      function onLeaveToday(empId) {
+        var today = todayMs();
+        return (state.hrAll || []).some(function (it) {
+          if (!isOfType(it, "leaves")) return false;
+          var lf = leaveFields(it);
+          if (lf.employeeId !== empId || lf.approval !== "approved") return false;
+          var a = dayMs(lf.from), b = dayMs(lf.to || lf.from);
+          return isFinite(a) && isFinite(b) && a <= today && today <= b;
+        });
+      }
+      function renderStaffFilters(items) {
+        var depts = {}, jobs = {};
+        items.forEach(function (it) { var f = staffFields(it); if (f.dept) depts[f.dept] = true; if (f.job) jobs[f.job] = true; });
+        fillSelect($("staffDeptFilter"),
+          [{ value: "", label: T("staffDeptAll") }].concat(Object.keys(depts).sort().map(function (n) { return { value: n, label: n }; })),
+          state.staffDept || "");
+        fillSelect($("staffStageFilter"),
+          [{ value: "", label: T("staffStageAll") }].concat(STAFF_STAGES.map(function (o) { return { value: o.value, label: T(o.key) }; })),
+          state.staffStage || "");
+        var dl = $("staffDeptSuggest");
+        if (dl) paintEl(dl).html = Object.keys(depts).sort().map(function (n) { return '<option value="' + esc(n) + '"></option>'; }).join("");
+        var jl = $("staffJobSuggest");
+        if (jl) paintEl(jl).html = Object.keys(jobs).sort().map(function (n) { return '<option value="' + esc(n) + '"></option>'; }).join("");
+      }
+      function renderStaffTotals(items) {
+        var box = $("staffTotals");
+        if (!box) return;
+        var active = 0, payroll = 0, soon = 0, onLeave = 0;
+        items.forEach(function (it) {
+          var f = staffFields(it);
+          if (f.stage === "ended" || f.stage === "candidate") return;
+          active++; payroll += f.total;
+          if (hrWithinDays(f.idExpiry, STAFF_SOON_DAYS)) soon++;
+          if (hrWithinDays(f.contractEnd, STAFF_SOON_DAYS)) soon++;
+          if (onLeaveToday(it.id)) onLeave++;
+        });
+        paintEl(box).html =
+          '<div class="total-card"><span class="total-label">' + esc(T("staffTotalActive")) + '</span><span class="total-value">' + esc(String(active)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("staffTotalPayroll")) + '</span><span class="total-value">' + money(payroll) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("staffTotalExpiring")) + '</span><span class="total-value">' + esc(String(soon)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("staffTotalOnLeave")) + '</span><span class="total-value">' + esc(String(onLeave)) + "</span></div>";
+      }
+      function renderStaff() {
+        renderStaffFilters(state.items);
+        var items = state.items.filter(function (it) {
+          var f = staffFields(it);
+          if (state.staffDept && f.dept !== state.staffDept) return false;
+          if (state.staffStage && f.stage !== state.staffStage) return false;
+          return true;
+        }).sort(function (a, b) { return String(a.title || "").localeCompare(String(b.title || "")); });
+        renderStaffTotals(items);
+        var body = $("staffBody");
+        if (!body) return;
+        body.innerHTML = "";
+        $("staffWrap").hidden = items.length === 0;
+        $("emptyList").hidden = items.length > 0;
+        items.forEach(function (item) {
+          var f = staffFields(item);
+          var stage = hrOpt(STAFF_STAGES, f.stage) || STAFF_STAGES[2];
+          var bal = leaveBalance(item);
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            '<td class="cell-num">' + esc(f.number || "-") + "</td>" +
+            '<td><span class="item-title" data-tr>' + esc(item.title) + "</span>" +
+              (f.nameEn ? '<span class="item-cat" dir="ltr">' + esc(f.nameEn) + "</span>" : "") + "</td>" +
+            "<td>" + esc(f.dept || "-") + "</td>" +
+            "<td>" + esc(f.job || "-") + "</td>" +
+            "<td>" + esc(f.contract ? hrLabel(STAFF_CONTRACTS, f.contract) : "-") + "</td>" +
+            '<td class="cell-num">' + esc(shortDate(f.hired)) + "</td>" +
+            '<td class="cell-num">' + money(f.total) +
+              (f.basic && f.total !== f.basic ? '<span class="item-cat">' + esc(T("staffBasicShort").replace("{n}", app.fmtAmount(f.basic))) + "</span>" : "") + "</td>" +
+            '<td class="cell-num">' + esc(shortDate(f.idExpiry)) + "</td>" +
+            '<td class="cell-num">' + esc(shortDate(f.contractEnd)) + "</td>" +
+            '<td class="cell-num">' + (item.due_at
+              ? '<span class="item-cat due-left" data-due="' + esc(item.due_at) + '"' + (item.status !== "open" ? ' data-due-done="1"' : "") + "></span>"
+              : "-") + "</td>" +
+            '<td class="cell-num">' + (bal == null ? "-" : esc(String(bal))) + "</td>" +
+            '<td><span class="status-' + stage.cls + '">' + esc(T(stage.key)) + "</span></td>" +
+            '<td><div class="chat-options row-actions">' +
+              '<button type="button" class="chat-option-btn is-icon" data-staff-file="' + esc(item.id) + '" title="' + esc(T("openStaffFile")) + '" aria-label="' + esc(T("openStaffFile")) + '">' + HR_FILE_SVG + "</button>" +
+              actionBtn(item, "edit", "actionEdit") +
+              actionBtn(item, "delete", "actionDelete", "is-danger") +
+            "</div></td>";
+          body.appendChild(tr);
+        });
+        translateView();
+      }
+      /* ملف الموظف: بطاقته ثم اجازاته ودوراته، في بطاقة ملف القضية نفسها */
+      function hrRowsHtml(rows, type) {
+        var html = '<div class="table-wrap"><table class="items-table"><thead><tr>' +
+          "<th>" + esc(T("colTitle")) + "</th><th>" + esc(T("fieldCategory")) + "</th>" +
+          "<th>" + esc(T("colDue")) + "</th><th>" + esc(T("colStatus")) + "</th><th></th></tr></thead><tbody>";
+        rows.forEach(function (r) {
+          var when, st;
+          if (type === "leaves") {
+            var lf = leaveFields(r);
+            when = shortDate(lf.from) + (lf.to && lf.to !== lf.from ? " - " + shortDate(lf.to) : "");
+            st = T(LEAVE_STATE_KEYS[leaveState(r)]);
+          } else {
+            var tf = trainFields(r);
+            when = tf.date ? shortDate(tf.date) : (r.due_at ? app.fmtDate(r.due_at) : "-");
+            st = T(STATUS_KEYS[statusKeyOf(r)]);
+          }
+          html += "<tr><td>" + esc(r.title || "-") + "</td><td>" + esc(r.category || "-") + "</td>" +
+                  '<td class="cell-num">' + esc(when) + "</td><td>" + esc(st) + "</td>" +
+                  '<td><a class="chat-option-btn" href="/app/dashboard.html?type=' + type + "&item=" + encodeURIComponent(r.id) + '">' + esc(T("actionEdit")) + "</a></td></tr>";
+        });
+        return html + "</tbody></table></div>";
+      }
+      function openStaffFile(itemId) {
+        var box = $("caseBundle");
+        var emp = hrStaffById(itemId);
+        if (!box || !emp) return;
+        var f = staffFields(emp), bal = leaveBalance(emp);
+        var facts = [
+          [T("colStaffNumber"), esc(f.number)],
+          [T("colStaffDept"), esc(f.dept)],
+          [T("colStaffJob"), esc(f.job)],
+          [T("colStaffSalary"), f.total ? money(f.total) : ""],
+          [T("colStaffIdExpiry"), f.idExpiry ? esc(shortDate(f.idExpiry)) : ""],
+          [T("colStaffContractEnd"), f.contractEnd ? esc(shortDate(f.contractEnd)) : ""],
+          [T("staffFileBalance"), bal == null ? "" : esc(String(bal))]
+        ].filter(function (x) { return x[1]; });
+        var leaves = (state.hrAll || []).filter(function (it) { return isOfType(it, "leaves") && leaveFields(it).employeeId === emp.id; });
+        var training = (state.hrAll || []).filter(function (it) { return isOfType(it, "training") && trainFields(it).employeeId === emp.id; });
+        var html = "<h3>" + esc(emp.title || "") + (f.nameEn ? ' <span class="item-cat" dir="ltr">' + esc(f.nameEn) + "</span>" : "") + "</h3>" +
+          '<div class="totals-row">' + facts.map(function (x) {
+            return '<div class="total-card"><span class="total-label">' + esc(x[0]) + '</span><span class="total-value">' + x[1] + "</span></div>";
+          }).join("") + "</div>";
+        if (leaves.length) html += "<h4>" + esc(T("staffFileLeaves")) + " (" + leaves.length + ")</h4>" + hrRowsHtml(leaves, "leaves");
+        if (training.length) html += "<h4>" + esc(T("staffFileTraining")) + " (" + training.length + ")</h4>" + hrRowsHtml(training, "training");
+        if (!leaves.length && !training.length) html += '<p class="empty-note">' + esc(T("staffFileEmpty")) + "</p>";
+        paintEl(box).html = html;
+        try { box.scrollIntoView({ behavior: "smooth", block: "nearest" }); } catch (e) { /* تجاهل */ }
+      }
+
+      /* ــ الاجازة ــ */
+      function leaveDaysBetween(from, to) {
+        var a = dayMs(from), b = dayMs(to || from);
+        if (!isFinite(a) || !isFinite(b) || b < a) return 0;
+        return Math.round((b - a) / 86400000) + 1;
+      }
+      function leaveFields(item) {
+        var d = (item && item.data) || {};
+        var from = d.leave_from || dayStr(item && item.due_at);
+        return {
+          employeeId: d.employee_id || "",
+          employee: (item && item.client_name) || "",
+          kind: hrOpt(LEAVE_KINDS, d.leave_kind) ? d.leave_kind : "other",
+          approval: hrOpt(LEAVE_APPROVALS, d.leave_approval) ? d.leave_approval : "pending",
+          from: from,
+          to: d.leave_to || from,
+          days: (d.leave_days != null && d.leave_days !== "") ? Number(d.leave_days) : leaveDaysBetween(from, d.leave_to),
+          back: d.leave_return || "",
+          note: d.leave_note || "",
+          approvedBy: d.approved_by_name || "",
+          approvedAt: d.approved_at || ""
+        };
+      }
+      /* حالة الاجازة من اعتمادها وتاريخيها، لا من status وحده */
+      function leaveState(item) {
+        var f = leaveFields(item);
+        if (f.approval === "rejected" || f.approval === "cancelled") return f.approval;
+        if (item.status === "cancelled") return "cancelled";
+        if (f.approval !== "approved") return "pending";
+        var today = todayMs(), a = dayMs(f.from), b = dayMs(f.to || f.from);
+        if (isFinite(b) && b < today) return "finished";
+        if (isFinite(a) && a <= today) return "ongoing";
+        return "approved";
+      }
+      function leaveStatusFor(approval) {
+        return approval === "approved" ? "done" : ((approval === "rejected" || approval === "cancelled") ? "cancelled" : "open");
+      }
+      function leaveRowData(prefix) {
+        var prev = (prefix === "edit" && state.editing && state.editing.data) || {};
+        var approval = hrVal(prefix, "LeaveApproval") || "pending";
+        var from = hrVal(prefix, "LeaveFrom"), to = hrVal(prefix, "LeaveTo") || from;
+        var days = numOrNull(hrVal(prefix, "LeaveDays"));
+        var out = {
+          employee_id: hrVal(prefix, "LeaveEmployee") || null,
+          leave_kind: hrVal(prefix, "LeaveKind") || "annual",
+          leave_approval: approval,
+          leave_from: from || null,
+          leave_to: to || null,
+          leave_days: days != null ? days : leaveDaysBetween(from, to),
+          leave_return: hrVal(prefix, "LeaveReturn") || null,
+          leave_note: hrVal(prefix, "LeaveNote") || null
+        };
+        /* من اعتمدها ومتى: يثبت عند اول اعتماد ولا يعاد كتابته مع كل حفظ */
+        if (approval === "approved") {
+          if (prev.leave_approval === "approved" && prev.approved_at) {
+            out.approved_by = prev.approved_by || null; out.approved_by_name = prev.approved_by_name || null; out.approved_at = prev.approved_at;
+          } else {
+            out.approved_by = app.user ? app.user.id : null; out.approved_by_name = myName() || null; out.approved_at = new Date().toISOString();
+          }
+        } else { out.approved_by = null; out.approved_by_name = null; out.approved_at = null; }
+        return out;
+      }
+      function fillLeaveFields(prefix, item) {
+        var f = leaveFields(item || {});
+        fillSelect($(prefix + "LeaveEmployee"), employeeOptions("leavePickEmployee"), f.employeeId);
+        hrFillOpts($(prefix + "LeaveKind"), LEAVE_KINDS, item ? f.kind : "annual");
+        hrFillOpts($(prefix + "LeaveApproval"), LEAVE_APPROVALS, item ? f.approval : "pending");
+        hrSet(prefix, "LeaveFrom", item ? f.from : ""); hrSet(prefix, "LeaveTo", item ? f.to : "");
+        hrSet(prefix, "LeaveDays", item && f.days ? f.days : ""); hrSet(prefix, "LeaveReturn", f.back);
+        hrSet(prefix, "LeaveNote", f.note);
+      }
+      /* عنوان الاجازة يكتب وحده ان ترك فارغا: نوعها واسم صاحبها */
+      function autoLeaveTitle(prefix) {
+        var t = $(prefix + "Title");
+        if (!t || t.value.trim()) return;
+        var emp = hrStaffById(hrVal(prefix, "LeaveEmployee"));
+        var kind = hrOpt(LEAVE_KINDS, hrVal(prefix, "LeaveKind") || "annual") || LEAVE_KINDS[0];
+        t.value = kind.category + (emp && emp.title ? " - " + emp.title : "");
+      }
+      /* من والى يحسبان الايام وتاريخ المباشرة وحدهما، ويبقى الرقم قابلا للتعديل */
+      function wireLeaveDates(prefix) {
+        var from = $(prefix + "LeaveFrom"), to = $(prefix + "LeaveTo");
+        if (!from || !to) return;
+        function sync() {
+          var a = from.value, b = to.value || a;
+          if (!a) return;
+          if (!to.value) to.value = a;
+          hrSet(prefix, "LeaveDays", leaveDaysBetween(a, b) || "");
+          hrSet(prefix, "LeaveReturn", addDaysStr(b, 1));
+        }
+        from.addEventListener("change", sync);
+        to.addEventListener("change", sync);
+      }
+      function setLeaveApproval(item, approval) {
+        var d = Object.assign({}, item.data || {}, { leave_approval: approval });
+        if (approval === "approved") { d.approved_by = app.user ? app.user.id : null; d.approved_by_name = myName() || null; d.approved_at = new Date().toISOString(); }
+        else { d.approved_by = null; d.approved_by_name = null; d.approved_at = null; }
+        guard(function () {
+          return app.updateItem(item.id, { status: leaveStatusFor(approval), data: d }).then(function () {
+            toast(approval === "approved" ? "leaveApproved" : (approval === "rejected" ? "leaveRejected" : "itemReopened"));
+            return refresh();
+          });
+        }).catch(function (err) { fail(err, "listMsg"); });
+      }
+      function renderLeaveFilters(items) {
+        var names = {};
+        items.forEach(function (it) { var n = leaveFields(it).employee; if (n) names[n] = true; });
+        fillSelect($("leaveEmpFilter"),
+          [{ value: "", label: T("leaveEmpAll") }].concat(Object.keys(names).sort().map(function (n) { return { value: n, label: n }; })),
+          state.leaveEmp || "");
+        fillSelect($("leaveKindFilter"),
+          [{ value: "", label: T("leaveKindAll") }].concat(LEAVE_KINDS.map(function (o) { return { value: o.value, label: T(o.key) }; })),
+          state.leaveKind || "");
+        fillSelect($("leaveStateFilter"),
+          [{ value: "", label: T("leaveStateAll") }].concat(Object.keys(LEAVE_STATE_KEYS).map(function (k) { return { value: k, label: T(LEAVE_STATE_KEYS[k]) }; })),
+          state.leaveState || "");
+      }
+      function renderLeaveTotals(items) {
+        var box = $("leaveTotals");
+        if (!box) return;
+        var pending = 0, today = 0, sick = 0, annual = 0, year = String(new Date().getFullYear());
+        items.forEach(function (it) {
+          var f = leaveFields(it), st = leaveState(it);
+          if (st === "pending") pending++;
+          if (st === "ongoing") today++;
+          if (f.approval === "approved" && String(f.from).slice(0, 4) === year) {
+            if (f.kind === "sick") sick += Number(f.days) || 0;
+            if (f.kind === "annual") annual += Number(f.days) || 0;
+          }
+        });
+        paintEl(box).html =
+          '<div class="total-card"><span class="total-label">' + esc(T("leaveTotalPending")) + '</span><span class="total-value">' + esc(String(pending)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("leaveTotalToday")) + '</span><span class="total-value">' + esc(String(today)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("leaveTotalSickYear")) + '</span><span class="total-value">' + esc(String(sick)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("leaveTotalAnnualYear")) + '</span><span class="total-value">' + esc(String(annual)) + "</span></div>";
+      }
+      function renderLeaves() {
+        renderLeaveFilters(state.items);
+        var items = state.items.filter(function (it) {
+          var f = leaveFields(it);
+          if (state.leaveEmp && f.employee !== state.leaveEmp) return false;
+          if (state.leaveKind && f.kind !== state.leaveKind) return false;
+          if (state.leaveState && leaveState(it) !== state.leaveState) return false;
+          return true;
+        }).sort(function (a, b) { return (dayMs(leaveFields(b).from) || 0) - (dayMs(leaveFields(a).from) || 0); });
+        renderLeaveTotals(items);
+        var body = $("leavesBody");
+        if (!body) return;
+        body.innerHTML = "";
+        $("leavesWrap").hidden = items.length === 0;
+        $("emptyList").hidden = items.length > 0;
+        items.forEach(function (item) {
+          var f = leaveFields(item), st = leaveState(item);
+          var countdown = item.due_at && (st === "pending" || st === "approved");
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            '<td><span class="item-title" data-tr>' + esc(f.employee || "-") + "</span>" +
+              (item.case_number ? '<span class="item-cat" dir="ltr">' + esc(item.case_number) + "</span>" : "") + "</td>" +
+            "<td>" + esc(hrLabel(LEAVE_KINDS, f.kind)) + "</td>" +
+            '<td class="cell-num">' + esc(shortDate(f.from)) + "</td>" +
+            '<td class="cell-num">' + esc(shortDate(f.to)) + "</td>" +
+            '<td class="cell-num">' + esc(String(f.days || 0)) + "</td>" +
+            '<td class="cell-num">' + (countdown ? '<span class="item-cat due-left" data-due="' + esc(item.due_at) + '"></span>' : "-") + "</td>" +
+            "<td>" + esc(hrLabel(LEAVE_APPROVALS, f.approval)) +
+              (f.approvedBy ? '<span class="item-cat">' + esc(f.approvedBy) + (f.approvedAt ? " " + esc(shortDate(f.approvedAt)) : "") + "</span>" : "") + "</td>" +
+            "<td>" + esc(f.note || item.title || "-") + "</td>" +
+            '<td><span class="status-' + LEAVE_STATE_CLS[st] + '">' + esc(T(LEAVE_STATE_KEYS[st])) + "</span></td>" +
+            '<td><div class="chat-options row-actions">' +
+              (st === "pending"
+                ? actionBtn(item, "approve", "actionApprove") + actionBtn(item, "reject", "actionReject")
+                : actionBtn(item, "reopen", "actionReopen")) +
+              actionBtn(item, "edit", "actionEdit") +
+              actionBtn(item, "delete", "actionDelete", "is-danger") +
+            "</div></td>";
+          body.appendChild(tr);
+        });
+        translateView();
+      }
+
+      /* ــ الدورة او المؤهل ــ */
+      function trainFields(item) {
+        var d = (item && item.data) || {};
+        return {
+          employeeId: d.employee_id || "",
+          employee: (item && item.client_name) || "",
+          kind: hrOpt(TRAIN_KINDS, d.train_kind) ? d.train_kind : "course",
+          provider: d.provider || "",
+          date: d.train_date || "", expiry: d.train_expiry || "",
+          hours: (d.train_hours != null && d.train_hours !== "") ? Number(d.train_hours) : null,
+          degree: d.degree || "", major: d.major || "", result: d.train_result || ""
+        };
+      }
+      function trainRowData(prefix) {
+        return {
+          employee_id: hrVal(prefix, "TrainEmployee") || null,
+          train_kind: hrVal(prefix, "TrainKind") || "course",
+          provider: hrVal(prefix, "TrainProvider") || null,
+          train_date: hrVal(prefix, "TrainDate") || null,
+          train_expiry: hrVal(prefix, "TrainExpiry") || null,
+          train_hours: numOrNull(hrVal(prefix, "TrainHours")),
+          degree: hrVal(prefix, "TrainDegree") || null,
+          major: hrVal(prefix, "TrainMajor") || null,
+          train_result: hrVal(prefix, "TrainResult") || null
+        };
+      }
+      /* موعد الدورة: تاريخها ان كانت قادمة، والا انتهاء شهادتها، والا تاريخها */
+      function trainDueAt(d) {
+        var dt = dayMs(d.train_date);
+        if (isFinite(dt) && dt >= todayMs()) return hrDue([d.train_date]);
+        return hrDue([d.train_expiry || d.train_date]);
+      }
+      /* المؤهل سجل منجز؛ الشهادة التي لها انتهاء تبقى مفتوحة فتذكر بتجديدها
+         وتتاخر ان انتهت؛ والدورة القادمة مفتوحة حتى يمضي يومها */
+      function trainStatusFor(d) {
+        if (d.train_kind === "degree") return "done";
+        if (isFinite(dayMs(d.train_expiry))) return "open";
+        var dt = dayMs(d.train_date);
+        return isFinite(dt) && dt >= todayMs() ? "open" : "done";
+      }
+      function fillTrainFields(prefix, item) {
+        var f = trainFields(item || {});
+        fillSelect($(prefix + "TrainEmployee"), employeeOptions("leavePickEmployee"), f.employeeId);
+        hrFillOpts($(prefix + "TrainKind"), TRAIN_KINDS, item ? f.kind : "course");
+        hrSet(prefix, "TrainProvider", f.provider); hrSet(prefix, "TrainDate", f.date); hrSet(prefix, "TrainExpiry", f.expiry);
+        hrSet(prefix, "TrainHours", f.hours == null ? "" : f.hours); hrSet(prefix, "TrainDegree", f.degree);
+        hrSet(prefix, "TrainMajor", f.major); hrSet(prefix, "TrainResult", f.result);
+        var dl = $("trainDegreeSuggest");
+        if (dl) paintEl(dl).html = DEGREE_SUGGEST.map(function (n) { return '<option value="' + esc(n) + '"></option>'; }).join("");
+      }
+      function renderTrainFilters(items) {
+        var names = {}, providers = {};
+        items.forEach(function (it) { var f = trainFields(it); if (f.employee) names[f.employee] = true; if (f.provider) providers[f.provider] = true; });
+        fillSelect($("trainEmpFilter"),
+          [{ value: "", label: T("trainEmpAll") }].concat(Object.keys(names).sort().map(function (n) { return { value: n, label: n }; })),
+          state.trainEmp || "");
+        fillSelect($("trainKindFilter"),
+          [{ value: "", label: T("trainKindAll") }].concat(TRAIN_KINDS.map(function (o) { return { value: o.value, label: T(o.key) }; })),
+          state.trainKind || "");
+        var pl = $("trainProviderSuggest");
+        if (pl) paintEl(pl).html = Object.keys(providers).sort().map(function (n) { return '<option value="' + esc(n) + '"></option>'; }).join("");
+      }
+      function renderTrainTotals(items) {
+        var box = $("trainTotals");
+        if (!box) return;
+        var courses = 0, degrees = 0, soon = 0, hours = 0;
+        items.forEach(function (it) {
+          var f = trainFields(it);
+          if (f.kind === "degree") degrees++; else courses++;
+          if (hrWithinDays(f.expiry, TRAIN_SOON_DAYS)) soon++;
+          hours += Number(f.hours) || 0;
+        });
+        paintEl(box).html =
+          '<div class="total-card"><span class="total-label">' + esc(T("trainTotalCourses")) + '</span><span class="total-value">' + esc(String(courses)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("trainTotalDegrees")) + '</span><span class="total-value">' + esc(String(degrees)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("trainTotalExpiring")) + '</span><span class="total-value">' + esc(String(soon)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("trainTotalHours")) + '</span><span class="total-value">' + esc(String(hours)) + "</span></div>";
+      }
+      function renderTraining() {
+        renderTrainFilters(state.items);
+        var items = state.items.filter(function (it) {
+          var f = trainFields(it);
+          if (state.trainEmp && f.employee !== state.trainEmp) return false;
+          if (state.trainKind && f.kind !== state.trainKind) return false;
+          return true;
+        }).sort(function (a, b) { return (dayMs(trainFields(b).date) || 0) - (dayMs(trainFields(a).date) || 0); });
+        renderTrainTotals(items);
+        var body = $("trainingBody");
+        if (!body) return;
+        body.innerHTML = "";
+        $("trainingWrap").hidden = items.length === 0;
+        $("emptyList").hidden = items.length > 0;
+        items.forEach(function (item) {
+          var f = trainFields(item);
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            '<td><span class="item-title" data-tr>' + esc(f.employee || "-") + "</span>" +
+              (item.case_number ? '<span class="item-cat" dir="ltr">' + esc(item.case_number) + "</span>" : "") + "</td>" +
+            "<td>" + esc(hrLabel(TRAIN_KINDS, f.kind)) + "</td>" +
+            '<td><span class="item-title" data-tr>' + esc(item.title) + "</span>" +
+              (f.result ? '<span class="item-cat">' + esc(f.result) + "</span>" : "") + "</td>" +
+            "<td>" + esc(f.provider || "-") + "</td>" +
+            '<td class="cell-num">' + esc(shortDate(f.date)) + "</td>" +
+            "<td>" + esc([f.degree, f.major].filter(Boolean).join(" - ") || "-") + "</td>" +
+            '<td class="cell-num">' + (f.hours == null ? "-" : esc(String(f.hours))) + "</td>" +
+            '<td class="cell-num">' + esc(shortDate(f.expiry)) + "</td>" +
+            '<td class="cell-num">' + (item.due_at && item.status === "open"
+              ? '<span class="item-cat due-left" data-due="' + esc(item.due_at) + '"></span>' : "-") + "</td>" +
+            '<td><div class="chat-options row-actions">' +
+              actionBtn(item, "edit", "actionEdit") +
+              actionBtn(item, "delete", "actionDelete", "is-danger") +
+            "</div></td>";
+          body.appendChild(tr);
+        });
+        translateView();
+      }
+
+      /* ــ ما تشترك فيه الشاشات الثلاث ــ */
+      function fillHrFields(prefix, item) {
+        if (state.viewType === "staff") fillStaffFields(prefix, item);
+        else if (state.viewType === "leaves") fillLeaveFields(prefix, item);
+        else if (state.viewType === "training") fillTrainFields(prefix, item);
+      }
+      /* عند فتح نموذج الاضافة: القوائم تملا وما كتب يبقى، ولا يمسح الا بعد الحفظ */
+      function fillHrOptions(prefix) {
+        if (state.viewType === "staff") {
+          hrFillOpts($(prefix + "StaffContract"), STAFF_CONTRACTS, hrVal(prefix, "StaffContract"));
+          hrFillOpts($(prefix + "StaffStage"), STAFF_STAGES, hrVal(prefix, "StaffStage") || "active");
+        } else if (state.viewType === "leaves") {
+          fillSelect($(prefix + "LeaveEmployee"), employeeOptions("leavePickEmployee"), hrVal(prefix, "LeaveEmployee"));
+          hrFillOpts($(prefix + "LeaveKind"), LEAVE_KINDS, hrVal(prefix, "LeaveKind") || "annual");
+          hrFillOpts($(prefix + "LeaveApproval"), LEAVE_APPROVALS, hrVal(prefix, "LeaveApproval") || "pending");
+        } else if (state.viewType === "training") {
+          fillSelect($(prefix + "TrainEmployee"), employeeOptions("leavePickEmployee"), hrVal(prefix, "TrainEmployee"));
+          hrFillOpts($(prefix + "TrainKind"), TRAIN_KINDS, hrVal(prefix, "TrainKind") || "course");
+          var dl = $("trainDegreeSuggest");
+          if (dl) paintEl(dl).html = DEGREE_SUGGEST.map(function (n) { return '<option value="' + esc(n) + '"></option>'; }).join("");
+        }
+      }
+      function clearHrFields(prefix) {
+        if (HR_VIEWS[state.viewType]) fillHrFields(prefix, null);
+      }
+      /* التصنيف يتبع النوع المختار الا ان كتب صاحبه تصنيفا من عنده */
+      function hrCategory(current, kinds, value, dflt) {
+        var cur = String(current || "").trim();
+        var known = !cur || cur === dflt || kinds.some(function (k) { return k.category === cur; });
+        if (!known) return cur;
+        var o = hrOpt(kinds, value);
+        return o ? o.category : dflt;
+      }
+      /* يكتب حقول الشاشة في الصف (اضافة) او الرقعة (تعديل) ويعيد الخطا ان وجد */
+      function applyHrRow(row, prefix) {
+        var base = Object.assign({}, (prefix === "edit" && state.editing && state.editing.data) || {}, row.data || {});
+        if (state.viewType === "staff") {
+          var sd = staffRowData(prefix);
+          row.data = Object.assign(base, sd);
+          row.amount = staffTotalOf(sd) || null;
+          row.due_at = hrDue([sd.id_expiry, sd.contract_end]);
+          row.status = sd.staff_stage === "ended" ? "done" : "open";
+          row.client_name_en = sd.name_en;
+          if (!row.category) row.category = VIEW_TYPES.staff.defaultCategory;
+          return null;
+        }
+        var empField = state.viewType === "leaves" ? "LeaveEmployee" : "TrainEmployee";
+        var emp = hrStaffById(hrVal(prefix, empField));
+        if (!emp) return { key: "leaveEmployeeRequired", focus: prefix + empField };
+        row.client_name = emp.title || null;
+        row.client_name_en = staffFields(emp).nameEn || null;
+        row.case_number = emp.case_number || null;
+        if (state.viewType === "leaves") {
+          var ld = leaveRowData(prefix);
+          if (!ld.leave_from) return { key: "leaveDatesRequired", focus: prefix + "LeaveFrom" };
+          row.data = Object.assign(base, ld);
+          row.due_at = hrDue([ld.leave_from]);
+          row.status = leaveStatusFor(ld.leave_approval);
+          row.amount = null;
+          row.category = hrCategory(row.category, LEAVE_KINDS, ld.leave_kind, VIEW_TYPES.leaves.defaultCategory);
+          return null;
+        }
+        var td = trainRowData(prefix);
+        row.data = Object.assign(base, td);
+        row.due_at = trainDueAt(td);
+        row.status = trainStatusFor(td);
+        row.category = hrCategory(row.category, TRAIN_KINDS, td.train_kind, VIEW_TYPES.training.defaultCategory);
+        return null;
+      }
+      (function wireHrScreens() {
+        wireLeaveDates("add"); wireLeaveDates("edit");
+        var pairs = [["staffDeptFilter", "staffDept", renderStaff], ["staffStageFilter", "staffStage", renderStaff],
+                     ["leaveEmpFilter", "leaveEmp", renderLeaves], ["leaveKindFilter", "leaveKind", renderLeaves], ["leaveStateFilter", "leaveState", renderLeaves],
+                     ["trainEmpFilter", "trainEmp", renderTraining], ["trainKindFilter", "trainKind", renderTraining]];
+        pairs.forEach(function (p) {
+          var el = $(p[0]);
+          if (el) el.addEventListener("change", function () { state[p[1]] = this.value; p[2](); });
+        });
+      })();
+
       /* ---------- مصاريف التشغيل: شاشتها لا تشبه القضايا ---------- */
       var EXP_MONTHS = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
 
@@ -1820,6 +2555,8 @@
           openCaseBundle(link.dataset.case);
           return;
         }
+        var staffBtn = ev.target.closest("[data-staff-file]");
+        if (staffBtn) { ev.preventDefault(); openStaffFile(staffBtn.dataset.staffFile); return; }
         var fileBtn = ev.target.closest("[data-case-file]");
         if (fileBtn) { ev.preventDefault(); openCaseFile(fileBtn.dataset.caseFile); return; }
         var nextBtn = ev.target.closest("[data-next-session]");
@@ -1980,6 +2717,19 @@
           renderHealth();
           return;
         }
+        if (HR_VIEWS[state.viewType]) {
+          $("tableWrap").hidden = true;
+          $("staffBar").hidden = state.viewType !== "staff";
+          $("staffWrap").hidden = state.viewType !== "staff" || $("staffWrap").hidden;
+          $("leavesBar").hidden = state.viewType !== "leaves";
+          $("leavesWrap").hidden = state.viewType !== "leaves" || $("leavesWrap").hidden;
+          $("trainingBar").hidden = state.viewType !== "training";
+          $("trainingWrap").hidden = state.viewType !== "training" || $("trainingWrap").hidden;
+          if (state.viewType === "staff") renderStaff();
+          else if (state.viewType === "leaves") renderLeaves();
+          else renderTraining();
+          return;
+        }
         if (state.viewType === "invoices") {
           $("financeBar").hidden = false;
           $("tableWrap").hidden = true;
@@ -2054,10 +2804,15 @@
       /* جدولا القائمة والمخالفات يتشاركان الأزرار نفسها، فالمستمع على المستند */
       document.addEventListener("click", function (ev) {
         var b = ev.target.closest("button[data-action]");
-        if (!b || !b.closest("#itemsBody, #violationsBody, #contractsBody, #expensesBody")) return;
+        if (!b || !b.closest("#itemsBody, #violationsBody, #contractsBody, #expensesBody, #staffBody, #leavesBody, #trainingBody")) return;
         var item = findItem(b.dataset.id);
         if (!item) return;
         var action = b.dataset.action;
+        /* الاجازة تعتمد او ترفض او تعاد الى الانتظار، ولا تنجز كمهمة */
+        if (state.viewType === "leaves" && (action === "approve" || action === "reject" || action === "reopen")) {
+          setLeaveApproval(item, action === "approve" ? "approved" : (action === "reject" ? "rejected" : "pending"));
+          return;
+        }
         if (action === "done") setItemStatus(item, "done", "itemDone");
         else if (action === "reopen") setItemStatus(item, "open", "itemReopened");
         else if (action === "edit") openEdit(item);
@@ -2104,6 +2859,7 @@
         if (state.viewType === "health") { fillHealthOptions("add"); ensureHealthRecord(); }
         if (state.viewType === "invoices") fillFinanceOptions("add");
         if (state.viewType === "deals") fillDealOptions("add");
+        if (HR_VIEWS[state.viewType]) fillHrOptions("add");
         var p = $("addItemPanel");
         p.hidden = !p.hidden;
         clearMsg("addMsg");
@@ -2113,6 +2869,7 @@
 
       $("addItemForm").addEventListener("submit", function (ev) {
         ev.preventDefault();
+        if (state.viewType === "leaves") autoLeaveTitle("add");
         var title = $("addTitle").value.trim();
         if (!title) { setMsg("addMsg", T("titleRequired"), "error"); $("addTitle").focus(); return; }
         var recordId = $("addRecord").value;
@@ -2145,6 +2902,10 @@
           row.amount = fdata.total_sar || null;   /* الاجمالي شامل الضريبة هو مبلغ العنصر */
           if (!row.category) row.category = financeCategoryFor("add");
         }
+        if (HR_VIEWS[state.viewType]) {
+          var hrErr = applyHrRow(row, "add");
+          if (hrErr) { setMsg("addMsg", T(hrErr.key), "error"); if ($(hrErr.focus)) $(hrErr.focus).focus(); return; }
+        }
         if (state.pendingParent) row.parent_id = state.pendingParent;
         guard(function () {
           $("addSaveBtn").disabled = true;
@@ -2160,6 +2921,7 @@
             clearContractFields("add");
             clearHealthFields("add");
             clearFinanceFields("add");
+            clearHrFields("add");
             state.pendingParent = "";
             return refresh();
           });
@@ -2318,6 +3080,7 @@
         if (state.viewType === "health") fillHealthFields("edit", item);
         if (state.viewType === "invoices") fillFinanceFields("edit", item);
         if (state.viewType === "deals") fillDealFields("edit", item);
+        if (HR_VIEWS[state.viewType]) fillHrFields("edit", item);
         fillRemindOptions($("editRemind"), item.remind_before);
         clearMsg("editMsg");
         show("editPanel");

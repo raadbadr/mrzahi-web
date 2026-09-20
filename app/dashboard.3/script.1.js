@@ -28,6 +28,16 @@
         financeDir: "",
         financeState: "",
         financeParty: "",
+        /* الموارد البشرية: كل عناصر المنشاة بلا فلتر، فالموظف يقرا اجازاته ودوراته
+           منها وشاشة الاجازات تقرا قائمة الموظفين */
+        hrAll: [],
+        staffDept: "",
+        staffStage: "",
+        leaveEmp: "",
+        leaveKind: "",
+        leaveState: "",
+        trainEmp: "",
+        trainKind: "",
         calMode: (function () { try { return localStorage.getItem("mrzahi_cal_mode") || "greg"; } catch (e) { return "greg"; } })(),
         calAnchor: new Date(),
         /* مدى العرض: شهر او اسبوع او يوم. calDay هو اليوم المرساة في الاسبوع واليوم. */
@@ -272,6 +282,22 @@
                             "invoice", "invoices", "bill", "billing", "receivable", "payable",
                             "facture", "factures", "creance", "encaissement",
                             "رسید", "بل"] },
+        /* الموارد البشرية (امر المهندس رعد 2026-09-20: «يقدر موظف الموارد يضيف
+           معلومات الموظف: اسمه وراتبه ووظيفته ودوراته ومؤهلاته، واجازاته
+           والموافقات عليها والمرضية»): ثلاث شاشات لحزمة hr وحدها. الموظف سجل
+           موعده اقرب انتهاء لاقامته او عقده، والاجازة مدة بين تاريخين تعتمد او
+           ترفض وتصنف بنوعها («اجازة سنوية»، «اجازة مرضية»…) وكلها تحمل كلمة
+           «اجازة» فتطابق، والدورة او المؤهل سجل بجهته وتاريخه وانتهاء شهادته. */
+        staff: { titleKey: "viewStaff", defaultCategory: "موظف",
+                 words: ["موظف", "موظفة", "موظفون", "موظفين", "employee", "employees", "staff",
+                         "employe", "employes", "ملازم", "ملازمین"] },
+        leaves: { titleKey: "viewLeaves", defaultCategory: "اجازة",
+                  words: ["اجازة", "إجازة", "اجازات", "إجازات", "leave", "leaves", "vacation",
+                          "conge", "conges", "چھٹی", "چھٹیاں"] },
+        training: { titleKey: "viewTraining", defaultCategory: "دورة",
+                    words: ["دورة", "دورات", "تدريب", "مؤهل", "مؤهلات", "شهادة مهنية", "رخصة مهنية",
+                            "course", "courses", "training", "qualification", "degree", "diploma",
+                            "formation", "formations", "diplome", "کورس", "تربیت", "ڈگری"] },
         meetings: { titleKey: "viewMeetings", defaultCategory: "اجتماع",
                     /* «جلسة» في مكتب المحاماة جلسة محكمة لا اجتماعا، فلا تدخل هنا */
                     words: ["اجتماع", "اجتماعات", "meeting", "meetings", "reunion", "réunion", "میٹنگ"] }

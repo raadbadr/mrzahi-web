@@ -233,6 +233,50 @@
               <label class="form-field span-3" data-field="fin_paid_at"><span data-i18n="fieldFinPaidAt">تاريخ التحصيل</span><input type="date" class="waitlist-input" id="editFinPaidAt" dir="ltr"></label>
               <label class="form-field span-3" data-field="fin_method"><span data-i18n="fieldFinMethod">طريقة السداد</span><input type="text" class="waitlist-input" id="editFinMethod" list="finMethodSuggest" maxlength="80" dir="auto" autocomplete="off"></label>
             </div>
+            <!-- بطاقة الموظف: لا تظهر الا في شاشة الموظفين (حزمة الموارد البشرية) -->
+            <div class="form-grid" data-view="staff" hidden>
+              <label class="form-field span-6" data-field="staff_name_en"><span data-i18n="fieldStaffNameEn">الاسم بالانجليزية</span><input type="text" class="waitlist-input" id="editStaffNameEn" maxlength="160" dir="ltr"></label>
+              <label class="form-field span-3" data-field="staff_phone"><span data-i18n="fieldStaffPhone">الجوال</span><input type="tel" class="waitlist-input" id="editStaffPhone" maxlength="20" dir="ltr"></label>
+              <label class="form-field span-3" data-field="staff_email"><span data-i18n="fieldStaffEmail">البريد الالكتروني</span><input type="email" class="waitlist-input" id="editStaffEmail" maxlength="160" dir="ltr"></label>
+              <label class="form-field span-3" data-field="staff_dept"><span data-i18n="fieldStaffDept">القسم</span><input type="text" class="waitlist-input" id="editStaffDept" list="staffDeptSuggest" maxlength="80" dir="auto" autocomplete="off"></label>
+              <label class="form-field span-3" data-field="staff_job"><span data-i18n="fieldStaffJob">المسمى الوظيفي</span><input type="text" class="waitlist-input" id="editStaffJob" list="staffJobSuggest" maxlength="120" dir="auto" autocomplete="off"></label>
+              <label class="form-field span-3" data-field="staff_contract"><span data-i18n="fieldStaffContract">نوع التعاقد</span><select class="waitlist-input" id="editStaffContract"></select></label>
+              <label class="form-field span-3" data-field="staff_stage"><span data-i18n="fieldStaffStage">الحالة الوظيفية</span><select class="waitlist-input" id="editStaffStage"></select></label>
+              <label class="form-field span-3" data-field="staff_hired"><span data-i18n="fieldStaffHired">تاريخ التعيين</span><input type="date" class="waitlist-input" id="editStaffHired" dir="ltr"></label>
+              <label class="form-field span-3" data-field="staff_nationality"><span data-i18n="fieldStaffNationality">الجنسية</span><input type="text" class="waitlist-input" id="editStaffNationality" maxlength="60" dir="auto"></label>
+              <label class="form-field span-3" data-field="staff_id"><span data-i18n="fieldStaffId">رقم الهوية او الاقامة</span><input type="text" class="waitlist-input" id="editStaffId" maxlength="20" dir="ltr" inputmode="numeric" autocomplete="off"></label>
+              <label class="form-field span-3" data-field="staff_id_expiry"><span data-i18n="fieldStaffIdExpiry">انتهاء الهوية او الاقامة</span><input type="date" class="waitlist-input" id="editStaffIdExpiry" dir="ltr"></label>
+              <label class="form-field span-3" data-field="staff_contract_end"><span data-i18n="fieldStaffContractEnd">انتهاء العقد</span><input type="date" class="waitlist-input" id="editStaffContractEnd" dir="ltr"></label>
+              <label class="form-field span-3" data-field="staff_salary"><span data-i18n="fieldStaffSalary">الراتب الاساسي</span><input type="number" step="0.01" min="0" class="waitlist-input" id="editStaffSalary" dir="ltr"></label>
+              <label class="form-field span-3" data-field="staff_housing"><span data-i18n="fieldStaffHousing">بدل السكن</span><input type="number" step="0.01" min="0" class="waitlist-input" id="editStaffHousing" dir="ltr"></label>
+              <label class="form-field span-3" data-field="staff_transport"><span data-i18n="fieldStaffTransport">بدل النقل</span><input type="number" step="0.01" min="0" class="waitlist-input" id="editStaffTransport" dir="ltr"></label>
+              <label class="form-field span-3" data-field="staff_other"><span data-i18n="fieldStaffOther">بدلات اخرى</span><input type="number" step="0.01" min="0" class="waitlist-input" id="editStaffOther" dir="ltr"></label>
+              <label class="form-field span-3" data-field="staff_leave_days"><span data-i18n="fieldStaffLeaveDays">رصيد الاجازة السنوية (يوما)</span><input type="number" step="1" min="0" max="365" class="waitlist-input" id="editStaffLeaveDays" dir="ltr" placeholder="21"></label>
+              <label class="form-field span-6" data-field="staff_iban"><span data-i18n="fieldStaffIban">الايبان</span><input type="text" class="waitlist-input" id="editStaffIban" maxlength="34" dir="ltr" autocomplete="off"></label>
+            </div>
+            <!-- طلب الاجازة: لا يظهر الا في شاشة الاجازات (حزمة الموارد البشرية) -->
+            <div class="form-grid" data-view="leaves" hidden>
+              <label class="form-field span-6" data-field="leave_employee"><span data-i18n="fieldLeaveEmployee">الموظف</span><select class="waitlist-input" id="editLeaveEmployee"></select></label>
+              <label class="form-field span-3" data-field="leave_kind"><span data-i18n="fieldLeaveKind">نوع الاجازة</span><select class="waitlist-input" id="editLeaveKind"></select></label>
+              <label class="form-field span-3" data-field="leave_approval"><span data-i18n="fieldLeaveApproval">الاعتماد</span><select class="waitlist-input" id="editLeaveApproval"></select></label>
+              <label class="form-field span-3" data-field="leave_from"><span data-i18n="fieldLeaveFrom">من تاريخ</span><input type="date" class="waitlist-input" id="editLeaveFrom" dir="ltr"></label>
+              <label class="form-field span-3" data-field="leave_to"><span data-i18n="fieldLeaveTo">الى تاريخ</span><input type="date" class="waitlist-input" id="editLeaveTo" dir="ltr"></label>
+              <label class="form-field span-3" data-field="leave_days"><span data-i18n="fieldLeaveDays">عدد الايام</span><input type="number" step="1" min="0" class="waitlist-input" id="editLeaveDays" dir="ltr"></label>
+              <label class="form-field span-3" data-field="leave_return"><span data-i18n="fieldLeaveReturn">تاريخ المباشرة</span><input type="date" class="waitlist-input" id="editLeaveReturn" dir="ltr"></label>
+              <label class="form-field span-12" data-field="leave_note"><span data-i18n="fieldLeaveNote">السبب او الملاحظة</span><input type="text" class="waitlist-input" id="editLeaveNote" maxlength="300" dir="auto"></label>
+            </div>
+            <!-- الدورة او المؤهل: لا يظهر الا في شاشة الدورات والمؤهلات (حزمة الموارد البشرية) -->
+            <div class="form-grid" data-view="training" hidden>
+              <label class="form-field span-6" data-field="train_employee"><span data-i18n="fieldTrainEmployee">الموظف</span><select class="waitlist-input" id="editTrainEmployee"></select></label>
+              <label class="form-field span-3" data-field="train_kind"><span data-i18n="fieldTrainKind">نوع السجل</span><select class="waitlist-input" id="editTrainKind"></select></label>
+              <label class="form-field span-3" data-field="train_provider"><span data-i18n="fieldTrainProvider">الجهة المانحة</span><input type="text" class="waitlist-input" id="editTrainProvider" list="trainProviderSuggest" maxlength="160" dir="auto" autocomplete="off"></label>
+              <label class="form-field span-3" data-field="train_date"><span data-i18n="fieldTrainDate">تاريخ الدورة او التخرج</span><input type="date" class="waitlist-input" id="editTrainDate" dir="ltr"></label>
+              <label class="form-field span-3" data-field="train_expiry"><span data-i18n="fieldTrainExpiry">انتهاء الشهادة</span><input type="date" class="waitlist-input" id="editTrainExpiry" dir="ltr"></label>
+              <label class="form-field span-3" data-field="train_hours"><span data-i18n="fieldTrainHours">عدد الساعات</span><input type="number" step="1" min="0" class="waitlist-input" id="editTrainHours" dir="ltr"></label>
+              <label class="form-field span-3" data-field="train_degree"><span data-i18n="fieldTrainDegree">الدرجة العلمية</span><input type="text" class="waitlist-input" id="editTrainDegree" list="trainDegreeSuggest" maxlength="80" dir="auto" autocomplete="off"></label>
+              <label class="form-field span-6" data-field="train_major"><span data-i18n="fieldTrainMajor">التخصص</span><input type="text" class="waitlist-input" id="editTrainMajor" maxlength="120" dir="auto"></label>
+              <label class="form-field span-6" data-field="train_result"><span data-i18n="fieldTrainResult">النتيجة او التقدير</span><input type="text" class="waitlist-input" id="editTrainResult" maxlength="80" dir="auto"></label>
+            </div>
             <div class="waitlist-form form-actions">
               <button type="submit" class="waitlist-btn" id="editSaveBtn" data-i18n="save">حفظ</button>
               <button type="button" class="chat-option-btn" id="editCancelBtn" data-i18n="cancel">إلغاء</button>
@@ -317,9 +361,57 @@
                 <label class="form-field span-3" data-field="fin_paid_at"><span data-i18n="fieldFinPaidAt">تاريخ التحصيل</span><input type="date" class="waitlist-input" id="addFinPaidAt" dir="ltr"></label>
                 <label class="form-field span-3" data-field="fin_method"><span data-i18n="fieldFinMethod">طريقة السداد</span><input type="text" class="waitlist-input" id="addFinMethod" list="finMethodSuggest" maxlength="80" dir="auto" autocomplete="off"></label>
               </div>
+              <!-- بطاقة الموظف: لا تظهر الا في شاشة الموظفين (حزمة الموارد البشرية) -->
+              <div class="form-grid" data-view="staff" hidden>
+                <label class="form-field span-6" data-field="staff_name_en"><span data-i18n="fieldStaffNameEn">الاسم بالانجليزية</span><input type="text" class="waitlist-input" id="addStaffNameEn" maxlength="160" dir="ltr"></label>
+                <label class="form-field span-3" data-field="staff_phone"><span data-i18n="fieldStaffPhone">الجوال</span><input type="tel" class="waitlist-input" id="addStaffPhone" maxlength="20" dir="ltr"></label>
+                <label class="form-field span-3" data-field="staff_email"><span data-i18n="fieldStaffEmail">البريد الالكتروني</span><input type="email" class="waitlist-input" id="addStaffEmail" maxlength="160" dir="ltr"></label>
+                <label class="form-field span-3" data-field="staff_dept"><span data-i18n="fieldStaffDept">القسم</span><input type="text" class="waitlist-input" id="addStaffDept" list="staffDeptSuggest" maxlength="80" dir="auto" autocomplete="off"></label>
+                <label class="form-field span-3" data-field="staff_job"><span data-i18n="fieldStaffJob">المسمى الوظيفي</span><input type="text" class="waitlist-input" id="addStaffJob" list="staffJobSuggest" maxlength="120" dir="auto" autocomplete="off"></label>
+                <label class="form-field span-3" data-field="staff_contract"><span data-i18n="fieldStaffContract">نوع التعاقد</span><select class="waitlist-input" id="addStaffContract"></select></label>
+                <label class="form-field span-3" data-field="staff_stage"><span data-i18n="fieldStaffStage">الحالة الوظيفية</span><select class="waitlist-input" id="addStaffStage"></select></label>
+                <label class="form-field span-3" data-field="staff_hired"><span data-i18n="fieldStaffHired">تاريخ التعيين</span><input type="date" class="waitlist-input" id="addStaffHired" dir="ltr"></label>
+                <label class="form-field span-3" data-field="staff_nationality"><span data-i18n="fieldStaffNationality">الجنسية</span><input type="text" class="waitlist-input" id="addStaffNationality" maxlength="60" dir="auto"></label>
+                <label class="form-field span-3" data-field="staff_id"><span data-i18n="fieldStaffId">رقم الهوية او الاقامة</span><input type="text" class="waitlist-input" id="addStaffId" maxlength="20" dir="ltr" inputmode="numeric" autocomplete="off"></label>
+                <label class="form-field span-3" data-field="staff_id_expiry"><span data-i18n="fieldStaffIdExpiry">انتهاء الهوية او الاقامة</span><input type="date" class="waitlist-input" id="addStaffIdExpiry" dir="ltr"></label>
+                <label class="form-field span-3" data-field="staff_contract_end"><span data-i18n="fieldStaffContractEnd">انتهاء العقد</span><input type="date" class="waitlist-input" id="addStaffContractEnd" dir="ltr"></label>
+                <label class="form-field span-3" data-field="staff_salary"><span data-i18n="fieldStaffSalary">الراتب الاساسي</span><input type="number" step="0.01" min="0" class="waitlist-input" id="addStaffSalary" dir="ltr"></label>
+                <label class="form-field span-3" data-field="staff_housing"><span data-i18n="fieldStaffHousing">بدل السكن</span><input type="number" step="0.01" min="0" class="waitlist-input" id="addStaffHousing" dir="ltr"></label>
+                <label class="form-field span-3" data-field="staff_transport"><span data-i18n="fieldStaffTransport">بدل النقل</span><input type="number" step="0.01" min="0" class="waitlist-input" id="addStaffTransport" dir="ltr"></label>
+                <label class="form-field span-3" data-field="staff_other"><span data-i18n="fieldStaffOther">بدلات اخرى</span><input type="number" step="0.01" min="0" class="waitlist-input" id="addStaffOther" dir="ltr"></label>
+                <label class="form-field span-3" data-field="staff_leave_days"><span data-i18n="fieldStaffLeaveDays">رصيد الاجازة السنوية (يوما)</span><input type="number" step="1" min="0" max="365" class="waitlist-input" id="addStaffLeaveDays" dir="ltr" placeholder="21"></label>
+                <label class="form-field span-6" data-field="staff_iban"><span data-i18n="fieldStaffIban">الايبان</span><input type="text" class="waitlist-input" id="addStaffIban" maxlength="34" dir="ltr" autocomplete="off"></label>
+              </div>
+              <!-- طلب الاجازة: لا يظهر الا في شاشة الاجازات (حزمة الموارد البشرية) -->
+              <div class="form-grid" data-view="leaves" hidden>
+                <label class="form-field span-6" data-field="leave_employee"><span data-i18n="fieldLeaveEmployee">الموظف</span><select class="waitlist-input" id="addLeaveEmployee"></select></label>
+                <label class="form-field span-3" data-field="leave_kind"><span data-i18n="fieldLeaveKind">نوع الاجازة</span><select class="waitlist-input" id="addLeaveKind"></select></label>
+                <label class="form-field span-3" data-field="leave_approval"><span data-i18n="fieldLeaveApproval">الاعتماد</span><select class="waitlist-input" id="addLeaveApproval"></select></label>
+                <label class="form-field span-3" data-field="leave_from"><span data-i18n="fieldLeaveFrom">من تاريخ</span><input type="date" class="waitlist-input" id="addLeaveFrom" dir="ltr"></label>
+                <label class="form-field span-3" data-field="leave_to"><span data-i18n="fieldLeaveTo">الى تاريخ</span><input type="date" class="waitlist-input" id="addLeaveTo" dir="ltr"></label>
+                <label class="form-field span-3" data-field="leave_days"><span data-i18n="fieldLeaveDays">عدد الايام</span><input type="number" step="1" min="0" class="waitlist-input" id="addLeaveDays" dir="ltr"></label>
+                <label class="form-field span-3" data-field="leave_return"><span data-i18n="fieldLeaveReturn">تاريخ المباشرة</span><input type="date" class="waitlist-input" id="addLeaveReturn" dir="ltr"></label>
+                <label class="form-field span-12" data-field="leave_note"><span data-i18n="fieldLeaveNote">السبب او الملاحظة</span><input type="text" class="waitlist-input" id="addLeaveNote" maxlength="300" dir="auto"></label>
+              </div>
+              <!-- الدورة او المؤهل: لا يظهر الا في شاشة الدورات والمؤهلات (حزمة الموارد البشرية) -->
+              <div class="form-grid" data-view="training" hidden>
+                <label class="form-field span-6" data-field="train_employee"><span data-i18n="fieldTrainEmployee">الموظف</span><select class="waitlist-input" id="addTrainEmployee"></select></label>
+                <label class="form-field span-3" data-field="train_kind"><span data-i18n="fieldTrainKind">نوع السجل</span><select class="waitlist-input" id="addTrainKind"></select></label>
+                <label class="form-field span-3" data-field="train_provider"><span data-i18n="fieldTrainProvider">الجهة المانحة</span><input type="text" class="waitlist-input" id="addTrainProvider" list="trainProviderSuggest" maxlength="160" dir="auto" autocomplete="off"></label>
+                <label class="form-field span-3" data-field="train_date"><span data-i18n="fieldTrainDate">تاريخ الدورة او التخرج</span><input type="date" class="waitlist-input" id="addTrainDate" dir="ltr"></label>
+                <label class="form-field span-3" data-field="train_expiry"><span data-i18n="fieldTrainExpiry">انتهاء الشهادة</span><input type="date" class="waitlist-input" id="addTrainExpiry" dir="ltr"></label>
+                <label class="form-field span-3" data-field="train_hours"><span data-i18n="fieldTrainHours">عدد الساعات</span><input type="number" step="1" min="0" class="waitlist-input" id="addTrainHours" dir="ltr"></label>
+                <label class="form-field span-3" data-field="train_degree"><span data-i18n="fieldTrainDegree">الدرجة العلمية</span><input type="text" class="waitlist-input" id="addTrainDegree" list="trainDegreeSuggest" maxlength="80" dir="auto" autocomplete="off"></label>
+                <label class="form-field span-6" data-field="train_major"><span data-i18n="fieldTrainMajor">التخصص</span><input type="text" class="waitlist-input" id="addTrainMajor" maxlength="120" dir="auto"></label>
+                <label class="form-field span-6" data-field="train_result"><span data-i18n="fieldTrainResult">النتيجة او التقدير</span><input type="text" class="waitlist-input" id="addTrainResult" maxlength="80" dir="auto"></label>
+              </div>
               <datalist id="contractTypeSuggest"></datalist>
               <datalist id="finMethodSuggest"></datalist>
               <datalist id="categorySuggest"></datalist>
+              <datalist id="staffDeptSuggest"></datalist>
+              <datalist id="staffJobSuggest"></datalist>
+              <datalist id="trainProviderSuggest"></datalist>
+              <datalist id="trainDegreeSuggest"></datalist>
               <div class="waitlist-form form-actions">
                 <button type="submit" class="waitlist-btn" id="addSaveBtn" data-i18n="add">إضافة</button>
                 <button type="button" class="chat-option-btn" id="newRecordBtn" data-i18n="newRecordBtn">+ سجل جديد</button>
@@ -487,6 +579,98 @@
             </table>
           </div>
 
+          <!-- الموظفون: شاشة الموارد البشرية — القسم والحالة الوظيفية ثم المجاميع
+               (امر المهندس رعد 2026-09-20) -->
+          <div id="staffBar" hidden>
+            <div class="waitlist-form violations-toolbar">
+              <select class="waitlist-input" id="staffDeptFilter" aria-label="القسم"></select>
+              <select class="waitlist-input" id="staffStageFilter" aria-label="الحالة الوظيفية"></select>
+            </div>
+            <div class="totals-row" id="staffTotals"></div>
+          </div>
+
+          <div class="table-wrap" id="staffWrap" hidden>
+            <table class="items-table" id="staffTable">
+              <thead>
+                <tr>
+                  <th data-i18n="colStaffNumber">الرقم الوظيفي</th>
+                  <th data-i18n="colStaffName">الموظف</th>
+                  <th data-i18n="colStaffDept">القسم</th>
+                  <th data-i18n="colStaffJob">المسمى الوظيفي</th>
+                  <th data-i18n="colStaffContract">التعاقد</th>
+                  <th data-i18n="colStaffHired">التعيين</th>
+                  <th data-i18n="colStaffSalary">الراتب الاجمالي</th>
+                  <th data-i18n="colStaffIdExpiry">انتهاء الاقامة</th>
+                  <th data-i18n="colStaffContractEnd">انتهاء العقد</th>
+                  <th data-i18n="colStaffLeft">المتبقي</th>
+                  <th data-i18n="colStaffLeaveBalance">رصيد الاجازة</th>
+                  <th data-i18n="colStatus">الحالة</th>
+                  <th data-i18n="colActions">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="staffBody"></tbody>
+            </table>
+          </div>
+
+          <!-- الاجازات: الموظف والنوع والاعتماد ثم المجاميع -->
+          <div id="leavesBar" hidden>
+            <div class="waitlist-form violations-toolbar">
+              <select class="waitlist-input" id="leaveEmpFilter" aria-label="الموظف"></select>
+              <select class="waitlist-input" id="leaveKindFilter" aria-label="نوع الاجازة"></select>
+              <select class="waitlist-input" id="leaveStateFilter" aria-label="الحالة"></select>
+            </div>
+            <div class="totals-row" id="leaveTotals"></div>
+          </div>
+
+          <div class="table-wrap" id="leavesWrap" hidden>
+            <table class="items-table" id="leavesTable">
+              <thead>
+                <tr>
+                  <th data-i18n="colLeaveEmployee">الموظف</th>
+                  <th data-i18n="colLeaveKind">نوع الاجازة</th>
+                  <th data-i18n="colLeaveFrom">من</th>
+                  <th data-i18n="colLeaveTo">الى</th>
+                  <th data-i18n="colLeaveDays">الايام</th>
+                  <th data-i18n="colLeaveLeft">تبدا بعد</th>
+                  <th data-i18n="colLeaveApproval">الاعتماد</th>
+                  <th data-i18n="colLeaveNote">البيان</th>
+                  <th data-i18n="colStatus">الحالة</th>
+                  <th data-i18n="colActions">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="leavesBody"></tbody>
+            </table>
+          </div>
+
+          <!-- الدورات والمؤهلات: الموظف والنوع ثم المجاميع -->
+          <div id="trainingBar" hidden>
+            <div class="waitlist-form violations-toolbar">
+              <select class="waitlist-input" id="trainEmpFilter" aria-label="الموظف"></select>
+              <select class="waitlist-input" id="trainKindFilter" aria-label="نوع السجل"></select>
+            </div>
+            <div class="totals-row" id="trainTotals"></div>
+          </div>
+
+          <div class="table-wrap" id="trainingWrap" hidden>
+            <table class="items-table" id="trainingTable">
+              <thead>
+                <tr>
+                  <th data-i18n="colTrainEmployee">الموظف</th>
+                  <th data-i18n="colTrainKind">النوع</th>
+                  <th data-i18n="colTrainName">الدورة او المؤهل</th>
+                  <th data-i18n="colTrainProvider">الجهة</th>
+                  <th data-i18n="colTrainDate">التاريخ</th>
+                  <th data-i18n="colTrainDegree">الدرجة والتخصص</th>
+                  <th data-i18n="colTrainHours">الساعات</th>
+                  <th data-i18n="colTrainExpiry">انتهاء الشهادة</th>
+                  <th data-i18n="colTrainLeft">المتبقي</th>
+                  <th data-i18n="colActions">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="trainingBody"></tbody>
+            </table>
+          </div>
+
           <div class="content case-bundle" id="caseBundle" hidden></div>
 
           <div class="table-wrap" id="tableWrap" hidden>
@@ -555,12 +739,12 @@
   </div>
 
 
-  <script src="/app/dashboard.1.js?v=82"></script>
+  <script src="/app/dashboard.1.js?v=83"></script>
   <script src="/app/dashboard.2.js?v=80"></script>
-  <script src="/app/dashboard.3.js?v=89"></script>
+  <script src="/app/dashboard.3.js?v=90"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/app.js?v=79" defer></script>
-<script src="/app/common.js?v=94" defer></script>
+<script src="/app/common.js?v=95" defer></script>
 <script src="/brand-logo.js?v=86" defer></script>
 </body>
 </html>
