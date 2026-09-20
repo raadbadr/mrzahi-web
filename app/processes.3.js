@@ -424,10 +424,11 @@
         return rows;
       }
 
-      function importCsv(file) {
-        var reader = new FileReader();
-        reader.onload = function () {
-          var rows = parseCsv(String(reader.result || ""));
+      /* مسار الاستيراد الواحد: نص CSV من ملف المستخدم او من ملف الاجراءات الجاهزة.
+         الرمز الموجود يحدث لا يكرر، والمجال غير المعروف يسقط الى other، والحالة غير
+         المعروفة الى draft. رسالة الختام من المنادي (report) ان اعطاها، والا التنبيه المعتاد. */
+      function importCsvText(text, report) {
+          var rows = parseCsv(String(text || ""));
           if (rows.length < 2) { window.alert(t("importEmpty")); return; }
           var head = rows[0].map(function (h) { return String(h || "").trim().toLowerCase(); });
           var idx = {};
@@ -462,16 +463,74 @@
           /* العدد المعلن هو المحفوظ فعلا لا المحاول: كان يقول «تم استيراد 100»
              ولو رفضت القاعدة المئة كلها، فيمضي صاحبها ويحذف ملفه الأصلي. */
           var saved = 0;
-          jobs.reduce(function (chain, row) {
+          return jobs.reduce(function (chain, row) {
             return chain.then(function () {
               return app.saveProcess(row).then(function () { saved += 1; }, function () { return null; });
             });
           }, Promise.resolve()).then(load).then(function () {
+            if (report) { report(saved, jobs.length); return; }
             window.alert(t(saved === jobs.length ? "importDone" : "importPartial")
               .replace("{n}", saved).replace("{total}", jobs.length));
           });
-        };
+      }
+
+      function importCsv(file) {
+        var reader = new FileReader();
+        reader.onload = function () { importCsvText(String(reader.result || "")); };
         reader.readAsText(file, "utf-8");
+      }
+
+      /* ---------- الاجراءات الجاهزة: ملف قوالب لحزمة الحساب ---------- */
+      /* الفهرس /app/processes/templates.json يسمي ملف كل حزمة لها اجراءات جاهزة
+         ({"hr": "hr-templates.csv"}). الحزمة غير المسماة فيه لا ترى الزر ولا تطلب
+         ملفا غائبا (طلب HEAD الى ملف غير موجود كان يسجل خطا 404 في كل صفحة)،
+         والحساب بلا حزمة لا يسال اصلا. */
+      var READY_DIR = "/app/processes/";
+      var readyFile = "";
+      function templatesUrl() { return readyFile ? READY_DIR + readyFile : null; }
+      /* نداء بمهلة: withTimeout في common و fetchWithTimeout في app.js خاصان لا يصدران
+         على window، فالحلقة نفسها هنا كما في swFetch بصفحة الاعدادات. */
+      function fetchTimed(url, opts, ms) {
+        var o = Object.assign({}, opts || {});
+        var ctrl = window.AbortController ? new AbortController() : null;
+        if (ctrl) o.signal = ctrl.signal;
+        var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, ms || 12000);
+        return fetch(url, o).then(function (r) { clearTimeout(timer); return r; },
+          function (e) { clearTimeout(timer); throw e; });
+      }
+      /* الفهرس يقرا قبل كشف الشاشة حتى يرسم شريط الادوات مرة واحدة (قاعدة الثبات):
+         اسم ملف صالح للحزمة يظهر الزر، وكل ما عداه (فهرس غائب، شبكة، مهلة) يبقيه
+         مخفيا بلا خطا. ?v= زمني لان sw.js يخدم GET لغير الصفحات كاشا اولا. */
+      function probeReady() {
+        var key = app && app.pack && app.pack.pack, btn = $("readyBtn");
+        if (!key || !btn) return Promise.resolve(false);
+        return fetchTimed(READY_DIR + "templates.json?v=" + Date.now(), { cache: "no-store" }, 8000)
+          .then(function (r) { return r.status === 200 ? r.json() : null; })
+          .then(function (map) {
+            var file = map && typeof map[key] === "string" ? map[key] : "";
+            if (!/^[A-Za-z0-9._-]+\.csv$/.test(file)) return false;
+            readyFile = file;
+            show("readyBtn", true);
+            return true;
+          }, function () { return false; });
+      }
+      function say(kind, text) { if (app && app.toast) app.toast(text, kind); else window.alert(text); }
+      /* النقر: جلب النص بمهلة ثم مسار الاستيراد نفسه. الزر معطل من الجلب حتى ختام الحفظ.
+         ?v= زمني لان sw.js يخدم GET لغير الصفحات والانماط كاشا اولا فيتجمد الملف على الجهاز. */
+      function fetchReady() {
+        var url = templatesUrl(), btn = $("readyBtn");
+        if (!url || !btn) return;
+        btn.disabled = true;
+        var done = function () { btn.disabled = false; };
+        fetchTimed(url + "?v=" + Date.now(), { cache: "no-store" }, 12000)
+          .then(function (r) { if (r.status !== 200) throw new Error("http " + r.status); return r.text(); })
+          .then(function (text) {
+            return importCsvText(text, function (saved, total) {
+              say(saved === total ? "success" : "error",
+                  t(saved === total ? "readyAdded" : "importPartial").replace("{n}", saved).replace("{total}", total));
+            });
+          }, function () { say("error", t("readyFailed")); })
+          .then(done, function (e) { done(); throw e; });
       }
 
       function byId(id) { return state.list.filter(function (x) { return x.id === id; })[0]; }
@@ -507,6 +566,7 @@
         $("zoomOut").addEventListener("click", function () { zoomTo(state.zoom - 0.15); });
         $("zoomReset").addEventListener("click", function () { zoomTo(1); });
         $("tplBtn").addEventListener("click", downloadTemplate);
+        $("readyBtn").addEventListener("click", fetchReady);
         $("importBtn").addEventListener("click", function () { $("importFile").click(); });
         $("importFile").addEventListener("change", function () {
           var file = this.files && this.files[0];
@@ -655,7 +715,8 @@
           /* الشاشة تكشف بعد وصول بياناتها لا قبلها (المهندس رعد 2026-09-16). */
           wire();
           var reveal = function () { show("loadingCard", false); show("view", true); };
-          return load().then(reveal, function (e) { reveal(); throw e; });
+          /* ملف الاجراءات الجاهزة يفحص مع البيانات لا بعدها، فلا يظهر زر بعد كشف الشريط */
+          return Promise.all([load(), probeReady()]).then(reveal, function (e) { reveal(); throw e; });
         }).catch(function () { show("loadingCard", false); show("unavailableCard", true); });
       }
       if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
