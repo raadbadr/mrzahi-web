@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Monoton&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/header.css?v=88">
   <link rel="stylesheet" href="/footer.css?v=75">
-  <link rel="stylesheet" href="/app/dashboard.css?v=78">
+  <link rel="stylesheet" href="/app/dashboard.css?v=79">
 </head>
 <body class="has-site-header">
   <header class="site-header">
@@ -509,12 +509,21 @@
 
         <div id="calendarPanel">
           <div class="cal-nav">
-            <!-- الصف الاول: ادوات العرض (اليوم والمدى وميلادي/هجري) مع سطر تغيير
-                 الشهر، والشهر وسهماه في الطرف. والصف الذي تحته: شرائح التصفية
-                 بجوار فلتر الفريق (امر المهندس رعد 2026-09-17: «حط اليوم وشهر
-                 واسبوع وميلادي وهجري مع سطر تغيير الشهر، ونزل الفلتر جنب الفلتر
-                 حق الفريق»). السهمان بلا data-i18n: مترجم النص يكتب فوق محتوى
-                 العنصر فيمحو الرسم، واسمهما يضبط في syncCalNavLabels. -->
+            <!-- الصف الاول: الشهر وسهماه وحدهما في مكان واضح لان تصميمهما مختلف
+                 (امر المهندس رعد 2026-09-20: «اختيار الشهر تصميمو اصلا مختلف
+                 نحتاج يكون في مكان واضح»). الصف الثاني: ادوات العرض في سطر واحد
+                 («حط اليوم وشهر واسبوع ويوم في سطر واحد، وميلادي وهجري»)، وحجم
+                 كل اداة يعكس دورها: «اليوم» اصغر من المدى. والصف الذي تحته:
+                 شرائح التصفية بجوار فلتر الفريق. السهمان بلا data-i18n: مترجم
+                 النص يكتب فوق محتوى العنصر فيمحو الرسم، واسمهما يضبط في
+                 syncCalNavLabels. -->
+            <div class="cal-line cal-line--when">
+              <div class="cal-when">
+                <button type="button" class="cal-arrow" id="calPrevBtn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
+                <strong class="cal-title" id="calTitle" aria-live="polite"></strong>
+                <button type="button" class="cal-arrow" id="calNextBtn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg></button>
+              </div>
+            </div>
             <div class="cal-line">
               <div class="cal-ctls">
                 <div class="cal-modes" role="group">
@@ -529,11 +538,6 @@
                   <button type="button" class="cal-mode is-active" id="calGregBtn" data-cal-mode="greg" data-i18n="calGregorian">ميلادي</button>
                   <button type="button" class="cal-mode" id="calHijriBtn" data-cal-mode="hijri" data-i18n="calHijri">هجري</button>
                 </div>
-              </div>
-              <div class="cal-when">
-                <button type="button" class="cal-arrow" id="calPrevBtn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
-                <strong class="cal-title" id="calTitle" aria-live="polite"></strong>
-                <button type="button" class="cal-arrow" id="calNextBtn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg></button>
               </div>
             </div>
             <!-- صف ثان: شرائح التصفية ثم المسؤولون -->

@@ -750,7 +750,7 @@
     /* الشهر وسهماه في طرف الصف والفلاتر في الطرف الاخر (امر المهندس رعد
        2026-09-17: «حط الشهر مكان ميلادي هجري واسحب الشريط كامل مكان الشهر»).
        على الشاشة الضيقة يلغى الدفع فتتوسط الصفوف. */
-    .cal-when { display: flex; align-items: center; gap: 0.4rem; min-width: 0; margin-inline-start: auto; }
+    .cal-when { display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
     .cal-ctls { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     .cal-nav > .cal-line > #calFilters[hidden] { display: none; }
     /* صف الفلاتر نسخة من الصف الاول (امر المهندس رعد 2026-09-16: «التصميم يكون
@@ -933,16 +933,19 @@
     .cal-people[hidden] { display: none; }
     .cal-people .cal-modes { flex-wrap: wrap; height: auto; min-height: var(--field-h, 42px); }
     .cal-nav .cal-modes .cal-person { flex: 0 1 auto; width: auto; max-width: 10rem; cursor: pointer; padding-inline: 0.7rem; }
-    /* المجموعات الخمس بعرض واحد (امر المهندس رعد 2026-09-20: «دي كلها لازم تكون نفس
-       الطول والباقي يكون ديناميكي»، واختار: المجموعات الخمس بعرض واحد والشرائح
-       تتوزع داخلها). كل صندوق شرائح يمتد بعرض الشريط كاملا فتتطابق حوافه مع
-       اخوته، والشرائح تتمدد بالتساوي لتملأه؛ وان ضاقت الشاشة عن شرائحه رجعت الى
-       عرضها الادنى وتمرر افقيا داخل صندوقها بلا قص (قاعدة 2-هـ) كما كان.
-       مقيس على 375 و768 و1280: الخمسة بعرض واحد وحافة واحدة، وبلا فيض للصفحة. */
-    .cal-nav .cal-ctls { flex: 1 1 100%; flex-direction: column; align-items: stretch; }
-    .cal-nav .cal-ctls .cal-modes, .cal-nav #calFilters, .cal-nav #calFilters .cal-modes, .cal-nav .cal-people, .cal-nav .cal-people .cal-modes { width: 100%; }
-    .cal-nav #calFilters, .cal-nav .cal-people { flex: 1 1 100%; }
-    .cal-nav .cal-modes .cal-mode, .cal-nav .cal-modes .cal-person { flex: 1 1 auto; }
+    /* شريط التقويم بامر المهندس رعد 2026-09-20 («لازم يكون متناسق ويحقق المطلوب
+       منو من ناحية الاستخدام»): الشهر وسهماه سطر وحده في مكان واضح لان تصميمهما
+       مختلف؛ ثم اليوم والمدى وميلادي/هجري في سطر واحد؛ ثم التصنيف والفريق. كل
+       السطور تبدا من حافة واحدة وكل المجموعات بارتفاع واحد، ولا مجموعة تمط
+       بعرض الصفحة. والمقاسات تعكس الدور («اليوم اصغر من شهر واسبوع ويوم»):
+       المدى اوسع الشرائح، وميلادي/هجري بالعرض العادي، و«اليوم» بعرض كلمته. */
+    .cal-nav #calZoom .cal-mode { min-width: calc(var(--cal-u, 4.75rem) * 1.25); }
+    .cal-nav #calTodayBtn { min-width: 0; padding-inline: 0.75rem; }
+    /* على الجوال يضيق المدى الى العرض العادي كي يبقى مع «اليوم» في سطر واحد،
+       وميلادي/هجري في السطر الذي يليه؛ لا ثلاثة اسطر بمجموعة لكل سطر. */
+    @media (max-width: 480px) {
+      .cal-nav #calZoom .cal-mode { min-width: var(--cal-u, 4.3rem); }
+    }
     .cal-person.is-drop { background: var(--primary); color: var(--btn-ink); }
     body.cal-dragging .cal-people .cal-modes { box-shadow: 0 0 0 1px var(--primary); }
 
