@@ -91,7 +91,7 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     statusInvalidPhone: "أدخل رقم الجوال بالصيغة الدولية، مثل +9665xxxxxxx",
     statusError: "حدث خطأ، حاول مرة أخرى.",
     statusOauthFailed: "لم يكتمل تسجيل الدخول عبر Google، إذ انقطع الاتصال قبل اكتماله. أعد المحاولة.",
-    statusOauthCancelled: "أُلغي تسجيل الدخول عبر Google قبل اكتماله."
+    statusOauthCancelled: "توقف تسجيل الدخول عبر Google قبل اكتماله."
   };
 
   var auth = {

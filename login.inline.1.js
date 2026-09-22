@@ -29,7 +29,7 @@ const translations = {
         statusInvalidPhone: "أدخل رقم الجوال بالصيغة الدولية، مثل ⁦+9665xxxxxxx⁩",
         statusError: "حدث خطأ، حاول مرة أخرى.",
         statusOauthFailed: "لم يكتمل تسجيل الدخول عبر Google، إذ انقطع الاتصال قبل اكتماله. أعد المحاولة.",
-        statusOauthCancelled: "أُلغي تسجيل الدخول عبر Google قبل اكتماله.",
+        statusOauthCancelled: "توقف تسجيل الدخول عبر Google قبل اكتماله.",
         backBtn: "العودة للرئيسية",
         copyrightLine2: "جميع الحقوق محفوظة",
         footerLegalCRLabel: "السجل التجاري",
