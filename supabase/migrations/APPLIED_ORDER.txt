@@ -200,3 +200,4 @@
 20260920220000	hr_leaves_training	0167_hr_leaves_training.sql	added
 20260920220000	tiles_words_fixups	0168_tiles_words_fixups.sql	added
 20260922090000	meetings_every_pack	0169_meetings_every_pack.sql	added
+20260922100000	meetings_page_every_department	0170_meetings_page_every_department.sql	added

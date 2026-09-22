@@ -703,6 +703,12 @@
     { href: "/app/dashboard.html?type=training", path: "type=training", service: "training", packOnly: true,
       icon: '<path d="M12 3L1 9l11 6 9-4.9V17h2V9L12 3zm-7 9.8v4.2c0 1.1 3.1 3 7 3s7-1.9 7-3v-4.2l-7 3.8-7-3.8z"/>',
       labels: { ar: "الدورات والمؤهلات", en: "Training and qualifications", fr: "Formations et diplomes", ur: "کورسز اور قابلیت" } },
+    /* الاجتماعات: صفحة في الشريط لكل الحزم (امر المهندس رعد 2026-09-22: «سوي
+       صفحة اجتماعات في الشريط لكل الاقسام»)؛ خدمتها في كل حزمة منذ 0169، وصلاحيتها
+       لكل قسم منذ 0170، فتظهر حيث تسميها الحزمة وتسمح بها القاعدة. */
+    { href: "/app/dashboard.html?type=meetings", path: "type=meetings", service: "meetings",
+      icon: '<path d="M14 6v15H3v-2h2V3h9v1h5v15h2v2h-4V6h-3zm-4 5v2h2v-2h-2z"/>',
+      labels: { ar: "الاجتماعات", en: "Meetings", fr: "Reunions", ur: "میٹنگز" } },
     { href: "/app/documents.html", path: "documents", service: "documents",
       icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8 13h8v2H8v-2zm0 4h8v2H8v-2z"/>',
       labels: { ar: "المستندات", en: "Documents", fr: "Documents", ur: "دستاویزات" } },
