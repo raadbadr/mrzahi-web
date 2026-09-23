@@ -6,13 +6,20 @@
 
 const NO_CACHE = { cacheTtl: 0, cacheEverything: false };
 
+/* بوابة القاعدة لمهام الكرون: قاعدة WAF «block-direct-db» تحجب db.mrzahi.com عن كل طلب لا
+   يحمل cf.worker.upstream_zone = mrzahi.com، ونداءات الكرون لا منطقة لها فترد 403، فصمتت
+   التذكيرات وكل مهام الكرون منذ 2026-09-11 (سجل الخادم الحي 2026-09-23). ولا يصل الكرون الى
+   نطاق الـ Worker نفسه (522). فيحمل كل نداء من الوركر رأسا سريا تستثنيه قاعدة WAF: القيمة
+   سر الوركر DB_GATE_TOKEN، والقيمة نفسها في تعبير القاعدة. بلا السر لا رأس، كما كان. */
 export function anonHeaders(env) {
-  return {
+  const headers = {
     apikey: env.SUPABASE_ANON_KEY,
     Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
     "Content-Type": "application/json",
     Accept: "application/json",
   };
+  if (env.DB_GATE_TOKEN) headers["x-mz-gate"] = env.DB_GATE_TOKEN;
+  return headers;
 }
 
 export async function rpc(env, name, args) {
