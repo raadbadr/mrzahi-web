@@ -860,7 +860,7 @@ export function rulesExtract(rawText) {
   /* رقم عام: "رقم ...: 123456" إن لم تجده القاعدة */
   if (!out.number) { const genericNumberMatch = text.match(/رقم\s*[^:：\n]{0,25}[:：]\s*([0-9]{5,20})/); if (genericNumberMatch) out.number = genericNumberMatch[1]; }
   const expiryDateInfo = findDate(text, ["تاريخ\\s*(?:ال)?انتهاء", "ينتهي\\s*(?:في|بتاريخ)", "صالح(?:ة)?\\s*حتى", "تاريخ\\s*نهاية", "الانتهاء", "تاريخ\\s*(?:ال)?جلسة", "موعد\\s*(?:ال)?جلسة", "تاريخ\\s*(?:ال)?استحقاق", "تاريخ\\s*(?:ال)?سداد", "expir(?:y|e|es|ation)\\s*(?:date)?", "valid\\s*(?:until|to)", "due\\s*date", "hearing\\s*date"]);
-  const issueDateInfo = findDate(text, ["تاريخ\\s*(?:ال)?إصدار", "تاريخ\\s*(?:ال)?اصدار", "تاريخ\\s*التسجيل", "تاريخ\\s*(?:ال)?بداية", "تاريخ\\s*(?:ال)?تحرير", "تاريخ\\s*العقد", "صدر\\s*(?:في|بتاريخ)", "حرر\\s*(?:في|بتاريخ)", "issue\\s*date", "issued\\s*on", "registration\\s*date", "date(?!\\s*of\\s*birth)"]);
+  const issueDateInfo = findDate(text, ["تاريخ\\s*(?:ال)?إصدار", "تاريخ\\s*(?:ال)?اصدار", "تاريخ\\s*التسجيل", "تاريخ\\s*(?:ال)?بداية", "تاريخ\\s*(?:ال)?تحرير", "تاريخ\\s*العقد", "صدر\\s*(?:في|بتاريخ)", "حرر\\s*(?:في|بتاريخ)", "issue\\s*date", "issued\\s*on", "registration\\s*date", "(?<!(?:expir\\w*|valid\\w*|due|end(?:ing)?|renewal)[ \\t]{0,3})date(?!\\s*of\\s*(?:birth|expir))"]);
   /* الشهادة الضريبية لا «تنتهي»: «تاريخ استحقاق أول إقرار» موعد إقرار لا انتهاء، فلا يعد انتهاء (يبقى في التفاصيل first_filing_due) */
   const vatDueNotExpiry = out.kind === "vat_certificate" && expiryDateInfo && /استحقاق|due/i.test(String(expiryDateInfo.label || ""));
   if (expiryDateInfo && !vatDueNotExpiry) { out.expiry_date = expiryDateInfo.raw; out.expiry_date_calendar = expiryDateInfo.year < 1700 ? "hijri" : "gregorian"; }
@@ -902,10 +902,18 @@ export function mergeRules(model, rules) {
   /* الرقم والتاريخان قرأتهما القواعد بتسميتهما ونمطهما، فهما أصدق من تخمين
      النموذج: كان تاريخ بصيغة غير صالحة من النموذج يطمس تاريخ القواعد الصحيح
      ثم يسقط في التنظيف، فتخرج الهوية بلا انتهاء (هوية المهندس رعد 2026-09-20). */
-  const RULES_FIRST = ["number", "issue_date", "issue_date_calendar", "expiry_date", "expiry_date_calendar"];
+  /* والتاريخ يغلب فيه النموذج ما دام تاريخا صالحا: تاريخ القواعد يغلب حين يغيب
+     تاريخ النموذج او لا يصلح فقط (مراجعة 2026-09-23: كانت «Expiry Date» قبل «Issue
+     Date» تجعل تاريخ الاصدار هو الانتهاء فيطمس تاريخ النموذج الصحيح). */
+  const RULES_FIRST = ["number"];
+  const DATE_PAIRS = { issue_date: "issue_date_calendar", expiry_date: "expiry_date_calendar" };
+  const modelDateOk = {};
+  for (const key of Object.keys(DATE_PAIRS)) modelDateOk[key] = normalizeDate(merged[key], merged[DATE_PAIRS[key]]) != null;
   for (const key of Object.keys(rules)) {
     const isMissing = merged[key] == null || merged[key] === "" || merged[key] === 0 || (key === "kind" && merged[key] === "other");
-    if (isMissing || (RULES_FIRST.includes(key) && rules[key] != null)) merged[key] = rules[key];
+    const dateKey = DATE_PAIRS[key] ? key : Object.keys(DATE_PAIRS).find((k) => DATE_PAIRS[k] === key);
+    const dateFromRules = dateKey && rules[dateKey] != null && !modelDateOk[dateKey];
+    if (isMissing || (RULES_FIRST.includes(key) && rules[key] != null) || dateFromRules) merged[key] = rules[key];
   }
   /* التفاصيل: ما قرأته القواعد بتسميته ونمطه يغلب، والنموذج يكمل الفراغات فقط */
   const modelDetails = merged.details && typeof merged.details === "object" ? merged.details : {};

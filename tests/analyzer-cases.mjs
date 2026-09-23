@@ -1,5 +1,5 @@
-/* حالات انحدار محلل المستندات — تُشغَّل قبل أي نشر يمس src/documents.js:  node tests/analyzer-cases.mjs
-   كل ورقة عرفها النظام مرة يجب أن يعرفها دائما؛ أي حالة جديدة تُضاف هنا مع إصلاحها.
+/* حالات انحدار محلل المستندات — تشغل قبل أي نشر يمس src/documents.js:  node tests/analyzer-cases.mjs
+   كل ورقة عرفها النظام مرة يجب أن يعرفها دائما؛ أي حالة جديدة تضاف هنا مع إصلاحها.
    details: كل بيان في الورقة بمفتاحه (بعد التنظيف)، profile: ما يصلح منها لتحديث ملف الشركة. */
 import fs from "fs";
 import { normalizeArabicText, rulesExtract, mergeRules, clean, looksMangledArabic, dropMangledArabic } from "../src/documents.js";
@@ -37,6 +37,12 @@ const CASES = [
   { name: "national id — Tawakkalna PDF with dotless-letter font: mangled, numbers and dates still exact", text: fx("national-id-tawakkalna.txt"), mangled: true,
     kind: "id_document", number: "1011057195", entity: "individual", issue: "2025-10-01", expiry: "2035-06-06",
     details: { id_number: "1011057195", full_name: "BADR, RAAD SAMEER H", date_of_birth: "1984-08-28", issue_date: "2025-10-01", expiry_date: "2035-06-06" } },
+  /* «Expiry Date» قبل «Issue Date»: كلمة date العامة كانت تلتقط تسمية الانتهاء فيصير تاريخ الاصدار هو الانتهاء
+     (مراجعة 2026-09-23)، ونموذج قرا التاريخين صحيحين لا يطمسه تاريخ القواعد؛ وتاريخ نموذج لا يصلح تغلبه القواعد */
+  { name: "Expiry Date before Issue Date: the issue date is not the expiry date", text: "Certificate of Registration\nCertificate No: 55667788\nExpiry Date: 2030-06-01\nIssue Date: 2025-06-01",
+    issue: "2025-06-01", expiry: "2030-06-01", model: { issue_date: "2025-06-01", expiry_date: "2030-06-01" }, merged: { issue_date: "2025-06-01", expiry_date: "2030-06-01" } },
+  { name: "a model date in an invalid format still yields to the rules date", text: "Certificate of Registration\nCertificate No: 55667788\nIssue Date: 01/10/2025\nExpire Date: 06/06/2035",
+    issue: "2025-10-01", expiry: "2035-06-06", model: { issue_date: "01/10/2025", expiry_date: "1457/03/29 هـ" }, merged: { issue_date: "2025-10-01", expiry_date: "2035-06-06" } },
   { name: "hearing notice", text: "المحكمة التجارية بالرياض\nإشعار بموعد جلسة\nرقم الدعوى: 4470123456\nالمدعي: شركة باركينزي\nالمدعى عليه: مؤسسة كذا\nالدائرة: التجارية الثالثة\nموعد الجلسة: 2026/10/05 الساعة 10:30 صباحا", kind: "hearing_notice", number: "4470123456",
     details: { case_number: "4470123456", plaintiff: "شركة باركينزي", defendant: "مؤسسة كذا", circuit: "الدائرة التجارية الثالثة", hearing_date: "2026-10-05", hearing_time: "10:30 صباحا", court: "المحكمة التجارية بالرياض" } },
   { name: "tax invoice — carries a VAT number and the word ضريبة but is an invoice, not a VAT certificate; the seller's name repeats its own label", text: "فاتورة ضريبية Tax Invoice\nInvoice No: INV-2026-0042 رقم الفاتورة\nInvoice Date 2026/03/15 تاريخ الفاتورة\nالمورد: شركة المورد المحدودة\nالرقم الضريبي: 300012345600003\nالعميل: شركة باركينزي\nSubtotal 1,000.00 المجموع الفرعي\nVAT (15%) 150.00 ضريبة القيمة المضافة\nTotal 1,150.00 الإجمالي", kind: "invoice", number: "INV-2026-0042", party: "شركة باركينزي", issue: "2026-03-15",
@@ -66,6 +72,7 @@ for (const c of CASES) {
   if (c.mangled && !looksMangledArabic(c.text)) problems.push("must be detected as mangled");
   const r = rulesExtract(c.mangled ? dropMangledArabic(normalizeArabicText(c.text)) : normalizeArabicText(c.text));
   const fields = clean(mergeRules(null, r));
+  if (c.merged) { const m = clean(mergeRules(c.model || null, r)); for (const [key, want] of Object.entries(c.merged)) if (!same(m[key], want)) problems.push(`merged.${key} ${JSON.stringify(m[key])} ≠ ${want}`); }
   if (c.kind && r.kind !== c.kind) problems.push(`kind ${r.kind} ≠ ${c.kind}`);
   if (c.notKind && r.kind === c.notKind) problems.push(`kind must not be ${c.notKind}`);
   if (c.number && String(r.number) !== c.number) problems.push(`number ${r.number} ≠ ${c.number}`);
