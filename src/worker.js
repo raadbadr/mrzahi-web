@@ -7,6 +7,7 @@
 import { handleAssistantRequest, askAssistant } from "./assistant.js";
 import { payCreate, payReturn, payConfigured } from "./pay.js";
 import { driveServerConfigured, handleDrive } from "./drive.js";
+import { handleAccounting, runAccountingPush } from "./accounting.js";
 import { handleTranslate } from "./translate.js";
 import { serveBundle } from "./bundles.js";
 import { driveStandardSweep } from "./drive-standard.js";
@@ -1191,6 +1192,12 @@ async function withNotFoundPage(env, url, res) {
         const driveRes = await handleDrive(request, env, url, authedUser, json);
         if (driveRes) return driveRes;
       }
+      /* الربط المحاسبي: ارسال المصاريف والفواتير مسودات الى المنصة المحاسبية التي
+         يختارها العميل (امر المهندس رعد 2026-09-23). المسارات والصلاحيات في accounting.js */
+      if (path.startsWith("/api/accounting/")) {
+        const acctRes = await handleAccounting(request, env, url, authedUser, json);
+        if (acctRes) return acctRes;
+      }
       if (path === "/api/contact" && request.method === "POST") return await handleContact(request, env);
       if (path === "/api/notify/test" && request.method === "POST") {
         /* كل نداء يرسل رسالة حقيقية: حد بالعنوان */
@@ -1231,6 +1238,9 @@ async function withNotFoundPage(env, url, res) {
     ctx.waitUntil(runTrialCountdown(env).then((r) => console.log("[trial]", JSON.stringify(r))).catch((e) => console.error("[trial]", String(e))));
     // معيار Google Drive لكل الحسابات المرتبطة: مرة يوميا 04:00 بتوقيت الرياض (الكرون كل 5 دقائق، فتؤخذ اول نافذة)
     { const d = new Date(); if (d.getUTCHours() === 1 && d.getUTCMinutes() < 5) ctx.waitUntil(driveStandardSweep(env).then((r) => console.log("[drive-standard]", JSON.stringify(r))).catch((e) => console.error("[drive-standard]", String(e && e.message || e)))); }
+    // الربط المحاسبي: ما انشئ بعد الربط يرسل مسودات الى المنصة المحاسبية، في وعد مستقل
+    // بمهلة وحد لعدد العناصر، فلا تعطل منصة محاسبية بطيئة التنبيهات في الدورة نفسها
+    ctx.waitUntil(runAccountingPush(env, { limit: 10, budgetMs: 25000 }).then((r) => console.log("[accounting]", JSON.stringify(r))).catch((e) => console.error("[accounting]", String(e && e.message || e))));
     // حذف الحسابات التي انتهت فترة سماحها (30 يوما بلا دخول)
     ctx.waitUntil(purgeExpiredAccountDeletions(env).then((r) => console.log("[account-purge]", JSON.stringify(r))).catch((e) => console.error("[account-purge]", String(e))));
   },

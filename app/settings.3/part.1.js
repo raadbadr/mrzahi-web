@@ -641,6 +641,163 @@
         loadApiKeys();
       }
 
+      /* ---------- الربط المحاسبي (امر المهندس رعد 2026-09-23) ----------
+         المصاريف والفواتير ترسل مسودات الى المنصة المحاسبية التي يختارها العميل، والبداية
+         بقيود. المفتاح يذهب الى الوركر وحده فيتحقق منه عند المنصة ويحفظه مشفرا، ولا يعود
+         الى المتصفح ابدا. البطاقة للمالك والمشرف في حساب منشاة، وتظهر مرة واحدة بعد وصول
+         حالتها (قاعدة الثبات). */
+      var ACCT_PROVIDERS = [{ value: "qoyod", key: "acctProviderQoyod" }];
+      var ACCT_WAIT = { no_inventory: "acctWaitInventory", no_expense_account: "acctWaitAccount", no_vendor: "acctWaitVendor",
+                        no_amount: "acctWaitAmount", no_customer: "acctWaitCustomer", no_sales_product: "acctWaitProduct" };
+      var ACCT_ERR = { invalid_key: "acctErrKey", not_admin: "acctErrAdmin", rate_limited: "acctErrRate",
+                       provider_error: "acctErrProvider", not_connected: "acctErrNotConnected" };
+      var acct = { status: null, lookups: null };
+
+      /* نداء الوركر بجلسة صاحبه وبمهلة: لا انتظار ابدي (قاعدة 17) */
+      function acctPost(path, body) {
+        var auth = window.mrzahiAuth;
+        var ctrl = window.AbortController ? new AbortController() : null;
+        var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 35000);
+        return Promise.resolve(auth && auth.getSession ? auth.getSession() : null).then(function (sess) {
+          var headers = { "Content-Type": "application/json" };
+          if (sess && sess.access_token) headers.Authorization = "Bearer " + sess.access_token;
+          return fetch(path, { method: "POST", headers: headers, body: JSON.stringify(body || {}), signal: ctrl ? ctrl.signal : undefined });
+        }).then(function (res) {
+          clearTimeout(timer);
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            if (!res.ok) { var e = new Error((data && data.error) || "failed"); e.code = (data && data.error) || "failed"; throw e; }
+            return data || {};
+          });
+        }, function (err) { clearTimeout(timer); throw err; });
+      }
+      function acctError(err) { return t(ACCT_ERR[err && err.code] || "genericError"); }
+      function acctProviderName(v) {
+        var hit = ACCT_PROVIDERS.filter(function (p) { return p.value === v; })[0];
+        return hit ? t(hit.key) : String(v || "");
+      }
+      function acctFill(id, rows, value, firstKey) {
+        var sel = el(id); if (!sel) return;
+        var html = (firstKey ? '<option value="">' + esc(t(firstKey)) + "</option>" : "") +
+          (rows || []).map(function (r) {
+            return '<option value="' + esc(r.value) + '">' + esc(r.label) + "</option>";
+          }).join("");
+        if (sel.innerHTML !== html) sel.innerHTML = html;
+        sel.value = value == null ? "" : String(value);
+        if (sel.value !== (value == null ? "" : String(value))) sel.value = "";
+      }
+      function renderAcct() {
+        var card = el("acctCard"); if (!card) return;
+        var st = acct.status || {};
+        el("acctConnectBox").hidden = !!st.connected;
+        el("acctLinkedBox").hidden = !st.connected;
+        if (!st.connected) {
+          acctFill("acctProvider", ACCT_PROVIDERS.map(function (p) { return { value: p.value, label: t(p.key) }; }), (el("acctProvider") && el("acctProvider").value) || "qoyod");
+          card.hidden = false;
+          return;
+        }
+        var s = st.settings || {};
+        el("acctLinkedLine").textContent = t("acctLinkedLine")
+          .split("{provider}").join(acctProviderName(st.provider))
+          .split("{hint}").join(st.key_hint || "")
+          .split("{date}").join(fmtDate(st.connected_at));
+        var lk = acct.lookups || {};
+        var pick = function (rows) { return (rows || []).map(function (r) { return { value: r.id, label: r.code ? r.code + " " + r.name : r.name }; }); };
+        acctFill("acctInventory", pick(lk.inventories), s.inventory_id, "acctPick");
+        acctFill("acctExpenseAccount", pick(lk.expense_accounts), s.expense_account_id, "acctPick");
+        acctFill("acctExpenseTax", [{ value: "inclusive15", label: t("acctTaxInclusive") }, { value: "exempt", label: t("acctTaxExempt") }], s.expense_tax || "inclusive15");
+        acctFill("acctVendor", pick(lk.vendors), s.default_vendor_id, "acctNone");
+        acctFill("acctProduct", pick(lk.products), s.sales_product_id, "acctNone");
+        /* الارقام: ما ارسل، وما ينتظر ولماذا، وما تعذر وآخر خطئه */
+        var c = st.counts || {}, rows = [];
+        var row = function (label, value) {
+          return '<div class="platform-stat-detail-row"><span>' + esc(label) + '</span><span class="platform-stat-detail-val">' + esc(String(value)) + "</span></div>";
+        };
+        if (c.sent) rows.push(row(t("acctCountSent"), c.sent));
+        Object.keys(st.waiting || {}).forEach(function (reason) {
+          rows.push(row(t(ACCT_WAIT[reason] || "acctCountWaiting"), st.waiting[reason]));
+        });
+        if (c.failed) rows.push(row(t("acctCountFailed"), c.failed));
+        if (st.last_error) rows.push(row(t("acctLastError"), st.last_error));
+        var box = el("acctCounts");
+        var html = rows.join("");
+        if (box.innerHTML !== html) box.innerHTML = html;
+        box.hidden = !rows.length;
+        card.hidden = false;
+      }
+      function acctLoadStatus() {
+        if (!app.org || !app.client) return Promise.resolve();
+        return app.client.rpc("acct_link_status", { p_org: app.org.id }).then(function (res) {
+          if (res && res.error) throw res.error;
+          acct.status = (res && res.data) || { connected: false };
+          if (acct.status.connected && !acct.lookups) {
+            return acctPost("/api/accounting/lookups", { org: app.org.id })
+              .then(function (d) { acct.lookups = d.lookups || null; })
+              .catch(function (err) { setMsg("acctMsg", acctError(err), "error"); });
+          }
+        }).then(renderAcct);
+      }
+      function acctSettingsFromForm() {
+        var v = function (id) { var n = el(id); return n && n.value ? n.value : null; };
+        return { inventory_id: v("acctInventory"), expense_account_id: v("acctExpenseAccount"), expense_tax: v("acctExpenseTax") || "inclusive15",
+                 default_vendor_id: v("acctVendor"), sales_product_id: v("acctProduct") };
+      }
+      function wireAccounting() {
+        var card = el("acctCard"); if (!card) return;
+        var role = app.role ? app.role() : "";
+        var ent = app.org && app.org.entity_type;
+        if (!app.org || (role !== "owner" && role !== "admin") || ent === "individual") { card.hidden = true; return; }
+        el("acctConnectBtn").addEventListener("click", function () {
+          var btn = this, key = String(el("acctKey").value || "").trim();
+          if (!key) { el("acctKey").focus(); return; }
+          btn.disabled = true;
+          setMsg("acctMsg", "");
+          acctPost("/api/accounting/connect", { org: app.org.id, provider: el("acctProvider").value || "qoyod", key: key }).then(function (d) {
+            el("acctKey").value = "";
+            acct.lookups = d.lookups || null;
+            return acctLoadStatus().then(function () {
+              var s = (acct.status && acct.status.settings) || {};
+              setMsg("acctMsg", t(s.expense_account_id ? "acctConnected" : "acctNeedAccount"), "success");
+            });
+          }).catch(function (err) { setMsg("acctMsg", acctError(err), "error"); })
+            .then(function () { btn.disabled = false; });
+        });
+        el("acctSaveBtn").addEventListener("click", function () {
+          var btn = this; btn.disabled = true;
+          acctPost("/api/accounting/settings", { org: app.org.id, settings: acctSettingsFromForm() }).then(function () {
+            return acctLoadStatus().then(function () { setMsg("acctMsg", t("acctSaved"), "success"); });
+          }).catch(function (err) { setMsg("acctMsg", acctError(err), "error"); })
+            .then(function () { btn.disabled = false; });
+        });
+        el("acctSyncBtn").addEventListener("click", function () {
+          var btn = this; btn.disabled = true;
+          acctPost("/api/accounting/sync", { org: app.org.id }).then(function (d) {
+            var sm = (d && d.summary) || {};
+            return acctLoadStatus().then(function () {
+              setMsg("acctMsg", t("acctSyncDone").split("{sent}").join(String(sm.sent || 0))
+                .split("{waiting}").join(String(sm.waiting || 0)).split("{failed}").join(String(sm.failed || 0)), sm.failed ? "error" : "success");
+            });
+          }).catch(function (err) { setMsg("acctMsg", acctError(err), "error"); })
+            .then(function () { btn.disabled = false; });
+        });
+        /* فك الربط لا يمضي بنقرة: حوار المنصة يسمي ما سيقع، والالغاء هو الافتراضي */
+        el("acctForgetBtn").addEventListener("click", function () {
+          var btn = this;
+          var ask = app.confirmDanger
+            ? app.confirmDanger(t("acctForget"), { warn: t("acctForgetConfirm") })
+            : Promise.resolve(window.confirm(t("acctForgetConfirm")));
+          ask.then(function (yes) {
+            if (!yes) return;
+            btn.disabled = true;
+            acctPost("/api/accounting/forget", { org: app.org.id }).then(function () {
+              acct.lookups = null;
+              return acctLoadStatus().then(function () { setMsg("acctMsg", t("acctForgotten"), "success"); });
+            }).catch(function (err) { setMsg("acctMsg", acctError(err), "error"); })
+              .then(function () { btn.disabled = false; });
+          });
+        });
+        acctLoadStatus().catch(function (err) { setMsg("acctMsg", acctError(err), "error"); renderAcct(); });
+      }
+
       function loadCalendar() {
         if (!app.org) {
           setMsg("calendarMsg", t("noOrg"), "error");

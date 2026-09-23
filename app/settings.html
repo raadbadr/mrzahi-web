@@ -224,6 +224,58 @@ curl -H "Authorization: Bearer mz_live_..." "https://mrzahi.com/api/v1/items?rec
         </details>
       </div>
 
+      <!-- الربط المحاسبي (امر المهندس رعد 2026-09-23: «طريقة ربط سهلة مع قيود، او مع اي
+           منصة محاسبية يفضلها العميل»، والاتجاه باختياره: الارسال من مستر زاهي الى المحاسبة).
+           المنصة ومفتاحها، ثم ما يلزم الارسال من اختيارات. للمالك والمشرف في حساب منشاة. -->
+      <div class="content" id="acctCard" hidden>
+        <h2 data-i18n="acctTitle">الربط المحاسبي</h2>
+        <p data-i18n="acctIntro">ما تضيفه في مستر زاهي من مصاريف وفواتير يرسل تلقائيا الى منصتك المحاسبية، فينشأ عندها مسودة يعتمدها محاسبك ولا يدخل مرتين. يرسل ما تضيفه بعد الربط وحده.</p>
+        <div id="acctConnectBox">
+          <div class="settings-field">
+            <label for="acctProvider" data-i18n="acctProviderLabel">المنصة المحاسبية</label>
+            <select class="waitlist-input" id="acctProvider"></select>
+          </div>
+          <div class="settings-field">
+            <label for="acctKey" data-i18n="acctKeyLabel">مفتاح API من منصتك المحاسبية</label>
+            <div class="waitlist-form">
+              <input type="password" class="waitlist-input" id="acctKey" autocomplete="off" spellcheck="false" maxlength="400" dir="ltr" placeholder="API-KEY">
+              <button type="button" class="waitlist-btn" id="acctConnectBtn" data-i18n="acctConnect">ربط</button>
+            </div>
+            <p class="settings-note" data-i18n="acctKeyHint">في قيود: الإعدادات العامة، ثم مفتاح API. انسخه والصقه هنا. يحفظ مشفرا ولا يظهر مرة أخرى.</p>
+          </div>
+        </div>
+        <div id="acctLinkedBox" hidden>
+          <p class="settings-note" id="acctLinkedLine"></p>
+          <div class="settings-field">
+            <label for="acctInventory" data-i18n="acctInventoryLabel">الفرع أو المستودع</label>
+            <select class="waitlist-input" id="acctInventory"></select>
+          </div>
+          <div class="settings-field">
+            <label for="acctExpenseAccount" data-i18n="acctAccountLabel">حساب المصروفات</label>
+            <select class="waitlist-input" id="acctExpenseAccount"></select>
+          </div>
+          <div class="settings-field">
+            <label for="acctExpenseTax" data-i18n="acctTaxLabel">ضريبة المصاريف</label>
+            <select class="waitlist-input" id="acctExpenseTax"></select>
+          </div>
+          <div class="settings-field">
+            <label for="acctVendor" data-i18n="acctVendorLabel">المورد للمصاريف التي بلا جهة</label>
+            <select class="waitlist-input" id="acctVendor"></select>
+          </div>
+          <div class="settings-field">
+            <label for="acctProduct" data-i18n="acctProductLabel">منتج فواتير البيع</label>
+            <select class="waitlist-input" id="acctProduct"></select>
+          </div>
+          <div class="waitlist-form">
+            <button type="button" class="waitlist-btn" id="acctSaveBtn" data-i18n="acctSave">حفظ</button>
+            <button type="button" class="chat-option-btn" id="acctSyncBtn" data-i18n="acctSync">إرسال الآن</button>
+            <button type="button" class="chat-option-btn is-danger" id="acctForgetBtn" data-i18n="acctForget">فك الربط</button>
+          </div>
+          <div class="platform-stat-detail" id="acctCounts" hidden></div>
+        </div>
+        <p class="waitlist-msg" id="acctMsg" hidden role="status" aria-live="polite"></p>
+      </div>
+
       <!-- (4) Calendar -->
       <div class="content" id="calendarCard">
         <h2 data-i18n="calendarTitle">التقويم</h2>
@@ -424,9 +476,9 @@ curl -H "Authorization: Bearer mz_live_..." "https://mrzahi.com/api/v1/items?rec
   </div>
 
 
-  <script src="/app/settings.1.js?v=83"></script>
+  <script src="/app/settings.1.js?v=84"></script>
   <script src="/app/settings.2.js?v=82"></script>
-  <script src="/app/settings.3.js?v=83"></script>
+  <script src="/app/settings.3.js?v=84"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- رمز QR لربط تيليجرام من الجوال (qrcode-generator من cdnjs — مسموح في CSP) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" defer integrity="sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

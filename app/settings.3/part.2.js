@@ -228,6 +228,7 @@
             });
           });
           try { wireApi(); } catch (e) { if (window.console) console.warn("api card:", e); }
+          try { wireAccounting(); } catch (e) { if (window.console) console.warn("accounting card:", e); }
           el("regenerateBtn").addEventListener("click", regenerateCalendar);
           var soBtn = el("signOutBtn");
           if (soBtn) soBtn.addEventListener("click", signOut);
