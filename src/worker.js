@@ -1229,6 +1229,13 @@ async function withNotFoundPage(env, url, res) {
 
   // Cron كل 5 دقائق: توليد التنبيهات المستحقة وإرسالها عبر القنوات
   async scheduled(event, env, ctx) {
+    /* الكرون لا ينادي db.mrzahi.com مباشرة: قاعدة WAF «block-direct-db» تحجب كل طلب اليه
+       لا يحمل cf.worker.upstream_zone = mrzahi.com، ونداءات الكرون لا منطقة لها فترد 403.
+       بذلك صمتت كل مهام الكرون منذ 2026-09-11 (اخر تذكير Telegram ارسل يومها، وقيس سجل
+       الخادم الحي في 2026-09-23: التذكيرات والايجاز والتنبيه والتجربة والحذف كلها 403).
+       فيمر الكرون بوكيل الموقع نفسه (SUPABASE_PROXY_PREFIXES على mrzahi.com)، فيصل الى
+       القاعدة من منطقة mrzahi.com كما يصل المتصفح، ولا تفتح القاعدة لغير الـ Worker. */
+    env = { ...env, SUPABASE_URL: env.SUPABASE_PUBLIC_URL || "https://mrzahi.com" };
     ctx.waitUntil(runNotificationCron(env).then((r) => console.log("[cron]", JSON.stringify(r))).catch((e) => console.error("[cron]", String(e))));
     // الإيجاز الصباحي (07:00 بتوقيت كل مستخدم) وتجهيز جلسات الغد (18:00)
     ctx.waitUntil(runTelegramDigests(env).then((r) => console.log("[digest]", JSON.stringify(r))).catch((e) => console.error("[digest]", String(e))));
