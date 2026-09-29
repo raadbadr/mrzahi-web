@@ -517,6 +517,11 @@
     .rules-table .chat-options { margin-top: 0; flex-wrap: nowrap; }
     /* زرا الصف (الرمزان) جنب بعضهما، بلا اجبار على بقية الخلايا */
     .rules-table .row-actions { flex-wrap: nowrap; }
+    /* قاعدة القشرة المحقونة `.content .row-actions{flex-wrap:wrap}` (common part.3.js)
+       بخصوصية القاعدة اعلاه نفسها وتاتي بعدها، فكانت تلف الزرين فوق بعضهما.
+       خصوصية اعلى لهذه الخلية وحدها (امر المهندس رعد 2026-09-29: «حط الزرين جنب
+       بعض»). مقيس على 375 و768 و895 و1280: الزران على سطر واحد، بلا فيض للصفحة. */
+    .content .rules-table .row-actions { flex-wrap: nowrap; }
     .rules-table .row-actions .chat-option-btn { flex: 0 0 auto; }
     .plan-limits { list-style: none; margin-bottom: 1.5rem; }
     .plan-limits li {
