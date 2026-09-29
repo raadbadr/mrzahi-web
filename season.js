@@ -14,7 +14,9 @@
    قواعدها كتلة واحدة في header.css، ولا تمس شعارا ولا ايقونة. */
 (function () {
   try {
-    var on = new Date().getMonth() === 8;
+    /* اطفئ الموسم بامر المهندس رعد 2026-09-29: «رجع التصميم العادي، ثيم اليوم الوطني
+       خلص». لا يشتغل وحده بعد اليوم؛ ‎?season=nd96‎ يعاينه عند الحاجة. */
+    var on = false;
     var q = String(window.location.search || "");
     if (q.indexOf("season=off") !== -1) on = false;
     else if (q.indexOf("season=nd96") !== -1) on = true;

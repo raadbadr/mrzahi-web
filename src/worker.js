@@ -973,7 +973,9 @@ const ND_LOGO_RE = /mrzahi-logo-full-(dark|light)\.png/;
 function ndSeason(url) {
   /* بتوقيت الرياض (+3) كي تتبدل قيمة اليوم عند منتصف ليل المملكة لا غرينتش */
   const riyadh = new Date(Date.now() + 3 * 3600 * 1000);
-  let on = riyadh.getUTCMonth() === 8;
+  /* اطفئ الموسم بامر المهندس رعد 2026-09-29: «رجع التصميم العادي، ثيم اليوم الوطني
+     خلص». لا يشتغل وحده بعد اليوم؛ ?season=nd96 يعاينه عند الحاجة. */
+  let on = false;
   const q = url.searchParams.get("season");
   if (q === "off") on = false; else if (q === "nd96") on = true;
   if (!on) return null;
