@@ -595,18 +595,29 @@
           if (isOfType(it, "expenses")) spent += Number(it.amount) || 0;
           if (it.data && it.data.repeat) regular++;
         });
+        var hasHealth = packHasService("health"), hasExpenses = packHasService("expenses");
+        var expTitle = esc(viewTitleText("expenses") || T("viewExpenses"));
         var cards =
           '<div class="ind-card"><h3>' + esc(T("indMyPapers")) + "</h3>" + barsHtml(ownMetrics()) + "</div>";
-        if (packHasService("health")) {
+        if (hasHealth) {
           cards += '<div class="ind-card"><h3>' + esc(viewTitleText("health") || T("viewHealth")) + "</h3>" +
                    '<p class="ind-note">' + esc(T("indRegular").replace("{n}", String(regular))) + "</p></div>";
+        }
+        /* بلا «صحتي» كانت الشبكة ذات العمودين تحمل بطاقة واحدة فيبقى نصفها فارغا،
+           والمصاريف شريطا تحتها (10 حزم من 12؛ امر المهندس رعد 2026-10-01: «عدل
+           التصميم هنا»). المصاريف تصير البطاقة الثانية بجوار المخطط، والشريط يبقى
+           حيث توجد «صحتي» (الشخصي) كما كان. */
+        var expInGrid = hasExpenses && !hasHealth;
+        if (expInGrid) {
+          cards += '<div class="ind-card ind-card--total"><h3>' + expTitle + "</h3>" +
+                   '<div class="ind-total"><b>' + shortMoney(spent) + "</b></div></div>";
         }
         paintEl(card).html =
           "<h2>" + esc(T("indMine")) + "</h2>" +
           '<div class="ind-grid">' + cards + "</div>" +
-          (packHasService("expenses")
+          (hasExpenses && !expInGrid
             ? '<div class="ind-totals"><div class="ind-total"><span>' +
-              esc(viewTitleText("expenses") || T("viewExpenses")) + '</span><b>' + shortMoney(spent) + "</b></div></div>"
+              expTitle + '</span><b>' + shortMoney(spent) + "</b></div></div>"
             : "");
       }
 

@@ -643,6 +643,14 @@
       box-shadow: 5px 5px 12px var(--shadow-dark), -5px -5px 12px var(--shadow-light);
     }
     .ind-card h3 { margin: 0 0 1rem; font-size: 0.95rem; font-weight: 700; color: var(--text-primary); text-align: center; }
+    /* بطاقة وحيدة في الشبكة تاخذ الصف كاملا فلا يبقى عمود فارغ بجوارها (المخطط
+       نفسه محدود بـ max-width في .chart-bars). وبطاقة المصاريف بجوار المخطط:
+       رقمها في وسط ما تحت عنوانها بنمط .ind-total نفسه (امر المهندس رعد
+       2026-10-01: «عدل التصميم هنا»). مقيس على 375 و768 و1280: البطاقتان
+       بعرض وطول واحد على العريضة، وعمود واحد على الضيقة، وبلا فيض. */
+    .ind-grid > .ind-card:only-child { grid-column: 1 / -1; }
+    .ind-card--total { display: flex; flex-direction: column; }
+    .ind-card--total .ind-total { margin-block: auto; border-inline-end: 0; }
     .ind-body { display: flex; align-items: center; justify-content: center; gap: 1.25rem; flex-wrap: wrap; }
     .donut-legend { display: grid; gap: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); }
     .donut-legend span.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-inline-end: 0.45rem; }
