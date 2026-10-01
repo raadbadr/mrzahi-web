@@ -23,6 +23,7 @@ import { ALLOWED_EXT, fileExt, parseWorkbook, draftPayload, commitImport } from 
 import { extractIntent, describeAction, formatSearch, executeAction, runTelegramDigests, runAbsenceNudges, runTrialCountdown } from "./telegram-actions.js";
 import { hmacHex, telegramFileRoute, handleTelegramFile, offerDocument, handleDocCallback } from "./telegram-documents.js";
 import { handleAgentChat, handleAgentConfirm } from "./web-agent.js";
+import { handleIclock } from "./attendance.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -1047,6 +1048,8 @@ export default {
       });
     }
 
+    /* اجهزة البصمة (ZKTeco ADMS): مسارها ثابت في الجهاز /iclock ولا يقبل غيره (0178) */
+    if (path === "/iclock" || path.startsWith("/iclock/")) return await handleIclock(request, env, url);
     // Only handle /api/* routes — everything else is static assets
     if (path === "/mcp" || path === "/mcp/") return await handleMcp(request, env, url, { authenticate: mcpAuthenticate, importRows: importRowsWithKey });
     /* الشكل نفسه الذي ربط به خادم باركينزي في هرمس (رابط فقط بلا ترويسة): المفتاح داخل المسار /mcp/mz_live_… */
