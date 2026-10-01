@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <!-- الموسم مطبوع في الترميز من الـ Worker، فتصل الصفحة وهي بالثيم. هذا احتياط
+       لمن يفتحها من خارجه، ولتبديل صور الشعار التي تبنى بعد التحميل. -->
+  <script src="/season.js?v=3" defer></script>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://accounts.google.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cloudflareinsights.com https://accounts.google.com https://www.googleapis.com https://apis.google.com; frame-src https://accounts.google.com https://docs.google.com https://drive.google.com; worker-src 'self' blob: https://cdnjs.cloudflare.com;">
+  <meta name="theme-color" content="#1a2933" id="themeColorMeta">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/mrzahi-icon.ico?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/mrzahi-icon-32.png?v=2">
+  <link rel="icon" type="image/png" sizes="16x16" href="/mrzahi-icon-16.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/mrzahi-icon-180.png?v=2">
+  <title>مسيرات الرواتب | MrZahi</title>
+  <link rel="manifest" href="/manifest.webmanifest?v=zahi3">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Monoton&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/header.css?v=88">
+  <link rel="stylesheet" href="/footer.css?v=75">
+  <link rel="stylesheet" href="/app/payroll.css?v=1">
+</head>
+<body class="has-site-header">
+  <header class="site-header">
+    <div class="menu-btn" id="langMenuBtn">
+      <div class="icon-circle"><span class="icon">🌐</span></div>
+      <div class="menu-text">
+        <div class="menu-label" data-i18n="language">اللغة</div>
+        <div class="menu-value" id="currentLangDisplay">العربية</div>
+      </div>
+      <span class="menu-icon">⋯</span>
+      <div class="menu-dropdown" id="langDropdown">
+        <div class="menu-dropdown-item" data-lang="ar"><span class="checkmark" id="check-ar">✓</span><span>العربية</span></div>
+        <div class="menu-dropdown-item" data-lang="en"><span class="checkmark" id="check-en" style="display:none">✓</span><span>English</span></div>
+        <div class="menu-dropdown-item" data-lang="fr"><span class="checkmark" id="check-fr" style="display:none">✓</span><span>Français</span></div>
+        <div class="menu-dropdown-item" data-lang="ur"><span class="checkmark" id="check-ur" style="display:none">✓</span><span>اردو</span></div>
+      </div>
+    </div>
+    <div class="menu-btn" id="themeMenuBtn">
+      <div class="icon-circle"><span class="icon" id="themeIcon">🌙</span></div>
+      <div class="menu-text">
+        <div class="menu-label" data-i18n="appearance">المظهر</div>
+        <div class="menu-value" id="currentThemeDisplay">داكن</div>
+      </div>
+      <span class="menu-icon">⋯</span>
+      <div class="menu-dropdown" id="themeDropdown">
+        <div class="menu-dropdown-item" data-theme="light"><span class="checkmark" id="check-light" style="display:none">✓</span><span data-i18n="light">فاتح</span></div>
+        <div class="menu-dropdown-item" data-theme="dark"><span class="checkmark" id="check-dark">✓</span><span data-i18n="dark">داكن</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="content" id="loadingCard"><p data-i18n="loading">جاري التحميل...</p></div>
+    <div class="content" id="unavailableCard" hidden><p data-i18n="unavailable">الخدمة غير متاحة الآن.</p></div>
+    <div class="content" id="noOrgCard" hidden><p data-i18n="noOrg">أنشئ شركتك أولا من لوحة التحكم ثم عد إلى هنا.</p></div>
+
+    <div id="view" hidden>
+      <!-- القائمة -->
+      <div class="content" id="listCard">
+        <h2 data-i18n="payTitle">مسيرات الرواتب</h2>
+        <p data-i18n="payIntro">مسير كل شهر يولد من ملفات الموظفين.</p>
+        <div class="toolbar">
+          <input type="month" class="waitlist-input" id="monthPick" dir="ltr" aria-label="الشهر">
+          <button type="button" class="waitlist-btn" id="genBtn" data-i18n="generate">توليد المسير</button>
+          <button type="button" class="chat-option-btn" id="setBtn" data-i18n="settingsBtn">الإعدادات</button>
+        </div>
+        <p class="waitlist-msg" id="listMsg" hidden role="status" aria-live="polite"></p>
+        <h3 data-i18n="runsTitle">المسيرات</h3>
+        <div class="table-wrap" id="runsWrap" hidden>
+          <table class="items-table"><thead><tr>
+            <th data-i18n="colMonth">الشهر</th><th data-i18n="colEmployees">الموظفون</th><th data-i18n="colGross">الإجمالي</th>
+            <th data-i18n="colDeductions">الاستقطاعات</th><th data-i18n="colNet">الصافي</th><th data-i18n="colStatus">الحالة</th>
+            <th data-i18n="colAcct">المحاسبة</th><th data-i18n="actions">الإجراءات</th>
+          </tr></thead><tbody id="runsBody"></tbody></table>
+        </div>
+        <p class="empty-note" id="runsEmpty" data-i18n="noRuns" hidden>لا مسيرات بعد.</p>
+      </div>
+
+      <!-- المسير -->
+      <div class="content" id="runCard" hidden>
+        <div class="pay-head">
+          <button type="button" class="chat-option-btn" id="backBtn" data-i18n="back">رجوع</button>
+          <h2 id="runTitle"></h2>
+          <span id="runStatus"></span>
+        </div>
+        <div class="totals-row" id="runTotals"></div>
+        <p class="waitlist-msg" id="runWarn" hidden></p>
+        <div class="pay-actions">
+          <button type="button" class="chat-option-btn" id="refreshBtn" data-i18n="refresh">تحديث من ملفات الموظفين</button>
+          <button type="button" class="waitlist-btn" id="approveBtn" data-i18n="approve">اعتماد المسير</button>
+          <button type="button" class="waitlist-btn" id="paidBtn" data-i18n="markPaid">تم الدفع</button>
+          <button type="button" class="chat-option-btn" id="reopenBtn" data-i18n="reopen">إعادة فتح</button>
+          <span id="bankWrap" class="pay-actions" style="margin:0">
+            <button type="button" class="chat-option-btn" id="bankXlsxBtn"><span data-i18n="bankFile">ملف التحويل البنكي</span> · <span data-i18n="bankXlsx">Excel</span></button>
+            <button type="button" class="chat-option-btn" id="bankCsvBtn" data-i18n="bankCsv">CSV</button>
+          </span>
+          <button type="button" class="chat-option-btn" id="slipsBtn" data-i18n="printSlips">طباعة كل القسائم</button>
+        </div>
+        <p class="inline-hint" id="acctLine" hidden></p>
+        <button type="button" class="chat-option-btn" id="acctRetry" data-i18n="acctRetry" hidden>إعادة الإرسال</button>
+        <p class="waitlist-msg" id="runMsg" hidden role="status" aria-live="polite"></p>
+        <div class="table-wrap" id="linesWrap" hidden>
+          <table class="items-table"><thead><tr>
+            <th data-i18n="colEmployee">الموظف</th><th data-i18n="colDays">الأيام</th><th data-i18n="colEarned">المستحق</th>
+            <th data-i18n="colAdditions">إضافات</th><th data-i18n="colGosi">التأمينات</th><th data-i18n="colAbsence">غياب وتأخر</th>
+            <th data-i18n="colUnpaid">بلا راتب</th><th data-i18n="colOtherDed">سلف وخصومات</th><th data-i18n="colNet">الصافي</th>
+            <th data-i18n="actions">الإجراءات</th>
+          </tr></thead><tbody id="linesBody"></tbody></table>
+        </div>
+        <p class="empty-note" id="linesEmpty" data-i18n="empty" hidden>لا موظفين نشطين.</p>
+        <div class="danger-zone" id="runDanger" hidden>
+          <button type="button" class="chat-option-btn is-danger" id="deleteRunBtn" data-i18n="deleteRun">حذف المسودة</button>
+        </div>
+      </div>
+
+      <!-- تعديل سطر -->
+      <div class="content" id="lineCard" hidden>
+        <h2 id="lineTitle" data-i18n="lineEditTitle">تعديل سطر</h2>
+        <form id="lineForm" novalidate>
+          <div class="form-grid">
+            <label class="form-field"><span data-i18n="fOvertime">عمل إضافي</span><input type="number" min="0" step="0.01" class="waitlist-input" id="fOvertime" dir="ltr"></label>
+            <label class="form-field"><span data-i18n="fBonus">مكافأة</span><input type="number" min="0" step="0.01" class="waitlist-input" id="fBonus" dir="ltr"></label>
+            <label class="form-field"><span data-i18n="fExtraAbsence">أيام غياب إضافية</span><input type="number" min="0" max="31" step="0.5" class="waitlist-input" id="fExtraAbsence" dir="ltr"></label>
+            <label class="form-field"><span data-i18n="fAdvance">خصم سلفة</span><input type="number" min="0" step="0.01" class="waitlist-input" id="fAdvance" dir="ltr"></label>
+            <label class="form-field"><span data-i18n="fOtherDed">خصومات أخرى</span><input type="number" min="0" step="0.01" class="waitlist-input" id="fOtherDed" dir="ltr"></label>
+            <label class="form-field"><span data-i18n="fDaysOverride">أيام الاستحقاق</span><input type="number" min="0" max="30" step="0.5" class="waitlist-input" id="fDaysOverride" dir="ltr"></label>
+            <label class="form-field check-field"><input type="checkbox" id="fIsSaudi"><span data-i18n="fIsSaudi">سعودي</span></label>
+            <label class="form-field"><span data-i18n="fNote">ملاحظة</span><input type="text" class="waitlist-input" id="fNote" maxlength="500" dir="auto"></label>
+          </div>
+          <div class="waitlist-form form-actions" style="margin-top:1rem">
+            <button type="submit" class="waitlist-btn" id="lineSave" data-i18n="save">حفظ</button>
+            <button type="button" class="chat-option-btn" id="lineCancel" data-i18n="cancel">إلغاء</button>
+          </div>
+          <p class="waitlist-msg" id="lineMsg" hidden role="status" aria-live="polite"></p>
+          <div class="danger-zone">
+            <button type="button" class="chat-option-btn is-danger" id="lineRemove" data-i18n="removeLine">إخراج من المسير</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- الاعداد -->
+      <div class="content" id="setCard" hidden>
+        <div class="pay-head">
+          <button type="button" class="chat-option-btn" id="setBack" data-i18n="back">رجوع</button>
+          <h2 data-i18n="setTitle">إعدادات الرواتب</h2>
+        </div>
+        <form id="setForm" novalidate>
+          <h3 data-i18n="sGosiTitle">التأمينات الاجتماعية</h3>
+          <p class="inline-hint" data-i18n="ratesNote"></p>
+          <div class="form-grid">
+            <label class="form-field"><span data-i18n="sGosiSaudiEmp">على الموظف السعودي %</span><input type="number" min="0" max="30" step="0.01" class="waitlist-input" id="sGosiSaudiEmp" dir="ltr"></label>
+            <label class="form-field"><span data-i18n="sGosiSaudiEr">على المنشأة للسعودي %</span><input type="number" min="0" max="30" step="0.01" class="waitlist-input" id="sGosiSaudiEr" dir="ltr"></label>
+            <label class="form-field"><span data-i18n="sGosiNonEmp">على الموظف غير السعودي %</span><input type="number" min="0" max="30" step="0.01" class="waitlist-input" id="sGosiNonEmp" dir="ltr"></label>
+            <label class="form-field"><span data-i18n="sGosiNonEr">على المنشأة لغير السعودي %</span><input type="number" min="0" max="30" step="0.01" class="waitlist-input" id="sGosiNonEr" dir="ltr"></label>
+            <label class="form-field"><span data-i18n="sGosiCap">سقف الوعاء</span><input type="number" min="1" step="1" class="waitlist-input" id="sGosiCap" dir="ltr"></label>
+            <label class="form-field"><span data-i18n="sHours">ساعات العمل في اليوم</span><input type="number" min="1" max="24" step="0.5" class="waitlist-input" id="sHours" dir="ltr"></label>
+            <label class="form-field check-field"><input type="checkbox" id="sIncludeHousing"><span data-i18n="sIncludeHousing">السكن داخل الوعاء</span></label>
+            <label class="form-field check-field"><input type="checkbox" id="sDeductLate"><span data-i18n="sDeductLate">خصم التأخر</span></label>
+          </div>
+          <h3 data-i18n="sBankTitle">التحويل البنكي</h3>
+          <div class="form-grid">
+            <label class="form-field"><span data-i18n="sMolId">رقم المنشأة في مدد</span><input type="text" class="waitlist-input" id="sMolId" maxlength="40" dir="ltr"></label>
+            <label class="form-field"><span data-i18n="sEmployerIban">آيبان المنشأة</span><input type="text" class="waitlist-input" id="sEmployerIban" maxlength="34" dir="ltr"></label>
+          </div>
+          <div id="acctBox" hidden>
+            <h3 data-i18n="sAccountsTitle">حسابات قيد الرواتب</h3>
+            <p class="inline-hint" id="acctNote"></p>
+            <div class="form-grid" id="acctSelects">
+              <label class="form-field"><span data-i18n="aSalariesExpense">مصروف الرواتب</span><select class="waitlist-input" id="aSalariesExpense"></select></label>
+              <label class="form-field"><span data-i18n="aGosiExpense">مصروف التأمينات</span><select class="waitlist-input" id="aGosiExpense"></select></label>
+              <label class="form-field"><span data-i18n="aGosiPayable">التأمينات المستحقة</span><select class="waitlist-input" id="aGosiPayable"></select></label>
+              <label class="form-field"><span data-i18n="aSalariesPayable">الرواتب المستحقة</span><select class="waitlist-input" id="aSalariesPayable"></select></label>
+              <label class="form-field"><span data-i18n="aAdvances">سلف الموظفين</span><select class="waitlist-input" id="aAdvances"></select></label>
+            </div>
+          </div>
+          <div class="waitlist-form form-actions" style="margin-top:1rem">
+            <button type="submit" class="waitlist-btn" id="setSave" data-i18n="save">حفظ</button>
+          </div>
+          <p class="waitlist-msg" id="setMsg" hidden role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app/payroll.1.js?v=1"></script>
+  <script src="/app/payroll.2.js?v=1"></script>
+  <script src="/app/payroll.3.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/app.js?v=80" defer></script>
+<script src="/app/common.js?v=96" defer></script>
+<script src="/brand-logo.js?v=86" defer></script>
+</body>
+</html>
