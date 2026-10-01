@@ -326,6 +326,16 @@
               <label class="form-field span-6" data-field="train_major"><span data-i18n="fieldTrainMajor">التخصص</span><input type="text" class="waitlist-input" id="editTrainMajor" maxlength="120" dir="auto"></label>
               <label class="form-field span-6" data-field="train_result"><span data-i18n="fieldTrainResult">النتيجة او التقدير</span><input type="text" class="waitlist-input" id="editTrainResult" maxlength="80" dir="auto"></label>
             </div>
+            <!-- مهمة التحاق: لا تظهر الا في شاشتها (حزمة الموارد البشرية) -->
+            <div class="form-grid" data-view="onboarding" hidden>
+              <label class="form-field span-6" data-field="onb_employee"><span data-i18n="fieldHrTaskEmployee">الموظف</span><select class="waitlist-input" id="editOnbEmployee"></select></label>
+              <label class="form-field span-6" data-field="onb_role"><span data-i18n="fieldHrTaskRole">المسؤول عنها</span><input type="text" class="waitlist-input" id="editOnbRole" maxlength="120" dir="auto"></label>
+            </div>
+            <!-- مهمة انهاء خدمة: لا تظهر الا في شاشتها (حزمة الموارد البشرية) -->
+            <div class="form-grid" data-view="offboarding" hidden>
+              <label class="form-field span-6" data-field="off_employee"><span data-i18n="fieldHrTaskEmployee">الموظف</span><select class="waitlist-input" id="editOffEmployee"></select></label>
+              <label class="form-field span-6" data-field="off_role"><span data-i18n="fieldHrTaskRole">المسؤول عنها</span><input type="text" class="waitlist-input" id="editOffRole" maxlength="120" dir="auto"></label>
+            </div>
             <div class="waitlist-form form-actions">
               <button type="submit" class="waitlist-btn" id="editSaveBtn" data-i18n="save">حفظ</button>
               <button type="button" class="chat-option-btn" id="editCancelBtn" data-i18n="cancel">إلغاء</button>
@@ -502,6 +512,16 @@
                 <label class="form-field span-3" data-field="train_degree"><span data-i18n="fieldTrainDegree">الدرجة العلمية</span><input type="text" class="waitlist-input" id="addTrainDegree" list="trainDegreeSuggest" maxlength="80" dir="auto" autocomplete="off"></label>
                 <label class="form-field span-6" data-field="train_major"><span data-i18n="fieldTrainMajor">التخصص</span><input type="text" class="waitlist-input" id="addTrainMajor" maxlength="120" dir="auto"></label>
                 <label class="form-field span-6" data-field="train_result"><span data-i18n="fieldTrainResult">النتيجة او التقدير</span><input type="text" class="waitlist-input" id="addTrainResult" maxlength="80" dir="auto"></label>
+              </div>
+              <!-- مهمة التحاق: لا تظهر الا في شاشتها (حزمة الموارد البشرية) -->
+              <div class="form-grid" data-view="onboarding" hidden>
+                <label class="form-field span-6" data-field="onb_employee"><span data-i18n="fieldHrTaskEmployee">الموظف</span><select class="waitlist-input" id="addOnbEmployee"></select></label>
+                <label class="form-field span-6" data-field="onb_role"><span data-i18n="fieldHrTaskRole">المسؤول عنها</span><input type="text" class="waitlist-input" id="addOnbRole" maxlength="120" dir="auto"></label>
+              </div>
+              <!-- مهمة انهاء خدمة: لا تظهر الا في شاشتها (حزمة الموارد البشرية) -->
+              <div class="form-grid" data-view="offboarding" hidden>
+                <label class="form-field span-6" data-field="off_employee"><span data-i18n="fieldHrTaskEmployee">الموظف</span><select class="waitlist-input" id="addOffEmployee"></select></label>
+                <label class="form-field span-6" data-field="off_role"><span data-i18n="fieldHrTaskRole">المسؤول عنها</span><input type="text" class="waitlist-input" id="addOffRole" maxlength="120" dir="auto"></label>
               </div>
               <datalist id="contractTypeSuggest"></datalist>
               <datalist id="finMethodSuggest"></datalist>
@@ -798,6 +818,67 @@
             </table>
           </div>
 
+          <!-- الالتحاق بالعمل: مهام كل موظف من الاجراءات الجاهزة -->
+          <div id="onbBar" hidden>
+            <div class="waitlist-form violations-toolbar">
+              <select class="waitlist-input" id="onbEmpFilter" aria-label="الموظف"></select>
+              <select class="waitlist-input" id="onbStateFilter" aria-label="الحالة"></select>
+            </div>
+            <div class="waitlist-form violations-toolbar">
+              <select class="waitlist-input" id="onbStartPick" aria-label="الموظف"></select>
+              <button type="button" class="chat-option-btn" id="onbStartBtn" data-i18n="onbStartBtn">بدء الالتحاق</button>
+            </div>
+            <div class="totals-row" id="onbTotals"></div>
+          </div>
+
+          <div class="table-wrap" id="onbWrap" hidden>
+            <table class="items-table" id="onbTable">
+              <thead>
+                <tr>
+                  <th data-i18n="colHrTaskEmployee">الموظف</th>
+                  <th data-i18n="colHrTaskStep">الخطوة</th>
+                  <th data-i18n="colHrTaskRole">المسؤول</th>
+                  <th data-i18n="colHrTaskDue">الموعد</th>
+                  <th data-i18n="colStatus">الحالة</th>
+                  <th data-i18n="colActions">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="onbBody"></tbody>
+            </table>
+          </div>
+
+          <!-- انهاء الخدمة: مهام كل موظف من الاجراءات الجاهزة -->
+          <div id="offBar" hidden>
+            <div class="waitlist-form violations-toolbar">
+              <select class="waitlist-input" id="offEmpFilter" aria-label="الموظف"></select>
+              <select class="waitlist-input" id="offStateFilter" aria-label="الحالة"></select>
+            </div>
+            <div class="waitlist-form violations-toolbar">
+              <select class="waitlist-input" id="offStartPick" aria-label="الموظف"></select>
+              <select class="waitlist-input" id="offStartReason" aria-label="سبب الانتهاء"></select>
+              <input type="date" class="waitlist-input" id="offStartDay" dir="ltr" aria-label="اخر يوم عمل" title="اخر يوم عمل">
+              <button type="button" class="chat-option-btn" id="offStartBtn" data-i18n="offStartBtn">بدء انهاء الخدمة</button>
+            </div>
+            <div class="totals-row" id="offTotals"></div>
+            <div class="totals-row" id="offSettlement"></div>
+          </div>
+
+          <div class="table-wrap" id="offWrap" hidden>
+            <table class="items-table" id="offTable">
+              <thead>
+                <tr>
+                  <th data-i18n="colHrTaskEmployee">الموظف</th>
+                  <th data-i18n="colHrTaskStep">الخطوة</th>
+                  <th data-i18n="colHrTaskRole">المسؤول</th>
+                  <th data-i18n="colHrTaskDue">الموعد</th>
+                  <th data-i18n="colStatus">الحالة</th>
+                  <th data-i18n="colActions">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="offBody"></tbody>
+            </table>
+          </div>
+
           <div class="content case-bundle" id="caseBundle" hidden></div>
 
           <div class="table-wrap" id="tableWrap" hidden>
@@ -868,12 +949,12 @@
   </div>
 
 
-  <script src="/app/dashboard.1.js?v=84"></script>
+  <script src="/app/dashboard.1.js?v=85"></script>
   <script src="/app/dashboard.2.js?v=80"></script>
-  <script src="/app/dashboard.3.js?v=98"></script>
+  <script src="/app/dashboard.3.js?v=99"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/app.js?v=80" defer></script>
-<script src="/app/common.js?v=97" defer></script>
+<script src="/app/common.js?v=98" defer></script>
 <script src="/brand-logo.js?v=86" defer></script>
 </body>
 </html>

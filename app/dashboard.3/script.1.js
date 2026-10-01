@@ -307,6 +307,12 @@
                     words: ["دورة", "دورات", "تدريب", "مؤهل", "مؤهلات", "شهادة مهنية", "رخصة مهنية",
                             "course", "courses", "training", "qualification", "degree", "diploma",
                             "formation", "formations", "diplome", "کورس", "تربیت", "ڈگری"] },
+        /* الالتحاق وانهاء الخدمة (امر المهندس رعد 2026-10-01): مهام كل موظف مولدة من
+           الاجراءات الجاهزة؛ الفئة «مهمة التحاق» او «مهمة انهاء خدمة» تحمل كلمتها. */
+        onboarding: { titleKey: "viewOnboarding", defaultCategory: "مهمة التحاق",
+                      words: ["مهمة التحاق", "التحاق", "onboarding", "integration", "آن بورڈنگ"] },
+        offboarding: { titleKey: "viewOffboarding", defaultCategory: "مهمة انهاء خدمة",
+                       words: ["مهمة انهاء خدمة", "انهاء خدمة", "انهاء الخدمة", "مخالصة", "offboarding", "آف بورڈنگ"] },
         meetings: { titleKey: "viewMeetings", defaultCategory: "اجتماع",
                     /* «جلسة» في مكتب المحاماة جلسة محكمة لا اجتماعا، فلا تدخل هنا */
                     words: ["اجتماع", "اجتماعات", "meeting", "meetings", "reunion", "réunion", "میٹنگ"] }

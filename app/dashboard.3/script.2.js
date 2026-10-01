@@ -1013,11 +1013,14 @@
           var hrHide = { offers: ["client", "client_en", "due", "amount", "status", "case_number"],
                          staff: ["client", "client_en", "due", "amount", "status"],
                          leaves: ["client", "client_en", "due", "amount", "status", "case_number"],
-                         training: ["client", "client_en", "due", "status", "case_number"] }[state.viewType];
+                         training: ["client", "client_en", "due", "status", "case_number"],
+                         onboarding: ["client", "client_en", "amount", "status", "case_number"],
+                         offboarding: ["client", "client_en", "amount", "status", "case_number"] }[state.viewType];
           hrHide.forEach(function (name) {
             document.querySelectorAll('[data-field="' + name + '"]').forEach(function (el) { el.hidden = true; });
           });
-          var titleKey = { staff: "fieldStaffName", leaves: "fieldLeaveTitle", training: "fieldTrainName", offers: "fieldOfferName" }[state.viewType];
+          var titleKey = { staff: "fieldStaffName", leaves: "fieldLeaveTitle", training: "fieldTrainName", offers: "fieldOfferName",
+                           onboarding: "fieldHrTaskTitle", offboarding: "fieldHrTaskTitle" }[state.viewType];
           document.querySelectorAll('[data-field="title"] > span[data-i18n]').forEach(function (sp) {
             if (sp.getAttribute("data-i18n") !== titleKey) sp.setAttribute("data-i18n", titleKey);
             if (sp.textContent !== T(titleKey)) sp.textContent = T(titleKey);
@@ -1512,7 +1515,7 @@
                                 او ملغاة = cancelled، فتعد المربعات ما ينتظر قرارا.
            الدورة   (training): client_name الموظف، و due_at تاريخها ان كانت قادمة
                                 والا انتهاء شهادتها فيذكر بتجديدها. */
-      var HR_VIEWS = { staff: 1, leaves: 1, training: 1, offers: 1 };
+      var HR_VIEWS = { staff: 1, leaves: 1, training: 1, offers: 1, onboarding: 1, offboarding: 1 };
       var STAFF_CONTRACTS = [
         { value: "", key: "staffContractNone" },
         { value: "fixed", key: "staffContractFixed" },
@@ -2661,12 +2664,320 @@
         }).catch(function () { toast("genericError", "error"); });
       }
 
+      /* ــ الالتحاق بالعمل وانهاء الخدمة (امر المهندس رعد 2026-10-01) ــ
+         كل خطوة مهمة عنصر: data.hr_task (onboarding|offboarding) و employee_id و
+         step_code و step_role، فتحجبها القاعدة عن غير قسم الموارد البشرية (0173).
+         نص الخطوات من الاجراءات الجاهزة نفسها في مكتبة الاجراءات
+         (app/processes/hr-templates.csv)، والاختيار هنا: المسار الاصلي لكل اجراء
+         بلا خطوة القرار ولا فرعها الاستثنائي («يعود الاجراء…»، او انهاء العقد في
+         التجربة)، وفرع الجنسية في HR-06 بحسب جنسية الموظف. */
+      var HR_TASK_PLAN = {
+        onboarding: [["HR-05", ["1", "2", "3", "4", "7", "8"]], ["HR-06", ["1", "2", "nat", "6", "7", "8"]],
+                     ["HR-08", ["1", "2", "3", "4", "5", "8"]], ["HR-09", ["1", "2", "3", "7"]]],
+        offboarding: [["HR-11", ["1", "4", "5", "6", "7", "8"]]]
+      };
+      var OFF_REASONS = [
+        { value: "resign", key: "offReasonResign" },
+        { value: "employer", key: "offReasonEmployer" },
+        { value: "contract_end", key: "offReasonContractEnd" },
+        { value: "probation", key: "offReasonProbation" }
+      ];
+      var HR_TASK_STATE_KEYS = { open: "hrTaskStateOpen", overdue: "hrTaskStateOverdue", done: "hrTaskStateDone" };
+      var HR_TASK_STATE_CLS = { open: "open", overdue: "overdue", done: "done" };
+      var hrTemplates = null, hrLastNet = {};
+
+      /* قارئ CSV نفسه في مكتبة الاجراءات: يحترم الاقتباس والفواصل والاسطر داخل الخلية */
+      function hrParseCsv(text) {
+        var rows = [], row = [], cell = "", quoted = false;
+        var src = String(text || "").replace(/^﻿/, "");
+        for (var i = 0; i < src.length; i++) {
+          var ch = src[i];
+          if (quoted) {
+            if (ch === '"' && src[i + 1] === '"') { cell += '"'; i++; }
+            else if (ch === '"') quoted = false;
+            else cell += ch;
+            continue;
+          }
+          if (ch === '"') { quoted = true; continue; }
+          if (ch === ",") { row.push(cell); cell = ""; continue; }
+          if (ch === "\n" || ch === "\r") {
+            if (ch === "\r" && src[i + 1] === "\n") i++;
+            row.push(cell); cell = "";
+            if (row.length > 1 || row[0] !== "") rows.push(row);
+            row = [];
+            continue;
+          }
+          cell += ch;
+        }
+        row.push(cell);
+        if (row.length > 1 || row[0] !== "") rows.push(row);
+        return rows;
+      }
+      function loadHrTemplates() {
+        if (hrTemplates) return Promise.resolve(hrTemplates);
+        return fetch("/app/processes/hr-templates.csv?v=" + Date.now(), { cache: "no-store" }).then(function (res) {
+          if (!res.ok) throw new Error("templates " + res.status);
+          return res.text();
+        }).then(function (text) {
+          var rows = hrParseCsv(text), head = rows[0] || [], map = {};
+          var ci = head.indexOf("code"), si = head.indexOf("steps_json");
+          rows.slice(1).forEach(function (r) {
+            try { map[r[ci]] = JSON.parse(r[si] || "[]"); } catch (e) { /* اجراء تالف لا يوقف البقية */ }
+          });
+          hrTemplates = map;
+          return map;
+        });
+      }
+      function hrIsSaudi(emp) { return /سعود|saudi|saoud/i.test(staffFields(emp).nationality || ""); }
+      function hrTaskFields(item) {
+        var d = (item && item.data) || {};
+        return { kind: d.hr_task || "", employeeId: d.employee_id || "", employee: (item && item.client_name) || "",
+                 role: d.step_role || "", code: d.step_code || "", note: d.step_note || "" };
+      }
+      function hrTaskState(item) {
+        if (item.status === "done" || item.status === "cancelled") return "done";
+        var due = item.due_at ? new Date(item.due_at).getTime() : NaN;
+        return isFinite(due) && due < Date.now() ? "overdue" : "open";
+      }
+      /* موعد كل اجراء: التعاقد والتسجيلات والمباشرة عند تاريخ المباشرة، وتقييم التجربة
+         عند نهايتها ان عرفت مدتها من العرض الوظيفي، والا بلا موعد يضعه صاحبه. وانهاء
+         الخدمة: الاستلام والاعتماد اليوم، والتسليم والاحتساب والتوثيق في اخر يوم عمل،
+         والمخالصة خلال اسبوع ان انهت المنشاة العلاقة وخلال اسبوعين ان انهاها الموظف
+         (المادة 88، كما في الاجراء HR-11 نفسه). */
+      function hrTaskDay(kind, code, stepId, emp, ctx) {
+        if (kind === "onboarding") {
+          var hired = staffFields(emp).hired;
+          if (code === "HR-09") return ctx.probationEnd || "";
+          return hired || "";
+        }
+        if (stepId === "1" || stepId === "4") return ctx.today;
+        if (stepId === "8") return addDaysStr(ctx.lastDay, ctx.reason === "resign" ? 14 : 7);
+        return ctx.lastDay;
+      }
+      function hrProbationEnd(emp) {
+        var d = emp.data || {}, hired = staffFields(emp).hired;
+        var offer = d.offer_id ? hrStaffById(d.offer_id) : null;
+        var days = offer && offer.data && Number(offer.data.probation_days);
+        return hired && days > 0 ? addDaysStr(hired, days) : "";
+      }
+      function buildHrTaskRows(kind, emp, ctx) {
+        var rows = [], plan = HR_TASK_PLAN[kind] || [], f = staffFields(emp);
+        plan.forEach(function (entry) {
+          var code = entry[0], steps = hrTemplates[code] || [], byId = {};
+          steps.forEach(function (s) { byId[String(s.id)] = s; });
+          entry[1].forEach(function (want) {
+            var id = want === "nat" ? (hrIsSaudi(emp) ? "5" : "4") : want;
+            var s = byId[id];
+            if (!s || s.type === "decision") return;
+            var day = hrTaskDay(kind, code, id, emp, ctx);
+            rows.push({
+              record_id: emp.record_id, title: String(s.title || "").trim() || code,
+              category: VIEW_TYPES[kind].defaultCategory, status: "open",
+              client_name: emp.title || null, client_name_en: f.nameEn || null, case_number: emp.case_number || null,
+              due_at: day ? hrDue([day]) : null,
+              data: { hr_task: kind, employee_id: emp.id, step_code: code + "-" + id, step_role: s.role || null, step_note: s.note || null }
+            });
+          });
+        });
+        return rows;
+      }
+      function hrTaskEmployees(kind) {
+        var want = kind === "onboarding" ? { candidate: 1, probation: 1, active: 1 } : { probation: 1, active: 1, notice: 1 };
+        return hrStaffItems().filter(function (e) { return want[staffFields(e).stage]; })
+          .sort(function (a, b) { return String(a.title || "").localeCompare(String(b.title || "")); });
+      }
+      function hrHasTasks(kind, empId) {
+        return (state.hrAll || []).some(function (it) {
+          var f = hrTaskFields(it);
+          return f.kind === kind && f.employeeId === empId && it.status !== "cancelled";
+        });
+      }
+      function startHrTasks(kind) {
+        var short = kind === "onboarding" ? "onb" : "off";
+        var emp = hrStaffById(($(short + "StartPick") || {}).value || "");
+        if (!emp) { toast("hrTaskPickFirst", "error"); return; }
+        if (hrHasTasks(kind, emp.id)) { toast("hrTaskAlready", "error"); return; }
+        var ctx = { today: dayStr(new Date().toISOString()), probationEnd: hrProbationEnd(emp) };
+        if (kind === "offboarding") {
+          ctx.reason = ($("offStartReason") || {}).value || "resign";
+          ctx.lastDay = ($("offStartDay") || {}).value || "";
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(ctx.lastDay)) { toast("offNeedDay", "error"); return; }
+        }
+        guard(function () {
+          return loadHrTemplates().catch(function () { throw new Error(T("hrTaskNoTemplates")); }).then(function () {
+            var rows = buildHrTaskRows(kind, emp, ctx);
+            if (!rows.length) throw new Error(T("hrTaskNoTemplates"));
+            var first = kind === "offboarding"
+              /* الموظف يعرف مغادرته: اخر يوم عمل وسببه، ومرحلته «في فترة الاشعار» حتى
+                 يمضي يومه الاخير ثم «انتهت الخدمة». ومسير الرواتب يقرا last_working_day. */
+              ? app.updateItem(emp.id, {
+                  status: dayMs(ctx.lastDay) < todayMs() ? "done" : "open",
+                  data: Object.assign({}, emp.data || {}, {
+                    staff_stage: dayMs(ctx.lastDay) < todayMs() ? "ended" : "notice",
+                    last_working_day: ctx.lastDay, exit_reason: ctx.reason, exit_notice_date: ctx.today
+                  })
+                })
+              : Promise.resolve();
+            return first.then(function () { return app.insertItems(rows); }).then(function () {
+              if (app.toast) app.toast(T(kind === "onboarding" ? "onbStarted" : "offStarted").replace("{n}", String(rows.length)), "success");
+              state[short + "Emp"] = emp.id;
+              return refresh();
+            });
+          });
+        }).catch(function (err) { fail(err, "listMsg"); });
+      }
+      /* المخالصة التقديرية: مكافاة نهاية الخدمة على الاجر الاخير (المادتان 84 و85)،
+         ولا مكافاة في فترة التجربة (المادة 53)، ورصيد الاجازة بقيمته على اجر اليوم
+         (الشهر ثلاثون يوما)، وصافي اخر مسير من مسيرات الرواتب كما هو. القيمة النهائية
+         يعتمدها المحاسب؛ هنا تقدير بارقام صاحبها لا قرار. */
+      function hrSettlement(emp) {
+        var f = staffFields(emp), d = emp.data || {};
+        var hire = dayMs(f.hired), last = dayMs(d.last_working_day);
+        var wage = Number(f.total) || 0;
+        var out = { wage: wage, years: null, eosb: null, leaveDays: leaveBalance(emp), leaveValue: null };
+        if (isFinite(hire) && isFinite(last) && last >= hire) {
+          var years = (last - hire) / (365.25 * 86400000);
+          var full = years <= 5 ? years * wage / 2 : 5 * wage / 2 + (years - 5) * wage;
+          var factor = 1;
+          if (d.exit_reason === "probation") factor = 0;
+          else if (d.exit_reason === "resign") factor = years < 2 ? 0 : years < 5 ? 1 / 3 : years < 10 ? 2 / 3 : 1;
+          out.years = Math.round(years * 10) / 10;
+          out.eosb = fin2(full * factor);
+        }
+        if (out.leaveDays != null && out.leaveDays > 0) out.leaveValue = fin2(out.leaveDays * wage / 30);
+        return out;
+      }
+      function renderOffSettlement(items) {
+        var box = $("offSettlement");
+        if (!box) return;
+        var ids = {};
+        items.forEach(function (it) { var id = hrTaskFields(it).employeeId; if (id) ids[id] = true; });
+        var empId = state.offEmp || (Object.keys(ids).length === 1 ? Object.keys(ids)[0] : "");
+        var emp = empId ? hrStaffById(empId) : null;
+        if (!emp) {
+          paintEl(box).html = Object.keys(ids).length ? '<p class="empty-note">' + esc(T("offSetPick")) + "</p>" : "";
+          return;
+        }
+        var s = hrSettlement(emp), net = hrLastNet[emp.id];
+        var card = function (labelKey, value, title) {
+          return '<div class="total-card"' + (title ? ' title="' + esc(title) + '"' : "") + '><span class="total-label">' + esc(T(labelKey)) +
+                 '</span><span class="total-value">' + value + "</span></div>";
+        };
+        /* اربع بطاقات كبقية صفوف المجاميع؛ الاجر الاخير اساس المكافاة فيقال في شرحها */
+        var basis = T("offSetEosbBasis") + (s.wage ? " — " + T("offSetWage") + ": " + app.fmtAmount(s.wage) : "");
+        paintEl(box).html =
+          card("offSetService", s.years == null ? "-" : esc(T("offSetYears").replace("{n}", String(s.years)))) +
+          card("offSetEosb", s.eosb == null ? "-" : money(s.eosb), basis) +
+          card("offSetLeave", s.leaveDays == null ? "-" : esc(T("offSetLeaveDays").replace("{n}", String(s.leaveDays))) +
+               (s.leaveValue ? " / " + money(s.leaveValue) : "")) +
+          card("offSetLastNet", net && net.net != null ? money(net.net) : "-");
+        if (!(emp.id in hrLastNet) && app.client && app.org) {
+          hrLastNet[emp.id] = null;
+          Promise.resolve(app.client.rpc("payroll_last_net", { p_org: app.org.id, p_staff: emp.id })).then(function (res) {
+            var row = res && res.data;
+            if (Array.isArray(row)) row = row[0];
+            hrLastNet[emp.id] = row || null;
+            if (row && state.viewType === "offboarding") renderHrTasks("offboarding");
+          }).catch(function () { /* بلا مسير معتمد يبقى الحقل شرطة */ });
+        }
+      }
+      function renderHrTaskBar(kind, items) {
+        var short = kind === "onboarding" ? "onb" : "off";
+        var names = {};
+        items.forEach(function (it) { var f = hrTaskFields(it); if (f.employeeId) names[f.employeeId] = f.employee || f.employeeId; });
+        fillSelect($(short + "EmpFilter"),
+          [{ value: "", label: T("hrTaskEmpAll") }].concat(Object.keys(names).sort(function (a, b) { return String(names[a]).localeCompare(String(names[b])); })
+            .map(function (id) { return { value: id, label: names[id] }; })),
+          state[short + "Emp"] || "");
+        fillSelect($(short + "StateFilter"),
+          [{ value: "", label: T("hrTaskStateAll") }].concat(Object.keys(HR_TASK_STATE_KEYS).map(function (k) { return { value: k, label: T(HR_TASK_STATE_KEYS[k]) }; })),
+          state[short + "State"] || "");
+        fillSelect($(short + "StartPick"),
+          [{ value: "", label: T(kind === "onboarding" ? "onbStartPick" : "offStartPick") }].concat(hrTaskEmployees(kind)
+            .filter(function (e) { return !hrHasTasks(kind, e.id); })
+            .map(function (e) { return { value: e.id, label: String(e.title || "") + (e.case_number ? " (" + e.case_number + ")" : "") }; })),
+          ($(short + "StartPick") || {}).value || "");
+        if (kind === "offboarding") {
+          var reason = $("offStartReason");
+          if (reason && !reason.options.length) hrFillOpts(reason, OFF_REASONS, "resign");
+          else if (reason) Array.prototype.forEach.call(reason.options, function (o) { var r = hrOpt(OFF_REASONS, o.value); if (r) o.textContent = T(r.key); });
+        }
+      }
+      function renderHrTaskTotals(kind, items) {
+        var short = kind === "onboarding" ? "onb" : "off";
+        var box = $(short + "Totals");
+        if (!box) return;
+        var emps = {}, open = 0, overdue = 0, done = 0;
+        items.forEach(function (it) {
+          var st = hrTaskState(it), f = hrTaskFields(it);
+          if (st === "done") done++; else { if (st === "overdue") overdue++; open++; if (f.employeeId) emps[f.employeeId] = true; }
+        });
+        paintEl(box).html =
+          '<div class="total-card"><span class="total-label">' + esc(T(kind === "onboarding" ? "onbTotEmployees" : "offTotEmployees")) + '</span><span class="total-value">' + esc(String(Object.keys(emps).length)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("hrTotOpen")) + '</span><span class="total-value">' + esc(String(open)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("hrTotOverdue")) + '</span><span class="total-value">' + esc(String(overdue)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("hrTotDone")) + '</span><span class="total-value">' + esc(String(done)) + "</span></div>";
+      }
+      function renderHrTasks(kind) {
+        var short = kind === "onboarding" ? "onb" : "off";
+        var all = state.items.filter(function (it) { return hrTaskFields(it).kind === kind || isOfType(it, kind); });
+        renderHrTaskBar(kind, all);
+        var items = all.filter(function (it) {
+          if (state[short + "Emp"] && hrTaskFields(it).employeeId !== state[short + "Emp"]) return false;
+          if (state[short + "State"] && hrTaskState(it) !== state[short + "State"]) return false;
+          return true;
+        }).sort(function (a, b) {
+          var ea = String(hrTaskFields(a).employee), eb = String(hrTaskFields(b).employee);
+          if (ea !== eb) return ea.localeCompare(eb);
+          var da = a.due_at ? new Date(a.due_at).getTime() : Infinity, db = b.due_at ? new Date(b.due_at).getTime() : Infinity;
+          if (da !== db) return da - db;
+          return String(hrTaskFields(a).code).localeCompare(String(hrTaskFields(b).code), undefined, { numeric: true });
+        });
+        renderHrTaskTotals(kind, items);
+        if (kind === "offboarding") renderOffSettlement(all);
+        var body = $(short + "Body");
+        if (!body) return;
+        body.innerHTML = "";
+        $(short + "Wrap").hidden = items.length === 0;
+        $("emptyList").hidden = items.length > 0;
+        items.forEach(function (item) {
+          var f = hrTaskFields(item), st = hrTaskState(item);
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            '<td><span class="item-title">' + esc(f.employee || "-") + "</span>" +
+              (item.case_number ? '<span class="item-cat" dir="ltr">' + esc(item.case_number) + "</span>" : "") + "</td>" +
+            '<td><span class="item-title" data-tr>' + esc(item.title || "-") + "</span>" +
+              (f.code ? '<span class="item-cat" dir="ltr">' + esc(f.code) + "</span>" : "") + "</td>" +
+            '<td><span data-tr>' + esc(f.role || "-") + "</span></td>" +
+            '<td class="cell-num">' + (item.due_at ? esc(shortDate(item.due_at)) +
+              (st !== "done" ? '<span class="item-cat due-left" data-due="' + esc(item.due_at) + '"></span>' : "") : "-") + "</td>" +
+            '<td><span class="status-' + HR_TASK_STATE_CLS[st] + '">' + esc(T(HR_TASK_STATE_KEYS[st])) + "</span></td>" +
+            '<td><div class="chat-options row-actions">' +
+              (st === "done" ? actionBtn(item, "reopen", "actionReopen") : actionBtn(item, "done", "actionDone")) +
+              actionBtn(item, "edit", "actionEdit") +
+              actionBtn(item, "delete", "actionDelete", "is-danger") +
+            "</div></td>";
+          body.appendChild(tr);
+        });
+        translateView();
+      }
+      function hrTaskRowData(prefix, kind) {
+        var short = kind === "onboarding" ? "Onb" : "Off";
+        return { employeeId: hrVal(prefix, short + "Employee"), role: hrVal(prefix, short + "Role") };
+      }
+      function fillHrTaskFields(prefix, item, kind) {
+        var short = kind === "onboarding" ? "Onb" : "Off", f = hrTaskFields(item || {});
+        fillSelect($(prefix + short + "Employee"), employeeOptions("leavePickEmployee"), item ? f.employeeId : hrVal(prefix, short + "Employee"));
+        hrSet(prefix, short + "Role", item ? f.role : hrVal(prefix, short + "Role"));
+      }
+
       /* ــ ما تشترك فيه الشاشات الثلاث ــ */
       function fillHrFields(prefix, item) {
         if (state.viewType === "staff") fillStaffFields(prefix, item);
         else if (state.viewType === "leaves") fillLeaveFields(prefix, item);
         else if (state.viewType === "training") fillTrainFields(prefix, item);
         else if (state.viewType === "offers") fillOfferFields(prefix, item);
+        else if (state.viewType === "onboarding" || state.viewType === "offboarding") fillHrTaskFields(prefix, item, state.viewType);
       }
       /* عند فتح نموذج الاضافة: القوائم تملا وما كتب يبقى، ولا يمسح الا بعد الحفظ */
       function fillHrOptions(prefix) {
@@ -2688,6 +2999,8 @@
           fillSelect($(prefix + "LeaveEmployee"), employeeOptions("leavePickEmployee"), hrVal(prefix, "LeaveEmployee"));
           hrFillOpts($(prefix + "LeaveKind"), LEAVE_KINDS, hrVal(prefix, "LeaveKind") || "annual");
           hrFillOpts($(prefix + "LeaveApproval"), LEAVE_APPROVALS, hrVal(prefix, "LeaveApproval") || "pending");
+        } else if (state.viewType === "onboarding" || state.viewType === "offboarding") {
+          fillHrTaskFields(prefix, null, state.viewType);
         } else if (state.viewType === "training") {
           fillSelect($(prefix + "TrainEmployee"), employeeOptions("leavePickEmployee"), hrVal(prefix, "TrainEmployee"));
           hrFillOpts($(prefix + "TrainKind"), TRAIN_KINDS, hrVal(prefix, "TrainKind") || "course");
@@ -2735,6 +3048,18 @@
           if (!row.category) row.category = VIEW_TYPES.staff.defaultCategory;
           return null;
         }
+        /* مهمة التحاق او انهاء خدمة: الموظف والمسؤول من حقليهما، والموعد من حقله العام */
+        if (state.viewType === "onboarding" || state.viewType === "offboarding") {
+          var kind = state.viewType, td0 = hrTaskRowData(prefix, kind);
+          var temp = hrStaffById(td0.employeeId);
+          if (!temp) return { key: "leaveEmployeeRequired", focus: prefix + (kind === "onboarding" ? "Onb" : "Off") + "Employee" };
+          row.client_name = temp.title || null;
+          row.client_name_en = staffFields(temp).nameEn || null;
+          row.case_number = temp.case_number || null;
+          row.data = Object.assign(base, { hr_task: kind, employee_id: temp.id, step_role: td0.role || null });
+          if (!row.category) row.category = VIEW_TYPES[kind].defaultCategory;
+          return null;
+        }
         var empField = state.viewType === "leaves" ? "LeaveEmployee" : "TrainEmployee";
         var emp = hrStaffById(hrVal(prefix, empField));
         if (!emp) return { key: "leaveEmployeeRequired", focus: prefix + empField };
@@ -2763,11 +3088,16 @@
         var pairs = [["staffDeptFilter", "staffDept", renderStaff], ["staffStageFilter", "staffStage", renderStaff],
                      ["leaveEmpFilter", "leaveEmp", renderLeaves], ["leaveKindFilter", "leaveKind", renderLeaves], ["leaveStateFilter", "leaveState", renderLeaves],
                      ["trainEmpFilter", "trainEmp", renderTraining], ["trainKindFilter", "trainKind", renderTraining],
-                     ["offerStageFilter", "offerStage", renderOffers], ["offerDeptFilter", "offerDept", renderOffers]];
+                     ["offerStageFilter", "offerStage", renderOffers], ["offerDeptFilter", "offerDept", renderOffers],
+                     ["onbEmpFilter", "onbEmp", function () { renderHrTasks("onboarding"); }], ["onbStateFilter", "onbState", function () { renderHrTasks("onboarding"); }],
+                     ["offEmpFilter", "offEmp", function () { renderHrTasks("offboarding"); }], ["offStateFilter", "offState", function () { renderHrTasks("offboarding"); }]];
         pairs.forEach(function (p) {
           var el = $(p[0]);
           if (el) el.addEventListener("change", function () { state[p[1]] = this.value; p[2](); });
         });
+        var onbBtn = $("onbStartBtn"), offBtn = $("offStartBtn");
+        if (onbBtn) onbBtn.addEventListener("click", function () { startHrTasks("onboarding"); });
+        if (offBtn) offBtn.addEventListener("click", function () { startHrTasks("offboarding"); });
       })();
 
       /* ---------- مصاريف التشغيل: شاشتها لا تشبه القضايا ---------- */
@@ -3297,9 +3627,14 @@
           $("trainingWrap").hidden = state.viewType !== "training" || $("trainingWrap").hidden;
           $("offersBar").hidden = state.viewType !== "offers";
           $("offersWrap").hidden = state.viewType !== "offers" || $("offersWrap").hidden;
+          $("onbBar").hidden = state.viewType !== "onboarding";
+          $("onbWrap").hidden = state.viewType !== "onboarding" || $("onbWrap").hidden;
+          $("offBar").hidden = state.viewType !== "offboarding";
+          $("offWrap").hidden = state.viewType !== "offboarding" || $("offWrap").hidden;
           if (state.viewType === "staff") renderStaff();
           else if (state.viewType === "leaves") renderLeaves();
           else if (state.viewType === "offers") renderOffers();
+          else if (state.viewType === "onboarding" || state.viewType === "offboarding") renderHrTasks(state.viewType);
           else renderTraining();
           return;
         }

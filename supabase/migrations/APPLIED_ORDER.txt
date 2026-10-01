@@ -208,3 +208,4 @@
 20261001120000	payroll	0175_payroll.sql	added
 20261001130000	payroll_accounting	0176_payroll_accounting.sql	added
 20261001150000	attendance	0178_attendance.sql	added
+20261001150000	hr_onboarding_offboarding	0177_hr_onboarding_offboarding.sql	added

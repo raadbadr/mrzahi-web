@@ -703,6 +703,13 @@
     { href: "/app/dashboard.html?type=offers", path: "type=offers", service: "offers", packOnly: true,
       icon: '<path d="M20 6h-4V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2zM10 4h4v2h-4V4zm10 15H4V8h16v11z"/><path d="M11 10h2v3h3v2h-3v3h-2v-3H8v-2h3z"/>',
       labels: { ar: "العروض الوظيفية", en: "Job offers", fr: "Offres d'emploi", ur: "ملازمت کی پیشکشیں" } },
+    /* الالتحاق وانهاء الخدمة: مهام كل موظف من الاجراءات الجاهزة (امر المهندس رعد 2026-10-01) */
+    { href: "/app/dashboard.html?type=onboarding", path: "type=onboarding", service: "onboarding", packOnly: true,
+      icon: '<path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>',
+      labels: { ar: "الالتحاق بالعمل", en: "Onboarding", fr: "Integration", ur: "آن بورڈنگ" } },
+    { href: "/app/dashboard.html?type=offboarding", path: "type=offboarding", service: "offboarding", packOnly: true,
+      icon: '<path d="M14 8c0-2.21-1.79-4-4-4S6 5.79 6 8s1.79 4 4 4 4-1.79 4-4zm3 2v2h6v-2h-6zM2 18v2h16v-2c0-2.66-5.33-4-8-4s-8 1.34-8 4z"/>',
+      labels: { ar: "انهاء الخدمة", en: "Offboarding", fr: "Depart", ur: "آف بورڈنگ" } },
     { href: "/app/dashboard.html?type=leaves", path: "type=leaves", service: "leaves", packOnly: true,
       icon: '<path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 16H5V9h14v11zm-8.3-2.1l-3.2-3.2 1.4-1.4 1.8 1.8 4.2-4.2 1.4 1.4-5.6 5.6z"/>',
       labels: { ar: "الاجازات", en: "Leaves", fr: "Conges", ur: "چھٹیاں" } },
@@ -715,6 +722,11 @@
     { href: "/app/dashboard.html?type=meetings", path: "type=meetings", service: "meetings",
       icon: '<path d="M14 6v15H3v-2h2V3h9v1h5v15h2v2h-4V6h-3zm-4 5v2h2v-2h-2z"/>',
       labels: { ar: "الاجتماعات", en: "Meetings", fr: "Reunions", ur: "میٹنگز" } },
+    /* الحضور والانصراف: صفحة وكيل «تفضيل اللغة الثابت» (0178) بامر المهندس رعد؛ بلا
+       packOnly لان الموظف في اي قسم يسجل حضوره منها، وصلاحيتها في department_services. */
+    { href: "/app/attendance.html", path: "attendance", service: "attendance",
+      icon: '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>',
+      labels: { ar: "الحضور والانصراف", en: "Attendance", fr: "Présences", ur: "حاضری" } },
     { href: "/app/documents.html", path: "documents", service: "documents",
       icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8 13h8v2H8v-2zm0 4h8v2H8v-2z"/>',
       labels: { ar: "المستندات", en: "Documents", fr: "Documents", ur: "دستاویزات" } },
