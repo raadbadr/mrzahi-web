@@ -1326,12 +1326,15 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
     var orgId = requireOrg();
     if (!file) return Promise.reject(new Error("file required"));
     var year = String(new Date().getFullYear());
+    /* مرفقات سجلات الموارد البشرية في مجلد <org>/hr/ وحده: سياسة التخزين (0173) لا
+       تفتحه الا لقسم الموارد البشرية والادارة والمالك والمشرف. */
     var folderP = itemId
-      ? run(function (client) { return client.from("items").select("record_id").eq("id", itemId).maybeSingle().then(unwrap); })
-          .then(function (row) { return (row && row.record_id) ? String(row.record_id) : "general"; }).catch(function () { return "general"; })
-      : Promise.resolve("general");
-    return folderP.then(function (folder) {
-      var path = orgId + "/" + year + "/" + folder + "/" + randomCode(10).toLowerCase() + "-" + storageKeyName(file.name);
+      ? run(function (client) { return client.from("items").select("record_id, visibility").eq("id", itemId).maybeSingle().then(unwrap); })
+          .then(function (row) { return { folder: (row && row.record_id) ? String(row.record_id) : "general", hr: !!(row && row.visibility === "hr") }; })
+          .catch(function () { return { folder: "general", hr: false }; })
+      : Promise.resolve({ folder: "general", hr: false });
+    return folderP.then(function (f) {
+      var path = orgId + "/" + (f.hr ? "hr/" : "") + year + "/" + f.folder + "/" + randomCode(10).toLowerCase() + "-" + storageKeyName(file.name);
       return storeAttachment(file, { item_id: itemId || null }, path);
     });
   }

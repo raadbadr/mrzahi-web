@@ -248,11 +248,60 @@
               <label class="form-field span-3" data-field="staff_id_expiry"><span data-i18n="fieldStaffIdExpiry">انتهاء الهوية او الاقامة</span><input type="date" class="waitlist-input" id="editStaffIdExpiry" dir="ltr"></label>
               <label class="form-field span-3" data-field="staff_contract_end"><span data-i18n="fieldStaffContractEnd">انتهاء العقد</span><input type="date" class="waitlist-input" id="editStaffContractEnd" dir="ltr"></label>
               <label class="form-field span-3" data-field="staff_salary"><span data-i18n="fieldStaffSalary">الراتب الاساسي</span><input type="number" step="0.01" min="0" class="waitlist-input" id="editStaffSalary" dir="ltr"></label>
-              <label class="form-field span-3" data-field="staff_housing"><span data-i18n="fieldStaffHousing">بدل السكن</span><input type="number" step="0.01" min="0" class="waitlist-input" id="editStaffHousing" dir="ltr"></label>
-              <label class="form-field span-3" data-field="staff_transport"><span data-i18n="fieldStaffTransport">بدل النقل</span><input type="number" step="0.01" min="0" class="waitlist-input" id="editStaffTransport" dir="ltr"></label>
-              <label class="form-field span-3" data-field="staff_other"><span data-i18n="fieldStaffOther">بدلات اخرى</span><input type="number" step="0.01" min="0" class="waitlist-input" id="editStaffOther" dir="ltr"></label>
               <label class="form-field span-3" data-field="staff_leave_days"><span data-i18n="fieldStaffLeaveDays">رصيد الاجازة السنوية (يوما)</span><input type="number" step="1" min="0" max="365" class="waitlist-input" id="editStaffLeaveDays" dir="ltr" placeholder="21"></label>
               <label class="form-field span-6" data-field="staff_iban"><span data-i18n="fieldStaffIban">الايبان</span><input type="text" class="waitlist-input" id="editStaffIban" maxlength="34" dir="ltr" autocomplete="off"></label>
+              <div class="form-field span-12" data-field="allowances">
+                <span data-i18n="fieldAllowances">البدلات</span>
+                <div class="table-wrap">
+                  <table class="items-table">
+                    <thead><tr><th data-i18n="colAllowName">البدل</th><th data-i18n="colAllowMethod">طريقة الحساب</th><th data-i18n="colAllowValue">القيمة</th><th data-i18n="colAllowPeriod">الدورية</th><th data-i18n="colAllowAmount">المبلغ</th><th data-i18n="colActions">الإجراءات</th></tr></thead>
+                    <tbody data-allow-body="editStaff"></tbody>
+                  </table>
+                </div>
+                <div class="chat-options">
+                  <button type="button" class="chat-option-btn is-icon" data-allow-add="editStaff" title="اضافة بدل" aria-label="اضافة بدل"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+                </div>
+                <div class="totals-row" data-allow-totals="editStaff"></div>
+              </div>
+            </div>
+            <!-- العرض الوظيفي: لا يظهر الا في شاشة العروض (حزمة الموارد البشرية) -->
+            <div class="form-grid" data-view="offers" hidden>
+              <label class="form-field span-6" data-field="offer_name_en"><span data-i18n="fieldOfferNameEn">اسم المرشح بالانجليزية</span><input type="text" class="waitlist-input" id="editOfferNameEn" maxlength="160" dir="ltr"></label>
+              <label class="form-field span-3" data-field="offer_email"><span data-i18n="fieldOfferEmail">البريد الالكتروني</span><input type="email" class="waitlist-input" id="editOfferEmail" maxlength="160" dir="ltr"></label>
+              <label class="form-field span-3" data-field="offer_phone"><span data-i18n="fieldOfferPhone">الجوال</span><input type="tel" class="waitlist-input" id="editOfferPhone" maxlength="20" dir="ltr"></label>
+              <label class="form-field span-3" data-field="offer_nationality"><span data-i18n="fieldOfferNationality">الجنسية</span><input type="text" class="waitlist-input" id="editOfferNationality" maxlength="60" dir="auto"></label>
+              <label class="form-field span-3" data-field="offer_job"><span data-i18n="fieldOfferJob">المسمى الوظيفي</span><input type="text" class="waitlist-input" id="editOfferJob" list="staffJobSuggest" maxlength="120" dir="auto" autocomplete="off"></label>
+              <label class="form-field span-3" data-field="offer_dept"><span data-i18n="fieldOfferDept">القسم</span><input type="text" class="waitlist-input" id="editOfferDept" list="staffDeptSuggest" maxlength="80" dir="auto" autocomplete="off"></label>
+              <label class="form-field span-3" data-field="offer_manager"><span data-i18n="fieldOfferManager">المدير المباشر</span><input type="text" class="waitlist-input" id="editOfferManager" maxlength="120" dir="auto"></label>
+              <label class="form-field span-3" data-field="offer_contract"><span data-i18n="fieldOfferContract">نوع العقد</span><select class="waitlist-input" id="editOfferContract"></select></label>
+              <label class="form-field span-3" data-field="offer_months"><span data-i18n="fieldOfferMonths">مدة العقد بالاشهر</span><input type="number" step="1" min="0" class="waitlist-input" id="editOfferMonths" dir="ltr" max="120"></label>
+              <label class="form-field span-3" data-field="offer_start"><span data-i18n="fieldOfferStart">تاريخ المباشرة المتوقع</span><input type="date" class="waitlist-input" id="editOfferStart" dir="ltr"></label>
+              <label class="form-field span-3" data-field="offer_probation"><span data-i18n="fieldOfferProbation">فترة التجربة بالايام</span><input type="number" step="1" min="0" class="waitlist-input" id="editOfferProbation" dir="ltr" max="180" placeholder="90"></label>
+              <label class="form-field span-3" data-field="offer_leave_days"><span data-i18n="fieldOfferLeaveDays">الاجازة السنوية بالايام</span><input type="number" step="1" min="0" class="waitlist-input" id="editOfferLeaveDays" dir="ltr" max="60" placeholder="21"></label>
+              <label class="form-field span-3" data-field="offer_medical"><span data-i18n="fieldOfferMedical">التأمين الطبي</span><input type="text" class="waitlist-input" id="editOfferMedical" maxlength="120" dir="auto"></label>
+              <label class="form-field span-3" data-field="offer_tickets"><span data-i18n="fieldOfferTickets">تذاكر السفر</span><input type="text" class="waitlist-input" id="editOfferTickets" maxlength="120" dir="auto"></label>
+              <label class="form-field span-3" data-field="offer_stage"><span data-i18n="fieldOfferStage">مرحلة العرض</span><select class="waitlist-input" id="editOfferStage"></select></label>
+              <label class="form-field span-3" data-field="offer_expiry"><span data-i18n="fieldOfferExpiry">صلاحية العرض حتى</span><input type="date" class="waitlist-input" id="editOfferExpiry" dir="ltr"></label>
+              <label class="form-field span-3" data-field="offer_salary"><span data-i18n="fieldOfferSalary">الراتب الاساسي</span><input type="number" step="0.01" min="0" class="waitlist-input" id="editOfferSalary" dir="ltr"></label>
+              <div class="form-field span-12" data-field="allowances">
+                <span data-i18n="fieldAllowances">البدلات</span>
+                <div class="table-wrap">
+                  <table class="items-table">
+                    <thead><tr><th data-i18n="colAllowName">البدل</th><th data-i18n="colAllowMethod">طريقة الحساب</th><th data-i18n="colAllowValue">القيمة</th><th data-i18n="colAllowPeriod">الدورية</th><th data-i18n="colAllowAmount">المبلغ</th><th data-i18n="colActions">الإجراءات</th></tr></thead>
+                    <tbody data-allow-body="editOffer"></tbody>
+                  </table>
+                </div>
+                <div class="chat-options">
+                  <button type="button" class="chat-option-btn is-icon" data-allow-add="editOffer" title="اضافة بدل" aria-label="اضافة بدل"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+                  <button type="button" class="chat-option-btn" data-allow-policy-apply="editOffer" data-i18n="allowPolicyApply">تطبيق سياسة المنشأة</button>
+                  <button type="button" class="chat-option-btn" data-allow-policy-save="editOffer" data-i18n="allowPolicySave">حفظ كسياسة للمنشأة</button>
+                </div>
+                <div class="totals-row" data-allow-totals="editOffer"></div>
+              </div>
+              <label class="form-field span-6" data-field="offer_sign_name"><span data-i18n="fieldOfferSignName">اسم المخول بالتوقيع</span><input type="text" class="waitlist-input" id="editOfferSignName" maxlength="120" dir="auto"></label>
+              <label class="form-field span-3" data-field="offer_sign_title"><span data-i18n="fieldOfferSignTitle">صفته</span><input type="text" class="waitlist-input" id="editOfferSignTitle" maxlength="120" dir="auto"></label>
+              <label class="form-field span-3" data-field="offer_lang"><span data-i18n="fieldOfferLang">لغة الخطاب</span><select class="waitlist-input" id="editOfferLang"></select></label>
+              <label class="form-field span-12" data-field="offer_notes"><span data-i18n="fieldOfferNotes">ملاحظات تظهر في الخطاب</span><input type="text" class="waitlist-input" id="editOfferNotes" maxlength="600" dir="auto"></label>
             </div>
             <!-- طلب الاجازة: لا يظهر الا في شاشة الاجازات (حزمة الموارد البشرية) -->
             <div class="form-grid" data-view="leaves" hidden>
@@ -376,11 +425,60 @@
                 <label class="form-field span-3" data-field="staff_id_expiry"><span data-i18n="fieldStaffIdExpiry">انتهاء الهوية او الاقامة</span><input type="date" class="waitlist-input" id="addStaffIdExpiry" dir="ltr"></label>
                 <label class="form-field span-3" data-field="staff_contract_end"><span data-i18n="fieldStaffContractEnd">انتهاء العقد</span><input type="date" class="waitlist-input" id="addStaffContractEnd" dir="ltr"></label>
                 <label class="form-field span-3" data-field="staff_salary"><span data-i18n="fieldStaffSalary">الراتب الاساسي</span><input type="number" step="0.01" min="0" class="waitlist-input" id="addStaffSalary" dir="ltr"></label>
-                <label class="form-field span-3" data-field="staff_housing"><span data-i18n="fieldStaffHousing">بدل السكن</span><input type="number" step="0.01" min="0" class="waitlist-input" id="addStaffHousing" dir="ltr"></label>
-                <label class="form-field span-3" data-field="staff_transport"><span data-i18n="fieldStaffTransport">بدل النقل</span><input type="number" step="0.01" min="0" class="waitlist-input" id="addStaffTransport" dir="ltr"></label>
-                <label class="form-field span-3" data-field="staff_other"><span data-i18n="fieldStaffOther">بدلات اخرى</span><input type="number" step="0.01" min="0" class="waitlist-input" id="addStaffOther" dir="ltr"></label>
                 <label class="form-field span-3" data-field="staff_leave_days"><span data-i18n="fieldStaffLeaveDays">رصيد الاجازة السنوية (يوما)</span><input type="number" step="1" min="0" max="365" class="waitlist-input" id="addStaffLeaveDays" dir="ltr" placeholder="21"></label>
                 <label class="form-field span-6" data-field="staff_iban"><span data-i18n="fieldStaffIban">الايبان</span><input type="text" class="waitlist-input" id="addStaffIban" maxlength="34" dir="ltr" autocomplete="off"></label>
+                <div class="form-field span-12" data-field="allowances">
+                  <span data-i18n="fieldAllowances">البدلات</span>
+                  <div class="table-wrap">
+                    <table class="items-table">
+                      <thead><tr><th data-i18n="colAllowName">البدل</th><th data-i18n="colAllowMethod">طريقة الحساب</th><th data-i18n="colAllowValue">القيمة</th><th data-i18n="colAllowPeriod">الدورية</th><th data-i18n="colAllowAmount">المبلغ</th><th data-i18n="colActions">الإجراءات</th></tr></thead>
+                      <tbody data-allow-body="addStaff"></tbody>
+                    </table>
+                  </div>
+                  <div class="chat-options">
+                    <button type="button" class="chat-option-btn is-icon" data-allow-add="addStaff" title="اضافة بدل" aria-label="اضافة بدل"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+                  </div>
+                  <div class="totals-row" data-allow-totals="addStaff"></div>
+                </div>
+              </div>
+              <!-- العرض الوظيفي: لا يظهر الا في شاشة العروض (حزمة الموارد البشرية) -->
+              <div class="form-grid" data-view="offers" hidden>
+                <label class="form-field span-6" data-field="offer_name_en"><span data-i18n="fieldOfferNameEn">اسم المرشح بالانجليزية</span><input type="text" class="waitlist-input" id="addOfferNameEn" maxlength="160" dir="ltr"></label>
+                <label class="form-field span-3" data-field="offer_email"><span data-i18n="fieldOfferEmail">البريد الالكتروني</span><input type="email" class="waitlist-input" id="addOfferEmail" maxlength="160" dir="ltr"></label>
+                <label class="form-field span-3" data-field="offer_phone"><span data-i18n="fieldOfferPhone">الجوال</span><input type="tel" class="waitlist-input" id="addOfferPhone" maxlength="20" dir="ltr"></label>
+                <label class="form-field span-3" data-field="offer_nationality"><span data-i18n="fieldOfferNationality">الجنسية</span><input type="text" class="waitlist-input" id="addOfferNationality" maxlength="60" dir="auto"></label>
+                <label class="form-field span-3" data-field="offer_job"><span data-i18n="fieldOfferJob">المسمى الوظيفي</span><input type="text" class="waitlist-input" id="addOfferJob" list="staffJobSuggest" maxlength="120" dir="auto" autocomplete="off"></label>
+                <label class="form-field span-3" data-field="offer_dept"><span data-i18n="fieldOfferDept">القسم</span><input type="text" class="waitlist-input" id="addOfferDept" list="staffDeptSuggest" maxlength="80" dir="auto" autocomplete="off"></label>
+                <label class="form-field span-3" data-field="offer_manager"><span data-i18n="fieldOfferManager">المدير المباشر</span><input type="text" class="waitlist-input" id="addOfferManager" maxlength="120" dir="auto"></label>
+                <label class="form-field span-3" data-field="offer_contract"><span data-i18n="fieldOfferContract">نوع العقد</span><select class="waitlist-input" id="addOfferContract"></select></label>
+                <label class="form-field span-3" data-field="offer_months"><span data-i18n="fieldOfferMonths">مدة العقد بالاشهر</span><input type="number" step="1" min="0" class="waitlist-input" id="addOfferMonths" dir="ltr" max="120"></label>
+                <label class="form-field span-3" data-field="offer_start"><span data-i18n="fieldOfferStart">تاريخ المباشرة المتوقع</span><input type="date" class="waitlist-input" id="addOfferStart" dir="ltr"></label>
+                <label class="form-field span-3" data-field="offer_probation"><span data-i18n="fieldOfferProbation">فترة التجربة بالايام</span><input type="number" step="1" min="0" class="waitlist-input" id="addOfferProbation" dir="ltr" max="180" placeholder="90"></label>
+                <label class="form-field span-3" data-field="offer_leave_days"><span data-i18n="fieldOfferLeaveDays">الاجازة السنوية بالايام</span><input type="number" step="1" min="0" class="waitlist-input" id="addOfferLeaveDays" dir="ltr" max="60" placeholder="21"></label>
+                <label class="form-field span-3" data-field="offer_medical"><span data-i18n="fieldOfferMedical">التأمين الطبي</span><input type="text" class="waitlist-input" id="addOfferMedical" maxlength="120" dir="auto"></label>
+                <label class="form-field span-3" data-field="offer_tickets"><span data-i18n="fieldOfferTickets">تذاكر السفر</span><input type="text" class="waitlist-input" id="addOfferTickets" maxlength="120" dir="auto"></label>
+                <label class="form-field span-3" data-field="offer_stage"><span data-i18n="fieldOfferStage">مرحلة العرض</span><select class="waitlist-input" id="addOfferStage"></select></label>
+                <label class="form-field span-3" data-field="offer_expiry"><span data-i18n="fieldOfferExpiry">صلاحية العرض حتى</span><input type="date" class="waitlist-input" id="addOfferExpiry" dir="ltr"></label>
+                <label class="form-field span-3" data-field="offer_salary"><span data-i18n="fieldOfferSalary">الراتب الاساسي</span><input type="number" step="0.01" min="0" class="waitlist-input" id="addOfferSalary" dir="ltr"></label>
+                <div class="form-field span-12" data-field="allowances">
+                  <span data-i18n="fieldAllowances">البدلات</span>
+                  <div class="table-wrap">
+                    <table class="items-table">
+                      <thead><tr><th data-i18n="colAllowName">البدل</th><th data-i18n="colAllowMethod">طريقة الحساب</th><th data-i18n="colAllowValue">القيمة</th><th data-i18n="colAllowPeriod">الدورية</th><th data-i18n="colAllowAmount">المبلغ</th><th data-i18n="colActions">الإجراءات</th></tr></thead>
+                      <tbody data-allow-body="addOffer"></tbody>
+                    </table>
+                  </div>
+                  <div class="chat-options">
+                    <button type="button" class="chat-option-btn is-icon" data-allow-add="addOffer" title="اضافة بدل" aria-label="اضافة بدل"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+                    <button type="button" class="chat-option-btn" data-allow-policy-apply="addOffer" data-i18n="allowPolicyApply">تطبيق سياسة المنشأة</button>
+                    <button type="button" class="chat-option-btn" data-allow-policy-save="addOffer" data-i18n="allowPolicySave">حفظ كسياسة للمنشأة</button>
+                  </div>
+                  <div class="totals-row" data-allow-totals="addOffer"></div>
+                </div>
+                <label class="form-field span-6" data-field="offer_sign_name"><span data-i18n="fieldOfferSignName">اسم المخول بالتوقيع</span><input type="text" class="waitlist-input" id="addOfferSignName" maxlength="120" dir="auto"></label>
+                <label class="form-field span-3" data-field="offer_sign_title"><span data-i18n="fieldOfferSignTitle">صفته</span><input type="text" class="waitlist-input" id="addOfferSignTitle" maxlength="120" dir="auto"></label>
+                <label class="form-field span-3" data-field="offer_lang"><span data-i18n="fieldOfferLang">لغة الخطاب</span><select class="waitlist-input" id="addOfferLang"></select></label>
+                <label class="form-field span-12" data-field="offer_notes"><span data-i18n="fieldOfferNotes">ملاحظات تظهر في الخطاب</span><input type="text" class="waitlist-input" id="addOfferNotes" maxlength="600" dir="auto"></label>
               </div>
               <!-- طلب الاجازة: لا يظهر الا في شاشة الاجازات (حزمة الموارد البشرية) -->
               <div class="form-grid" data-view="leaves" hidden>
@@ -412,6 +510,7 @@
               <datalist id="staffJobSuggest"></datalist>
               <datalist id="trainProviderSuggest"></datalist>
               <datalist id="trainDegreeSuggest"></datalist>
+              <datalist id="allowNameSuggest"></datalist>
               <div class="waitlist-form form-actions">
                 <button type="submit" class="waitlist-btn" id="addSaveBtn" data-i18n="add">إضافة</button>
                 <button type="button" class="chat-option-btn" id="newRecordBtn" data-i18n="newRecordBtn">+ سجل جديد</button>
@@ -612,6 +711,34 @@
             </table>
           </div>
 
+          <!-- العروض الوظيفية: المرحلة والقسم ثم المجاميع (امر المهندس رعد 2026-10-01) -->
+          <div id="offersBar" hidden>
+            <div class="waitlist-form violations-toolbar">
+              <select class="waitlist-input" id="offerStageFilter" aria-label="مرحلة العرض"></select>
+              <select class="waitlist-input" id="offerDeptFilter" aria-label="القسم"></select>
+            </div>
+            <div class="totals-row" id="offerTotals"></div>
+          </div>
+
+          <div class="table-wrap" id="offersWrap" hidden>
+            <table class="items-table" id="offersTable">
+              <thead>
+                <tr>
+                  <th data-i18n="colOfferCandidate">المرشح</th>
+                  <th data-i18n="colOfferJob">الوظيفة</th>
+                  <th data-i18n="colOfferBasic">الراتب الاساسي</th>
+                  <th data-i18n="colOfferMonthly">الاجمالي الشهري</th>
+                  <th data-i18n="colOfferStart">المباشرة</th>
+                  <th data-i18n="colOfferExpiry">صلاحية العرض</th>
+                  <th data-i18n="colOfferLeft">المتبقي</th>
+                  <th data-i18n="colOfferStage">المرحلة</th>
+                  <th data-i18n="colActions">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="offersBody"></tbody>
+            </table>
+          </div>
+
           <!-- الاجازات: الموظف والنوع والاعتماد ثم المجاميع -->
           <div id="leavesBar" hidden>
             <div class="waitlist-form violations-toolbar">
@@ -741,12 +868,12 @@
   </div>
 
 
-  <script src="/app/dashboard.1.js?v=83"></script>
+  <script src="/app/dashboard.1.js?v=84"></script>
   <script src="/app/dashboard.2.js?v=80"></script>
-  <script src="/app/dashboard.3.js?v=96"></script>
+  <script src="/app/dashboard.3.js?v=97"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/app.js?v=80" defer></script>
-<script src="/app/common.js?v=96" defer></script>
+<script src="/app/common.js?v=97" defer></script>
 <script src="/brand-logo.js?v=86" defer></script>
 </body>
 </html>

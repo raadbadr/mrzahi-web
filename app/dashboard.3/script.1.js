@@ -38,6 +38,9 @@
         leaveState: "",
         trainEmp: "",
         trainKind: "",
+        offerStage: "",
+        offerDept: "",
+        allowPolicy: null,   /* سياسة بدلات المنشاة: تملا كل عرض جديد */
         calMode: (function () { try { return localStorage.getItem("mrzahi_cal_mode") || "greg"; } catch (e) { return "greg"; } })(),
         calAnchor: new Date(),
         /* مدى العرض: شهر او اسبوع او يوم. calDay هو اليوم المرساة في الاسبوع واليوم. */
@@ -294,6 +297,12 @@
         leaves: { titleKey: "viewLeaves", defaultCategory: "اجازة",
                   words: ["اجازة", "إجازة", "اجازات", "إجازات", "leave", "leaves", "vacation",
                           "conge", "conges", "چھٹی", "چھٹیاں"] },
+        /* العرض الوظيفي للمرشح خلال الاستقطاب (امر المهندس رعد 2026-10-01): بدلاته
+           ديناميكية، ومراحله من المسودة الى القبول، ولا يعتمد الا بيد المالك او المشرف.
+           الكلمة «عرض وظيفي» كاملة، فلا يطابق «عرض سعر» في المبيعات. */
+        offers: { titleKey: "viewOffers", defaultCategory: "عرض وظيفي",
+                  words: ["عرض وظيفي", "عروض وظيفية", "عرض عمل", "job offer", "job offers", "offer letter",
+                          "offre d'emploi", "offres d'emploi", "ملازمت کی پیشکش"] },
         training: { titleKey: "viewTraining", defaultCategory: "دورة",
                     words: ["دورة", "دورات", "تدريب", "مؤهل", "مؤهلات", "شهادة مهنية", "رخصة مهنية",
                             "course", "courses", "training", "qualification", "degree", "diploma",

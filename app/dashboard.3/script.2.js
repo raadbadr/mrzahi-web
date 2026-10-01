@@ -1010,13 +1010,14 @@
            والمبلغ والحالة تحسب من حقولها)، والحقل الاول يسمى باسمه: اسم الموظف،
            او بيان الاجازة، او اسم الدورة */
         if (HR_VIEWS[state.viewType]) {
-          var hrHide = { staff: ["client", "client_en", "due", "amount", "status"],
+          var hrHide = { offers: ["client", "client_en", "due", "amount", "status", "case_number"],
+                         staff: ["client", "client_en", "due", "amount", "status"],
                          leaves: ["client", "client_en", "due", "amount", "status", "case_number"],
                          training: ["client", "client_en", "due", "status", "case_number"] }[state.viewType];
           hrHide.forEach(function (name) {
             document.querySelectorAll('[data-field="' + name + '"]').forEach(function (el) { el.hidden = true; });
           });
-          var titleKey = { staff: "fieldStaffName", leaves: "fieldLeaveTitle", training: "fieldTrainName" }[state.viewType];
+          var titleKey = { staff: "fieldStaffName", leaves: "fieldLeaveTitle", training: "fieldTrainName", offers: "fieldOfferName" }[state.viewType];
           document.querySelectorAll('[data-field="title"] > span[data-i18n]').forEach(function (sp) {
             if (sp.getAttribute("data-i18n") !== titleKey) sp.setAttribute("data-i18n", titleKey);
             if (sp.textContent !== T(titleKey)) sp.textContent = T(titleKey);
@@ -1511,7 +1512,7 @@
                                 او ملغاة = cancelled، فتعد المربعات ما ينتظر قرارا.
            الدورة   (training): client_name الموظف، و due_at تاريخها ان كانت قادمة
                                 والا انتهاء شهادتها فيذكر بتجديدها. */
-      var HR_VIEWS = { staff: 1, leaves: 1, training: 1 };
+      var HR_VIEWS = { staff: 1, leaves: 1, training: 1, offers: 1 };
       var STAFF_CONTRACTS = [
         { value: "", key: "staffContractNone" },
         { value: "fixed", key: "staffContractFixed" },
@@ -1634,8 +1635,11 @@
       function staffFields(item) {
         var d = (item && item.data) || {};
         var basic = Number(d.salary_basic) || 0;
-        var housing = Number(d.salary_housing) || 0, transport = Number(d.salary_transport) || 0, other = Number(d.salary_other) || 0;
-        var total = item && item.amount != null ? Number(item.amount) : fin2(basic + housing + transport + other);
+        /* البدلات مصفوفة؛ وبطاقة كتبت قبلها بثلاثة حقول ثابتة تقرا صفوفا بانواعها */
+        var allowances = Array.isArray(d.allowances) ? normAllow(d.allowances) : normAllow([
+          { kind: "housing", value: d.salary_housing }, { kind: "transport", value: d.salary_transport }, { kind: "other", value: d.salary_other }
+        ].filter(function (r) { return Number(r.value) > 0; }));
+        var total = item && item.amount != null ? Number(item.amount) : allowTotals(allowances, basic).monthly;
         return {
           number: (item && item.case_number) || dataOf(item || {}, ["employee_number", "الرقم الوظيفي"]),
           nameEn: d.name_en || (item && item.client_name_en) || "",
@@ -1645,13 +1649,13 @@
           stage: hrOpt(STAFF_STAGES, d.staff_stage) ? d.staff_stage : "active",
           hired: d.hire_date || "", nationality: d.nationality || "",
           idNumber: d.id_number || "", idExpiry: d.id_expiry || "", contractEnd: d.contract_end || "",
-          basic: basic, housing: housing, transport: transport, other: other, total: total,
+          basic: basic, allowances: allowances, total: total,
           leaveDays: (d.leave_days != null && d.leave_days !== "") ? Number(d.leave_days) : null,
           iban: d.iban || ""
         };
       }
       function staffTotalOf(d) {
-        return fin2((Number(d.salary_basic) || 0) + (Number(d.salary_housing) || 0) + (Number(d.salary_transport) || 0) + (Number(d.salary_other) || 0));
+        return allowTotals(normAllow(d.allowances), d.salary_basic).monthly;
       }
       function staffRowData(prefix) {
         return {
@@ -1668,9 +1672,8 @@
           id_expiry: hrVal(prefix, "StaffIdExpiry") || null,
           contract_end: hrVal(prefix, "StaffContractEnd") || null,
           salary_basic: numOrNull(hrVal(prefix, "StaffSalary")),
-          salary_housing: numOrNull(hrVal(prefix, "StaffHousing")),
-          salary_transport: numOrNull(hrVal(prefix, "StaffTransport")),
-          salary_other: numOrNull(hrVal(prefix, "StaffOther")),
+          allowances: readAllow(prefix + "Staff"),
+          salary_housing: null, salary_transport: null, salary_other: null,   /* حلت محلها المصفوفة */
           leave_days: numOrNull(hrVal(prefix, "StaffLeaveDays")),
           iban: hrVal(prefix, "StaffIban") || null
         };
@@ -1681,8 +1684,8 @@
         hrSet(prefix, "StaffDept", f.dept); hrSet(prefix, "StaffJob", f.job); hrSet(prefix, "StaffHired", f.hired);
         hrSet(prefix, "StaffNationality", f.nationality); hrSet(prefix, "StaffId", f.idNumber);
         hrSet(prefix, "StaffIdExpiry", f.idExpiry); hrSet(prefix, "StaffContractEnd", f.contractEnd);
-        hrSet(prefix, "StaffSalary", f.basic || ""); hrSet(prefix, "StaffHousing", f.housing || "");
-        hrSet(prefix, "StaffTransport", f.transport || ""); hrSet(prefix, "StaffOther", f.other || "");
+        hrSet(prefix, "StaffSalary", f.basic || "");
+        setAllow(prefix + "Staff", f.allowances);
         hrSet(prefix, "StaffLeaveDays", f.leaveDays == null ? "" : f.leaveDays); hrSet(prefix, "StaffIban", f.iban);
         hrFillOpts($(prefix + "StaffContract"), STAFF_CONTRACTS, f.contract);
         hrFillOpts($(prefix + "StaffStage"), STAFF_STAGES, item ? f.stage : "active");
@@ -2134,17 +2137,553 @@
         translateView();
       }
 
+      /* ==================== البدلات الديناميكية ====================
+         في بطاقة الموظف وفي العرض الوظيفي (امر المهندس رعد 2026-10-01: «يضاف فيها
+         البدلات كالسكن والتنقل وباقي البدلات ويكون ديناميكي»). كل بدل سطر: نوعه الثابت
+         (يقراه مسير الرواتب، فالسكن في وعاء التامينات ايا كان اسمه)، واسمه الحر للخطاب،
+         وطريقة حسابه مبلغا ثابتا او نسبة من الاساسي، وقيمته، ودوريته. والمجاميع تحسب
+         فور الكتابة: الاجمالي الشهري، والحزمة السنوية، وما يصرف مرة واحدة. */
+      var ALLOW_KINDS = [
+        { value: "housing", key: "allowHousing" }, { value: "transport", key: "allowTransport" },
+        { value: "phone", key: "allowPhone" }, { value: "food", key: "allowFood" },
+        { value: "nature", key: "allowNature" }, { value: "tickets", key: "allowTickets" },
+        { value: "relocation", key: "allowRelocation" }, { value: "signing", key: "allowSigning" },
+        { value: "other", key: "allowOther" }
+      ];
+      var ALLOW_METHODS = [{ value: "amount", key: "allowMethodAmount" }, { value: "percent", key: "allowMethodPercent" }];
+      var ALLOW_PERIODS = [{ value: "monthly", key: "allowPeriodMonthly" }, { value: "annual", key: "allowPeriodAnnual" }, { value: "once", key: "allowPeriodOnce" }];
+      var TRASH_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
+      var allowRows = {};
+
+      function allowKindLabel(kind, lg) {
+        var o = hrOpt(ALLOW_KINDS, kind);
+        if (!o) return "";
+        if (lg && translations[lg] && translations[lg][o.key]) return translations[lg][o.key];
+        return T(o.key);
+      }
+      /* الاسم الذي ولد من النوع باي لغة ليس اسما كتبه صاحبه: يعرض تلميحا فارغا،
+         ويطبع في الخطاب بلغة الخطاب نفسها لا بلغة من ادخله */
+      function isAutoAllowName(r) {
+        var o = hrOpt(ALLOW_KINDS, r && r.kind), n = String((r && r.name) || "").trim();
+        return !n || (!!o && ["ar", "en", "fr", "ur"].some(function (l) { return translations[l] && translations[l][o.key] === n; }));
+      }
+      /* صفوف قديمة بلا نوع: يستنتج من الاسم، والمسير يستنتج بالقاعدة نفسها */
+      function guessAllowKind(name) {
+        var n = String(name || "").toLowerCase();
+        if (/سكن|اسكان|إسكان|housing|accommodation|logement|رہائش/.test(n)) return "housing";
+        if (/نقل|مواصلات|تنقل|transport|ٹرانسپورٹ/.test(n)) return "transport";
+        return "other";
+      }
+      function normAllow(list) {
+        return (Array.isArray(list) ? list : []).filter(function (r) { return r && typeof r === "object"; }).map(function (r) {
+          var kind = hrOpt(ALLOW_KINDS, r.kind) ? r.kind : guessAllowKind(r.name);
+          return { kind: kind, name: String(r.name || "").trim() || allowKindLabel(kind),
+                   method: r.method === "percent" ? "percent" : "amount",
+                   value: (r.value === 0 || r.value) ? r.value : "",
+                   period: hrOpt(ALLOW_PERIODS, r.period) ? r.period : "monthly" };
+        });
+      }
+      function allowAmount(r, basic) {
+        var v = Number(r.value) || 0;
+        return fin2(r.method === "percent" ? (Number(basic) || 0) * v / 100 : v);
+      }
+      function allowTotals(rows, basic) {
+        var b = Number(basic) || 0, m = 0, a = 0, o = 0;
+        (rows || []).forEach(function (r) {
+          var x = allowAmount(r, b);
+          if (r.period === "annual") a += x; else if (r.period === "once") o += x; else m += x;
+        });
+        var monthly = fin2(b + m);
+        return { monthly: monthly, annual: fin2(monthly * 12 + a), once: fin2(o) };
+      }
+      function allowBasic(key) { var el = $(key + "Salary"); return el ? (Number(el.value) || 0) : 0; }
+      function allowOptions(list, value) {
+        return list.map(function (o) {
+          return '<option value="' + o.value + '"' + (o.value === value ? " selected" : "") + ">" + esc(T(o.key)) + "</option>";
+        }).join("");
+      }
+      function renderAllowTotals(key) {
+        var box = document.querySelector('[data-allow-totals="' + key + '"]');
+        if (!box) return;
+        var t = allowTotals(allowRows[key], allowBasic(key));
+        paintEl(box).html =
+          '<div class="total-card"><span class="total-label">' + esc(T("allowTotalMonthly")) + '</span><span class="total-value">' + money(t.monthly) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("allowTotalAnnual")) + '</span><span class="total-value">' + money(t.annual) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("allowTotalOnce")) + '</span><span class="total-value">' + money(t.once) + "</span></div>";
+      }
+      function renderAllow(key) {
+        var body = document.querySelector('[data-allow-body="' + key + '"]');
+        if (!body) return;
+        var rows = allowRows[key] || (allowRows[key] = []);
+        var basic = allowBasic(key);
+        body.innerHTML = rows.map(function (r, i) {
+          return '<tr data-allow-row="' + i + '">' +
+            '<td><div class="cell-stack"><select class="waitlist-input" data-allow-f="kind" aria-label="' + esc(T("colAllowName")) + '">' + allowOptions(ALLOW_KINDS, r.kind) + "</select>" +
+              '<input type="text" class="waitlist-input" data-allow-f="name" maxlength="60" dir="auto" value="' + esc(isAutoAllowName(r) ? "" : r.name) + '" placeholder="' + esc(T("allowNameHint")) + '" aria-label="' + esc(T("allowNameHint")) + '"></div></td>' +
+            '<td><select class="waitlist-input" data-allow-f="method" aria-label="' + esc(T("colAllowMethod")) + '">' + allowOptions(ALLOW_METHODS, r.method) + "</select></td>" +
+            '<td><input type="number" class="waitlist-input" data-allow-f="value" step="0.01" min="0" dir="ltr" value="' + esc(String(r.value)) + '" aria-label="' + esc(T("colAllowValue")) + '"></td>' +
+            '<td><select class="waitlist-input" data-allow-f="period" aria-label="' + esc(T("colAllowPeriod")) + '">' + allowOptions(ALLOW_PERIODS, r.period) + "</select></td>" +
+            '<td class="cell-num" data-allow-amount>' + money(allowAmount(r, basic)) + "</td>" +
+            '<td><div class="chat-options row-actions"><button type="button" class="chat-option-btn is-icon is-danger" data-allow-del="' + i + '" title="' + esc(T("allowDelete")) + '" aria-label="' + esc(T("allowDelete")) + '">' + TRASH_SVG + "</button></div></td></tr>";
+        }).join("");
+        var add = document.querySelector('[data-allow-add="' + key + '"]');
+        if (add) { add.title = T("allowAdd"); add.setAttribute("aria-label", T("allowAdd")); }
+        renderAllowTotals(key);
+      }
+      function refreshAllowAmounts(key) {
+        var body = document.querySelector('[data-allow-body="' + key + '"]');
+        if (!body) return;
+        var basic = allowBasic(key);
+        body.querySelectorAll("tr[data-allow-row]").forEach(function (tr) {
+          var r = (allowRows[key] || [])[Number(tr.getAttribute("data-allow-row"))];
+          var cell = tr.querySelector("[data-allow-amount]");
+          if (r && cell) cell.innerHTML = money(allowAmount(r, basic));
+        });
+        renderAllowTotals(key);
+      }
+      function setAllow(key, rows) { allowRows[key] = normAllow(rows); renderAllow(key); }
+      function readAllow(key) {
+        return (allowRows[key] || []).filter(function (r) { return String(r.name || "").trim() || Number(r.value); }).map(function (r) {
+          return { kind: r.kind, name: String(r.name || "").trim() || allowKindLabel(r.kind),
+                   method: r.method, value: Number(r.value) || 0, period: r.period };
+        });
+      }
+      /* سياسة بدلات المنشاة: تقرا مرة، وتملا كل عرض جديد، وتحفظ بدالة لا تقبل الا من يرى الموارد البشرية */
+      function loadAllowPolicy() {
+        if (state.allowPolicy) return Promise.resolve(state.allowPolicy);
+        if (!app || !app.client || !app.org) return Promise.resolve([]);
+        return Promise.resolve(app.client.from("org_policies").select("value").eq("org_id", app.org.id).eq("key", "allowances").maybeSingle())
+          .then(function (res) { state.allowPolicy = normAllow(res && res.data && res.data.value); return state.allowPolicy; })
+          .catch(function () { return []; });
+      }
+      function saveAllowPolicy(key) {
+        var rows = readAllow(key);
+        Promise.resolve(app.client.rpc("set_org_policy", { p_org: app.org.id, p_key: "allowances", p_value: rows })).then(function (res) {
+          var st = res && res.data && res.data.status;
+          if ((res && res.error) || st !== "saved") { toast(st === "not_allowed" ? "allowPolicyDenied" : "genericError", "error"); return; }
+          state.allowPolicy = normAllow(rows);
+          toast("allowPolicySaved");
+        }).catch(function () { toast("genericError", "error"); });
+      }
+      function applyAllowPolicy(key) {
+        loadAllowPolicy().then(function (p) {
+          if (!p || !p.length) { toast("allowPolicyEmpty", "error"); return; }
+          setAllow(key, p);
+        });
+      }
+      (function wireAllowances() {
+        function onEdit(ev) {
+          var f = ev.target && ev.target.closest && ev.target.closest("[data-allow-f]");
+          if (f) {
+            var body = f.closest("[data-allow-body]"), tr = f.closest("tr[data-allow-row]");
+            if (!body || !tr) return;
+            var key = body.getAttribute("data-allow-body"), row = (allowRows[key] || [])[Number(tr.getAttribute("data-allow-row"))];
+            if (!row) return;
+            var field = f.getAttribute("data-allow-f");
+            if (field === "kind") {
+              /* الاسم يتبع النوع ما لم يكتبه صاحبه بنفسه */
+              var auto = isAutoAllowName(row);
+              row.kind = f.value;
+              if (auto) row.name = allowKindLabel(row.kind);
+            } else row[field] = f.value;
+            refreshAllowAmounts(key);
+            return;
+          }
+          var id = ev.target && ev.target.id;
+          if (id && /^(edit|add)(Staff|Offer)Salary$/.test(id)) refreshAllowAmounts(id.replace(/Salary$/, ""));
+        }
+        document.addEventListener("input", onEdit);
+        document.addEventListener("change", onEdit);
+        document.addEventListener("click", function (ev) {
+          var t = ev.target && ev.target.closest ? ev.target : null;
+          if (!t) return;
+          var add = t.closest("[data-allow-add]");
+          if (add) {
+            ev.preventDefault();
+            var key = add.getAttribute("data-allow-add");
+            var rows = allowRows[key] || (allowRows[key] = []);
+            var has = function (k) { return rows.some(function (r) { return r.kind === k; }); };
+            var kind = !has("housing") ? "housing" : (!has("transport") ? "transport" : "other");
+            rows.push({ kind: kind, name: allowKindLabel(kind), method: "amount", value: "", period: "monthly" });
+            renderAllow(key);
+            var body = document.querySelector('[data-allow-body="' + key + '"]');
+            var last = body && body.querySelector('tr[data-allow-row="' + (rows.length - 1) + '"] [data-allow-f="value"]');
+            if (last) last.focus();
+            return;
+          }
+          var del = t.closest("[data-allow-del]");
+          if (del) {
+            ev.preventDefault();
+            if (!window.confirm(T("allowDeleteConfirm"))) return;
+            var b2 = del.closest("[data-allow-body]");
+            var k2 = b2 && b2.getAttribute("data-allow-body");
+            if (!k2 || !allowRows[k2]) return;
+            allowRows[k2].splice(Number(del.getAttribute("data-allow-del")), 1);
+            renderAllow(k2);
+            return;
+          }
+          var ps = t.closest("[data-allow-policy-save]");
+          if (ps) { ev.preventDefault(); saveAllowPolicy(ps.getAttribute("data-allow-policy-save")); return; }
+          var pa = t.closest("[data-allow-policy-apply]");
+          if (pa) { ev.preventDefault(); applyAllowPolicy(pa.getAttribute("data-allow-policy-apply")); }
+        });
+      })();
+
+      /* ==================== العروض الوظيفية ====================
+         المرشح خلال الاستقطاب: بياناته والوظيفة والعقد والاجر والبدلات وصلاحية العرض،
+         ومراحله من المسودة الى القبول. لا يعتمد الا المالك او المشرف (حارس في القاعدة
+         يختم المعتمد ووقته)، والمقبول يتحول بنقرة الى بطاقة موظف. وخطاب العرض الرسمي
+         يطبع على ورق المنشاة نفسها بالعربية او الانجليزية او كلتيهما. */
+      var OFFER_STAGES = [
+        { value: "draft", key: "offerStageDraft", cls: "open" },
+        { value: "pending", key: "offerStagePending", cls: "open" },
+        { value: "approved", key: "offerStageApproved", cls: "open" },
+        { value: "sent", key: "offerStageSent", cls: "open" },
+        { value: "accepted", key: "offerStageAccepted", cls: "done" },
+        { value: "declined", key: "offerStageDeclined", cls: "cancelled" },
+        { value: "withdrawn", key: "offerStageWithdrawn", cls: "cancelled" }
+      ];
+      var OFFER_OPEN = { draft: 1, pending: 1, approved: 1, sent: 1 };
+      var OFFER_LANGS = [{ value: "ar", key: "offerLangAr" }, { value: "en", key: "offerLangEn" }, { value: "both", key: "offerLangBoth" }];
+      var LETTER_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8H5a3 3 0 00-3 3v6h4v4h12v-4h4v-6a3 3 0 00-3-3zm-3 11H8v-5h8v5zm3-7a1 1 0 110-2 1 1 0 010 2zM18 3H6v4h12V3z"/></svg>';
+
+      function isOrgAdmin() { var r = app && app.role ? app.role() : ""; return r === "owner" || r === "admin"; }
+      function numOrBlank(v) { return (v === 0 || v) && v !== "" ? Number(v) : null; }
+      function offerFields(item) {
+        var d = (item && item.data) || {};
+        var allowances = normAllow(d.allowances);
+        var basic = Number(d.salary_basic) || 0;
+        return {
+          stage: hrOpt(OFFER_STAGES, d.offer_stage) ? d.offer_stage : "draft",
+          nameEn: d.name_en || (item && item.client_name_en) || "", email: d.email || "", phone: d.phone || "",
+          nationality: d.nationality || "", job: d.job_title || "", dept: d.department || "", manager: d.manager || "",
+          contract: hrOpt(STAFF_CONTRACTS, d.contract_type || "") ? (d.contract_type || "") : "",
+          months: numOrBlank(d.contract_months), start: d.start_date || "", probation: numOrBlank(d.probation_days),
+          leaveDays: numOrBlank(d.leave_days), medical: d.medical || "", tickets: d.tickets || "",
+          expiry: d.offer_expiry || dayStr(item && item.due_at), basic: basic, allowances: allowances,
+          totals: allowTotals(allowances, basic), signName: d.signatory_name || "", signTitle: d.signatory_title || "",
+          lang: hrOpt(OFFER_LANGS, d.letter_lang) ? d.letter_lang : "ar", notes: d.offer_notes || "",
+          employeeId: d.employee_id || "", approvedBy: d.approved_by_name || "", approvedAt: d.approved_at || ""
+        };
+      }
+      /* المرحلة المعروضة: المفتوح الذي مضى تاريخ صلاحيته «منته» بلا كتابة في القاعدة */
+      function offerState(item) {
+        var f = offerFields(item);
+        if (OFFER_OPEN[f.stage] && f.expiry) {
+          var ms = dayMs(f.expiry);
+          if (isFinite(ms) && ms < todayMs()) return "expired";
+        }
+        return f.stage;
+      }
+      function offerStateLabel(st) { return st === "expired" ? T("offerStageExpired") : hrLabel(OFFER_STAGES, st); }
+      function offerStateCls(st) { if (st === "expired") return "overdue"; var o = hrOpt(OFFER_STAGES, st); return o ? o.cls : "open"; }
+      function offerStatusFor(stage) { return stage === "accepted" ? "done" : ((stage === "declined" || stage === "withdrawn") ? "cancelled" : "open"); }
+      function offerRowData(prefix) {
+        return {
+          name_en: hrVal(prefix, "OfferNameEn") || null, email: hrVal(prefix, "OfferEmail") || null,
+          phone: hrVal(prefix, "OfferPhone") || null, nationality: hrVal(prefix, "OfferNationality") || null,
+          job_title: hrVal(prefix, "OfferJob") || null, department: hrVal(prefix, "OfferDept") || null,
+          manager: hrVal(prefix, "OfferManager") || null, contract_type: hrVal(prefix, "OfferContract") || null,
+          contract_months: numOrNull(hrVal(prefix, "OfferMonths")), start_date: hrVal(prefix, "OfferStart") || null,
+          probation_days: numOrNull(hrVal(prefix, "OfferProbation")), leave_days: numOrNull(hrVal(prefix, "OfferLeaveDays")),
+          medical: hrVal(prefix, "OfferMedical") || null, tickets: hrVal(prefix, "OfferTickets") || null,
+          offer_stage: hrVal(prefix, "OfferStage") || "draft", offer_expiry: hrVal(prefix, "OfferExpiry") || null,
+          salary_basic: numOrNull(hrVal(prefix, "OfferSalary")), allowances: readAllow(prefix + "Offer"),
+          signatory_name: hrVal(prefix, "OfferSignName") || null, signatory_title: hrVal(prefix, "OfferSignTitle") || null,
+          letter_lang: hrVal(prefix, "OfferLang") || "ar", offer_notes: hrVal(prefix, "OfferNotes") || null
+        };
+      }
+      function fillOfferFields(prefix, item) {
+        var f = offerFields(item || {});
+        hrSet(prefix, "OfferNameEn", f.nameEn); hrSet(prefix, "OfferEmail", f.email); hrSet(prefix, "OfferPhone", f.phone);
+        hrSet(prefix, "OfferNationality", f.nationality); hrSet(prefix, "OfferJob", f.job); hrSet(prefix, "OfferDept", f.dept);
+        hrSet(prefix, "OfferManager", f.manager); hrSet(prefix, "OfferMonths", f.months == null ? "" : f.months);
+        hrSet(prefix, "OfferStart", f.start); hrSet(prefix, "OfferProbation", f.probation == null ? "" : f.probation);
+        hrSet(prefix, "OfferLeaveDays", f.leaveDays == null ? "" : f.leaveDays); hrSet(prefix, "OfferMedical", f.medical);
+        hrSet(prefix, "OfferTickets", f.tickets); hrSet(prefix, "OfferExpiry", item ? f.expiry : "");
+        hrSet(prefix, "OfferSalary", f.basic || ""); hrSet(prefix, "OfferSignName", f.signName);
+        hrSet(prefix, "OfferSignTitle", f.signTitle); hrSet(prefix, "OfferNotes", f.notes);
+        hrFillOpts($(prefix + "OfferContract"), STAFF_CONTRACTS, f.contract);
+        hrFillOpts($(prefix + "OfferStage"), OFFER_STAGES, item ? f.stage : "draft");
+        hrFillOpts($(prefix + "OfferLang"), OFFER_LANGS, f.lang);
+        setAllow(prefix + "Offer", f.allowances);
+      }
+      function renderOfferFilters(items) {
+        var depts = {};
+        items.forEach(function (it) { var d = offerFields(it).dept; if (d) depts[d] = true; });
+        fillSelect($("offerStageFilter"),
+          [{ value: "", label: T("offerStageAll") }].concat(OFFER_STAGES.map(function (o) { return { value: o.value, label: T(o.key) }; }))
+            .concat([{ value: "expired", label: T("offerStageExpired") }]),
+          state.offerStage || "");
+        fillSelect($("offerDeptFilter"),
+          [{ value: "", label: T("offerDeptAll") }].concat(Object.keys(depts).sort().map(function (n) { return { value: n, label: n }; })),
+          state.offerDept || "");
+      }
+      function renderOfferTotals(items) {
+        var box = $("offerTotals");
+        if (!box) return;
+        var open = 0, pending = 0, accepted = 0, monthly = 0;
+        items.forEach(function (it) {
+          var st = offerState(it), f = offerFields(it);
+          if (OFFER_OPEN[st]) { open++; monthly += f.totals.monthly; }
+          if (st === "pending") pending++;
+          if (st === "accepted") accepted++;
+        });
+        paintEl(box).html =
+          '<div class="total-card"><span class="total-label">' + esc(T("offerTotalOpen")) + '</span><span class="total-value">' + esc(String(open)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("offerTotalPending")) + '</span><span class="total-value">' + esc(String(pending)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("offerTotalAccepted")) + '</span><span class="total-value">' + esc(String(accepted)) + "</span></div>" +
+          '<div class="total-card"><span class="total-label">' + esc(T("offerTotalMonthlyOpen")) + '</span><span class="total-value">' + money(monthly) + "</span></div>";
+      }
+      /* ازرار الصف: الخطاب والتعديل والحذف في مواضعها الثابتة اولا، ثم فعل المرحلة */
+      function offerActionsHtml(item, st, f) {
+        var html = '<button type="button" class="chat-option-btn is-icon" data-offer-letter="' + esc(item.id) + '" title="' + esc(T("offerLetter")) + '" aria-label="' + esc(T("offerLetter")) + '">' + LETTER_SVG + "</button>" +
+          actionBtn(item, "edit", "actionEdit") + actionBtn(item, "delete", "actionDelete", "is-danger");
+        if (st === "draft") html += actionBtn(item, "offer_pending", "actionOfferPending");
+        else if (st === "pending" && isOrgAdmin()) html += actionBtn(item, "offer_approve", "actionOfferApprove");
+        else if (st === "approved" || st === "sent") html += actionBtn(item, "offer_accept", "actionOfferAccept") + actionBtn(item, "offer_decline", "actionOfferDecline");
+        else if (st === "accepted" && !f.employeeId) html += actionBtn(item, "offer_hire", "actionOfferHire");
+        else if (st === "declined" || st === "withdrawn" || st === "expired") html += actionBtn(item, "offer_reopen", "actionOfferReopen");
+        return html;
+      }
+      function renderOffers() {
+        loadAllowPolicy();
+        renderOfferFilters(state.items);
+        var items = state.items.filter(function (it) {
+          if (state.offerStage && offerState(it) !== state.offerStage) return false;
+          if (state.offerDept && offerFields(it).dept !== state.offerDept) return false;
+          return true;
+        }).sort(function (a, b) { return String(b.created_at || "").localeCompare(String(a.created_at || "")); });
+        renderOfferTotals(items);
+        var body = $("offersBody");
+        if (!body) return;
+        body.innerHTML = "";
+        $("offersWrap").hidden = items.length === 0;
+        $("emptyList").hidden = items.length > 0;
+        items.forEach(function (item) {
+          var f = offerFields(item), st = offerState(item);
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            '<td><span class="item-title" data-tr>' + esc(item.title) + "</span>" +
+              (f.nameEn ? '<span class="item-cat" dir="ltr">' + esc(f.nameEn) + "</span>" : "") +
+              (f.email ? '<span class="item-cat" dir="ltr">' + esc(f.email) + "</span>" : "") + "</td>" +
+            "<td>" + esc(f.job || "-") + (f.dept ? '<span class="item-cat">' + esc(f.dept) + "</span>" : "") + "</td>" +
+            '<td class="cell-num">' + money(f.basic) + "</td>" +
+            '<td class="cell-num">' + money(f.totals.monthly) + "</td>" +
+            '<td class="cell-num">' + esc(shortDate(f.start)) + "</td>" +
+            '<td class="cell-num">' + esc(shortDate(f.expiry)) + "</td>" +
+            '<td class="cell-num">' + (item.due_at && OFFER_OPEN[st] ? '<span class="item-cat due-left" data-due="' + esc(item.due_at) + '"></span>' : "-") + "</td>" +
+            '<td><span class="status-' + offerStateCls(st) + '">' + esc(offerStateLabel(st)) + "</span>" +
+              (f.approvedBy ? '<span class="item-cat">' + esc(T("offerApprovedBy").replace("{name}", f.approvedBy)) + "</span>" : "") + "</td>" +
+            '<td><div class="chat-options row-actions">' + offerActionsHtml(item, st, f) + "</div></td>";
+          body.appendChild(tr);
+        });
+        translateView();
+      }
+      function offerError(err) {
+        var m = String((err && (err.message || err.code || err.details)) || "");
+        if (m.indexOf("OFFER_APPROVAL_OWNER_ADMIN") !== -1) return T("offerErrApprover");
+        if (m.indexOf("OFFER_NOT_APPROVED") !== -1) return T("offerErrNotApproved");
+        return "";
+      }
+      function setOfferStage(item, stage) {
+        var d = Object.assign({}, item.data || {}, { offer_stage: stage });
+        guard(function () {
+          return app.updateItem(item.id, { data: d, status: offerStatusFor(stage) }).then(function () {
+            toast("saved");
+            return refresh();
+          });
+        }).catch(function (err) {
+          var m = offerError(err);
+          if (m) setMsg("listMsg", m, "error"); else fail(err, "listMsg");
+        });
+      }
+      function addMonthsDay(day, n) {
+        var ms = dayMs(day);
+        if (!isFinite(ms) || !(n > 0)) return null;
+        var d = new Date(ms); d.setMonth(d.getMonth() + Number(n)); d.setDate(d.getDate() - 1);
+        return d.getFullYear() + "-" + (d.getMonth() < 9 ? "0" : "") + (d.getMonth() + 1) + "-" + (d.getDate() < 10 ? "0" : "") + d.getDate();
+      }
+      /* من القبول الى التعيين: بطاقة موظف بالراتب والبدلات وتاريخ المباشرة وحالة «تحت
+         التجربة»، والعرض يحفظ معرفها فلا يعين مرتين. مهام الالتحاق يبنيها مسار الالتحاق. */
+      function hireFromOffer(item) {
+        var f = offerFields(item);
+        if (f.employeeId) return;
+        if (!window.confirm(T("offerHireConfirm").replace("{name}", item.title || ""))) return;
+        var contractEnd = f.contract === "fixed" ? addMonthsDay(f.start, f.months) : null;
+        var row = {
+          record_id: item.record_id, title: item.title, category: VIEW_TYPES.staff.defaultCategory, status: "open",
+          client_name_en: f.nameEn || null, amount: f.totals.monthly || null, due_at: hrDue([contractEnd]),
+          data: { name_en: f.nameEn || null, phone: f.phone || null, email: f.email || null, department: f.dept || null,
+                  job_title: f.job || null, contract_type: f.contract || null, staff_stage: "probation", hire_date: f.start || null,
+                  nationality: f.nationality || null, contract_end: contractEnd, salary_basic: f.basic || null,
+                  allowances: f.allowances, leave_days: f.leaveDays, offer_id: item.id }
+        };
+        guard(function () {
+          return app.insertItems([row]).then(function (ids) {
+            var newId = ids && ids[0] && ids[0].id;
+            return app.updateItem(item.id, { data: Object.assign({}, item.data || {}, { employee_id: newId || null }) });
+          }).then(function () {
+            toast("offerHired");
+            return refresh();
+          });
+        }).catch(function (err) { fail(err, "listMsg"); });
+      }
+
+      /* ــ خطاب العرض الرسمي ــ
+         يطبع من اطار خفي على ورق المنشاة: اسمها النظامي وسجلها وعنوانها وشعارها ان رفع،
+         لا شعار مستر زاهي ولا ختم باركينزي. الالوان لا تكتب: الحبر الافتراضي للطباعة. */
+      var LETTER = {
+        ar: {
+          dir: "rtl", subject: "عرض وظيفي", date: "التاريخ", subjectLabel: "الموضوع", to: "الى",
+          greet: "السلام عليكم ورحمة الله وبركاته، وبعد:",
+          intro: "يسرنا في {company} أن نتقدم اليكم بخالص الشكر والتقدير على اهتمامكم بالانضمام الى فريقنا، ويسعدنا أن نقدم لكم عرضا للعمل لدينا وفق ما يلي:",
+          job: "المسمى الوظيفي", dept: "القسم", manager: "المدير المباشر", contract: "نوع العقد", months: "مدة العقد",
+          start: "تاريخ المباشرة المتوقع", probation: "فترة التجربة", leave: "الاجازة السنوية", medical: "التأمين الطبي",
+          tickets: "تذاكر السفر", monthsUnit: "شهرا", daysUnit: "يوما",
+          payTitle: "الأجر والبدلات", basic: "الراتب الأساسي", monthlyTotal: "الاجمالي الشهري",
+          annualTotal: "الحزمة السنوية", onceTotal: "ما يصرف مرة واحدة",
+          per: { monthly: "شهريا", annual: "سنويا", once: "مرة واحدة" },
+          validity: "يسري هذا العرض حتى {date}، ونأمل التكرم بإفادتنا بقبولكم قبل هذا التاريخ. ويخضع التعاقد لنظام العمل في المملكة العربية السعودية ولوائحه.",
+          notes: "ملاحظات", hope: "نتطلع الى انضمامكم، ونتمنى لكم دوام التوفيق والنجاح.",
+          closing: "وتفضلوا بقبول فائق الاحترام والتقدير،،،",
+          acceptTitle: "إقرار القبول", acceptText: "أقر بأنني اطلعت على العرض الوظيفي أعلاه وأوافق عليه.",
+          acceptName: "الاسم", acceptSign: "التوقيع", acceptDate: "التاريخ", cr: "سجل تجاري"
+        },
+        en: {
+          dir: "ltr", subject: "Job Offer", date: "Date", subjectLabel: "Subject", to: "To",
+          greet: "Dear {name},",
+          intro: "On behalf of {company}, we sincerely thank you for your interest in joining our team, and we are pleased to offer you employment on the following terms:",
+          job: "Job title", dept: "Department", manager: "Direct manager", contract: "Contract type", months: "Contract duration",
+          start: "Expected start date", probation: "Probation period", leave: "Annual leave", medical: "Medical insurance",
+          tickets: "Travel tickets", monthsUnit: "months", daysUnit: "days",
+          payTitle: "Salary and allowances", basic: "Basic salary", monthlyTotal: "Total monthly pay",
+          annualTotal: "Annual package", onceTotal: "One-time payments",
+          per: { monthly: "monthly", annual: "annually", once: "one time" },
+          validity: "This offer is valid until {date}. We kindly ask you to confirm your acceptance before that date. Employment is subject to the Labor Law of the Kingdom of Saudi Arabia and its regulations.",
+          notes: "Notes", hope: "We look forward to welcoming you to the team and wish you every success.",
+          closing: "Sincerely,",
+          acceptTitle: "Acceptance", acceptText: "I confirm that I have read the above job offer and accept it.",
+          acceptName: "Name", acceptSign: "Signature", acceptDate: "Date", cr: "C.R."
+        }
+      };
+      var LETTER_CSS =
+        /* الخط السعودي للحروف العربية وحدها: حروفه اللاتينية كبيرة كلها، فالصفحة الانجليزية بخط النظام */
+        '@font-face{font-family:"MZLetter";src:url("/Saudi-Regular.woff2") format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF;}' +
+        "@page{size:A4;margin:16mm 16mm 18mm;}" +
+        'body{margin:0;font-family:"MZLetter",Tahoma,Arial,sans-serif;font-size:12.5pt;line-height:1.7;}' +
+        ".page{page-break-after:always;}.page:last-child{page-break-after:auto;}" +
+        ".head{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:2px solid currentColor;padding-bottom:10px;margin-bottom:14px;}" +
+        ".head img{max-height:64px;max-width:180px;}.org b{font-size:15pt;display:block;}.org span{display:block;font-size:10pt;}" +
+        ".meta{display:flex;justify-content:space-between;font-size:11pt;margin-bottom:12px;}" +
+        "table{width:100%;border-collapse:collapse;margin:8px 0 14px;}" +
+        "th,td{border:1px solid currentColor;padding:5px 8px;text-align:start;vertical-align:top;}th{width:40%;}tr,.sign,.accept{page-break-inside:avoid;}" +
+        /* صورة الرمز بيضاء (قناع في الواجهة)، فتسود هنا لتطبع بحبر النص */
+        ".num{direction:ltr;unicode-bidi:isolate;white-space:nowrap;}.rial{height:0.8em;vertical-align:-0.05em;margin-inline-start:3px;filter:brightness(0);}" +
+        "h3{font-size:12.5pt;margin:12px 0 4px;}.sign{margin-top:26px;}" +
+        ".accept{margin-top:26px;border-top:1px solid currentColor;padding-top:10px;font-size:11pt;}" +
+        ".foot{margin-top:24px;border-top:1px solid currentColor;padding-top:6px;font-size:9.5pt;text-align:center;}";
+      function TL(lg, key) { return (translations[lg] && translations[lg][key]) || translations.ar[key] || key; }
+      function letterMoney(n) {
+        var v = Number(n) || 0;
+        return '<span class="num">' + esc(app.fmtAmount ? app.fmtAmount(v) : String(v)) + '<img class="rial" src="/rial-symbol.png" alt="SAR"></span>';
+      }
+      function letterAddress(prof) {
+        var a = prof && prof.national_address;
+        if (!a) return "";
+        if (typeof a === "string") return a;
+        return [a.building, a.street, a.district, a.city, a.postal, a.short].filter(Boolean).join("، ");
+      }
+      function letterPage(item, f, prof, logo, lg) {
+        var L = LETTER[lg], company = (lg === "en" && prof.legal_name_en) ? prof.legal_name_en : (prof.legal_name || (app.org && app.org.name) || "");
+        var name = (lg === "en" && f.nameEn) ? f.nameEn : item.title;
+        var row = function (k, v) { return v ? "<tr><th>" + esc(L[k]) + "</th><td>" + v + "</td></tr>" : ""; };
+        var contractLabel = f.contract ? esc(TL(lg, (hrOpt(STAFF_CONTRACTS, f.contract) || {}).key || "")) : "";
+        var facts = row("job", esc(f.job)) + row("dept", esc(f.dept)) + row("manager", esc(f.manager)) +
+          row("contract", contractLabel) + row("months", f.months ? esc(String(f.months)) + " " + esc(L.monthsUnit) : "") +
+          row("start", f.start ? esc(shortDate(f.start)) : "") + row("probation", f.probation ? esc(String(f.probation)) + " " + esc(L.daysUnit) : "") +
+          row("leave", f.leaveDays ? esc(String(f.leaveDays)) + " " + esc(L.daysUnit) : "") + row("medical", esc(f.medical)) + row("tickets", esc(f.tickets));
+        var pay = "<tr><th>" + esc(L.basic) + "</th><td>" + letterMoney(f.basic) + " " + esc(L.per.monthly) + "</td></tr>" +
+          f.allowances.map(function (r) {
+            var nm = isAutoAllowName(r) ? allowKindLabel(r.kind, lg) : r.name;
+            return "<tr><th>" + esc(nm) + "</th><td>" + letterMoney(allowAmount(r, f.basic)) + " " + esc(L.per[r.period] || "") + "</td></tr>";
+          }).join("") +
+          "<tr><th>" + esc(L.monthlyTotal) + "</th><td><b>" + letterMoney(f.totals.monthly) + "</b></td></tr>" +
+          "<tr><th>" + esc(L.annualTotal) + "</th><td>" + letterMoney(f.totals.annual) + "</td></tr>" +
+          (f.totals.once ? "<tr><th>" + esc(L.onceTotal) + "</th><td>" + letterMoney(f.totals.once) + "</td></tr>" : "");
+        var foot = [letterAddress(prof), prof.phone, prof.email, prof.website].filter(Boolean).map(esc).join(" · ");
+        return '<section class="page" dir="' + L.dir + '" lang="' + lg + '">' +
+          '<div class="head"><div class="org"><b>' + esc(company) + "</b>" +
+            (prof.cr_number ? "<span>" + esc(L.cr) + ' <span class="num">' + esc(prof.cr_number) + "</span></span>" : "") + "</div>" +
+            (logo ? '<img src="' + esc(logo) + '" alt="">' : "") + "</div>" +
+          '<div class="meta"><span>' + esc(L.date) + ': <span class="num">' + esc(app.fmtDate(new Date().toISOString())) + "</span></span>" +
+            "<span>" + esc(L.subjectLabel) + ": " + esc(L.subject) + "</span></div>" +
+          "<p>" + esc(L.to) + ": <b>" + esc(name) + "</b></p>" +
+          "<p>" + esc(L.greet.replace("{name}", name)) + "</p>" +
+          "<p>" + esc(L.intro.replace("{company}", company)) + "</p>" +
+          (facts ? "<table>" + facts + "</table>" : "") +
+          "<h3>" + esc(L.payTitle) + "</h3><table>" + pay + "</table>" +
+          (f.expiry ? "<p>" + esc(L.validity.replace("{date}", shortDate(f.expiry))) + "</p>" : "") +
+          (f.notes ? "<p><b>" + esc(L.notes) + ":</b> " + esc(f.notes) + "</p>" : "") +
+          "<p>" + esc(L.hope) + "</p><p>" + esc(L.closing) + "</p>" +
+          '<div class="sign">' + (f.signName ? "<b>" + esc(f.signName) + "</b><br>" : "") + (f.signTitle ? esc(f.signTitle) + "<br>" : "") + esc(company) + "</div>" +
+          '<div class="accept"><b>' + esc(L.acceptTitle) + "</b><p>" + esc(L.acceptText) + "</p>" +
+            esc(L.acceptName) + ": ____________________ &nbsp; " + esc(L.acceptSign) + ": ________________ &nbsp; " + esc(L.acceptDate) + ": ____________</div>" +
+          (foot ? '<div class="foot">' + foot + "</div>" : "") +
+          "</section>";
+      }
+      function printOfferLetter(item) {
+        var f = offerFields(item);
+        Promise.resolve(app.orgProfile ? app.orgProfile() : null).catch(function () { return null; }).then(function (prof) {
+          prof = prof || {};
+          var logoP = (prof.logo_attachment_id && app.client)
+            ? Promise.resolve(app.client.from("attachments").select("*").eq("id", prof.logo_attachment_id).maybeSingle())
+                .then(function (r) { return (r && r.data) ? app.attachmentUrl(r.data) : null; }).catch(function () { return null; })
+            : Promise.resolve(null);
+          return logoP.then(function (logo) {
+            var langs = f.lang === "both" ? ["ar", "en"] : [f.lang];
+            var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(item.title || LETTER.ar.subject) + "</title><style>" + LETTER_CSS + "</style></head><body>" +
+              langs.map(function (lg) { return letterPage(item, f, prof, logo, lg); }).join("") + "</body></html>";
+            var frame = document.getElementById("offerLetterFrame");
+            if (!frame) {
+              frame = document.createElement("iframe");
+              frame.id = "offerLetterFrame";
+              frame.setAttribute("aria-hidden", "true");
+              frame.setAttribute("tabindex", "-1");
+              frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
+              document.body.appendChild(frame);
+            }
+            frame.onload = function () {
+              try { frame.contentWindow.focus(); frame.contentWindow.print(); } catch (e) { toast("genericError", "error"); }
+            };
+            frame.srcdoc = html;
+          });
+        }).catch(function () { toast("genericError", "error"); });
+      }
+
       /* ــ ما تشترك فيه الشاشات الثلاث ــ */
       function fillHrFields(prefix, item) {
         if (state.viewType === "staff") fillStaffFields(prefix, item);
         else if (state.viewType === "leaves") fillLeaveFields(prefix, item);
         else if (state.viewType === "training") fillTrainFields(prefix, item);
+        else if (state.viewType === "offers") fillOfferFields(prefix, item);
       }
       /* عند فتح نموذج الاضافة: القوائم تملا وما كتب يبقى، ولا يمسح الا بعد الحفظ */
       function fillHrOptions(prefix) {
         if (state.viewType === "staff") {
           hrFillOpts($(prefix + "StaffContract"), STAFF_CONTRACTS, hrVal(prefix, "StaffContract"));
           hrFillOpts($(prefix + "StaffStage"), STAFF_STAGES, hrVal(prefix, "StaffStage") || "active");
+          renderAllow(prefix + "Staff");
+        } else if (state.viewType === "offers") {
+          hrFillOpts($(prefix + "OfferContract"), STAFF_CONTRACTS, hrVal(prefix, "OfferContract"));
+          hrFillOpts($(prefix + "OfferStage"), OFFER_STAGES, hrVal(prefix, "OfferStage") || "draft");
+          hrFillOpts($(prefix + "OfferLang"), OFFER_LANGS, hrVal(prefix, "OfferLang") || "ar");
+          var key = prefix + "Offer";
+          renderAllow(key);
+          /* العرض الجديد يمتلئ بسياسة بدلات المنشاة ما دام محرره فارغا */
+          if (!(allowRows[key] || []).length) loadAllowPolicy().then(function (pol) {
+            if (pol && pol.length && !(allowRows[key] || []).length) setAllow(key, pol);
+          });
         } else if (state.viewType === "leaves") {
           fillSelect($(prefix + "LeaveEmployee"), employeeOptions("leavePickEmployee"), hrVal(prefix, "LeaveEmployee"));
           hrFillOpts($(prefix + "LeaveKind"), LEAVE_KINDS, hrVal(prefix, "LeaveKind") || "annual");
@@ -2170,6 +2709,22 @@
       /* يكتب حقول الشاشة في الصف (اضافة) او الرقعة (تعديل) ويعيد الخطا ان وجد */
       function applyHrRow(row, prefix) {
         var base = Object.assign({}, (prefix === "edit" && state.editing && state.editing.data) || {}, row.data || {});
+        if (state.viewType === "offers") {
+          var od = offerRowData(prefix);
+          var prev = (prefix === "edit" && state.editing && state.editing.data && state.editing.data.offer_stage) || "";
+          /* القاعدة ترفض هذين ايضا (offer_stage_guard)؛ هنا تقال الرسالة قبل الطلب */
+          if (od.offer_stage === "approved" && prev !== "approved" && !isOrgAdmin()) return { key: "offerErrApprover", focus: prefix + "OfferStage" };
+          if ({ sent: 1, accepted: 1, declined: 1 }[od.offer_stage] && !{ approved: 1, sent: 1, accepted: 1, declined: 1 }[prev]) {
+            return { key: "offerErrNotApproved", focus: prefix + "OfferStage" };
+          }
+          row.data = Object.assign(base, od);
+          row.amount = allowTotals(od.allowances, od.salary_basic).monthly || null;
+          row.due_at = hrDue([od.offer_expiry]);
+          row.status = offerStatusFor(od.offer_stage);
+          row.client_name_en = od.name_en;
+          if (!row.category) row.category = VIEW_TYPES.offers.defaultCategory;
+          return null;
+        }
         if (state.viewType === "staff") {
           var sd = staffRowData(prefix);
           row.data = Object.assign(base, sd);
@@ -2207,7 +2762,8 @@
         wireLeaveDates("add"); wireLeaveDates("edit");
         var pairs = [["staffDeptFilter", "staffDept", renderStaff], ["staffStageFilter", "staffStage", renderStaff],
                      ["leaveEmpFilter", "leaveEmp", renderLeaves], ["leaveKindFilter", "leaveKind", renderLeaves], ["leaveStateFilter", "leaveState", renderLeaves],
-                     ["trainEmpFilter", "trainEmp", renderTraining], ["trainKindFilter", "trainKind", renderTraining]];
+                     ["trainEmpFilter", "trainEmp", renderTraining], ["trainKindFilter", "trainKind", renderTraining],
+                     ["offerStageFilter", "offerStage", renderOffers], ["offerDeptFilter", "offerDept", renderOffers]];
         pairs.forEach(function (p) {
           var el = $(p[0]);
           if (el) el.addEventListener("change", function () { state[p[1]] = this.value; p[2](); });
@@ -2567,6 +3123,8 @@
           openCaseBundle(link.dataset.case);
           return;
         }
+        var letterBtn = ev.target.closest("[data-offer-letter]");
+        if (letterBtn) { ev.preventDefault(); var offerItem = findItem(letterBtn.dataset.offerLetter); if (offerItem) printOfferLetter(offerItem); return; }
         var staffBtn = ev.target.closest("[data-staff-file]");
         if (staffBtn) { ev.preventDefault(); openStaffFile(staffBtn.dataset.staffFile); return; }
         var fileBtn = ev.target.closest("[data-case-file]");
@@ -2737,8 +3295,11 @@
           $("leavesWrap").hidden = state.viewType !== "leaves" || $("leavesWrap").hidden;
           $("trainingBar").hidden = state.viewType !== "training";
           $("trainingWrap").hidden = state.viewType !== "training" || $("trainingWrap").hidden;
+          $("offersBar").hidden = state.viewType !== "offers";
+          $("offersWrap").hidden = state.viewType !== "offers" || $("offersWrap").hidden;
           if (state.viewType === "staff") renderStaff();
           else if (state.viewType === "leaves") renderLeaves();
+          else if (state.viewType === "offers") renderOffers();
           else renderTraining();
           return;
         }
@@ -2816,10 +3377,17 @@
       /* جدولا القائمة والمخالفات يتشاركان الأزرار نفسها، فالمستمع على المستند */
       document.addEventListener("click", function (ev) {
         var b = ev.target.closest("button[data-action]");
-        if (!b || !b.closest("#itemsBody, #violationsBody, #contractsBody, #expensesBody, #healthBody, #financeBody, #staffBody, #leavesBody, #trainingBody")) return;
+        if (!b || !b.closest("#itemsBody, #violationsBody, #contractsBody, #expensesBody, #healthBody, #financeBody, #staffBody, #leavesBody, #trainingBody, #offersBody")) return;
         var item = findItem(b.dataset.id);
         if (!item) return;
         var action = b.dataset.action;
+        /* العرض الوظيفي: افعال مراحله، والتعيين بعد القبول */
+        if (state.viewType === "offers" && /^offer_/.test(action)) {
+          if (action === "offer_hire") hireFromOffer(item);
+          else setOfferStage(item, { offer_pending: "pending", offer_approve: "approved", offer_accept: "accepted",
+                                     offer_decline: "declined", offer_reopen: "draft" }[action] || "draft");
+          return;
+        }
         /* الاجازة تعتمد او ترفض او تعاد الى الانتظار، ولا تنجز كمهمة */
         if (state.viewType === "leaves" && (action === "approve" || action === "reject" || action === "reopen")) {
           setLeaveApproval(item, action === "approve" ? "approved" : (action === "reject" ? "rejected" : "pending"));
