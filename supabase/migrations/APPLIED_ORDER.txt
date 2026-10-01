@@ -203,3 +203,5 @@
 20260922100000	meetings_page_every_department	0170_meetings_page_every_department.sql	added
 20260923090000	accounting_links	0171_accounting_links.sql	added
 20260923093000	acct_status_reasons	0172_acct_status_reasons.sql	added
+20261001120000	payroll	0175_payroll.sql	added
+20261001130000	payroll_accounting	0176_payroll_accounting.sql	added

@@ -149,6 +149,10 @@ const qoyod = {
       expense_accounts: acc.rows
         .filter((a) => String(a.type || "") === "Expense" && String(a.status || "Active") !== "Inactive")
         .map((a) => ({ id: a.id, name: a.name_ar || a.name_en || String(a.id), code: a.code || "" })),
+      /* قيد الرواتب (0176) يحتاج حسابات خصوم ايضا: التامينات والرواتب المستحقة والسلف */
+      accounts: acc.rows
+        .filter((a) => String(a.status || "Active") !== "Inactive")
+        .map((a) => ({ id: a.id, name: a.name_ar || a.name_en || String(a.id), code: a.code || "", type: String(a.type || "") })),
       products: prod.rows
         .filter((p) => p.is_sold !== false)
         .map((p) => ({ id: p.id, name: p.name_ar || p.name_en || String(p.id) })),
@@ -252,6 +256,63 @@ const qoyod = {
     return await this.create(ctx, "simple_bills", "simple_bill", body, ref);
   },
 
+  /* قيد الرواتب: قيد يومية واحد للمسيّر المدفوع (0176). شكل الطلب من مجموعة Postman الرسمية
+     لقيود: POST /journal_entries { journal_entry: { description, date, debit_amounts[], credit_amounts[] } }.
+     لا مرجع في القيد، فالمرجع MZ-PAY-… يكتب في الوصف ويبحث به قبل اي اعادة. */
+  async pushPayroll(ctx, run) {
+    const acc = run.accounts || {};
+    const s = run.sums || {};
+    const ref = "MZ-PAY-" + String(run.id || "").replace(/-/g, "").slice(0, 12).toUpperCase();
+    const month = String(run.period || "").slice(0, 7);
+    const expense = round2(num(s.gross) - num(s.reductions));
+    const lines = {
+      debit: [
+        { key: "salaries_expense", amount: expense, comment: "رواتب " + month },
+        { key: "gosi_expense", amount: round2(s.gosi_employer), comment: "حصة المنشاة في التامينات " + month },
+      ],
+      credit: [
+        { key: "gosi_payable", amount: round2(num(s.gosi_employee) + num(s.gosi_employer)), comment: "التامينات المستحقة " + month },
+        { key: "advances", amount: round2(s.advances), comment: "استرداد سلف الموظفين " + month },
+        { key: "salaries_payable", amount: round2(s.net), comment: "صافي الرواتب " + month },
+      ],
+    };
+    const side = (list) => {
+      const out = [];
+      for (const l of list) {
+        if (!(l.amount > 0)) continue;
+        const id = posInt(acc[l.key]);
+        if (!id) return { missing: l.key };
+        out.push({ account_id: id, amount: l.amount, comment: l.comment });
+      }
+      return { rows: out };
+    };
+    const dr = side(lines.debit), cr = side(lines.credit);
+    if (dr.missing || cr.missing) return { status: "waiting", error: "no_account:" + (dr.missing || cr.missing) };
+    const sum = (r) => Math.round(r.reduce((t, x) => t + x.amount, 0) * 100);
+    if (!dr.rows.length || sum(dr.rows) !== sum(cr.rows)) return { status: "failed", error: "unbalanced" };
+
+    /* وصل سابقا ولم يصل رده؟ */
+    const prev = await qoyodCall(ctx.key, "GET", `/journal_entries?q[description_cont]=${encodeURIComponent(ref)}`);
+    const prevRows = (prev.ok && prev.data && Array.isArray(prev.data.journal_entries)) ? prev.data.journal_entries : [];
+    const hit = prevRows.find((j) => String(j.description || "").indexOf(ref) !== -1);
+    if (hit) return { status: "sent", external_id: String(hit.id), ref };
+
+    const d = new Date(String(run.period) + "T00:00:00Z");
+    const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).toISOString().slice(0, 10);
+    const body = { journal_entry: {
+      description: "مسير رواتب " + month + " — " + num(s.employees) + " موظف — " + ref,
+      date: last, debit_amounts: dr.rows, credit_amounts: cr.rows,
+    } };
+    const r = await qoyodCall(ctx.key, "POST", "/journal_entries", body);
+    if (r.ok) {
+      const doc = r.data && r.data.journal_entry;
+      return { status: "sent", external_id: doc && doc.id != null ? String(doc.id) : null, ref };
+    }
+    if (authStop(r)) return { status: "failed", error: "invalid_key", stop: true };
+    if (rateStop(r)) return { status: "failed", error: "rate_limited", stop: true };
+    return { status: "failed", error: qoyodError(r) };
+  },
+
   async create(ctx, resource, field, body, ref) {
     const r = await qoyodCall(ctx.key, "POST", `/${resource}`, body);
     if (r.ok) {
@@ -285,6 +346,7 @@ export async function runAccountingPush(env, opts) {
   const secret = env.WORKER_SECRET;
   const rows = (await rpc(env, "acct_pending", { p_secret: secret, p_org: o.org || null, p_limit: o.limit || 10 })) || [];
   const summary = { orgs: 0, sent: 0, failed: 0, waiting: 0, skipped: 0 };
+  try { summary.payroll = await runPayrollPush(env, o); } catch (e) { summary.payroll = { error: String((e && e.message) || e).slice(0, 200) }; }
   if (!Array.isArray(rows) || !rows.length) return summary;
 
   const byOrg = new Map();
@@ -328,6 +390,38 @@ export async function runAccountingPush(env, opts) {
     }
   }
   return summary;
+}
+
+/* قيود الرواتب: المسيّرات المدفوعة المنتظرة (0176)، بالحجز والتعليم نفسيهما */
+async function runPayrollPush(env, o) {
+  const secret = env.WORKER_SECRET;
+  const runs = (await rpc(env, "payroll_acct_pending", { p_secret: secret, p_org: o.org || null, p_limit: 5 })) || [];
+  const out = { sent: 0, failed: 0, waiting: 0 };
+  if (!Array.isArray(runs) || !runs.length) return out;
+  const links = new Map();
+  for (const run of runs) {
+    if (!links.has(run.org_id)) {
+      let link = null;
+      try { link = await rpc(env, "acct_link_key", { p_secret: secret, p_org: run.org_id }); } catch { link = null; }
+      links.set(run.org_id, link);
+    }
+    const link = links.get(run.org_id);
+    const provider = link && link.key ? PROVIDERS[link.provider] : null;
+    if (!provider || typeof provider.pushPayroll !== "function") continue;
+    let claimed = false;
+    try { claimed = await rpc(env, "payroll_acct_claim", { p_secret: secret, p_run: run.id }); } catch { claimed = false; }
+    if (claimed !== true) continue;
+    let res;
+    try { res = await provider.pushPayroll({ key: link.key, settings: link.settings || {} }, run); }
+    catch (e) { res = { status: "failed", error: String((e && e.message) || e).slice(0, 400) }; }
+    try {
+      await rpc(env, "payroll_acct_mark", { p_secret: secret, p_run: run.id, p_status: res.status,
+        p_external_id: res.external_id || null, p_error: res.error || null });
+    } catch { /* يبقى محجوزا ويعاد بعد نصف ساعة، فيجد مرجعه في الوصف ولا يتكرر */ }
+    out[res.status] = (out[res.status] || 0) + 1;
+    if (res.stop) break;
+  }
+  return out;
 }
 
 /* ============================================================
