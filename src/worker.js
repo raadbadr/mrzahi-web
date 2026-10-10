@@ -1002,6 +1002,32 @@ function ndStamp(res, v) {
     .transform(res);
 }
 
+/* المهام المجدولة كلها في دالة واحدة: يناديها كرون الـ Worker، ويناديها خادم جدة كل خمس
+   دقائق عبر /api/ops/cron. كرون الـ Worker تحجبه قاعدة block-direct-db منذ 2026-09-11 (طلباته
+   بلا نطاق اصل فترد القاعدة 403)، اما نداء جدة فطلب عادي من الخارج تمر طلباته الفرعية.
+   والمهام آمنة ان جرت مرتين: كل تنبيه يعلم بعد ارساله، والقيود بحجز ذري. */
+function runScheduledJobs(env) {
+  const tag = (name, p) => p.then((r) => { console.log("[" + name + "]", JSON.stringify(r)); return [name, r]; })
+    .catch((e) => { console.error("[" + name + "]", String((e && e.message) || e)); return [name, { error: String((e && e.message) || e).slice(0, 200) }]; });
+  const jobs = [
+    tag("cron", runNotificationCron(env)),
+    // الإيجاز الصباحي (07:00 بتوقيت كل مستخدم) وتجهيز جلسات الغد (18:00)
+    tag("digest", runTelegramDigests(env)),
+    // من غاب عن المنصة يومين: رسالة «وحشتنا» بأرقامه، العاشرة بتوقيته، مرة كل ثلاثة أيام
+    tag("nudge", runAbsenceNudges(env)),
+    // الفترة التجريبية: كم بقي منها، كل يوم التاسعة بتوقيت صاحب الحساب
+    tag("trial", runTrialCountdown(env)),
+    // الربط المحاسبي (ومعه قيد الرواتب): بمهلة وحد لعدد العناصر
+    tag("accounting", runAccountingPush(env, { limit: 10, budgetMs: 25000 })),
+    // حذف الحسابات التي انتهت فترة سماحها (30 يوما بلا دخول)
+    tag("account-purge", purgeExpiredAccountDeletions(env)),
+  ];
+  // معيار Google Drive لكل الحسابات المرتبطة: مرة يوميا 04:00 بتوقيت الرياض (اول نافذة خمس دقائق)
+  const d = new Date();
+  if (d.getUTCHours() === 1 && d.getUTCMinutes() < 5) jobs.push(tag("drive-standard", driveStandardSweep(env)));
+  return Promise.all(jobs).then((rows) => Object.fromEntries(rows));
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -1142,6 +1168,11 @@ async function withNotFoundPage(env, url, res) {
       if (path === "/api/config" && (request.method === "GET" || request.method === "HEAD")) return handleConfig(env);
       if (path === "/api/ops/backup" && request.method === "POST") return await handleOpsBackup(request, env);
       if (path === "/api/ops/telegram-webhook") return await handleOpsTelegramWebhook(request, env);
+      /* خادم جدة يشغل المهام المجدولة كل خمس دقائق (كرون الـ Worker محجوب): بسر مستقل CRON_SECRET */
+      if (path === "/api/ops/cron" && request.method === "POST") {
+        if (!env.CRON_SECRET || !safeEqual(request.headers.get("x-cron-secret") || "", env.CRON_SECRET)) return json({ error: "forbidden" }, 403);
+        return json({ ok: true, at: new Date().toISOString(), jobs: await runScheduledJobs(env) });
+      }
       if (path === "/api/ops/drive-sweep" && request.method === "POST") { if (!env.OPS_SECRET || request.headers.get("x-ops-secret") !== env.OPS_SECRET) return json({ error: "forbidden" }, 403); try { return json(await driveStandardSweep(env)); } catch (e) { return json({ error: "sweep failed", detail: String((e && e.message) || e).slice(0, 300) }, 500); } }
       if (path === "/api/stats" && (request.method === "GET" || request.method === "HEAD")) return await handleStats(env);
       if (path === "/api/assistant" && request.method === "POST") return await handleAssistantRequest(request, env);
@@ -1234,19 +1265,6 @@ async function withNotFoundPage(env, url, res) {
 
   // Cron كل 5 دقائق: توليد التنبيهات المستحقة وإرسالها عبر القنوات
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(runNotificationCron(env).then((r) => console.log("[cron]", JSON.stringify(r))).catch((e) => console.error("[cron]", String(e))));
-    // الإيجاز الصباحي (07:00 بتوقيت كل مستخدم) وتجهيز جلسات الغد (18:00)
-    ctx.waitUntil(runTelegramDigests(env).then((r) => console.log("[digest]", JSON.stringify(r))).catch((e) => console.error("[digest]", String(e))));
-    // من غاب عن المنصة يومين: رسالة «وحشتنا» بأرقامه، العاشرة بتوقيته، مرة كل ثلاثة أيام
-    ctx.waitUntil(runAbsenceNudges(env).then((r) => console.log("[nudge]", JSON.stringify(r))).catch((e) => console.error("[nudge]", String(e))));
-    // الفترة التجريبية: كم بقي منها، كل يوم التاسعة بتوقيت صاحب الحساب
-    ctx.waitUntil(runTrialCountdown(env).then((r) => console.log("[trial]", JSON.stringify(r))).catch((e) => console.error("[trial]", String(e))));
-    // معيار Google Drive لكل الحسابات المرتبطة: مرة يوميا 04:00 بتوقيت الرياض (الكرون كل 5 دقائق، فتؤخذ اول نافذة)
-    { const d = new Date(); if (d.getUTCHours() === 1 && d.getUTCMinutes() < 5) ctx.waitUntil(driveStandardSweep(env).then((r) => console.log("[drive-standard]", JSON.stringify(r))).catch((e) => console.error("[drive-standard]", String(e && e.message || e)))); }
-    // الربط المحاسبي: ما انشئ بعد الربط يرسل مسودات الى المنصة المحاسبية، في وعد مستقل
-    // بمهلة وحد لعدد العناصر، فلا تعطل منصة محاسبية بطيئة التنبيهات في الدورة نفسها
-    ctx.waitUntil(runAccountingPush(env, { limit: 10, budgetMs: 25000 }).then((r) => console.log("[accounting]", JSON.stringify(r))).catch((e) => console.error("[accounting]", String(e && e.message || e))));
-    // حذف الحسابات التي انتهت فترة سماحها (30 يوما بلا دخول)
-    ctx.waitUntil(purgeExpiredAccountDeletions(env).then((r) => console.log("[account-purge]", JSON.stringify(r))).catch((e) => console.error("[account-purge]", String(e))));
+    ctx.waitUntil(runScheduledJobs(env));
   },
 };
