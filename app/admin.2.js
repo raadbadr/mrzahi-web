@@ -377,6 +377,60 @@
         }).then(() => { if (btn) btn.disabled = false; });
       }
 
+      /* ---------- (0) مؤشرات الاداء ----------
+         الارقام كلها من platform_kpis() (ترحيل 0179): الحسابات الداخلية مستبعدة في
+         القاعدة نفسها، والقيمة null تعني ان المؤشر لا يحسب بعد (لا عملاء دافعين او لا
+         سنة انتهت)، فتقول البطاقة ذلك نصا بدل صفر مضلل. */
+      const kpiNumber = (value) => new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(Number(value) || 0);
+      const kpiFill = (template, values) => Object.keys(values).reduce((text, key) => text.split("{" + key + "}").join(values[key]), T(template));
+
+      function kpiTile(labelKey, valueHtml) {
+        return '<div class="total-card"><span class="total-label">' + esc(T(labelKey)) + '</span><span class="total-value">' + valueHtml + "</span></div>";
+      }
+
+      function renderKpis(kpis) {
+        const grid = $("kpiGrid");
+        if (!grid) return;
+        const percentOr = (value, emptyKey) => (value === null || value === undefined) ? esc(T(emptyKey)) : esc(kpiNumber(value) + "%");
+        const conversion = (kpis.conversion_pct === null || kpis.conversion_pct === undefined)
+          ? esc(T("kpiNoData"))
+          : esc(kpiNumber(kpis.conversion_pct) + "% · " + kpiFill("kpiOf", { a: kpiNumber(kpis.trial_converted), b: kpiNumber(kpis.trial_orgs) }));
+        const weekly = (kpis.weekly_active_pct === null || kpis.weekly_active_pct === undefined)
+          ? esc(T("kpiNoPaying"))
+          : esc(kpiNumber(kpis.weekly_active_pct) + "% · " + kpiFill("kpiOf", { a: kpiNumber(kpis.paying_members_active7), b: kpiNumber(kpis.paying_members) }));
+        const depth = (kpis.depth_per_customer === null || kpis.depth_per_customer === undefined)
+          ? esc(T("kpiNoPaying"))
+          : esc(kpiNumber(kpis.depth_per_customer));
+        grid.innerHTML =
+          kpiTile("kpiPaying", esc(kpiNumber(kpis.paying_customers))) +
+          kpiTile("kpiArr", esc(kpiNumber(kpis.arr_sar)) + ' <span class="sar-symbol" aria-label="ريال سعودي"></span>') +
+          kpiTile("kpiConversion", conversion) +
+          kpiTile("kpiWeekly", weekly) +
+          kpiTile("kpiDepth", depth) +
+          kpiTile("kpiRenewal", percentOr(kpis.renewal_pct, "kpiNoData")) +
+          kpiTile("kpiManual", esc(kpiNumber(kpis.manual_active))) +
+          kpiTile("kpiTrials", esc(kpiNumber(kpis.trials_active))) +
+          kpiTile("kpiPlatformWeek", esc(kpiFill("kpiUsersActions", { u: kpiNumber(kpis.platform_active7), a: kpiNumber(kpis.platform_actions7) })));
+        const note = $("kpiNote");
+        if (note) {
+          note.textContent = kpiFill("kpiNote", { n: kpiNumber(kpis.internal_orgs) }) +
+            (kpis.generated_at ? " " + kpiFill("kpiUpdated", { t: fmtDate(kpis.generated_at, { withTime: true }) }) : "");
+        }
+      }
+
+      function loadKpis() {
+        if (!app.client) return Promise.resolve();
+        setStatus($("kpiStatus"), T("loading"));
+        const btn = $("kpiRefresh"); if (btn) btn.disabled = true;
+        return app.client.rpc("platform_kpis").then(res => {
+          if (res.error) throw res.error;
+          setStatus($("kpiStatus"), "");
+          renderKpis(res.data || {});
+        }).catch(err => {
+          setStatus($("kpiStatus"), T("loadError") + " " + ((err && err.message) || ""), "error");
+        }).then(() => { if (btn) btn.disabled = false; });
+      }
+
       /* ---------- (1) organizations ---------- */
 
       function orgCard(org) {
@@ -789,6 +843,7 @@
           if (orgsLoaded) renderOrgs();
         });
         $("orgsRefresh").addEventListener("click", () => { loadOrgs(); });
+        $("kpiRefresh").addEventListener("click", () => { loadKpis(); });
         $("orgsGrid").addEventListener("change", onPackChange);
         wireUserPick();
         $("usersRefresh").addEventListener("click", () => { loadUsers(); });
@@ -862,6 +917,7 @@
           bind();
           bindPlatformAdmins();
           loadPlatformAdmins();
+          loadKpis();
           loadOrgs();
           loadUsers();
           loadMessages();

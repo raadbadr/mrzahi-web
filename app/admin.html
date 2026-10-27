@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Monoton&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/header.css?v=88">
   <link rel="stylesheet" href="/footer.css?v=75">
-  <link rel="stylesheet" href="/app/admin.css?v=78">
+  <link rel="stylesheet" href="/app/admin.css?v=79">
 </head>
 <body class="has-site-header">
   <header class="site-header">
@@ -77,6 +77,18 @@
     </div>
 
     <div id="adminView" style="display:none">
+      <!-- (0) مؤشرات الاداء: من الدالة platform_kpis() على قاعدة جدة (ترحيل 0179) -->
+      <div class="content" id="kpiCard">
+        <h2 data-i18n="kpiTitle">مؤشرات الأداء</h2>
+        <p data-i18n="kpiIntro">مؤشرات المشروع محسوبة من قاعدة البيانات مباشرة عند كل فتح، وتستبعد حسابات مديري المنصة.</p>
+        <div class="waitlist-form">
+          <button type="button" class="waitlist-btn" id="kpiRefresh" data-i18n="refreshBtn">تحديث</button>
+        </div>
+        <p class="waitlist-msg" id="kpiStatus" role="status" aria-live="polite" style="display:none"></p>
+        <div class="totals-row" id="kpiGrid"></div>
+        <p id="kpiNote"></p>
+      </div>
+
       <!-- (1) organizations -->
       <div class="content" id="orgsCard">
         <h2 data-i18n="orgsTitle">الشركات</h2>
@@ -178,8 +190,8 @@
   </div>
 
 
-  <script src="/app/admin.1.js?v=82"></script>
-  <script src="/app/admin.2.js?v=86"></script>
+  <script src="/app/admin.1.js?v=83"></script>
+  <script src="/app/admin.2.js?v=87"></script>
   <script src="/app/admin.3.js?v=81"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" defer integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/app.js?v=80" defer></script>
