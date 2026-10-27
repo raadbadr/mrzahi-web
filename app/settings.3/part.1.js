@@ -212,7 +212,10 @@
           setMsg("storageMsg", t("storageDriveDenied"), "error");
           return Promise.resolve();
         }
-        return app.updateProfile({ storage_mode: "drive" })
+        /* الخيار الذي ضغطه قبل الذهاب الى موافقة جوجل: درايف او الاثنان */
+        var want = "drive";
+        try { if (sessionStorage.getItem("mrzahi_store_want") === "both") want = "both"; sessionStorage.removeItem("mrzahi_store_want"); } catch (e) { /* ignore */ }
+        return app.updateProfile({ storage_mode: want })
           .then(function () { return app.driveFolder ? app.driveFolder().catch(function () { return null; }) : null; })
           .then(function () { renderDriveSwitch(); })
           .catch(function () { setMsg("storageMsg", t("genericError"), "error"); });
@@ -962,22 +965,30 @@
         if (!box) return;
         var optPlatform = box.querySelector('[data-store-pick="platform"]');
         var optDrive = box.querySelector('[data-store-pick="drive"]');
+        var optBoth = box.querySelector('[data-store-pick="both"]');
         var status = el("storageDriveStatus");
         /* تخزين المنشاة قرار مالك او مشرف منذ 2026-09-16: القاعدة ترفض غيرهما
            بـ not_admin، فلا يعرض عليه خيار يوهمه انه يملكه. */
         var mayDrive = !(app.isOrgAdmin && !app.isOrgAdmin());
         var available = !!(app.driveOAuthAvailable && app.driveOAuthAvailable()) && mayDrive;
-        var on = !!(app.profile && app.profile.storage_mode === "drive") && available;
+        var mode = app.profile && app.profile.storage_mode;
+        var both = mode === "both" && available;
+        var on = (mode === "drive" || both) && available;
         if (optDrive) {
           optDrive.disabled = !available;
-          optDrive.classList.toggle("is-on", on);
-          optDrive.setAttribute("aria-pressed", on ? "true" : "false");
+          optDrive.classList.toggle("is-on", on && !both);
+          optDrive.setAttribute("aria-pressed", on && !both ? "true" : "false");
+        }
+        if (optBoth) {
+          optBoth.disabled = !available;
+          optBoth.classList.toggle("is-on", both);
+          optBoth.setAttribute("aria-pressed", both ? "true" : "false");
         }
         if (optPlatform) {
           optPlatform.classList.toggle("is-on", !on);
           optPlatform.setAttribute("aria-pressed", !on ? "true" : "false");
         }
-        if (status) status.textContent = !mayDrive ? t("storageDriveAdminOnly") : (!available ? t("storageDriveUnavailable") : (on ? t("storageDriveOn") : ""));
+        if (status) status.textContent = !mayDrive ? t("storageDriveAdminOnly") : (!available ? t("storageDriveUnavailable") : (on && !both ? t("storageDriveOn") : ""));
         var link = el("storageDriveFolderLink");
         var f = on && app.driveFolderCached ? app.driveFolderCached() : null;
         if (link) { link.hidden = !f; if (f) { link.href = f.url; link.textContent = f.path; link.title = t("storageDriveFolder"); } }
@@ -999,13 +1010,16 @@
         var opt = ev && ev.target && ev.target.closest ? ev.target.closest("[data-store-pick]") : null;
         if (!opt || opt.disabled) return;
         var want = opt.getAttribute("data-store-pick");
-        var now = (app.profile && app.profile.storage_mode === "drive") ? "drive" : "platform";
+        var mode = app.profile && app.profile.storage_mode;
+        var now = mode === "drive" || mode === "both" ? mode : "platform";
         show("storageMsg", false);
         if (want === now) return;
-        if (want === "platform") {
-          return app.updateProfile({ storage_mode: "platform" }).then(renderDriveSwitch)
+        /* درايف مربوط اصلا (الوضع درايف او الاثنان): التبديل بينهما وبين المنصة حفظ فقط */
+        if (want === "platform" || now !== "platform") {
+          return app.updateProfile({ storage_mode: want }).then(renderDriveSwitch)
             .catch(function () { setMsg("storageMsg", t("genericError"), "error"); });
         }
+        try { sessionStorage.setItem("mrzahi_store_want", want); } catch (e) { /* ignore */ }
         /* الربط من الخادم: موافقة واحدة تعطينا رمز تحديث دائم، فلا يطلب
            الاذن مرة اخرى ابدا. المتصفح ينتقل بنفسه لان التصفح لا يحمل الجلسة. */
         if (config.driveServer && app.driveServerConnect) {

@@ -632,6 +632,7 @@
     }
     .attach-row a { color: var(--primary); text-decoration: none; overflow-wrap: anywhere; }
     .attach-row span { color: var(--text-secondary); font-size: 0.78rem; }
+    .attach-row .chat-options { margin-top: 0; }
 
     /* لوحة المؤشرات: عمودان (أعمدة + دائرة) ثم شريط المجاميع */
     .chart-card { margin-top: 0; }

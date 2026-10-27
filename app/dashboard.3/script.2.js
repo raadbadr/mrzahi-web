@@ -4019,9 +4019,16 @@
         if (!rows || !rows.length) { paintEl(box).html = '<p class="empty-note">' + esc(T("attachEmpty")) + "</p>"; return; }
         var html = "";
         rows.forEach(function (a) {
+          /* مكان الحفظ وافعال نقله (امر المهندس رعد 2026-10-27) */
+          var place = app.attachmentPlace ? app.attachmentPlace(a) : "";
+          var moves = app.attachmentMoves ? app.attachmentMoves(a) : [];
           html += '<div class="attach-row"><a href="#" data-attach-open="' + esc(a.id) + '">' + esc(a.name) + "</a>" +
-                  "<span>" + esc(a.external_url ? T("attachLinkLabel") : humanSize(a.size_bytes)) + "</span>" +
-                  '<button type="button" class="chat-option-btn" data-attach-del="' + esc(a.id) + '">' + esc(T("delete")) + "</button></div>";
+                  "<span>" + esc((place === "link" ? T("attachLinkLabel") : humanSize(a.size_bytes) + " · " + app.attachmentPlaceLabel(a))) + "</span>" +
+                  '<div class="chat-options">' +
+                  moves.map(function (m) {
+                    return '<button type="button" class="chat-option-btn" data-attach-move="' + esc(a.id) + '" data-move-to="' + esc(m[0]) + '">' + esc(app.placeText(m[1])) + "</button>";
+                  }).join("") +
+                  '<button type="button" class="chat-option-btn" data-attach-del="' + esc(a.id) + '">' + esc(T("delete")) + "</button></div></div>";
         });
         paintEl(box).html = html;
       }
@@ -4087,6 +4094,26 @@
         if (list) list.addEventListener("click", function (ev) {
           var openBtn = ev.target.closest("[data-attach-open]");
           var delBtn = ev.target.closest("[data-attach-del]");
+          var moveBtn = ev.target.closest("[data-attach-move]");
+          if (moveBtn) {
+            if (moveBtn.disabled) return;
+            var moving = attachById(moveBtn.dataset.attachMove);
+            var target = moveBtn.getAttribute("data-move-to");
+            if (!moving) return;
+            var from = app.attachmentPlace(moving);
+            if (target === "drive" && from !== "drive" && !window.confirm(app.placeText("dropPlatform"))) return;
+            if (target === "platform" && from !== "platform" && !window.confirm(app.placeText("dropDrive"))) return;
+            moveBtn.disabled = true;
+            setMsg("attachMsg", app.placeText("moving"));
+            app.moveAttachment(moving, target).then(function (row) {
+              setMsg("attachMsg", app.placeText(row && row.trashFailed ? "trashFailed" : "moved"), row && row.trashFailed ? "error" : "success");
+              return loadAttachments();
+            }).catch(function (err) {
+              moveBtn.disabled = false;
+              setMsg("attachMsg", app.attachmentMoveError(err), "error");
+            });
+            return;
+          }
           if (openBtn) {
             ev.preventDefault();
             var att = attachById(openBtn.dataset.attachOpen);

@@ -1322,9 +1322,8 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
   /* معيار التخزين المحلي (امر المهندس رعد 2026-09-11، بروح 00-MrZahi/الشركة في درايف):
      المسار الشركة/السنة/السجل/الرمز-الاسم؛ السجل هو معرف السجل الذي يتبعه العنصر (records.id،
      يعرض باسمه في الواجهة) او general لملف بلا عنصر. المسار القديم الشركة/العنصر/الملف يبقى كما هو. */
-  function uploadAttachment(itemId, file) {
+  function attachmentStoragePath(itemId, fileName) {
     var orgId = requireOrg();
-    if (!file) return Promise.reject(new Error("file required"));
     var year = String(new Date().getFullYear());
     /* مرفقات سجلات الموارد البشرية في مجلد <org>/hr/ وحده: سياسة التخزين (0173) لا
        تفتحه الا لقسم الموارد البشرية والادارة والمالك والمشرف. */
@@ -1334,8 +1333,15 @@ try{["lang","theme","org","sidebar","dash_tab","bell_seen","chat_seen","cal_mode
           .catch(function () { return { folder: "general", hr: false }; })
       : Promise.resolve({ folder: "general", hr: false });
     return folderP.then(function (f) {
-      var path = orgId + "/" + (f.hr ? "hr/" : "") + year + "/" + f.folder + "/" + randomCode(10).toLowerCase() + "-" + storageKeyName(file.name);
-      return storeAttachment(file, { item_id: itemId || null }, path);
+      return orgId + "/" + (f.hr ? "hr/" : "") + year + "/" + f.folder + "/" + randomCode(10).toLowerCase() + "-" + storageKeyName(fileName);
+    });
+  }
+
+  /* place: platform | drive | both يختاره الرافع، وبدونه اختياره في الاعدادات */
+  function uploadAttachment(itemId, file, place) {
+    if (!file) return Promise.reject(new Error("file required"));
+    return attachmentStoragePath(itemId, file.name).then(function (path) {
+      return storeAttachment(file, { item_id: itemId || null }, path, place);
     });
   }
 

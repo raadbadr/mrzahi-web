@@ -178,6 +178,7 @@
           state.fields = fields;
           fillForm(fields);
           setStatus(t("docReady"), "success");
+          fillStorePick();
           show("docForm", true);
           return applyToOrg(fields);
         }).catch(function (err) {
@@ -586,7 +587,9 @@
             return app.attachDriveFiles(id, [state.driveDoc]).then(function () { return true; })
               .catch(function () { return false; });
           }
-          return app.uploadAttachment(id, state.file).then(function () { return true; })
+          var storeField = $("fStoreField");
+          var place = storeField && !storeField.hidden ? $("fStore").value : undefined;
+          return app.uploadAttachment(id, state.file, place).then(function () { return true; })
             .catch(function (err) {
               state.fileError = String((err && (err.message || err.code)) || "upload");
               return false;
@@ -703,12 +706,14 @@
             '<td><span class="' + cls + '">' + esc(leftText) + "</span></td>" +
             "<td>" + (files.length
               ? files.map(function (a) {
-                  return '<span class="file-row"><a href="#" data-open="' + esc(a.id) + '" title="' + esc(a.name) + '">' + esc(a.name) + "</a></span>";
+                  return '<div class="cell-stack"><span class="file-row"><a href="#" data-open="' + esc(a.id) + '" title="' + esc(a.name) + '">' + esc(a.name) + "</a></span>" +
+                         '<span class="item-cat">' + esc(placeLabel(a)) + "</span></div>";
                 }).join("")
               : "-") + "</td>" +
             '<td><div class="chat-options row-actions">' +
               (d.details && Object.keys(d.details).length ? iconBtn("details", t("docDetailsOf"), "data-details", it.id) : "") +
               (files.length ? iconBtn("download", t("pDownload"), "data-get", files[0].id) : "") +
+              (hasMoves(files) ? iconBtn("place", placeWord("title"), "data-place", it.id) : "") +
               iconBtn("plus", t(files.length ? "docAddAnother" : "docAttachFile"), "data-attach", it.id) +
               iconBtn("trash", t("delete"), "data-del", it.id, "is-danger") +
             "</div></td>";
@@ -721,8 +726,10 @@
             det.innerHTML = '<td colspan="8"><div class="detail-rows">' + detailRowsHtml(d.details, d.detail_labels) + "</div></td>";
             body.appendChild(det);
           }
+          if (hasMoves(files)) body.appendChild(placeLine("data-place-for", it.id, files, 8));
         });
         if (app.translateNodes) app.translateNodes($("listCard"));
+        fitPlaceLines();
         focusFromHash();
       }
       /* قادم من مربع في لوحة التحكم: يفتح الاوراق مصفاة بالحالة نفسها التي عدها
@@ -774,8 +781,58 @@
         plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>',
         replace: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L8 6l4 4V7a5 5 0 11-5 5H5a7 7 0 107-7z"/></svg>',
         trash: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>',
-        details: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z"/></svg>'
+        details: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z"/></svg>',
+        place: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6h-8l-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2zm-6 12v-3h-4v-4h4V8l5 5-5 5z"/></svg>'
       };
+
+      /* مكان حفظ المستند ونقله (امر المهندس رعد 2026-10-27): النصوص من القشرة المشتركة */
+      function placeWord(key) { return app.placeText ? app.placeText(key) : ""; }
+      function placeLabel(att) { return app.attachmentPlaceLabel ? app.attachmentPlaceLabel(att) : ""; }
+      function hasMoves(files) {
+        return !!app.attachmentMoves && (files || []).some(function (a) { return app.attachmentMoves(a).length > 0; });
+      }
+      /* سطر مطوي تحت الصف: لكل ملف مكانه الحالي وافعال نقله */
+      function placeLine(attr, id, files, cols) {
+        var line = document.createElement("tr");
+        line.className = "detail-line place-line";
+        line.hidden = !(state.placeOpen && state.placeOpen === attr + ":" + id);
+        line.setAttribute(attr, id);
+        line.innerHTML = '<td colspan="' + cols + '"><div class="detail-rows">' + files.map(function (a) {
+          var moves = app.attachmentMoves(a);
+          return '<div class="detail-row"><span class="detail-key">' + esc(a.name) + "</span>" +
+                 '<span class="detail-val">' + esc(placeLabel(a)) + "</span>" +
+                 (moves.length ? '<div class="chat-options">' + moves.map(function (m) {
+                   return '<button type="button" class="chat-option-btn" data-move="' + esc(a.id) + '" data-move-to="' + esc(m[0]) + '">' + esc(placeWord(m[1])) + "</button>";
+                 }).join("") + "</div>" : "") + "</div>";
+        }).join("") + "</div></td>";
+        return line;
+      }
+      /* الجدول يتمرر افقيا وسطر النقل بعرضه كله: يحصر السطر في الجزء الظاهر من الجدول فلا تختفي ازراره خارج الشاشة */
+      function fitPlaceLine(line) {
+        var box = line && !line.hidden ? line.querySelector(".detail-rows") : null;
+        if (!box) return;
+        var wrap = line.closest("table") ? line.closest("table").parentElement : null;
+        while (wrap && wrap !== document.body && !/(auto|scroll)/.test(getComputedStyle(wrap).overflowX)) wrap = wrap.parentElement;
+        if (!wrap || wrap === document.body) { box.style.maxWidth = ""; return; }
+        var cell = getComputedStyle(box.parentElement);
+        box.style.maxWidth = Math.max(200, wrap.clientWidth - parseFloat(cell.paddingLeft) - parseFloat(cell.paddingRight)) + "px";
+      }
+      function fitPlaceLines() { document.querySelectorAll("tr.place-line").forEach(fitPlaceLine); }
+      window.addEventListener("resize", fitPlaceLines);
+
+      /* اختيار المكان عند الرفع: يظهر حين يتاح Google Drive، والافتراضي اختيار الاعدادات */
+      function fillStorePick() {
+        var field = $("fStoreField"), pick = $("fStore");
+        if (!field || !pick) return;
+        var available = !!(app.driveOAuthAvailable && app.driveOAuthAvailable()) && !state.driveDoc;
+        field.hidden = !available;
+        if (!available) return;
+        $("fStoreLabel").textContent = placeWord("title");
+        pick.innerHTML = ["platform", "drive", "both"].map(function (key) {
+          return '<option value="' + key + '">' + esc(placeWord(key)) + "</option>";
+        }).join("");
+        pick.value = app.storageMode ? app.storageMode() : "platform";
+      }
 
       function iconBtn(icon, label, attr, value, extra) {
         return '<button type="button" class="chat-option-btn is-icon' + (extra ? " " + extra : "") + '" ' +
@@ -829,7 +886,8 @@
           var tr = document.createElement("tr");
           tr.innerHTML =
             '<td><div class="cell-stack"><span class="item-title">' + esc(kindLabel(p.kind)) + "</span>" +
-              '<span class="item-cat">' + esc(t(p.required ? "pRequired" : "pOptional")) + "</span></div></td>" +
+              '<span class="item-cat">' + esc(t(p.required ? "pRequired" : "pOptional")) + "</span>" +
+              (paperFile(p) ? '<span class="item-cat">' + esc(placeLabel(paperFile(p))) + "</span>" : "") + "</div></td>" +
             '<td dir="ltr">' + esc(p.number || "-") + "</td>" +
             "<td>" + dueCell(p.expires_at ? esc(app.fmtDate(p.expires_at)) : "-", !!paperFirstFiling(p)) + "</td>" +
             "<td>" + (p.state === "missing" ? "-" : left) + "</td>" +
@@ -838,6 +896,7 @@
               (paperDetails(p) ? iconBtn("details", t("docDetailsOf"), "data-paper-details", p.item_id) : "") +
               (paperFile(p) ? iconBtn("open", t("pOpen"), "data-paper-open", paperFile(p).id) +
                               iconBtn("download", t("pDownload"), "data-paper-get", paperFile(p).id) : "") +
+              (paperFile(p) && hasMoves([paperFile(p)]) ? iconBtn("place", placeWord("title"), "data-paper-place", p.item_id) : "") +
               (p.item_id && !paperFile(p)
                 ? iconBtn("plus", t("docAttachFile"), "data-paper-attach", p.item_id)
                 : iconBtn(p.state === "missing" ? "plus" : "replace", t(p.state === "missing" ? "pAdd" : "docReplace"), "data-paper-add", p.kind)) +
@@ -852,6 +911,7 @@
             line.innerHTML = '<td colspan="6"><div class="detail-rows">' + detailRowsHtml(read.details, read.labels) + "</div></td>";
             body.appendChild(line);
           }
+          if (paperFile(p) && hasMoves([paperFile(p)])) body.appendChild(placeLine("data-paper-place-for", p.item_id, [paperFile(p)], 6));
         });
       }
 
@@ -909,6 +969,7 @@
           state.papers = res[2] && res[2].papers ? res[2] : null;
           render();
           renderPapers();
+          fitPlaceLines();
         });
       }
 

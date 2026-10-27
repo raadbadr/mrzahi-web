@@ -425,12 +425,62 @@
     ur: "Google Drive دستیاب نہیں تھا، فائل پلیٹ فارم اسٹوریج میں محفوظ ہو گئی۔"
   };
 
+  /* مكان حفظ المستند ونقله (امر المهندس رعد 2026-10-27): نصوص يشترك فيها كل من يعرض المرفقات */
+  var PLACE_TEXT = {
+    ar: {
+      platform: "خادم المنصة (جدة)", drive: "Google Drive", both: "خادم المنصة وGoogle Drive", link: "رابط خارجي",
+      title: "مكان الحفظ", toDrive: "نقل إلى Google Drive", toPlatform: "نقل إلى خادم المنصة", toBoth: "حفظ نسخة في المكانين",
+      platformOnly: "إبقاؤه على خادم المنصة وحده", driveOnly: "إبقاؤه في Google Drive وحده",
+      dropPlatform: "تحذف نسخة خادم المنصة بعد التأكد من وصول النسخة الجديدة. هل تتابع؟",
+      dropDrive: "تذهب نسخة Google Drive إلى سلة مهملات Drive بعد التأكد من النسخة الجديدة. هل تتابع؟",
+      moving: "جاري النقل…", moved: "تم تغيير مكان الحفظ.", failed: "تعذر النقل، والمستند باق في مكانه.",
+      limit: "مساحة الباقة على الخادم لا تتسع لهذا المستند، والمستند باق في مكانه.",
+      trashFailed: "تم النقل، ولم تصل نسخة Google Drive القديمة إلى سلة المهملات. احذفها من Drive بيدك.",
+      bothFailed: "حفظ الملف على خادم المنصة، وتعذر حفظ نسخته في Google Drive."
+    },
+    en: {
+      platform: "Platform server (Jeddah)", drive: "Google Drive", both: "Platform server and Google Drive", link: "External link",
+      title: "Storage location", toDrive: "Move to Google Drive", toPlatform: "Move to the platform server", toBoth: "Keep a copy in both",
+      platformOnly: "Keep on the platform server only", driveOnly: "Keep in Google Drive only",
+      dropPlatform: "The platform server copy will be deleted once the new copy is confirmed. Continue?",
+      dropDrive: "The Google Drive copy will go to the Drive trash once the new copy is confirmed. Continue?",
+      moving: "Moving…", moved: "Storage location changed.", failed: "Could not move; the document stays where it was.",
+      limit: "The plan storage on the server cannot fit this document; it stays where it was.",
+      trashFailed: "Moved, but the old Google Drive copy did not reach the trash. Delete it from Drive yourself.",
+      bothFailed: "The file was saved on the platform server, but its Google Drive copy could not be saved."
+    },
+    fr: {
+      platform: "Serveur de la plateforme (Djeddah)", drive: "Google Drive", both: "Serveur de la plateforme et Google Drive", link: "Lien externe",
+      title: "Emplacement", toDrive: "Déplacer vers Google Drive", toPlatform: "Déplacer vers le serveur de la plateforme", toBoth: "Garder une copie aux deux endroits",
+      platformOnly: "Garder sur le serveur seulement", driveOnly: "Garder dans Google Drive seulement",
+      dropPlatform: "La copie du serveur sera supprimée une fois la nouvelle copie confirmée. Continuer ?",
+      dropDrive: "La copie Google Drive ira dans la corbeille de Drive une fois la nouvelle copie confirmée. Continuer ?",
+      moving: "Déplacement…", moved: "Emplacement modifié.", failed: "Déplacement impossible ; le document reste à sa place.",
+      limit: "L'espace du forfait sur le serveur ne suffit pas pour ce document ; il reste à sa place.",
+      trashFailed: "Déplacé, mais l'ancienne copie Google Drive n'est pas allée dans la corbeille. Supprimez-la dans Drive.",
+      bothFailed: "Le fichier est enregistré sur le serveur, mais sa copie Google Drive n'a pas pu être enregistrée."
+    },
+    ur: {
+      platform: "پلیٹ فارم سرور (جدہ)", drive: "Google Drive", both: "پلیٹ فارم سرور اور Google Drive", link: "بیرونی لنک",
+      title: "محفوظ کرنے کی جگہ", toDrive: "Google Drive میں منتقل کریں", toPlatform: "پلیٹ فارم سرور میں منتقل کریں", toBoth: "دونوں جگہ نسخہ رکھیں",
+      platformOnly: "صرف پلیٹ فارم سرور پر رکھیں", driveOnly: "صرف Google Drive میں رکھیں",
+      dropPlatform: "نیا نسخہ پہنچنے کی تصدیق کے بعد پلیٹ فارم سرور والا نسخہ حذف ہو جائے گا۔ جاری رکھیں؟",
+      dropDrive: "نیا نسخہ پہنچنے کی تصدیق کے بعد Google Drive والا نسخہ Drive کی ردی میں چلا جائے گا۔ جاری رکھیں؟",
+      moving: "منتقل ہو رہا ہے…", moved: "محفوظ کرنے کی جگہ بدل گئی۔", failed: "منتقلی نہ ہو سکی، دستاویز اپنی جگہ پر ہے۔",
+      limit: "سرور پر پلان کی جگہ اس دستاویز کے لیے کافی نہیں، دستاویز اپنی جگہ پر ہے۔",
+      trashFailed: "منتقل ہو گیا، لیکن Google Drive کا پرانا نسخہ ردی میں نہیں گیا۔ اسے Drive سے خود حذف کریں۔",
+      bothFailed: "فائل پلیٹ فارم سرور پر محفوظ ہو گئی، لیکن اس کا Google Drive نسخہ محفوظ نہ ہو سکا۔"
+    }
+  };
+  function placeText(key) { var dict = PLACE_TEXT[lang()] || PLACE_TEXT.ar; return dict[key] || PLACE_TEXT.ar[key] || ""; }
+
   function driveOAuthAvailable() { return !!(driveConfig.server && driveConfig.clientId); }
 
-  /* وضع التخزين الفعال: درايف فقط إن اختاره المستخدم في ملفه وكان عميل Google مضبوطا */
+  /* وضع التخزين الفعال: درايف او الاثنان فقط إن اختاره المستخدم في ملفه وكان عميل Google مضبوطا */
   function storageMode() {
     var mode = app.profile && app.profile.storage_mode;
-    return mode === "drive" && driveOAuthAvailable() ? "drive" : "platform";
+    if (!driveOAuthAvailable()) return "platform";
+    return mode === "drive" || mode === "both" ? mode : "platform";
   }
 
   function driveFetch(token, url, opts) {
@@ -716,7 +766,7 @@
   app.storageKeyName = storageKeyName;
 
   /* الطريق الواحد لحفظ ملف وتسجيله في attachments: درايف إن اختاره المستخدم (مع سقوط آمن إلى المنصة)، وإلا تخزين المنصة */
-  function storeAttachment(file, meta, path) {
+  function storeAttachment(file, meta, path, place) {
     if (!file) return Promise.reject(new Error("file required"));
     var orgId = requireOrg();
     var base = Object.assign({ org_id: orgId, uploaded_by: app.user.id }, meta || {});
@@ -747,7 +797,24 @@
         return uploadTo(plain);
       });
     }
-    if (storageMode() !== "drive") return viaPlatform();
+    /* المكان يختاره الرافع عند الرفع، وإلا اختياره في الاعدادات */
+    var mode = (place === "platform" || place === "drive" || place === "both") && (place === "platform" || driveOAuthAvailable()) ? place : storageMode();
+    if (mode === "platform") return viaPlatform();
+    if (mode === "both") {
+      /* الخادم أولا، ثم نسخة درايف تضاف إلى الصف نفسه؛ فشل درايف لا يضيع الملف */
+      return viaPlatform().then(function (row) {
+        return storeInDrive(file).then(function (d) {
+          return setAttachmentLocation(row.id, row.storage_path, d.id, d.url).catch(function (err) {
+            driveTrash(d.id).catch(function () { /* ignore */ });
+            throw err;
+          });
+        }).catch(function (err) {
+          if (window.console) console.warn("drive copy failed, kept on platform:", err && (err.message || err));
+          toast(err && err.needsConnect ? DRIVE_CONNECT_TEXT[lang()] || DRIVE_CONNECT_TEXT.ar : placeText("bothFailed"), "error");
+          return row;
+        });
+      });
+    }
     return storeInDrive(file).then(function (d) {
       return run(function (client) {
         return client.from("attachments").insert(Object.assign({}, base, {
@@ -790,7 +857,8 @@
   function attachmentUrl(att, opts) {
     if (!att) return Promise.resolve(null);
     var download = opts && opts.download;
-    if (att.external_url) {
+    /* نسخة الخادم تقدم متى وجدت: يفتحها كل من له صلاحية في الجهة ولو بلا حساب Google */
+    if (att.external_url && !att.storage_path) {
       if (download && att.drive_file_id) return Promise.resolve("https://drive.google.com/uc?export=download&id=" + encodeURIComponent(att.drive_file_id));
       return Promise.resolve(att.external_url);
     }
@@ -807,10 +875,135 @@
     return run(function (client) {
       if (!att || !att.id) throw new Error("attachment required");
       return client.from("attachments").delete().eq("id", att.id).select("id").then(unwrap).then(deletedOrThrow).then(function () {
-        if (att.storage_path) return client.storage.from(ATTACH_BUCKET).remove([att.storage_path]);
-        return null;
+        /* نسخة درايف تذهب الى سلة مهملات Drive فتسترجع خلال 30 يوما (امر المهندس رعد 2026-10-27) */
+        var jobs = [];
+        if (att.storage_path) jobs.push(client.storage.from(ATTACH_BUCKET).remove([att.storage_path]));
+        if (att.drive_file_id) jobs.push(driveTrash(att.drive_file_id).catch(function () { return null; }));
+        return Promise.all(jobs);
       });
     });
+  }
+
+  /* ---------- مكان الحفظ ونقله (امر المهندس رعد 2026-10-27) ---------- */
+
+  /* اين المستند: platform | drive | both | link (رابط خارجي بلا ملف درايف معروف، لا ينقل) */
+  function attachmentPlace(att) {
+    if (!att) return "";
+    var onPlatform = !!att.storage_path, onDrive = !!att.drive_file_id;
+    if (onPlatform && onDrive) return "both";
+    if (onPlatform) return "platform";
+    if (onDrive) return "drive";
+    return "link";
+  }
+
+  function attachmentPlaceLabel(att) { var place = attachmentPlace(att); return place ? placeText(place) : ""; }
+
+  /* ما يعرض من افعال النقل لكل مكان: [الهدف، مفتاح النص] */
+  function attachmentMoves(att) {
+    var place = attachmentPlace(att);
+    if (place === "link" || !place || !driveOAuthAvailable()) return [];
+    if (place === "platform") return [["drive", "toDrive"], ["both", "toBoth"]];
+    if (place === "drive") return [["platform", "toPlatform"], ["both", "toBoth"]];
+    return [["platform", "platformOnly"], ["drive", "driveOnly"]];
+  }
+
+  function setAttachmentLocation(id, storagePath, driveFileId, externalUrl) {
+    return run(function (client) {
+      return client.rpc("attachment_set_location", {
+        p_id: id, p_storage_path: storagePath || null, p_drive_file_id: driveFileId || null, p_external_url: externalUrl || null
+      }).then(unwrap);
+    });
+  }
+
+  /* ملف في درايف الى سلة المهملات: يسترجع منها خلال 30 يوما. ملف حذف من درايف قبلا يعد منتهيا */
+  function driveTrash(fileId) {
+    if (!fileId) return Promise.resolve(null);
+    return driveAccessToken().then(function (token) {
+      return driveFetch(token, DRIVE_API + "/files/" + encodeURIComponent(fileId) + "?supportsAllDrives=true&fields=id,trashed", {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trashed: true })
+      }).catch(function (err) { if (err && err.status === 404) return null; throw err; });
+    });
+  }
+
+  /* محتوى المستند من النسخة الموجودة: الخادم اولا ثم درايف */
+  function attachmentFile(att) {
+    if (att.storage_path) {
+      return run(function (client) {
+        return client.storage.from(ATTACH_BUCKET).download(att.storage_path).then(function (res) {
+          if (res && res.error) throw res.error;
+          var blob = res.data;
+          try { return new File([blob], att.name || "file", { type: att.mime || blob.type || "application/octet-stream" }); }
+          catch (e) { blob.name = att.name || "file"; return blob; }
+        });
+      });
+    }
+    return driveDownload({ id: att.drive_file_id, name: att.name, mimeType: att.mime });
+  }
+
+  /* نسخة على الخادم بمعيار المسار نفسه الذي يرفع به (attachmentStoragePath)، مع مفتاح لاتيني بديل */
+  function copyToPlatform(att, file) {
+    return attachmentStoragePath(att.item_id, att.name).then(function (path) {
+      function put(key) {
+        return run(function (client) {
+          return client.storage.from(ATTACH_BUCKET).upload(key, file, { upsert: false, contentType: att.mime || file.type || undefined })
+            .then(function (res) { if (res && res.error) throw res.error; return key; });
+        });
+      }
+      return put(path).catch(function () {
+        var cut = path.lastIndexOf("/");
+        var dot = String(att.name || "").lastIndexOf(".");
+        var ext = dot > 0 ? "." + String(att.name).slice(dot + 1).replace(/[^A-Za-z0-9]/g, "").slice(0, 12).toLowerCase() : "";
+        return put(path.slice(0, cut + 1) + randomCode(14).toLowerCase() + ext);
+      });
+    });
+  }
+
+  function removeFromPlatform(path) {
+    return run(function (client) { return client.storage.from(ATTACH_BUCKET).remove([path]); }).catch(function () { return null; });
+  }
+
+  /* النقل: تنسخ النسخة الجديدة اولا، ثم يثبت المكان في القاعدة (تتحقق من وجود نسخة الخادم)، ثم تزال
+     القديمة. أي فشل قبل التثبيت يزيل ما نسخ ويبقي المستند كما كان. يعيد الصف الجديد، و trashFailed
+     حين لم تصل نسخة درايف القديمة الى سلة المهملات. */
+  function moveAttachment(att, target) {
+    var from = attachmentPlace(att);
+    if (!att || !att.id || from === "link") return Promise.reject(new Error("not_movable"));
+    if (target !== "platform" && target !== "drive" && target !== "both") return Promise.reject(new Error("bad_target"));
+    if (from === target) return Promise.resolve(att);
+    var wantPlatform = target !== "drive", wantDrive = target !== "platform";
+    var newPath = null, newDrive = null, committed = false;
+    var loc = { path: att.storage_path || null, driveId: att.drive_file_id || null, url: att.drive_file_id ? att.external_url : null };
+    var fileP = null;
+    function content() { if (!fileP) fileP = attachmentFile(att); return fileP; }
+    return Promise.resolve().then(function () {
+      if (!wantPlatform || loc.path) return null;
+      return content().then(function (file) { return copyToPlatform(att, file); }).then(function (key) { newPath = key; loc.path = key; });
+    }).then(function () {
+      if (!wantDrive || loc.driveId) return null;
+      return content().then(storeInDrive).then(function (d) { newDrive = d.id; loc.driveId = d.id; loc.url = d.url; });
+    }).then(function () {
+      return setAttachmentLocation(att.id, wantPlatform ? loc.path : null, wantDrive ? loc.driveId : null, wantDrive ? loc.url : null);
+    }).then(function (row) {
+      committed = true;
+      var result = Object.assign({}, att, row || {});
+      var jobs = [];
+      if (!wantPlatform && att.storage_path) jobs.push(removeFromPlatform(att.storage_path));
+      if (!wantDrive && att.drive_file_id) jobs.push(driveTrash(att.drive_file_id).then(function () { return null; }, function () { result.trashFailed = true; }));
+      return Promise.all(jobs).then(function () { return result; });
+    }).catch(function (err) {
+      if (!committed) {
+        if (newPath) removeFromPlatform(newPath);
+        if (newDrive) driveTrash(newDrive).catch(function () { /* ignore */ });
+      }
+      if (err && err.needsConnect) toast(DRIVE_CONNECT_TEXT[lang()] || DRIVE_CONNECT_TEXT.ar, "error");
+      throw err;
+    });
+  }
+
+  /* نص الخطا المناسب لفشل النقل */
+  function attachmentMoveError(err) {
+    var code = String((err && (err.message || err.code)) || "");
+    return placeText(code.indexOf("PLAN_LIMIT_STORAGE") !== -1 ? "limit" : "failed");
   }
 
   function storageUsed() {
@@ -1025,7 +1218,17 @@
   function deleteItem(id) {
     return run(function (client) {
       var orgId = requireOrg();
-      return client.from("items").delete().eq("org_id", orgId).eq("id", id).then(unwrap);
+      /* مرفقات العنصر تحذف معه في القاعدة، ونسخها في درايف تذهب الى سلة مهملات Drive (امر المهندس رعد 2026-10-27) */
+      var driveIdsP = driveOAuthAvailable()
+        ? client.from("attachments").select("drive_file_id").eq("org_id", orgId).eq("item_id", id).not("drive_file_id", "is", null).then(unwrap)
+            .then(function (rows) { return (rows || []).map(function (row) { return row.drive_file_id; }); }, function () { return []; })
+        : Promise.resolve([]);
+      return driveIdsP.then(function (driveIds) {
+        return client.from("items").delete().eq("org_id", orgId).eq("id", id).then(unwrap).then(function (out) {
+          driveIds.forEach(function (fileId) { driveTrash(fileId).catch(function () { /* ignore */ }); });
+          return out;
+        });
+      });
     });
   }
 

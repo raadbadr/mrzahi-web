@@ -200,6 +200,12 @@
   app.attachDriveFiles = attachDriveFiles;
   app.attachmentUrl = attachmentUrl;
   app.deleteAttachment = deleteAttachment;
+  app.attachmentPlace = attachmentPlace;
+  app.attachmentPlaceLabel = attachmentPlaceLabel;
+  app.attachmentMoves = attachmentMoves;
+  app.moveAttachment = moveAttachment;
+  app.attachmentMoveError = attachmentMoveError;
+  app.placeText = placeText;
   app.storageUsed = storageUsed;
   app.renameOrg = renameOrg;
   app.deleteOrg = deleteOrg;

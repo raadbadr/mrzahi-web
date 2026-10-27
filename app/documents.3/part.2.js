@@ -116,6 +116,46 @@
             setStatus(code.indexOf("PLAN_LIMIT_STORAGE") !== -1 ? t("docStorageLimit") : t("docFileFailed"), "error");
           });
         });
+        /* مكان الحفظ: الزر يطوي سطر النقل ويفتحه، وزر النقل ينقل الملف ثم يعيد التحميل */
+        function wirePlace(body, toggleAttr, lineAttr) {
+          body.addEventListener("click", function (e) {
+            var toggle = e.target.closest("[" + toggleAttr + "]");
+            if (toggle) {
+              e.preventDefault();
+              var id = toggle.getAttribute(toggleAttr);
+              var line = body.querySelector("[" + lineAttr + '="' + id + '"]');
+              if (!line) return;
+              line.hidden = !line.hidden;
+              state.placeOpen = line.hidden ? null : lineAttr + ":" + id;
+              toggle.setAttribute("aria-expanded", line.hidden ? "false" : "true");
+              fitPlaceLines();
+              return;
+            }
+            var mv = e.target.closest("[data-move]");
+            if (!mv || mv.disabled) return;
+            e.preventDefault();
+            var att = attachmentById(mv.getAttribute("data-move"));
+            var target = mv.getAttribute("data-move-to");
+            if (!att) return;
+            var place = app.attachmentPlace(att);
+            var dropsPlatform = target === "drive" && place !== "drive";
+            var dropsDrive = target === "platform" && place !== "platform";
+            if (dropsPlatform && !window.confirm(app.placeText("dropPlatform"))) return;
+            if (dropsDrive && !window.confirm(app.placeText("dropDrive"))) return;
+            mv.disabled = true;
+            setStatus(app.placeText("moving"));
+            app.moveAttachment(att, target).then(function (row) {
+              setStatus(app.placeText(row && row.trashFailed ? "trashFailed" : "moved"), row && row.trashFailed ? "error" : "success");
+              return loadAll();
+            }).catch(function (err) {
+              mv.disabled = false;
+              setStatus(app.attachmentMoveError(err), "error");
+            });
+          });
+        }
+        wirePlace($("docsBody"), "data-place", "data-place-for");
+        wirePlace($("papersBody"), "data-paper-place", "data-paper-place-for");
+
         $("docsBody").addEventListener("click", function (e) {
           var at = e.target.closest("[data-attach]");
           if (at) {

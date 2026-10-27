@@ -499,7 +499,7 @@
       if (p.lang !== undefined) clean.lang = p.lang;
       if (p.tz !== undefined) clean.tz = p.tz;
       if (p.time_format !== undefined) clean.time_format = p.time_format === "12" ? "12" : "24";
-      if (p.storage_mode !== undefined) clean.storage_mode = p.storage_mode === "drive" ? "drive" : "platform";
+      if (p.storage_mode !== undefined) clean.storage_mode = p.storage_mode === "drive" || p.storage_mode === "both" ? p.storage_mode : "platform";
       return client.from("profiles").update(clean).eq("id", app.user.id).select("*").single()
         .then(unwrap)
         .then(function (row) { app.profile = row; return row; });

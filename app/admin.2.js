@@ -277,7 +277,7 @@
           row("colPersonal", personalText(u), "", "is-stack") +
           row("colMemberOf", companiesText(u), "", "is-stack") +
           row("colLang", esc(LANG_NAMES[u.lang] || u.lang || "—")) +
-          row("colStore", esc(u.storage_mode === "drive" ? T("storeDrive") : T("storePlatform"))) +
+          row("colStore", esc(u.storage_mode === "both" ? T("storeBoth") : u.storage_mode === "drive" ? T("storeDrive") : T("storePlatform"))) +
           row("colTelegram", esc(u.telegram_linked ? T("linkedYes") : T("linkedNo"))) +
           row("colLastSeen", esc(u.last_seen_at ? fmtDate(u.last_seen_at, { withTime: true }) : "—")) +
           row("colAdmin", esc(u.is_platform_admin ? T("yes") : T("no"))) +
