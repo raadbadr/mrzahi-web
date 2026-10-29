@@ -23,7 +23,7 @@ import { runNotificationCron, purgeExpiredAccountDeletions, linkChannelByCode, n
 import { whatsappConfigured, whatsappChatId, whatsappPhone, whatsappTyping, isWhatsappChat } from "./whatsapp.js";
 import { ALLOWED_EXT, fileExt, parseWorkbook, draftPayload, commitImport } from "./telegram-import.js";
 import { extractIntent, describeAction, formatSearch, executeAction, runTelegramDigests, runAbsenceNudges, runTrialCountdown } from "./telegram-actions.js";
-import { hmacHex, telegramFileRoute, handleTelegramFile, offerDocument, handleDocCallback } from "./telegram-documents.js";
+import { hmacHex, telegramFileRoute, handleTelegramFile, offerDocument, handleDocCallback, tryDocCorrection } from "./telegram-documents.js";
 import { handleAgentChat, handleAgentConfirm } from "./web-agent.js";
 import { handleIclock } from "./attendance.js";
 
@@ -728,6 +728,8 @@ async function handleBotMessage(env, { chatId, owner, from, text, caption, voice
       let transcript = null;
       try { transcript = await transcribeTelegramVoice(env, voice, chatId); } catch (e) { console.error("[telegram] whisper failed:", String((e && e.message) || e).slice(0, 200)); }
       if (!transcript) { try { await sendChat(env, chatId, b.fileUnreadable, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
+      /* تصحيح منطوق لورقة تنتظر القرار: «تاريخ الانتهاء ثلاثة خمسة الفين وسبعة وعشرين» يصل نصا كما يكتب */
+      if (await tryDocCorrection(env, { chatId, userId: owner, lang, text: westernDigits(transcript) })) return json({ ok: true });
       const spokenMenu = menuAction(transcript);
       if (spokenMenu) { await runMenu(env, chatId, owner, spokenMenu); return json({ ok: true }); }
       await smartReply(env, chatId, owner, transcript, lang, targetDisplayName(target, lang, tgName), null, b.voiceHeard + "«" + transcript + "»\n\n", userTimeZone);
@@ -767,6 +769,8 @@ async function handleBotMessage(env, { chatId, owner, from, text, caption, voice
   try { target = await notifyTarget(env, owner, "telegram"); } catch {}
   const lang = (target && target.lang) || tgLang;
   const userTimeZone = (target && target.tz) || "Asia/Riyadh";
+  /* رد على ورقة تنتظر القرار: تصحيح حقل قبل الحفظ */
+  if (await tryDocCorrection(env, { chatId, userId: owner, lang, text })) return json({ ok: true });
   if (ORG_WORDS.test(text)) { await companyMenu(env, chatId, owner, lang); return json({ ok: true }); }
   if (await needsOrgChoice(env, chatId, owner, lang)) return json({ ok: true });
   await sendChatAction(env, chatId, "typing");

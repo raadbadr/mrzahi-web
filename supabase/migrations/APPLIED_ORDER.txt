@@ -212,3 +212,4 @@
 20261027110000	platform_kpis	0179_platform_kpis.sql	added
 20261027120000	attachment_location	0180_attachment_location.sql	added
 20261029120000	whatsapp_channel	0181_whatsapp_channel.sql	added
+20261029130000	chat_document_expense	0182_chat_document_expense.sql	added

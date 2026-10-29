@@ -118,7 +118,7 @@ function plusOneYear(iso) {
   const d = new Date(Date.UTC(parts[0] + 1, parts[1] - 1, parts[2]));
   return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
 }
-function normalizeDate(value, calendar) {
+export function normalizeDate(value, calendar) {
   if (typeof value !== "string") return null;
   const match = value.trim().match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
   if (!match) return null;
