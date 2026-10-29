@@ -23,7 +23,7 @@ import { runNotificationCron, purgeExpiredAccountDeletions, linkChannelByCode, n
 import { whatsappConfigured, whatsappChatId, whatsappPhone, whatsappTyping, isWhatsappChat } from "./whatsapp.js";
 import { ALLOWED_EXT, fileExt, parseWorkbook, draftPayload, commitImport } from "./telegram-import.js";
 import { extractIntent, describeAction, formatSearch, executeAction, runTelegramDigests, runAbsenceNudges, runTrialCountdown } from "./telegram-actions.js";
-import { hmacHex, telegramFileRoute, handleTelegramFile, offerDocument, handleDocCallback, tryDocCorrection } from "./telegram-documents.js";
+import { hmacHex, telegramFileRoute, handleTelegramFile, offerDocument, handleDocCallback, tryDocCorrection, sendReviewList } from "./telegram-documents.js";
 import { handleAgentChat, handleAgentConfirm } from "./web-agent.js";
 import { handleIclock } from "./attendance.js";
 
@@ -771,6 +771,8 @@ async function handleBotMessage(env, { chatId, owner, from, text, caption, voice
   const userTimeZone = (target && target.tz) || "Asia/Riyadh";
   /* رد على ورقة تنتظر القرار: تصحيح حقل قبل الحفظ */
   if (await tryDocCorrection(env, { chatId, userId: owner, lang, text })) return json({ ok: true });
+  /* «المراجعة»: ما ادخله الموظفون وينتظر اعتماد المالك او المدير */
+  if (/^(المراجعة|مراجعة|تحتاج مراجعة|review|reviews|vérification|verification|جائزہ)$/i.test(text)) { await sendReviewList(env, { chatId, userId: owner, lang }); return json({ ok: true }); }
   if (ORG_WORDS.test(text)) { await companyMenu(env, chatId, owner, lang); return json({ ok: true }); }
   if (await needsOrgChoice(env, chatId, owner, lang)) return json({ ok: true });
   await sendChatAction(env, chatId, "typing");
@@ -815,7 +817,7 @@ async function handleBotButton(env, { chatId, data, from }) {
     try { await sendChat(env, chatId, r && r.status === "ok" ? t.set(accountLabel(lang, r)) : t.pick, menuKeyboard(lang)); } catch {}
     return json({ ok: true });
   }
-  if (/^(doc|prof):/.test(data) && await handleDocCallback(env, { chatId, userId: owner, lang, data })) return json({ ok: true });
+  if (/^(doc|prof|undo|rv):/.test(data) && await handleDocCallback(env, { chatId, userId: owner, lang, data })) return json({ ok: true });
   const act = data.match(/^act:(y|n)(?::([a-z0-9]+))?$/);
   if (act) {
     let draft = null;

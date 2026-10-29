@@ -9,6 +9,7 @@ import { analyzeTextOffline, KIND_LABELS_AR, normalizeDate } from "./documents.j
 
 const DOCS_URL = "https://mrzahi.com/app/documents.html";
 const EXPENSES_URL = "https://mrzahi.com/app/dashboard.html?type=expenses";
+const STAFF_URL = "https://mrzahi.com/app/dashboard.html?type=staff";
 
 // ---------- توقيع رابط الملف (HMAC بسر الـ Worker) ----------
 export async function hmacHex(secret, data) {
@@ -156,8 +157,13 @@ export function docConfirmText(lang, f) {
   lines.push("", words.hint, "", f.kind === "invoice" ? words.askInvoice : t.ask);
   return lines.join("\n");
 }
-export function docButtons(lang, f) {
+const STAFF_KINDS = ["employment_contract", "id_document", "passport"];
+export function docButtons(lang, f, canHr) {
   const t = texts(lang);
+  if (f && canHr && STAFF_KINDS.includes(f.kind)) {
+    const words = checkTexts(lang);
+    return { reply_markup: { inline_keyboard: [[{ text: words.staffBtn, callback_data: "doc:s" }, { text: t.yes, callback_data: "doc:y" }, { text: t.no, callback_data: "doc:n" }]] } };
+  }
   if (f && f.kind === "invoice") {
     const words = checkTexts(lang);
     return { reply_markup: { inline_keyboard: [[{ text: words.expenseBtn, callback_data: "doc:e" }, { text: t.yes, callback_data: "doc:y" }, { text: t.no, callback_data: "doc:n" }]] } };
@@ -178,6 +184,7 @@ const todayIso = () => new Date(Date.now() + 3 * 3600000).toISOString().slice(0,
 export function docChecks(f, today) {
   const checks = [];
   if (!f) return checks;
+  if (f.similar && f.similar.title) checks.push({ code: "similar", title: f.similar.title, date: f.similar.date });
   const details = f.details || {};
   const now = today || todayIso();
   const cr = f.kind === "commercial_register" ? f.number : details.cr_number;
@@ -210,6 +217,19 @@ const CHECK_TEXT = {
         seller: "المورد", askInvoice: "أسجلها مصروفا، أم أحفظها مستندا فقط؟", expenseBtn: "🧾 تسجيل كمصروف",
         expenseSaved: "سجلت في المصاريف", openExpenses: "فتح المصاريف", corrected: "✏️ عدلت",
         notUnderstood: "لم أفهم التصحيح. اكتب الحقل ثم قيمته، مثلا: «تاريخ الانتهاء 03-05-2027» أو «المبلغ 1150».",
+        similar: (c) => "تشبه «" + c.title + "» المسجلة في " + dmy(c.date) + ". إن كانت هي نفسها فاضغط «لا».",
+        staffBtn: "👤 ملف موظف", staffSaved: "أنشئ ملف الموظف", staffUpdated: "حدث ملف الموظف", openStaff: "فتح الموظفين",
+        forbiddenHr: "ملفات الموظفين لقسم الموارد البشرية والإدارة والمالك فقط. تستطيع حفظ الورقة مستندا.",
+        askAmount: "ما المبلغ الإجمالي للفاتورة؟ اكتبه رقما، مثلا: «المبلغ 1150».",
+        askExpiry: "لم أجد تاريخ الانتهاء. اكتبه، مثلا: «03-05-2027»، أو اضغط «حفظ» مرة أخرى لأحفظها بدونه.",
+        askName: "لم أجد اسم الموظف. اكتبه، مثلا: «الاسم محمد أحمد».",
+        undoBtn: "↩️ تراجع", undone: "ألغي، ويبقى في السجل للاسترجاع:", undoExpired: "مضت 15 دقيقة، فلا تراجع من المحادثة. عدله من الموقع.",
+        undoAlready: "ألغي من قبل.", undoNotAllowed: "التراجع لمن أدخله فقط.",
+        reviewNotice: (title, who, reasons) => "📋 يحتاج مراجعة: «" + title + "»" + (who ? "\nأدخله: " + who : "") + (reasons ? "\nالسبب: " + reasons : ""),
+        approveBtn: "✓ اعتماد", approved: "اعتمد:", reviewAlready: "اعتمد من قبل:", reviewForbidden: "الاعتماد للمالك والمدير فقط.",
+        reviewNone: "لا شيء ينتظر المراجعة 👌", reviewTitle: "📋 تنتظر المراجعة:", reviewSent: "وأرسل إلى المدير للمراجعة.",
+        reasons: { badCr: "رقم السجل", badVat: "الرقم الضريبي", expiryBeforeIssue: "التواريخ", expired: "منتهية", missingExpiry: "بلا تاريخ انتهاء",
+                   missingAmount: "بلا مبلغ", totalMismatch: "المجموع", vatRate: "نسبة الضريبة", similar: "تشبه ورقة مسجلة", corrected: "صححها المرسل" },
         fields: { expiry_date: "الانتهاء", issue_date: "الإصدار", amount: "المبلغ", seller: "المورد", party: "الاسم", number: "الرقم" } },
   en: { badCr: (c) => "A CR number has 10 digits; read " + c.value + ". Correct it if wrong.",
         badVat: (c) => "A VAT number has 15 digits starting and ending with 3; read " + c.value + ".",
@@ -223,6 +243,19 @@ const CHECK_TEXT = {
         seller: "Supplier", askInvoice: "Record it as an expense, or only save it as a document?", expenseBtn: "🧾 Record expense",
         expenseSaved: "Recorded in Expenses", openExpenses: "Open Expenses", corrected: "✏️ Corrected",
         notUnderstood: "I did not understand the correction. Write the field then its value, e.g. «expiry 03-05-2027» or «amount 1150».",
+        similar: (c) => "Looks like «" + c.title + "» recorded on " + dmy(c.date) + ". If it is the same, tap «No».",
+        staffBtn: "👤 Employee file", staffSaved: "Employee file created", staffUpdated: "Employee file updated", openStaff: "Open Employees",
+        forbiddenHr: "Employee files are for HR, management and the owner only. You can save the paper as a document.",
+        askAmount: "What is the invoice total? Write it, e.g. «amount 1150».",
+        askExpiry: "No expiry date found. Write it, e.g. «03-05-2027», or tap «Save» again to save without it.",
+        askName: "No employee name found. Write it, e.g. «name Mohammed Ahmed».",
+        undoBtn: "↩️ Undo", undone: "Cancelled, and kept in the record for recovery:", undoExpired: "15 minutes have passed, so it cannot be undone from the chat. Edit it on the website.",
+        undoAlready: "Already cancelled.", undoNotAllowed: "Only whoever entered it can undo it.",
+        reviewNotice: (title, who, reasons) => "📋 Needs review: «" + title + "»" + (who ? "\nEntered by: " + who : "") + (reasons ? "\nWhy: " + reasons : ""),
+        approveBtn: "✓ Approve", approved: "Approved:", reviewAlready: "Already approved:", reviewForbidden: "Only the owner or an admin can approve.",
+        reviewNone: "Nothing waits for review 👌", reviewTitle: "📋 Waiting for review:", reviewSent: "Sent to the manager for review.",
+        reasons: { badCr: "CR number", badVat: "VAT number", expiryBeforeIssue: "dates", expired: "expired", missingExpiry: "no expiry date",
+                   missingAmount: "no amount", totalMismatch: "total", vatRate: "VAT rate", similar: "looks like a recorded paper", corrected: "corrected by the sender" },
         fields: { expiry_date: "Expiry", issue_date: "Issued", amount: "Amount", seller: "Supplier", party: "Name", number: "Number" } },
   fr: { badCr: (c) => "Le numero de registre a 10 chiffres ; lu " + c.value + ". Corrigez-le si besoin.",
         badVat: (c) => "Le numero de TVA a 15 chiffres, commence et finit par 3 ; lu " + c.value + ".",
@@ -236,6 +269,19 @@ const CHECK_TEXT = {
         seller: "Fournisseur", askInvoice: "L'enregistrer comme depense, ou seulement comme document ?", expenseBtn: "🧾 Depense",
         expenseSaved: "Enregistree dans les depenses", openExpenses: "Ouvrir les depenses", corrected: "✏️ Corrige",
         notUnderstood: "Je n'ai pas compris la correction. Ecrivez le champ puis sa valeur, par ex. «expiration 03-05-2027» ou «montant 1150».",
+        similar: (c) => "Ressemble a «" + c.title + "» enregistre le " + dmy(c.date) + ". Si c'est le meme, touchez «Non».",
+        staffBtn: "👤 Fiche employe", staffSaved: "Fiche employe creee", staffUpdated: "Fiche employe mise a jour", openStaff: "Ouvrir les employes",
+        forbiddenHr: "Les fiches employes sont reservees aux RH, a la direction et au proprietaire. Vous pouvez enregistrer le document.",
+        askAmount: "Quel est le total de la facture ? Ecrivez-le, par ex. «montant 1150».",
+        askExpiry: "Aucune date d'expiration trouvee. Ecrivez-la, par ex. «03-05-2027», ou touchez «Enregistrer» a nouveau pour enregistrer sans elle.",
+        askName: "Aucun nom d'employe trouve. Ecrivez-le, par ex. «nom Mohammed Ahmed».",
+        undoBtn: "↩️ Annuler", undone: "Annule, et garde dans le registre pour recuperation :", undoExpired: "15 minutes sont passees : annulation impossible depuis la conversation. Modifiez-le sur le site.",
+        undoAlready: "Deja annule.", undoNotAllowed: "Seule la personne qui l'a saisi peut annuler.",
+        reviewNotice: (title, who, reasons) => "📋 A verifier : «" + title + "»" + (who ? "\nSaisi par : " + who : "") + (reasons ? "\nRaison : " + reasons : ""),
+        approveBtn: "✓ Valider", approved: "Valide :", reviewAlready: "Deja valide :", reviewForbidden: "Seul le proprietaire ou un administrateur peut valider.",
+        reviewNone: "Rien a verifier 👌", reviewTitle: "📋 A verifier :", reviewSent: "Envoye au responsable pour verification.",
+        reasons: { badCr: "numero de registre", badVat: "numero de TVA", expiryBeforeIssue: "dates", expired: "expire", missingExpiry: "sans date d'expiration",
+                   missingAmount: "sans montant", totalMismatch: "total", vatRate: "taux de TVA", similar: "ressemble a un document enregistre", corrected: "corrige par l'expediteur" },
         fields: { expiry_date: "Expiration", issue_date: "Delivrance", amount: "Montant", seller: "Fournisseur", party: "Nom", number: "Numero" } },
   ur: { badCr: (c) => "کمرشل رجسٹر نمبر 10 ہندسوں کا ہوتا ہے؛ پڑھا گیا " + c.value + "۔",
         badVat: (c) => "ٹیکس نمبر 15 ہندسوں کا ہوتا ہے جو 3 سے شروع اور 3 پر ختم ہو؛ پڑھا گیا " + c.value + "۔",
@@ -249,6 +295,19 @@ const CHECK_TEXT = {
         seller: "سپلائر", askInvoice: "اسے خرچ کے طور پر درج کروں یا صرف دستاویز کے طور پر محفوظ کروں؟", expenseBtn: "🧾 خرچ درج کریں",
         expenseSaved: "اخراجات میں درج", openExpenses: "اخراجات کھولیں", corrected: "✏️ درست کیا",
         notUnderstood: "درستی سمجھ نہیں آئی۔ خانہ پھر قیمت لکھیں، مثلا «میعاد 03-05-2027» یا «رقم 1150»۔",
+        similar: (c) => "یہ «" + c.title + "» جیسی ہے جو " + dmy(c.date) + " کو درج ہوئی۔ اگر وہی ہے تو «نہیں» دبائیں۔",
+        staffBtn: "👤 ملازم فائل", staffSaved: "ملازم فائل بن گئی", staffUpdated: "ملازم فائل اپ ڈیٹ", openStaff: "ملازمین کھولیں",
+        forbiddenHr: "ملازم فائلیں صرف HR، انتظامیہ اور مالک کے لیے ہیں۔ آپ دستاویز محفوظ کر سکتے ہیں۔",
+        askAmount: "انوائس کی کل رقم کیا ہے؟ لکھیں، مثلا «رقم 1150»۔",
+        askExpiry: "میعاد کی تاریخ نہیں ملی۔ لکھیں، مثلا «03-05-2027»، یا اس کے بغیر محفوظ کرنے کے لیے دوبارہ «محفوظ» دبائیں۔",
+        askName: "ملازم کا نام نہیں ملا۔ لکھیں، مثلا «نام محمد احمد»۔",
+        undoBtn: "↩️ واپس", undone: "منسوخ، اور بحالی کے لیے ریکارڈ میں محفوظ:", undoExpired: "15 منٹ گزر گئے، گفتگو سے واپس نہیں ہو سکتا۔ ویب سائٹ سے بدلیں۔",
+        undoAlready: "پہلے ہی منسوخ۔", undoNotAllowed: "صرف درج کرنے والا واپس کر سکتا ہے۔",
+        reviewNotice: (title, who, reasons) => "📋 جائزہ درکار: «" + title + "»" + (who ? "\nدرج کیا: " + who : "") + (reasons ? "\nوجہ: " + reasons : ""),
+        approveBtn: "✓ منظور", approved: "منظور:", reviewAlready: "پہلے ہی منظور:", reviewForbidden: "صرف مالک یا ایڈمن منظور کر سکتا ہے۔",
+        reviewNone: "جائزے کے لیے کچھ نہیں 👌", reviewTitle: "📋 جائزے کے منتظر:", reviewSent: "جائزے کے لیے مینیجر کو بھیج دیا۔",
+        reasons: { badCr: "رجسٹر نمبر", badVat: "ٹیکس نمبر", expiryBeforeIssue: "تاریخیں", expired: "ختم شدہ", missingExpiry: "میعاد کے بغیر",
+                   missingAmount: "رقم کے بغیر", totalMismatch: "کل", vatRate: "ٹیکس کی شرح", similar: "درج شدہ جیسی", corrected: "بھیجنے والے نے درست کی" },
         fields: { expiry_date: "میعاد", issue_date: "اجرا", amount: "رقم", seller: "سپلائر", party: "نام", number: "نمبر" } },
 };
 const checkTexts = (lang) => CHECK_TEXT[lang] || CHECK_TEXT.ar;
@@ -312,30 +371,80 @@ export function applyCorrection(f, correction) {
 }
 /* رسالة نصية او صوتية من مستخدم امامه ورقة لم يقرر فيها: تصحيح ← عرض جديد؛ وغير ذلك يعود false فيمر المسار المعتاد */
 const LOOKS_LIKE_CORRECTION = /^\s*(?:(?:لا|خطأ|خطا|غلط|صحح|التصحيح|الصحيح|wrong|correct|non|faux)[\s،,:.-]*)?(?:تاريخ|(?:ال)?انتهاء|ينتهي|(?:ال)?[إا]صدار|(?:ال)?مبلغ|(?:ال)?[إا]جمالي|(?:ال)?مجموع|(?:ال)?رقم|(?:ال)?[إا]سم|(?:ال)?مورد|(?:ال)?بائع|(?:ال)?عميل|expir|issue|amount|total|number|name|supplier|seller|montant|num[ée]ro|nom|fournisseur|میعاد|اجرا|رقم|نمبر|نام|سپلائر)/i;
+/* قيمة مجردة («1150» او «03-05-2027») جواب لسؤال طرحه البوت عن حقل ناقص */
+const BARE_VALUE = /^\s*\d[\d,.\-\/ ]{0,20}\s*$/;
+const AWAIT_PREFIX = { amount: "المبلغ ", expiry_date: "الانتهاء ", issue_date: "الإصدار " };
 export async function tryDocCorrection(env, ctx) {
-  if (!env.WORKER_SECRET || !ctx || !LOOKS_LIKE_CORRECTION.test(String(ctx.text || ""))) return false;
+  const message = String((ctx && ctx.text) || "");
+  const bare = BARE_VALUE.test(message);
+  if (!env.WORKER_SECRET || !ctx || !(bare || LOOKS_LIKE_CORRECTION.test(message))) return false;
   const chat = String(ctx.chatId);
   let draft = null;
   try { draft = await rpc(env, "telegram_draft_take", { p_secret: env.WORKER_SECRET, p_chat_id: chat }); } catch { return false; }
   const restore = async (payload) => { try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: chat, p_user_id: draft.user_id, p_payload: payload }); } catch {} };
   if (!draft || !draft.payload) return false;
   if (draft.payload.type !== "doc" || String(draft.user_id) !== String(ctx.userId)) { await restore(draft.payload); return false; }
+  const awaiting = draft.payload.awaiting;
+  if (bare && !LOOKS_LIKE_CORRECTION.test(message) && !AWAIT_PREFIX[awaiting]) { await restore(draft.payload); return false; }
   const lang = ctx.lang || "ar";
   const words = checkTexts(lang);
-  const correction = parseCorrection(ctx.text);
+  const correction = parseCorrection(bare && AWAIT_PREFIX[awaiting] ? AWAIT_PREFIX[awaiting] + message : message);
+  const canHr = !!draft.payload.canHr;
   if (!correction) {
     await restore(draft.payload);
-    try { await sendChat(env, ctx.chatId, words.notUnderstood, docButtons(lang, draft.payload.doc)); } catch {}
+    try { await sendChat(env, ctx.chatId, words.notUnderstood, docButtons(lang, draft.payload.doc, canHr)); } catch {}
     await logReply(env, ctx.chatId, ctx.userId, words.notUnderstood);
     return true;
   }
   const doc = applyCorrection(draft.payload.doc, correction);
-  await restore({ ...draft.payload, doc });
+  await restore({ ...draft.payload, doc, awaiting: null });
   const shown = correction.field.endsWith("_date") ? dmy(correction.value) : String(correction.value);
   const text = words.corrected + ": " + (words.fields[correction.field] || correction.field) + " ← " + shown + "\n\n" + docConfirmText(lang, doc);
-  try { await sendChat(env, ctx.chatId, text, docButtons(lang, doc)); } catch {}
+  try { await sendChat(env, ctx.chatId, text, docButtons(lang, doc, canHr)); } catch {}
   await logReply(env, ctx.chatId, ctx.userId, text);
   return true;
+}
+
+/* «المراجعة»: ما ادخله الموظفون وينتظر اعتماد المالك او المدير */
+export async function sendReviewList(env, ctx) {
+  const lang = ctx.lang || "ar";
+  const words = checkTexts(lang);
+  let rows = [];
+  try { rows = (await rpc(env, "chat_review_list", { p_secret: env.WORKER_SECRET, p_user_id: ctx.userId })) || []; } catch { rows = []; }
+  if (!rows.length) {
+    try { await sendChat(env, ctx.chatId, words.reviewNone, menuKeyboard(lang)); } catch {}
+    await logReply(env, ctx.chatId, ctx.userId, words.reviewNone);
+    return;
+  }
+  const lines = rows.map((row, index) => (index + 1) + ". " + row.title + " — " + dmy(row.date) + (row.by ? " — " + row.by : "")
+    + (Array.isArray(row.reasons) && row.reasons.length ? "\n   " + reasonWords(lang, row.reasons) : ""));
+  const text = words.reviewTitle + "\n\n" + lines.join("\n");
+  const buttons = rows.map((row, index) => [{ text: words.approveBtn + " " + (index + 1), callback_data: "rv:" + row.id }]);
+  try { await sendChat(env, ctx.chatId, text, { reply_markup: { inline_keyboard: buttons } }); } catch {}
+  await logReply(env, ctx.chatId, ctx.userId, text);
+}
+function reasonWords(lang, codes) {
+  const words = checkTexts(lang);
+  return codes.map((code) => words.reasons[code] || words.reasons.corrected).join(texts(lang).sep);
+}
+/* سبب المراجعة: كل تنبيه بقي في الورقة، وتصحيح المرسل نفسه */
+function reviewReasons(doc) {
+  const codes = docChecks(doc).map((check) => check.code);
+  if (Array.isArray(doc.corrected) && doc.corrected.length) codes.push("corrected");
+  return Array.from(new Set(codes));
+}
+async function notifyReviewers(env, ctx, r, reasons) {
+  let targets = [];
+  try { targets = (await rpc(env, "chat_review_targets", { p_secret: env.WORKER_SECRET, p_item_id: r.item_id })) || []; } catch { targets = []; }
+  let who = "";
+  try { const me = await rpc(env, "notify_target", { p_secret: env.WORKER_SECRET, p_user_id: ctx.userId, p_channel: "telegram" }); who = (me && (me.full_name || me.full_name_en)) || ""; } catch {}
+  for (const target of targets) {
+    const lang = target.lang || "ar";
+    const words = checkTexts(lang);
+    const text = words.reviewNotice(r.title || "-", who, reasonWords(lang, reasons));
+    try { await sendChat(env, target.chat_id, text, { reply_markup: { inline_keyboard: [[{ text: words.approveBtn, callback_data: "rv:" + r.item_id }, { text: texts(lang).open, url: DOCS_URL }]] } }); }
+    catch (e) { console.log("review notice failed", String(e && e.message || e).slice(0, 160)); }
+  }
 }
 /* بعد الحفظ: «حفظت في المستندات: السجل التجاري — رقم 7055060102 — ينتهي 24-08-2027» */
 export function docSavedText(lang, r) {
@@ -366,11 +475,11 @@ async function logReply(env, chatId, userId, text) {
 
 /* ملف المحادثة ← خادم جدة: خانة رفع لمرة واحدة من القاعدة (chat_upload_slot، تفحص سعة الباقة قبل الرفع)،
    ثم رفع بمفتاح anon الى مسارها وحده، ويعاد المسار ليحفظ مع المستند */
-async function storeChatFile(env, chatId, userId, file) {
+async function storeChatFile(env, chatId, userId, file, hr) {
   const { bytes, mime } = await fetchChatFile(env, chatId, file);
   const type = String(file.mime || mime || mimeForName(file.name)).split(";")[0].trim().toLowerCase();
   const ext = (String(file.name || "").toLowerCase().match(/\.([a-z0-9]{1,8})$/) || [])[1] || EXT_FOR_MIME[type] || "bin";
-  const slot = await rpc(env, "chat_upload_slot", { p_secret: env.WORKER_SECRET, p_user_id: userId, p_ext: ext, p_size: bytes.byteLength });
+  const slot = await rpc(env, "chat_upload_slot", { p_secret: env.WORKER_SECRET, p_user_id: userId, p_ext: ext, p_size: bytes.byteLength, p_hr: !!hr });
   if (!slot || slot.status !== "ok" || !slot.path) throw new Error("upload slot: " + ((slot && slot.status) || "none"));
   const headers = { ...anonHeaders(env), "Content-Type": type || "application/octet-stream" };
   delete headers.Accept;
@@ -388,10 +497,15 @@ export async function offerDocument(env, ctx) {
   const lang = ctx.lang || "ar";
   const file = { file_id: ctx.file.file_id, name: attachmentName(fields.kind, ctx.isPhoto ? "" : ctx.file.name, ctx.file.mime), mime: ctx.file.mime || null, size_bytes: Number(ctx.file.size_bytes) || 0 };
   if (isWhatsappChat(ctx.chatId)) file.channel = "whatsapp";
-  try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(ctx.chatId), p_user_id: ctx.userId, p_payload: { type: "doc", doc: fields, file } }); }
+  /* ورقة تشبه ورقة مسجلة، وهل يرى المرسل بيانات الموارد البشرية (زر «ملف موظف») */
+  let pre = null;
+  try { pre = await rpc(env, "chat_document_precheck", { p_secret: env.WORKER_SECRET, p_user_id: ctx.userId, p_doc: fields }); } catch { pre = null; }
+  if (pre && pre.similar) fields.similar = pre.similar;
+  const canHr = !!(pre && pre.can_hr);
+  try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(ctx.chatId), p_user_id: ctx.userId, p_payload: { type: "doc", doc: fields, file, canHr } }); }
   catch (e) { console.log("doc draft failed", String(e && e.message || e).slice(0, 200)); return false; }
   const text = docConfirmText(lang, fields);
-  try { await sendChat(env, ctx.chatId, text, docButtons(lang, fields)); }
+  try { await sendChat(env, ctx.chatId, text, docButtons(lang, fields, canHr)); }
   catch (e) { console.log("doc offer failed", String(e && e.message || e).slice(0, 200)); return false; }
   await logReply(env, ctx.chatId, ctx.userId, text);
   return true;
@@ -400,7 +514,7 @@ export async function offerDocument(env, ctx) {
 /** أزرار doc:y / doc:n / prof:y / prof:n — يعيد true إن كان الزر من هذا التدفق */
 export async function handleDocCallback(env, ctx) {
   const data = String(ctx.data || "");
-  if (!/^(?:doc:[yne]|prof:[yn])$/.test(data)) return false;
+  if (!/^(?:doc:[ynes]|prof:[yn]|undo:[0-9a-f-]{36}|rv:[0-9a-f-]{36})$/.test(data)) return false;
   const lang = ctx.lang || "ar"; const t = texts(lang); const b = botText(lang);
   const chat = String(ctx.chatId);
   const say = async (text, extra) => { try { await sendChat(env, ctx.chatId, text, extra || menuKeyboard(lang)); } catch {} await logReply(env, ctx.chatId, ctx.userId, text); };
@@ -412,30 +526,64 @@ export async function handleDocCallback(env, ctx) {
   const openBtn = { text: t.open, url: DOCS_URL };
   if (data === "doc:n") { await take("doc"); await say(t.skipped); return true; }
   if (data === "prof:n") { await take("prof"); await say(t.profKept); return true; }
-  if (data === "doc:y" || data === "doc:e") {
+  const words = checkTexts(lang);
+  if (data.indexOf("undo:") === 0) {
+    let r = null;
+    try { r = await rpc(env, "chat_undo_save", { p_secret: env.WORKER_SECRET, p_user_id: ctx.userId, p_item_id: data.slice(5) }); } catch { r = null; }
+    const status = r && r.status;
+    await say(status === "ok" ? words.undone + " " + (r.title || "") : status === "expired" ? words.undoExpired : status === "already" ? words.undoAlready : status === "not_allowed" ? words.undoNotAllowed : b.importFailed);
+    return true;
+  }
+  if (data.indexOf("rv:") === 0) {
+    let r = null;
+    try { r = await rpc(env, "chat_review_approve", { p_secret: env.WORKER_SECRET, p_user_id: ctx.userId, p_item_id: data.slice(3) }); } catch { r = null; }
+    const status = r && r.status;
+    await say(status === "ok" ? words.approved + " " + (r.title || "") : status === "already" ? words.reviewAlready + " " + (r.title || "") : status === "forbidden" ? words.reviewForbidden : b.importFailed);
+    return true;
+  }
+  if (data === "doc:y" || data === "doc:e" || data === "doc:s") {
     const d = await take("doc");
-    const asExpense = data === "doc:e" && d && d.doc && d.doc.kind === "invoice";
-    if (asExpense) d.doc.as_expense = true;
     if (!d || !d.doc || !d.file) { await say(b.importExpired); return true; }
+    const keep = async (payload) => { try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: chat, p_user_id: ctx.userId, p_payload: payload }); } catch {} };
+    const ask = async (text, payload) => { await keep(payload); await say(text, docButtons(lang, payload.doc, payload.canHr)); };
+    const asExpense = data === "doc:e" && d.doc.kind === "invoice";
+    const asStaff = data === "doc:s" && STAFF_KINDS.includes(d.doc.kind);
+    const details = d.doc.details || {};
+    /* حقل ناقص يسال عنه قبل الحفظ: مبلغ المصروف، واسم الموظف، وتاريخ انتهاء ورقة تنتهي (مرة واحدة ثم يحفظ بدونه) */
+    if (asExpense && amountOf(details.total != null ? details.total : d.doc.amount) == null) { await ask(words.askAmount, { ...d, awaiting: "amount" }); return true; }
+    if (asStaff && !d.canHr) { await keep(d); await say(words.forbiddenHr, docButtons(lang, d.doc, false)); return true; }
+    if (asStaff && !(details.employee || details.full_name || d.doc.party)) { await ask(words.askName, { ...d, awaiting: "party" }); return true; }
+    if (data === "doc:y" && EXPIRING_KINDS.includes(d.doc.kind) && !d.doc.expiry_date && !d.askedExpiry) { await ask(words.askExpiry, { ...d, awaiting: "expiry_date", askedExpiry: true }); return true; }
+    const reasons = reviewReasons(d.doc);
+    const docToSave = { ...d.doc, as_expense: asExpense || undefined, as_staff: asStaff || undefined, review: reasons };
+    delete docToSave.similar;
     let r = null;
     try {
-      /* ملف WhatsApp تحذفه Meta بعد 7 ايام: ينسخ الى خادم جدة، وملف تيليغرام يبقى رابطا موقعا كما كان */
+      /* ملف WhatsApp تحذفه Meta بعد 7 ايام: ينسخ الى خادم جدة (وملف الموظف الى مجلد الموارد البشرية)، وملف تيليغرام يبقى رابطا موقعا كما كان */
       const fileRow = d.file.channel === "whatsapp"
-        ? { name: d.file.name, mime: d.file.mime, size_bytes: d.file.size_bytes, storage_path: await storeChatFile(env, ctx.chatId, ctx.userId, d.file), channel: "whatsapp" }
+        ? { name: d.file.name, mime: d.file.mime, size_bytes: d.file.size_bytes, storage_path: await storeChatFile(env, ctx.chatId, ctx.userId, d.file, asStaff), channel: "whatsapp" }
         : { name: d.file.name, mime: d.file.mime, size_bytes: d.file.size_bytes, external_url: await telegramFileUrl(env, d.file.file_id, d.file.name) };
-      if (d.doc && d.doc.kind === "vat_certificate" && d.doc.details && d.doc.details.first_filing_due) { d.doc.expiry_date = d.doc.details.first_filing_due; d.doc.expiry_assumed = false; }
-      r = await rpc(env, "telegram_save_document", { p_secret: env.WORKER_SECRET, p_user_id: ctx.userId, p_doc: d.doc,
-        p_file: fileRow });
+      if (docToSave.kind === "vat_certificate" && docToSave.details && docToSave.details.first_filing_due) { docToSave.expiry_date = docToSave.details.first_filing_due; docToSave.expiry_assumed = false; }
+      r = await rpc(env, "telegram_save_document", { p_secret: env.WORKER_SECRET, p_user_id: ctx.userId, p_doc: docToSave, p_file: fileRow });
     } catch (e) {
       const msg = String(e && e.message || e); console.log("doc save failed", msg.slice(0, 200));
       await say(/PLAN_LIMIT/.test(msg) ? b.importLimit : b.importFailed); return true;
     }
     if (!r || r.status === "no_org") { await say(t.noOrg); return true; }
+    if (r.status === "forbidden_hr") { await keep(d); await say(words.forbiddenHr, docButtons(lang, d.doc, false)); return true; }
+    if (r.status === "needs_name") { await ask(words.askName, { ...d, awaiting: "party" }); return true; }
+    if (r.needs_review) await notifyReviewers(env, ctx, r, reasons);
+    const reviewLine = r.needs_review ? "\n" + words.reviewSent : "";
+    const undoButton = r.undoable && r.item_id ? [{ text: words.undoBtn, callback_data: "undo:" + r.item_id }] : [];
     if (r.status === "expense") {
-      const words = checkTexts(lang);
       const parts = [words.expenseSaved + ": " + (r.title || kindLabel(lang, "invoice"))];
       if (r.amount != null) parts.push(t.amount + " " + r.amount);
-      await say(parts.join(" — "), { reply_markup: { inline_keyboard: [[{ text: words.openExpenses, url: EXPENSES_URL }]] } });
+      await say(parts.join(" — ") + reviewLine, { reply_markup: { inline_keyboard: [[{ text: words.openExpenses, url: EXPENSES_URL }, ...undoButton]] } });
+      return true;
+    }
+    if (r.status === "staff" || r.status === "staff_updated") {
+      await say((r.status === "staff" ? words.staffSaved : words.staffUpdated) + ": " + (r.title || "") + reviewLine,
+        { reply_markup: { inline_keyboard: [[{ text: words.openStaff, url: STAFF_URL }, ...undoButton]] } });
       return true;
     }
     if (r.status !== "created" && r.status !== "updated") { await say(b.importFailed); return true; }
@@ -445,12 +593,12 @@ export async function handleDocCallback(env, ctx) {
       let stored = true;
       try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: chat, p_user_id: ctx.userId, p_payload: { type: "prof", updates } }); } catch { stored = false; }
       if (stored) {
-        await say(docSavedText(lang, r) + "\n\n" + profileOfferText(lang, updates, r.profile_current),
-          { reply_markup: { inline_keyboard: [[{ text: t.profYes, callback_data: "prof:y" }, { text: t.profNo, callback_data: "prof:n" }], [openBtn]] } });
+        await say(docSavedText(lang, r) + reviewLine + "\n\n" + profileOfferText(lang, updates, r.profile_current),
+          { reply_markup: { inline_keyboard: [[{ text: t.profYes, callback_data: "prof:y" }, { text: t.profNo, callback_data: "prof:n" }], [openBtn, ...undoButton]] } });
         return true;
       }
     }
-    await say(docSavedText(lang, r), { reply_markup: { inline_keyboard: [[openBtn]] } });
+    await say(docSavedText(lang, r) + reviewLine, { reply_markup: { inline_keyboard: [[openBtn, ...undoButton]] } });
     return true;
   }
   if (data === "prof:y") {
