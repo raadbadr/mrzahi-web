@@ -3,7 +3,8 @@
    في «المستندات» بكل حقولها، مع رابط موقع لملفها يبقى قابلا للفتح من صفحة المستندات (يمر عبر الـ Worker ويجلب
    الملف من تيليغرام عند كل فتح). ما يصلح لتحديث بطاقة الشركة يعرض بعدها بزرين ولا يكتب إلا بموافقة مالك أو مدير.
    لا رقم قياسي داخلي ولا أسماء حقول تصل إلى المستخدم؛ بلا تشكيل، وأرقام غربية، والتواريخ يوم-شهر-سنة. */
-import { rpc, sendTelegram, menuKeyboard, bot as botText } from "./notify.js";
+import { rpc, sendChat, fetchChatFile, anonHeaders, menuKeyboard, bot as botText } from "./notify.js";
+import { isWhatsappChat } from "./whatsapp.js";
 import { analyzeTextOffline, KIND_LABELS_AR } from "./documents.js";
 
 const DOCS_URL = "https://mrzahi.com/app/documents.html";
@@ -180,6 +181,21 @@ async function logReply(env, chatId, userId, text) {
   } catch (e) { console.log("reply log failed", String(e && e.message || e).slice(0, 200)); }
 }
 
+/* ملف المحادثة ← خادم جدة: خانة رفع لمرة واحدة من القاعدة (chat_upload_slot، تفحص سعة الباقة قبل الرفع)،
+   ثم رفع بمفتاح anon الى مسارها وحده، ويعاد المسار ليحفظ مع المستند */
+async function storeChatFile(env, chatId, userId, file) {
+  const { bytes, mime } = await fetchChatFile(env, chatId, file);
+  const type = String(file.mime || mime || mimeForName(file.name)).split(";")[0].trim().toLowerCase();
+  const ext = (String(file.name || "").toLowerCase().match(/\.([a-z0-9]{1,8})$/) || [])[1] || EXT_FOR_MIME[type] || "bin";
+  const slot = await rpc(env, "chat_upload_slot", { p_secret: env.WORKER_SECRET, p_user_id: userId, p_ext: ext, p_size: bytes.byteLength });
+  if (!slot || slot.status !== "ok" || !slot.path) throw new Error("upload slot: " + ((slot && slot.status) || "none"));
+  const headers = { ...anonHeaders(env), "Content-Type": type || "application/octet-stream" };
+  delete headers.Accept;
+  const res = await fetch(`${env.SUPABASE_URL}/storage/v1/object/attachments/${slot.path}`, { method: "POST", headers, body: bytes });
+  if (!res.ok) throw new Error(`chat file upload ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  return slot.path;
+}
+
 /** الورقة وصلت ونصها مقروء: إن عرفتها القواعد عرضت خلاصتها بزري حفظ/لا وحفظت مسودتها؛ وإلا يعود false ليجيب المساعد كالمعتاد */
 export async function offerDocument(env, ctx) {
   if (!env.WORKER_SECRET || !ctx || !ctx.file || !ctx.file.file_id) return false;
@@ -188,10 +204,11 @@ export async function offerDocument(env, ctx) {
   if (!fields || !fields.kind || fields.kind === "other") return false;
   const lang = ctx.lang || "ar";
   const file = { file_id: ctx.file.file_id, name: attachmentName(fields.kind, ctx.isPhoto ? "" : ctx.file.name, ctx.file.mime), mime: ctx.file.mime || null, size_bytes: Number(ctx.file.size_bytes) || 0 };
+  if (isWhatsappChat(ctx.chatId)) file.channel = "whatsapp";
   try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(ctx.chatId), p_user_id: ctx.userId, p_payload: { type: "doc", doc: fields, file } }); }
   catch (e) { console.log("doc draft failed", String(e && e.message || e).slice(0, 200)); return false; }
   const text = docConfirmText(lang, fields);
-  try { await sendTelegram(env, ctx.chatId, text, docButtons(lang)); }
+  try { await sendChat(env, ctx.chatId, text, docButtons(lang)); }
   catch (e) { console.log("doc offer failed", String(e && e.message || e).slice(0, 200)); return false; }
   await logReply(env, ctx.chatId, ctx.userId, text);
   return true;
@@ -203,7 +220,7 @@ export async function handleDocCallback(env, ctx) {
   if (!/^(doc|prof):[yn]$/.test(data)) return false;
   const lang = ctx.lang || "ar"; const t = texts(lang); const b = botText(lang);
   const chat = String(ctx.chatId);
-  const say = async (text, extra) => { try { await sendTelegram(env, ctx.chatId, text, extra || menuKeyboard(lang)); } catch {} await logReply(env, ctx.chatId, ctx.userId, text); };
+  const say = async (text, extra) => { try { await sendChat(env, ctx.chatId, text, extra || menuKeyboard(lang)); } catch {} await logReply(env, ctx.chatId, ctx.userId, text); };
   const take = async (type) => {
     let d = null;
     try { d = await rpc(env, "telegram_draft_take", { p_secret: env.WORKER_SECRET, p_chat_id: chat }); } catch { d = null; }
@@ -217,10 +234,13 @@ export async function handleDocCallback(env, ctx) {
     if (!d || !d.doc || !d.file) { await say(b.importExpired); return true; }
     let r = null;
     try {
-      const external_url = await telegramFileUrl(env, d.file.file_id, d.file.name);
+      /* ملف WhatsApp تحذفه Meta بعد 7 ايام: ينسخ الى خادم جدة، وملف تيليغرام يبقى رابطا موقعا كما كان */
+      const fileRow = d.file.channel === "whatsapp"
+        ? { name: d.file.name, mime: d.file.mime, size_bytes: d.file.size_bytes, storage_path: await storeChatFile(env, ctx.chatId, ctx.userId, d.file), channel: "whatsapp" }
+        : { name: d.file.name, mime: d.file.mime, size_bytes: d.file.size_bytes, external_url: await telegramFileUrl(env, d.file.file_id, d.file.name) };
       if (d.doc && d.doc.kind === "vat_certificate" && d.doc.details && d.doc.details.first_filing_due) { d.doc.expiry_date = d.doc.details.first_filing_due; d.doc.expiry_assumed = false; }
       r = await rpc(env, "telegram_save_document", { p_secret: env.WORKER_SECRET, p_user_id: ctx.userId, p_doc: d.doc,
-        p_file: { name: d.file.name, mime: d.file.mime, size_bytes: d.file.size_bytes, external_url } });
+        p_file: fileRow });
     } catch (e) {
       const msg = String(e && e.message || e); console.log("doc save failed", msg.slice(0, 200));
       await say(/PLAN_LIMIT/.test(msg) ? b.importLimit : b.importFailed); return true;

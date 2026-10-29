@@ -4,6 +4,8 @@
 // ال Worker لا يحمل مفتاح service role: يستخدم مفتاح anon + سر مشترك
 // (WORKER_SECRET) تتحقق منه دوال SECURITY DEFINER في قاعدة البيانات.
 
+import { isWhatsappChat, sendWhatsappChat, fetchWhatsappMedia } from "./whatsapp.js";
+
 const NO_CACHE = { cacheTtl: 0, cacheEverything: false };
 
 /* بوابة القاعدة لمهام الكرون: قاعدة WAF «block-direct-db» تحجب db.mrzahi.com عن كل طلب لا
@@ -323,9 +325,21 @@ export async function sendTelegram(env, chatId, text, extra) {
   return true;
 }
 
-/* «يكتب الآن…» ريثما يحضر الرد (صوت/ملف/نموذج) */
+/* رد البوت في قناة المحادثة نفسها: wa:<رقم> الى WhatsApp، وغيره الى تيليغرام بلا تغيير */
+export async function sendChat(env, chatId, text, extra) {
+  if (isWhatsappChat(chatId)) return sendWhatsappChat(env, chatId, text, extra, menuAction);
+  return sendTelegram(env, chatId, text, extra);
+}
+
+/* ملف ارسله المستخدم في اي قناة: media.file_id معرف ملف تيليغرام او معرف وسيط WhatsApp */
+export async function fetchChatFile(env, chatId, media) {
+  if (isWhatsappChat(chatId)) return fetchWhatsappMedia(env, media.file_id);
+  return fetchTelegramFile(env, media.file_id);
+}
+
+/* «يكتب الآن…» ريثما يحضر الرد (صوت/ملف/نموذج)؛ في WhatsApp يرسل مع علامة القراءة عند وصول الرسالة */
 export async function sendChatAction(env, chatId, action) {
-  if (!env.TELEGRAM_BOT_TOKEN) return;
+  if (!env.TELEGRAM_BOT_TOKEN || isWhatsappChat(chatId)) return;
   try {
     await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendChatAction`, {
       method: "POST", headers: { "Content-Type": "application/json" },

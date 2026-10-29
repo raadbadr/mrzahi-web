@@ -18,7 +18,9 @@ import { handleCalendar, handleDevice } from "./calendar.js";
 import { handleDocumentAnalyze } from "./documents.js";
 import { runNotificationCron, purgeExpiredAccountDeletions, linkChannelByCode, notifyTarget, sendTelegram, sendWhatsapp, sendSms, sendEmail, rpc, t as channelText, westernDigits,
          bot as botText, menuKeyboard, menuAction, urlButton, formatItems, telegramItems, linkChannelDirect, linkChannelByPhone, contactKeyboard,
-         sendChatAction, fetchTelegramFile, bytesToBase64, TELEGRAM_FILE_MAX, answerCallback, clearInlineButtons, confirmButtons, actionButtons } from "./notify.js";
+         sendChatAction, fetchTelegramFile, bytesToBase64, TELEGRAM_FILE_MAX, answerCallback, clearInlineButtons, confirmButtons, actionButtons,
+         sendChat, fetchChatFile } from "./notify.js";
+import { whatsappConfigured, whatsappChatId, whatsappPhone, whatsappTyping, isWhatsappChat } from "./whatsapp.js";
 import { ALLOWED_EXT, fileExt, parseWorkbook, draftPayload, commitImport } from "./telegram-import.js";
 import { extractIntent, describeAction, formatSearch, executeAction, runTelegramDigests, runAbsenceNudges, runTrialCountdown } from "./telegram-actions.js";
 import { hmacHex, telegramFileRoute, handleTelegramFile, offerDocument, handleDocCallback } from "./telegram-documents.js";
@@ -345,21 +347,22 @@ async function greetLinked(env, chatId, userId, fallbackLang, fallbackName) {
   try { target = await notifyTarget(env, userId, "telegram"); } catch {}
   const lang = (target && target.lang) || fallbackLang || "ar";
   const name = targetDisplayName(target, lang, fallbackName);
-  try { await sendTelegram(env, chatId, channelText(lang).linked(name, accountLabel(lang, target)), menuKeyboard(lang)); } catch {}
+  try { await sendChat(env, chatId, channelText(lang).linked(name, accountLabel(lang, target)), menuKeyboard(lang)); } catch {}
   return lang;
 }
 
 /** رسالة "اربط حسابك" لمن لم يربط: زر يفتح الموقع (ربط تلقائي) */
 async function askToLink(env, chatId, lang) {
+  if (isWhatsappChat(chatId)) return askToLinkWhatsapp(env, chatId, lang);
   const b = botText(lang);
   let extra = {};
   if (env.WORKER_SECRET) {
     const token = await makeLinkToken(env, chatId);
     extra = urlButton(b.linkBtn, `https://mrzahi.com/app/settings?tglink=${encodeURIComponent(token)}`);
   }
-  try { await sendTelegram(env, chatId, b.linkIntro, extra); } catch {}
+  try { await sendChat(env, chatId, b.linkIntro, extra); } catch {}
   // الطريق الثاني: مشاركة رقم الجوال المسجل في الملف الشخصي (زر واحد)
-  try { await sendTelegram(env, chatId, b.phoneHint, contactKeyboard(lang)); } catch {}
+  try { await sendChat(env, chatId, b.phoneHint, contactKeyboard(lang)); } catch {}
 }
 
 /** تنفيذ زر من القائمة لمستخدم مربوط */
@@ -373,15 +376,15 @@ async function runMenu(env, chatId, userId, action) {
     let rows = [];
     try { rows = await telegramItems(env, userId, action, 8); } catch {}
     const text = formatItems(lang, rows, action === "overdue" ? b.overdueTitle : b.upcomingTitle, action === "overdue" ? b.noOverdue : b.noUpcoming, userTimeZone);
-    try { await sendTelegram(env, chatId, text, menuKeyboard(lang)); } catch {}
+    try { await sendChat(env, chatId, text, menuKeyboard(lang)); } catch {}
     /* رد الزر يسجل مثل بقية الردود كي يرى مدير المنصة المحادثة كاملة */
     await logBotReply(env, chatId, userId, text);
   } else if (action === "dashboard") {
-    try { await sendTelegram(env, chatId, b.openDash, urlButton(b.openDash, "https://mrzahi.com/app/dashboard.html")); } catch {}
+    try { await sendChat(env, chatId, b.openDash, urlButton(b.openDash, "https://mrzahi.com/app/dashboard.html")); } catch {}
   } else if (action === "company") {
     await companyMenu(env, chatId, userId, lang);
   } else {
-    try { await sendTelegram(env, chatId, b.help, menuKeyboard(lang)); } catch {}
+    try { await sendChat(env, chatId, b.help, menuKeyboard(lang)); } catch {}
   }
 }
 
@@ -424,17 +427,17 @@ async function telegramAssistantReply(env, chatId, userId, text, attachment) {
 }
 
 /** رسالة صوتية ← نص (Whisper على Workers AI) */
-async function transcribeTelegramVoice(env, media) {
+async function transcribeTelegramVoice(env, media, chatId) {
   if (!env.AI) return null;
-  const { bytes } = await fetchTelegramFile(env, media.file_id);
+  const { bytes } = await fetchChatFile(env, chatId, media);
   const out = await env.AI.run("@cf/openai/whisper-large-v3-turbo", { audio: bytesToBase64(bytes) });
   return String((out && out.text) || "").trim() || null;
 }
 
 /** مستند أو صورة ← نص: تحويل Markdown (PDF/إكسل/CSV/صور…)؛ وللصور محاولة قراءة بصرية أولا */
-async function readTelegramDocument(env, media, name, mime) {
+async function readTelegramDocument(env, media, name, mime, chatId) {
   if (!env.AI) return null;
-  const { bytes } = await fetchTelegramFile(env, media.file_id);
+  const { bytes } = await fetchChatFile(env, chatId, media);
   const isImage = /^image\//.test(mime || "");
   if (isImage) {
     try {
@@ -499,7 +502,7 @@ async function askToConfirm(env, chatId, userId, intent, lang, pre, userTimeZone
   try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_user_id: userId, p_payload: { type: "action", intent, token } }); }
   catch { return false; }
   const ask = humanize(describeAction(lang, intent, userTimeZone), lang);
-  try { await sendTelegram(env, chatId, (pre || "") + ask, actionButtons(lang, token)); } catch {}
+  try { await sendChat(env, chatId, (pre || "") + ask, actionButtons(lang, token)); } catch {}
   await logBotReply(env, chatId, userId, ask);
   return true;
 }
@@ -513,7 +516,7 @@ async function smartReply(env, chatId, userId, text, lang, tgName, attachment, p
     try { quick = await quickAnswer(env, { chatId, userId, text, lang, userTimeZone }); } catch {}
     if (quick && quick.text) {
       const quickText = humanize(quick.text, lang);
-      try { await sendTelegram(env, chatId, pre + quickText, menuKeyboard(lang)); } catch {}
+      try { await sendChat(env, chatId, pre + quickText, menuKeyboard(lang)); } catch {}
       await logBotReply(env, chatId, userId, quickText);
       return;
     }
@@ -546,14 +549,14 @@ async function smartReply(env, chatId, userId, text, lang, tgName, attachment, p
   }
   if (agent && agent.text) {
     const agentText = humanize(agent.text, lang);
-    try { await sendTelegram(env, chatId, pre + agentText, menuKeyboard(lang)); } catch {}
+    try { await sendChat(env, chatId, pre + agentText, menuKeyboard(lang)); } catch {}
     await logBotReply(env, chatId, userId, agentText);
     return;
   }
   if (intent.action === "search" && intent.query) {
     let rows = [];
     try { rows = await rpc(env, "telegram_search", { p_secret: env.WORKER_SECRET, p_user_id: userId, p_query: intent.query, p_limit: 8 }); } catch {}
-    try { await sendTelegram(env, chatId, pre + formatSearch(lang, intent.query, rows, userTimeZone), menuKeyboard(lang)); } catch {}
+    try { await sendChat(env, chatId, pre + formatSearch(lang, intent.query, rows, userTimeZone), menuKeyboard(lang)); } catch {}
     return;
   }
   /* المسار الأخير بلا أدوات: لا يسأل النموذج أصلا إلا عن ملف أمامه، وإلا فالاعتراف بعدم المعرفة */
@@ -565,7 +568,7 @@ async function smartReply(env, chatId, userId, text, lang, tgName, attachment, p
   if (!reply && !attachment) reply = NO_DATA[lang] || NO_DATA.ar;
   if (!reply) reply = attachment ? b.fileUnreadable : channelText(lang).alreadyLinked(tgName);
   reply = humanize(reply, lang);
-  try { await sendTelegram(env, chatId, pre + reply, menuKeyboard(lang)); } catch {}
+  try { await sendChat(env, chatId, pre + reply, menuKeyboard(lang)); } catch {}
   await logBotReply(env, chatId, userId, reply);
 }
 
@@ -592,7 +595,7 @@ async function orgChoices(env, userId) {
 async function sendOrgChooser(env, chatId, lang, choices) {
   const t = ORG_TEXT[lang] || ORG_TEXT.ar;
   const rows = choices.map((o) => [{ text: (o.active ? "✓ " : "") + accountLabel(lang, o), callback_data: "org:" + o.id }]);
-  await sendTelegram(env, chatId, t.pick, { reply_markup: { inline_keyboard: rows } });
+  await sendChat(env, chatId, t.pick, { reply_markup: { inline_keyboard: rows } });
 }
 async function needsOrgChoice(env, chatId, userId, lang) {
   const choices = await orgChoices(env, userId);
@@ -605,7 +608,7 @@ async function companyMenu(env, chatId, userId, lang) {
   const choices = await orgChoices(env, userId);
   if (choices.length > 1) { await sendOrgChooser(env, chatId, lang, choices); return; }
   const out = await agentReply(env, { chatId, userId, text: "الشركة", lang });
-  try { await sendTelegram(env, chatId, (out && out.text) || "-", menuKeyboard(lang)); } catch {}
+  try { await sendChat(env, chatId, (out && out.text) || "-", menuKeyboard(lang)); } catch {}
 }
 
 /* رد البوت يسجل كالرسائل الواردة: ذاكرة للوكيل، ورؤية للإدارة (من كلم البوت وبماذا رد) */
@@ -657,7 +660,7 @@ async function handleTelegramWebhook(request, env) {
       let tgt = null; try { tgt = await notifyTarget(env, userId, "telegram"); } catch {}
       await notifyAdmins(env, "linked", { chatId, actorUserId: userId, name: targetDisplayName(tgt, tgLang, tgName), org: accountLabel(tgLang, tgt), username: from.username || "" });
     }
-    else { try { await sendTelegram(env, chatId, channelText(tgLang).badCode); } catch {} }
+    else { try { await sendChat(env, chatId, channelText(tgLang).badCode); } catch {} }
     await logMessage();
     return json({ ok: true });
   }
@@ -676,7 +679,7 @@ async function handleTelegramWebhook(request, env) {
       let tgt = null; try { tgt = await notifyTarget(env, userId, "telegram"); } catch {}
       await notifyAdmins(env, "linked", { chatId, actorUserId: userId, name: targetDisplayName(tgt, tgLang, tgName), org: accountLabel(tgLang, tgt), username: from.username || "" });
     }
-    else { try { await sendTelegram(env, chatId, botText(tgLang).phoneNotFound, { reply_markup: { remove_keyboard: true } }); } catch {} }
+    else { try { await sendChat(env, chatId, botText(tgLang).phoneNotFound, { reply_markup: { remove_keyboard: true } }); } catch {} }
     await logMessage();
     return json({ ok: true });
   }
@@ -699,13 +702,18 @@ async function handleTelegramWebhook(request, env) {
       });
     } catch { return null; }
   })();
-  const menu = menuAction(text);
   if (!owner) {
     await askToLink(env, chatId, tgLang);
     await notifyAdmins(env, "stranger", { chatId, name: tgName, username: from.username || "", text });
     return json({ ok: true });
   }
 
+  return handleBotMessage(env, { chatId, owner, from, text, caption, voice, doc, photo, tgLang, tgName });
+}
+
+/* رسالة من مستخدم مربوط في اي قناة (تيليغرام او WhatsApp): صوت او ملف او زر قائمة او نص حر */
+async function handleBotMessage(env, { chatId, owner, from, text, caption, voice, doc, photo, tgLang, tgName }) {
+  const menu = menuAction(text);
   // 3-أ) صوت: نفهمه ثم نجيب كأنه نص
   if (voice || doc || photo) {
     let target = null;
@@ -715,11 +723,11 @@ async function handleTelegramWebhook(request, env) {
     const b = botText(lang);
     await sendChatAction(env, chatId, "typing");
     const size = Number((voice && voice.file_size) || (doc && doc.file_size) || (photo && photo.file_size) || 0);
-    if (size > TELEGRAM_FILE_MAX) { try { await sendTelegram(env, chatId, b.fileTooBig, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
+    if (size > TELEGRAM_FILE_MAX) { try { await sendChat(env, chatId, b.fileTooBig, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
     if (voice) {
       let transcript = null;
-      try { transcript = await transcribeTelegramVoice(env, voice); } catch (e) { console.error("[telegram] whisper failed:", String((e && e.message) || e).slice(0, 200)); }
-      if (!transcript) { try { await sendTelegram(env, chatId, b.fileUnreadable, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
+      try { transcript = await transcribeTelegramVoice(env, voice, chatId); } catch (e) { console.error("[telegram] whisper failed:", String((e && e.message) || e).slice(0, 200)); }
+      if (!transcript) { try { await sendChat(env, chatId, b.fileUnreadable, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
       const spokenMenu = menuAction(transcript);
       if (spokenMenu) { await runMenu(env, chatId, owner, spokenMenu); return json({ ok: true }); }
       await smartReply(env, chatId, owner, transcript, lang, targetDisplayName(target, lang, tgName), null, b.voiceHeard + "«" + transcript + "»\n\n", userTimeZone);
@@ -728,16 +736,16 @@ async function handleTelegramWebhook(request, env) {
     // 3-ب) إكسل أو CSV: يقرأ بمنطق صفحة الاستيراد، ويعرض ملخصه بزري حفظ/إلغاء
     if (doc && ALLOWED_EXT.includes(fileExt(doc.file_name))) {
       let parsed = null;
-      try { const { bytes } = await fetchTelegramFile(env, doc.file_id); parsed = parseWorkbook(bytes, doc.file_name || "file.xlsx"); }
+      try { const { bytes } = await fetchChatFile(env, chatId, doc); parsed = parseWorkbook(bytes, doc.file_name || "file.xlsx"); }
       catch (e) { console.error("[telegram] xlsx parse failed:", String((e && e.message) || e).slice(0, 200)); }
-      if (!parsed || !parsed.sheets.length) { try { await sendTelegram(env, chatId, b.importNothing, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
+      if (!parsed || !parsed.sheets.length) { try { await sendChat(env, chatId, b.importNothing, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
       try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_user_id: owner, p_payload: draftPayload(parsed) }); }
-      catch (e) { try { await sendTelegram(env, chatId, b.importFailed, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
+      catch (e) { try { await sendChat(env, chatId, b.importFailed, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
       const lines = parsed.sheets.map((sh) => b.importSheet(sh.record || sh.name, sh.records.length, sh.skipped)).join("\n");
       let orgLine = ""; /* الشركة التي ستكتب فيها الصفوف (النشطة في البوت) تظهر قبل التأكيد */
       try { const orgs = await orgChoices(env, owner); const cur = orgs.find((o) => o && o.active) || orgs[0]; if (cur && cur.name) orgLine = "\n🏢 " + cur.name; } catch {}
       const summary = b.importFound(doc.file_name || "file", parsed.sheets.length) + "\n" + lines + orgLine + "\n\n" + b.importAsk;
-      try { await sendTelegram(env, chatId, summary, confirmButtons(lang)); } catch {}
+      try { await sendChat(env, chatId, summary, confirmButtons(lang)); } catch {}
       return json({ ok: true });
     }
     // 3-ج) مستند أو صورة: نقرأه ثم نجيب عن تعليقه (أو نلخصه)
@@ -745,8 +753,8 @@ async function handleTelegramWebhook(request, env) {
     const name = (doc && doc.file_name) || (photo ? "photo.jpg" : "file");
     const mime = (doc && doc.mime_type) || (photo ? "image/jpeg" : "application/octet-stream");
     let content = null;
-    try { content = await readTelegramDocument(env, media, name, mime); } catch (e) { console.error("[telegram] read file failed:", String((e && e.message) || e).slice(0, 200)); }
-    if (!content) { try { await sendTelegram(env, chatId, b.fileUnreadable, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
+    try { content = await readTelegramDocument(env, media, name, mime, chatId); } catch (e) { console.error("[telegram] read file failed:", String((e && e.message) || e).slice(0, 200)); }
+    if (!content) { try { await sendChat(env, chatId, b.fileUnreadable, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
     /* ورقة رسمية أو قانونية تعرفها القواعد: خلاصتها بزري حفظ/لا ثم تحفظ مستندا كاملا بملفها؛ وإلا يجيب المساعد كالمعتاد */
     if (await offerDocument(env, { chatId, userId: owner, lang, text: content, isPhoto: !!photo, file: { file_id: media.file_id, name, mime, size_bytes: size } })) return json({ ok: true });
     await smartReply(env, chatId, owner, caption || b.fileQuestion, lang, targetDisplayName(target, lang, tgName), { name, kind: photo ? "image" : "file", content }, "", userTimeZone);
@@ -775,6 +783,11 @@ async function handleTelegramCallback(env, cq) {
   if (!chatId) return json({ ok: true });
   if (cq.message && cq.message.chat && cq.message.chat.type && cq.message.chat.type !== "private") return json({ ok: true });
   await clearInlineButtons(env, chatId, cq.message && cq.message.message_id);
+  return handleBotButton(env, { chatId, data, from });
+}
+
+/* ضغطة زر في اي قناة: data هو callback_data في تيليغرام ومعرف الرد في WhatsApp */
+async function handleBotButton(env, { chatId, data, from }) {
   let owner = null;
   try {
     owner = await rpc(env, "log_telegram_message", {
@@ -789,11 +802,13 @@ async function handleTelegramCallback(env, cq) {
   try { target = await notifyTarget(env, owner, "telegram"); } catch {}
   const lang = (target && target.lang) || tgLang;
   const b = botText(lang);
+  /* قائمة WhatsApp (بديل لوحة الازرار الدائمة في تيليغرام) */
+  if (data.indexOf("menu:") === 0) { await runMenu(env, chatId, owner, data.slice(5)); return json({ ok: true }); }
   if (data.indexOf("org:") === 0) {
     let r = null;
     try { r = await rpc(env, "telegram_set_org", { p_secret: env.WORKER_SECRET, p_user_id: owner, p_org: data.slice(4) }); } catch {}
     const t = ORG_TEXT[lang] || ORG_TEXT.ar;
-    try { await sendTelegram(env, chatId, r && r.status === "ok" ? t.set(accountLabel(lang, r)) : t.pick, menuKeyboard(lang)); } catch {}
+    try { await sendChat(env, chatId, r && r.status === "ok" ? t.set(accountLabel(lang, r)) : t.pick, menuKeyboard(lang)); } catch {}
     return json({ ok: true });
   }
   if (/^(doc|prof):/.test(data) && await handleDocCallback(env, { chatId, userId: owner, lang, data })) return json({ ok: true });
@@ -806,21 +821,21 @@ async function handleTelegramCallback(env, cq) {
     const stale = payload && payload.token && payload.token !== (act[2] || "");
     if (stale) {
       try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_user_id: draft.user_id, p_payload: payload }); } catch {}
-      try { await sendTelegram(env, chatId, b.importExpired, menuKeyboard(lang)); } catch {}
+      try { await sendChat(env, chatId, b.importExpired, menuKeyboard(lang)); } catch {}
       return json({ ok: true });
     }
     if (act[1] === "n") {
-      try { await sendTelegram(env, chatId, b.importCancelled, menuKeyboard(lang)); } catch {}
+      try { await sendChat(env, chatId, b.importCancelled, menuKeyboard(lang)); } catch {}
       return json({ ok: true });
     }
     const intent = payload ? payload.intent : null;
-    if (!intent || String(draft.user_id) !== String(owner)) { try { await sendTelegram(env, chatId, b.importExpired, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
+    if (!intent || String(draft.user_id) !== String(owner)) { try { await sendChat(env, chatId, b.importExpired, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
     await sendChatAction(env, chatId, "typing");
     let out;
     try { out = await executeAction(env, owner, intent, lang); }
     catch (e) { out = { text: /PLAN_LIMIT/.test(String((e && e.message) || e)) ? b.importLimit : b.importFailed, extra: menuKeyboard(lang) }; }
     if (out.keepDraft) { try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_user_id: owner, p_payload: { ...payload, intent } }); } catch {} }
-    try { await sendTelegram(env, chatId, out.text, out.extra); } catch {}
+    try { await sendChat(env, chatId, out.text, out.extra); } catch {}
     return json({ ok: true });
   }
   // اختيار القضية/المخالفة التي تتبعها المهمة
@@ -828,11 +843,11 @@ async function handleTelegramCallback(env, cq) {
     let draft = null;
     try { draft = await rpc(env, "telegram_draft_take", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId) }); } catch {}
     const intent = draft && draft.payload && draft.payload.type === "action" ? draft.payload.intent : null;
-    if (!intent || String(draft.user_id) !== String(owner)) { try { await sendTelegram(env, chatId, b.importExpired, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
+    if (!intent || String(draft.user_id) !== String(owner)) { try { await sendChat(env, chatId, b.importExpired, menuKeyboard(lang)); } catch {} return json({ ok: true }); }
     /* زر اختيار القضية يكمل إضافة فقط؛ لا ينفذ إنجازا أو إسنادا معلقا */
     if (intent.action !== "add") {
       try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_user_id: owner, p_payload: draft.payload }); } catch {}
-      try { await sendTelegram(env, chatId, b.importExpired, menuKeyboard(lang)); } catch {}
+      try { await sendChat(env, chatId, b.importExpired, menuKeyboard(lang)); } catch {}
       return json({ ok: true });
     }
     intent.item = intent.item || {}; intent.item.parent_id = data.slice(4);
@@ -840,19 +855,19 @@ async function handleTelegramCallback(env, cq) {
     let out;
     try { out = await executeAction(env, owner, intent, lang); }
     catch (e) { out = { text: /PLAN_LIMIT/.test(String((e && e.message) || e)) ? b.importLimit : b.importFailed, extra: menuKeyboard(lang) }; }
-    try { await sendTelegram(env, chatId, out.text, out.extra); } catch {}
+    try { await sendChat(env, chatId, out.text, out.extra); } catch {}
     return json({ ok: true });
   }
   if (data === "imp:n") {
     try { await rpc(env, "telegram_draft_take", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId) }); } catch {}
-    try { await sendTelegram(env, chatId, b.importCancelled, menuKeyboard(lang)); } catch {}
+    try { await sendChat(env, chatId, b.importCancelled, menuKeyboard(lang)); } catch {}
     return json({ ok: true });
   }
   if (data === "imp:y") {
     let draft = null;
     try { draft = await rpc(env, "telegram_draft_take", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId) }); } catch {}
     if (!draft || !draft.payload || String(draft.user_id) !== String(owner)) {
-      try { await sendTelegram(env, chatId, b.importExpired, menuKeyboard(lang)); } catch {}
+      try { await sendChat(env, chatId, b.importExpired, menuKeyboard(lang)); } catch {}
       return json({ ok: true });
     }
     await sendChatAction(env, chatId, "typing");
@@ -861,7 +876,7 @@ async function handleTelegramCallback(env, cq) {
     if (results.length) text += b.importDoneTitle + "\n" + results.map((r) => b.importDoneLine(r.record_name, r.inserted || 0, !!r.record_new)).join("\n");
     if (errors.length) text += (text ? "\n\n" : "") + (errors.some((e) => e.limit) ? b.importLimit : b.importFailed);
     if (!text) text = b.importFailed;
-    try { await sendTelegram(env, chatId, text, results.length ? urlButton(b.openDash, "https://mrzahi.com/app/dashboard.html") : menuKeyboard(lang)); } catch {}
+    try { await sendChat(env, chatId, text, results.length ? urlButton(b.openDash, "https://mrzahi.com/app/dashboard.html") : menuKeyboard(lang)); } catch {}
     return json({ ok: true });
   }
   return json({ ok: true });
@@ -913,8 +928,152 @@ async function handleTelegramLink(request, env, url) {
   return json({ ok: true });
 }
 
-/** GET/POST /api/whatsapp/webhook — تحقق Meta + رسالة تحتوي رمز الربط */
-async function handleWhatsappWebhook(request, env, url) {
+/* ربط WhatsApp: رمز من بطاقة WhatsApp في الاعدادات (زر «فتح WhatsApp» يكتبه في المحادثة)، او رقم المرسل
+   حين يطابق رقم الجوال في ملف واحد بالضبط. Meta تتحقق من رقم المرسل، لكن رقم الملف يكتبه صاحبه بلا تحقق،
+   فلا يربط بالرقم الا بعد ان يرى صاحب الرقم اسم الحساب وشركته ويؤكد بزر انه حسابه. */
+const WA_LINK_TEXT = {
+  ar: { confirm: (name, org) => "هذا الرقم مسجل في مستر زاهي باسم «" + (name || "-") + "»" + (org ? "\nالشركة: " + org : "") + "\n\nهل هو حسابك؟",
+        yes: "نعم، اربطه", no: "ليس حسابي", settings: "فتح الإعدادات",
+        howTo: "مرحبا بك في مستر زاهي 👋\nلربط WhatsApp بحسابك: افتح الإعدادات، واضغط «إنشاء رمز» في بطاقة WhatsApp، ثم أرسل الرمز هنا.",
+        declined: "لم يربط شيء." },
+  en: { confirm: (name, org) => "This number is registered on Mr.Zahi as «" + (name || "-") + "»" + (org ? "\nCompany: " + org : "") + "\n\nIs this your account?",
+        yes: "Yes, link it", no: "Not my account", settings: "Open settings",
+        howTo: "Welcome to Mr.Zahi 👋\nTo link WhatsApp to your account: open Settings, tap «Create code» on the WhatsApp card, then send the code here.",
+        declined: "Nothing was linked." },
+  fr: { confirm: (name, org) => "Ce numero est enregistre sur Mr.Zahi au nom de «" + (name || "-") + "»" + (org ? "\nSociete : " + org : "") + "\n\nEst-ce votre compte ?",
+        yes: "Oui, lier", no: "Pas mon compte", settings: "Ouvrir les reglages",
+        howTo: "Bienvenue sur Mr.Zahi 👋\nPour lier WhatsApp a votre compte : ouvrez les Reglages, touchez «Creer un code» sur la carte WhatsApp, puis envoyez le code ici.",
+        declined: "Rien n'a ete lie." },
+  ur: { confirm: (name, org) => "یہ نمبر MrZahi پر «" + (name || "-") + "» کے نام سے درج ہے" + (org ? "\nکمپنی: " + org : "") + "\n\nکیا یہ آپ کا اکاؤنٹ ہے؟",
+        yes: "ہاں، منسلک کریں", no: "میرا اکاؤنٹ نہیں", settings: "ترتیبات کھولیں",
+        howTo: "MrZahi میں خوش آمدید 👋\nWhatsApp کو اپنے اکاؤنٹ سے منسلک کرنے کے لیے: ترتیبات کھولیں، WhatsApp کارڈ میں «کوڈ بنائیں» دبائیں، پھر کوڈ یہاں بھیجیں۔",
+        declined: "کچھ منسلک نہیں ہوا۔" },
+};
+const SETTINGS_URL = "https://mrzahi.com/app/settings.html";
+/* من لم يربط بعد لا لغة له في ملف: لغة رسالته نفسها */
+function messageLang(text) {
+  const value = String(text || "");
+  if (/[ٹڈڑںےہکگ]/.test(value)) return "ur";
+  if (/[؀-ۿ]/.test(value)) return "ar";
+  if (/[àâçéèêëîïôûùüÿœ]/i.test(value)) return "fr";
+  if (/[A-Za-z]/.test(value)) return "en";
+  return "ar";
+}
+async function askToLinkWhatsapp(env, chatId, lang) {
+  const words = WA_LINK_TEXT[lang] || WA_LINK_TEXT.ar;
+  let match = null;
+  try { match = await rpc(env, "whatsapp_phone_match", { p_secret: env.WORKER_SECRET, p_phone: whatsappPhone(chatId) }); } catch { match = null; }
+  if (match && match.user_id) {
+    try { await rpc(env, "telegram_draft_put", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId), p_user_id: match.user_id, p_payload: { type: "walink" } }); }
+    catch { match = null; }
+  }
+  if (match && match.user_id) {
+    const org = match.org_personal ? (PERSONAL_LABEL[lang] || PERSONAL_LABEL.ar) : (match.org_name || "");
+    try { await sendChat(env, chatId, words.confirm(match.name, org), { reply_markup: { inline_keyboard: [[{ text: words.yes, callback_data: "wl:y" }, { text: words.no, callback_data: "wl:n" }]] } }); } catch {}
+    return;
+  }
+  try { await sendChat(env, chatId, words.howTo, urlButton(words.settings, SETTINGS_URL)); } catch {}
+}
+async function handleWhatsappLinkButton(env, chatId, data, lang, profileName) {
+  const words = WA_LINK_TEXT[lang] || WA_LINK_TEXT.ar;
+  let draft = null;
+  try { draft = await rpc(env, "telegram_draft_take", { p_secret: env.WORKER_SECRET, p_chat_id: String(chatId) }); } catch { draft = null; }
+  const pending = draft && draft.payload && draft.payload.type === "walink" ? draft.user_id : null;
+  if (data !== "wl:y" || !pending) {
+    try { await sendChat(env, chatId, words.declined + "\n\n" + words.howTo, urlButton(words.settings, SETTINGS_URL)); } catch {}
+    return;
+  }
+  try { await linkChannelDirect(env, pending, "whatsapp", whatsappPhone(chatId)); }
+  catch (e) { console.log("whatsapp link failed", String((e && e.message) || e).slice(0, 200)); try { await sendChat(env, chatId, botText(lang).importFailed); } catch {} return; }
+  await greetLinked(env, chatId, pending, lang, profileName);
+  let target = null; try { target = await notifyTarget(env, pending, "whatsapp"); } catch {}
+  await notifyAdmins(env, "linked", { chatId, actorUserId: pending, name: targetDisplayName(target, lang, profileName), org: accountLabel(lang, target), username: "" });
+}
+
+/* معرفات الرسائل التي عولجت في هذا المثيل: Meta تعيد ارسال ما لم يصلها رده، فلا يرد البوت مرتين */
+const whatsappSeen = new Map();
+function whatsappAlreadySeen(messageId) {
+  if (!messageId) return false;
+  if (whatsappSeen.has(messageId)) return true;
+  whatsappSeen.set(messageId, Date.now());
+  if (whatsappSeen.size > 5000) { const cutoff = Date.now() - 3_600_000; for (const [id, at] of whatsappSeen) if (at < cutoff) whatsappSeen.delete(id); }
+  return false;
+}
+
+/* رسالة WhatsApp واحدة ← المسار نفسه الذي تمر به رسالة تيليغرام */
+async function handleWhatsappMessage(env, message, profileName) {
+  const phone = String(message.from || "").replace(/\D/g, "");
+  if (!phone) return;
+  const chatId = whatsappChatId(phone);
+  const from = { first_name: profileName || "", username: null };
+  await whatsappTyping(env, message.id);
+  const type = message.type;
+  if (type === "reaction" || type === "system" || type === "unsupported") return;
+
+  if (type === "interactive") {
+    const reply = (message.interactive && (message.interactive.button_reply || message.interactive.list_reply)) || {};
+    const data = String(reply.id || "");
+    if (!data) return;
+    if (data.indexOf("wl:") === 0) { await handleWhatsappLinkButton(env, chatId, data, messageLang(reply.title), profileName); return; }
+    await handleBotButton(env, { chatId, data, from });
+    return;
+  }
+
+  const rawText = type === "text" ? (message.text && message.text.body) : type === "button" ? (message.button && message.button.text) : "";
+  const text = westernDigits(String(rawText || "")).trim();
+  const image = type === "image" ? message.image : null;
+  const documentPart = type === "document" ? message.document : null;
+  const audio = type === "audio" ? message.audio : null;
+  const photo = image ? { file_id: image.id, mime_type: image.mime_type || "image/jpeg" } : null;
+  const doc = documentPart ? { file_id: documentPart.id, file_name: documentPart.filename || "", mime_type: documentPart.mime_type || "" } : null;
+  const voice = audio ? { file_id: audio.id, mime_type: audio.mime_type || "" } : null;
+  const caption = westernDigits(String((image && image.caption) || (documentPart && documentPart.caption) || "")).trim();
+  const lang = messageLang(text || caption);
+
+  // 1) الربط بالرمز المكتوب في المحادثة
+  const code = text.match(/^([A-Za-z0-9]{6,12})$/);
+  if (code) {
+    const userId = await linkChannelByCode(env, "whatsapp", code[1], phone);
+    if (userId) {
+      await greetLinked(env, chatId, userId, lang, profileName);
+      let target = null; try { target = await notifyTarget(env, userId, "whatsapp"); } catch {}
+      await notifyAdmins(env, "linked", { chatId, actorUserId: userId, name: targetDisplayName(target, lang, profileName), org: accountLabel(lang, target), username: "" });
+    } else { try { await sendChat(env, chatId, channelText(lang).badCode); } catch {} }
+    try { await rpc(env, "log_telegram_message", { p_secret: env.WORKER_SECRET, p_chat_id: chatId, p_username: null, p_first_name: profileName || null, p_body: text, p_user_id: userId, p_action: userId ? "linked" : "bad_code" }); } catch {}
+    return;
+  }
+
+  const mediaLabel = voice ? "[voice]" : doc ? `[file: ${doc.file_name || doc.mime_type || "document"}]` : photo ? "[photo]" : type !== "text" && type !== "button" ? `[${type}]` : "";
+  const logBody = mediaLabel ? `${mediaLabel} ${caption}`.trim() : text;
+  let owner = null;
+  try {
+    owner = await rpc(env, "log_telegram_message", { p_secret: env.WORKER_SECRET, p_chat_id: chatId, p_username: null,
+      p_first_name: profileName || null, p_body: logBody || null, p_user_id: null, p_action: "none" });
+  } catch { owner = null; }
+  if (!owner) {
+    await askToLinkWhatsapp(env, chatId, lang);
+    await notifyAdmins(env, "stranger", { chatId, name: profileName, username: "", text: logBody });
+    return;
+  }
+  /* فيديو وموقع وجهة اتصال وملصق: ليست مما يقرؤه البوت */
+  if (!text && !photo && !doc && !voice) {
+    let target = null; try { target = await notifyTarget(env, owner, "whatsapp"); } catch {}
+    const userLang = (target && target.lang) || lang;
+    try { await sendChat(env, chatId, botText(userLang).fileUnreadable, menuKeyboard(userLang)); } catch {}
+    return;
+  }
+  /* «القائمة» تعرض ازرار القائمة، كما تظهر دائما اسفل محادثة تيليغرام */
+  if (/^(القائمة|قائمة|menu|مینو)$/i.test(text)) {
+    let target = null; try { target = await notifyTarget(env, owner, "whatsapp"); } catch {}
+    const userLang = (target && target.lang) || lang;
+    try { await sendChat(env, chatId, botText(userLang).menuHint, menuKeyboard(userLang)); } catch {}
+    return;
+  }
+  await handleBotMessage(env, { chatId, owner, from, text, caption, voice, doc, photo, tgLang: lang, tgName: profileName || "" });
+}
+
+/** GET/POST /api/whatsapp/webhook — تحقق Meta، ثم كل رسالة تمر بعقل البوت نفسه الذي يخدم تيليغرام */
+async function handleWhatsappWebhook(request, env, url, ctx) {
   /* لا يبقى مسار حيا بلا حارس: بلا سر التطبيق لا وجود لهذا المسار اصلا */
   if (!env.WHATSAPP_APP_SECRET) return json({ error: "not found" }, 404);
   if (request.method === "GET") {
@@ -932,22 +1091,23 @@ async function handleWhatsappWebhook(request, env, url) {
   if (!safeEqual(request.headers.get("x-hub-signature-256") || "", want)) return json({ ok: false }, 401);
   let body;
   try { body = JSON.parse(raw); } catch { return json({ ok: true }); }
-  try {
-    const entries = (body && body.entry) || [];
-    for (const e of entries) {
-      for (const ch of e.changes || []) {
-        for (const m of (ch.value && ch.value.messages) || []) {
-          const from = m.from;
-          const text = String((m.text && m.text.body) || "").trim();
-          const code = text.match(/([A-Za-z0-9]{6,12})/);
-          if (from && code) {
-            const userId = await linkChannelByCode(env, "whatsapp", code[1], from);
-            try { await sendWhatsapp(env, from, userId ? channelText("ar").linked : channelText("ar").badCode); } catch {}
-          }
+  if (!whatsappConfigured(env) || !env.WORKER_SECRET) return json({ ok: true });
+  /* الرد على Meta فورا والمعالجة بعده: الرد المتاخر يجعلها تعيد الارسال */
+  const work = (async () => {
+    for (const entry of (body && body.entry) || []) {
+      for (const change of entry.changes || []) {
+        const value = change.value || {};
+        if (value.metadata && value.metadata.phone_number_id && String(value.metadata.phone_number_id) !== String(env.WHATSAPP_PHONE_ID)) continue;
+        const names = new Map(((value.contacts) || []).map((contact) => [String(contact.wa_id || ""), (contact.profile && contact.profile.name) || ""]));
+        for (const message of value.messages || []) {
+          if (whatsappAlreadySeen(message.id)) continue;
+          try { await handleWhatsappMessage(env, message, names.get(String(message.from || "")) || ""); }
+          catch (e) { console.error("[whatsapp] message failed:", String((e && e.message) || e).slice(0, 200)); }
         }
       }
     }
-  } catch {}
+  })();
+  if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(work); else await work;
   return json({ ok: true });
 }
 
@@ -1029,7 +1189,7 @@ function runScheduledJobs(env) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -1256,7 +1416,7 @@ async function withNotFoundPage(env, url, res) {
         if (!u) return json({ error: "unauthorized" }, 401);
         return await handleAgentConfirm(request, env, u);
       }
-      if (path === "/api/whatsapp/webhook") return await handleWhatsappWebhook(request, env, url);
+      if (path === "/api/whatsapp/webhook") return await handleWhatsappWebhook(request, env, url, ctx);
       return json({ error: "not found" }, 404);
     } catch (err) {
       return json({ error: "server error" }, 500);
